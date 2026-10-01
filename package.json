@@ -1,0 +1,23 @@
+{
+  "name": "tube2dscript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Turn a written script into a long-form 2D faceless video. Zero AI-generation cost: narration via edge-tts, visuals rendered deterministically with Remotion.",
+  "scripts": {
+    "voice": "py scripts/tts.py",
+    "studio": "remotion studio",
+    "render": "remotion render Main out/video.mp4",
+    "make": "npm run voice && npm run render",
+    "preview": "npm run voice && remotion render Main out/preview.mp4 --frames 0-300"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.418",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.418"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}

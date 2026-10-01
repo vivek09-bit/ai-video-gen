@@ -1,0 +1,76 @@
+{
+  "title": "The Deep Sea",
+  "voice": "en-US-GuyNeural",
+  "rate": "+6%",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "captions": {
+    "enabled": true,
+    "wordsPerCue": 4,
+    "bottom": 0.07,
+    "fontSize": 54,
+    "highlight": true
+  },
+  "theme": {
+    "accent": "#38bdf8",
+    "text": "#ffffff",
+    "muted": "#cbd5e1",
+    "panel": "rgba(3, 7, 18, 0.55)",
+    "headlineFont": "Georgia, 'Times New Roman', serif",
+    "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "headline": "The Deep Sea",
+      "subtext": "A short demo of the tube2dscript pipeline",
+      "narration": "Two thirds of our planet is ocean, and almost all of it is completely dark.",
+      "background": {
+        "type": "gradient",
+        "from": "#04101c",
+        "to": "#0f3352",
+        "angle": 160
+      }
+    },
+    {
+      "id": "pressure",
+      "headline": "Four Thousand Meters Down",
+      "narration": "At four thousand meters, the pressure would crush a steel submarine like a tin can.",
+      "background": {
+        "type": "pattern",
+        "pattern": "grid",
+        "bg": "#061321",
+        "line": "#153a5c"
+      }
+    },
+    {
+      "id": "life",
+      "headline": "Yet Life Finds A Way",
+      "bullets": [
+        "Anglerfish that make their own light",
+        "Giant squid the size of a bus",
+        "Bacteria that feed on bare rock"
+      ],
+      "narration": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock.",
+      "background": {
+        "type": "pattern",
+        "pattern": "dots",
+        "bg": "#071726",
+        "line": "#1e4a70"
+      }
+    },
+    {
+      "id": "mapped",
+      "headline": "We Have Mapped 26%",
+      "subtext": "The rest is a blank page",
+      "narration": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page.",
+      "background": {
+        "type": "gradient",
+        "from": "#0a1a2b",
+        "to": "#020a12",
+        "angle": 200
+      }
+    }
+  ]
+}

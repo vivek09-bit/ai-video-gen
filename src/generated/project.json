@@ -1,0 +1,530 @@
+{
+  "script": {
+    "title": "The Deep Sea",
+    "voice": "en-US-GuyNeural",
+    "rate": "+6%",
+    "pitch": "+0Hz",
+    "volume": "+0%",
+    "fps": 30,
+    "width": 1920,
+    "height": 1080,
+    "tailPaddingSeconds": 1.2,
+    "captions": {
+      "enabled": true,
+      "wordsPerCue": 4,
+      "bottom": 0.07,
+      "fontSize": 54,
+      "uppercase": false,
+      "highlight": true
+    },
+    "music": null,
+    "theme": {
+      "accent": "#38bdf8",
+      "text": "#ffffff",
+      "muted": "#cbd5e1",
+      "panel": "rgba(3, 7, 18, 0.55)",
+      "headlineFont": "Georgia, 'Times New Roman', serif",
+      "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
+    },
+    "scenes": [
+      {
+        "id": "intro",
+        "narration": "Two thirds of our planet is ocean, and almost all of it is completely dark.",
+        "headline": "The Deep Sea",
+        "subtext": "A short demo of the tube2dscript pipeline",
+        "bullets": [],
+        "headlinePosition": "center",
+        "background": {
+          "type": "gradient",
+          "from": "#04101c",
+          "to": "#0f3352",
+          "angle": 160
+        },
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0,
+        "words": 15
+      },
+      {
+        "id": "pressure",
+        "narration": "At four thousand meters, the pressure would crush a steel submarine like a tin can.",
+        "headline": "Four Thousand Meters Down",
+        "subtext": "",
+        "bullets": [],
+        "headlinePosition": "center",
+        "background": {
+          "type": "pattern",
+          "from": "#0b1220",
+          "to": "#132a44",
+          "angle": 160,
+          "pattern": "grid",
+          "bg": "#061321",
+          "line": "#153a5c"
+        },
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0,
+        "words": 15
+      },
+      {
+        "id": "life",
+        "narration": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock.",
+        "headline": "Yet Life Finds A Way",
+        "subtext": "",
+        "bullets": [
+          "Anglerfish that make their own light",
+          "Giant squid the size of a bus",
+          "Bacteria that feed on bare rock"
+        ],
+        "headlinePosition": "center",
+        "background": {
+          "type": "pattern",
+          "from": "#0b1220",
+          "to": "#132a44",
+          "angle": 160,
+          "pattern": "dots",
+          "bg": "#071726",
+          "line": "#1e4a70"
+        },
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0,
+        "words": 24
+      },
+      {
+        "id": "mapped",
+        "narration": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page.",
+        "headline": "We Have Mapped 26%",
+        "subtext": "The rest is a blank page",
+        "bullets": [],
+        "headlinePosition": "center",
+        "background": {
+          "type": "gradient",
+          "from": "#0a1a2b",
+          "to": "#020a12",
+          "angle": 200
+        },
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0,
+        "words": 20
+      }
+    ]
+  },
+  "timings": {
+    "totalDuration": 26.704,
+    "totalWords": 74,
+    "scenes": [
+      {
+        "id": "intro",
+        "index": 0,
+        "start": 0.0,
+        "duration": 5.254,
+        "audioStart": 0.0,
+        "audio": "audio/intro.mp3",
+        "words": [
+          {
+            "text": "Two",
+            "start": 0.0972,
+            "end": 0.2976
+          },
+          {
+            "text": "thirds",
+            "start": 0.3094,
+            "end": 0.6042
+          },
+          {
+            "text": "of",
+            "start": 0.616,
+            "end": 0.6868
+          },
+          {
+            "text": "our",
+            "start": 0.7104,
+            "end": 0.8283
+          },
+          {
+            "text": "planet",
+            "start": 0.8401,
+            "end": 1.1703
+          },
+          {
+            "text": "is",
+            "start": 1.1939,
+            "end": 1.3236
+          },
+          {
+            "text": "ocean",
+            "start": 1.3472,
+            "end": 1.6656
+          },
+          {
+            "text": "and",
+            "start": 1.9132,
+            "end": 2.0193
+          },
+          {
+            "text": "almost",
+            "start": 2.0429,
+            "end": 2.3967
+          },
+          {
+            "text": "all",
+            "start": 2.4203,
+            "end": 2.609
+          },
+          {
+            "text": "of",
+            "start": 2.6325,
+            "end": 2.7269
+          },
+          {
+            "text": "it",
+            "start": 2.7387,
+            "end": 2.833
+          },
+          {
+            "text": "is",
+            "start": 2.8448,
+            "end": 2.9627
+          },
+          {
+            "text": "completely",
+            "start": 2.9745,
+            "end": 3.458
+          },
+          {
+            "text": "dark",
+            "start": 3.4698,
+            "end": 3.859
+          }
+        ]
+      },
+      {
+        "id": "pressure",
+        "index": 1,
+        "start": 5.254,
+        "duration": 5.494,
+        "audioStart": 5.254,
+        "audio": "audio/pressure.mp3",
+        "words": [
+          {
+            "text": "At",
+            "start": 0.0972,
+            "end": 0.2622
+          },
+          {
+            "text": "four",
+            "start": 0.2858,
+            "end": 0.4863
+          },
+          {
+            "text": "thousand",
+            "start": 0.5099,
+            "end": 0.8519
+          },
+          {
+            "text": "meters",
+            "start": 0.8755,
+            "end": 1.2175
+          },
+          {
+            "text": "the",
+            "start": 1.4179,
+            "end": 1.5358
+          },
+          {
+            "text": "pressure",
+            "start": 1.5594,
+            "end": 1.9014
+          },
+          {
+            "text": "would",
+            "start": 1.925,
+            "end": 2.0429
+          },
+          {
+            "text": "crush",
+            "start": 2.0665,
+            "end": 2.3141
+          },
+          {
+            "text": "a",
+            "start": 2.3378,
+            "end": 2.3967
+          },
+          {
+            "text": "steel",
+            "start": 2.4203,
+            "end": 2.6915
+          },
+          {
+            "text": "submarine",
+            "start": 2.7151,
+            "end": 3.2457
+          },
+          {
+            "text": "like",
+            "start": 3.2693,
+            "end": 3.4108
+          },
+          {
+            "text": "a",
+            "start": 3.4226,
+            "end": 3.4816
+          },
+          {
+            "text": "tin",
+            "start": 3.4934,
+            "end": 3.7057
+          },
+          {
+            "text": "can",
+            "start": 3.7292,
+            "end": 4.0948
+          }
+        ]
+      },
+      {
+        "id": "life",
+        "index": 2,
+        "start": 10.748,
+        "duration": 8.71,
+        "audioStart": 10.748,
+        "audio": "audio/life.mp3",
+        "words": [
+          {
+            "text": "Yet",
+            "start": 0.0972,
+            "end": 0.3448
+          },
+          {
+            "text": "life",
+            "start": 0.3684,
+            "end": 0.6042
+          },
+          {
+            "text": "survives",
+            "start": 0.6278,
+            "end": 1.1231
+          },
+          {
+            "text": "here",
+            "start": 1.1467,
+            "end": 1.5123
+          },
+          {
+            "text": "Anglerfish",
+            "start": 2.3349,
+            "end": 2.8656
+          },
+          {
+            "text": "that",
+            "start": 2.8892,
+            "end": 3.0307
+          },
+          {
+            "text": "make",
+            "start": 3.0543,
+            "end": 3.2075
+          },
+          {
+            "text": "their",
+            "start": 3.2311,
+            "end": 3.3844
+          },
+          {
+            "text": "own",
+            "start": 3.408,
+            "end": 3.5259
+          },
+          {
+            "text": "light",
+            "start": 3.5495,
+            "end": 3.7736
+          },
+          {
+            "text": "giant",
+            "start": 3.9623,
+            "end": 4.257
+          },
+          {
+            "text": "squid",
+            "start": 4.2689,
+            "end": 4.5165
+          },
+          {
+            "text": "the",
+            "start": 4.5401,
+            "end": 4.6226
+          },
+          {
+            "text": "size",
+            "start": 4.6462,
+            "end": 4.9174
+          },
+          {
+            "text": "of",
+            "start": 4.941,
+            "end": 5.0
+          },
+          {
+            "text": "a",
+            "start": 5.0118,
+            "end": 5.0707
+          },
+          {
+            "text": "bus",
+            "start": 5.0825,
+            "end": 5.3773
+          },
+          {
+            "text": "and",
+            "start": 5.6014,
+            "end": 5.7075
+          },
+          {
+            "text": "bacteria",
+            "start": 5.7311,
+            "end": 6.2146
+          },
+          {
+            "text": "that",
+            "start": 6.2382,
+            "end": 6.3679
+          },
+          {
+            "text": "feed",
+            "start": 6.3915,
+            "end": 6.6155
+          },
+          {
+            "text": "on",
+            "start": 6.6392,
+            "end": 6.7571
+          },
+          {
+            "text": "bare",
+            "start": 6.7807,
+            "end": 6.9811
+          },
+          {
+            "text": "rock",
+            "start": 7.0047,
+            "end": 7.3349
+          }
+        ]
+      },
+      {
+        "id": "mapped",
+        "index": 3,
+        "start": 19.458,
+        "duration": 7.246,
+        "audioStart": 19.458,
+        "audio": "audio/mapped.mp3",
+        "words": [
+          {
+            "text": "We",
+            "start": 0.0972,
+            "end": 0.2505
+          },
+          {
+            "text": "have",
+            "start": 0.274,
+            "end": 0.392
+          },
+          {
+            "text": "mapped",
+            "start": 0.4156,
+            "end": 0.6986
+          },
+          {
+            "text": "only",
+            "start": 0.7222,
+            "end": 0.9698
+          },
+          {
+            "text": "twenty",
+            "start": 0.9816,
+            "end": 1.3
+          },
+          {
+            "text": "six",
+            "start": 1.3236,
+            "end": 1.5594
+          },
+          {
+            "text": "percent",
+            "start": 1.5712,
+            "end": 1.925
+          },
+          {
+            "text": "of",
+            "start": 1.9486,
+            "end": 2.0193
+          },
+          {
+            "text": "the",
+            "start": 2.0429,
+            "end": 2.1372
+          },
+          {
+            "text": "sea",
+            "start": 2.1608,
+            "end": 2.3613
+          },
+          {
+            "text": "floor",
+            "start": 2.3849,
+            "end": 2.6679
+          },
+          {
+            "text": "in",
+            "start": 2.6797,
+            "end": 2.7622
+          },
+          {
+            "text": "detail",
+            "start": 2.7858,
+            "end": 3.3165
+          },
+          {
+            "text": "The",
+            "start": 4.151,
+            "end": 4.2807
+          },
+          {
+            "text": "rest",
+            "start": 4.3042,
+            "end": 4.6108
+          },
+          {
+            "text": "is",
+            "start": 4.6344,
+            "end": 4.7523
+          },
+          {
+            "text": "still",
+            "start": 4.776,
+            "end": 5.0118
+          },
+          {
+            "text": "a",
+            "start": 5.0354,
+            "end": 5.0943
+          },
+          {
+            "text": "blank",
+            "start": 5.1061,
+            "end": 5.4009
+          },
+          {
+            "text": "page",
+            "start": 5.4127,
+            "end": 5.8609
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+out/
+.remotion/
+*.log
+
+# Generated narration audio (re-created by `npm run voice`)
+public/audio/
