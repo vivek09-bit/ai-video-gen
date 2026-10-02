@@ -99,19 +99,30 @@ export const Main: React.FC<Project> = ({script, timings}) => {
               durationInFrames={sceneFrames}
               theme={script.theme}
               captions={script.captions}
+              characters={script.characters ?? {}}
             />
           </Sequence>
         );
       })}
 
-      {/* Narration sits in its own sequence so it can scale to any number of scenes. */}
-      {timings.scenes.map((timing) =>
-        timing.audio ? (
-          <Sequence key={`voice-${timing.id}`} from={Math.round(timing.audioStart * fps)}>
-            <Audio src={staticFile(timing.audio)} />
-          </Sequence>
-        ) : null,
-      )}
+      {/* Narration. Each spoken line is placed at its own absolute start, which
+          is what lets several characters talk in turn inside one scene. */}
+      {timings.scenes.flatMap((timing) => {
+        const lines =
+          timing.lines && timing.lines.length > 0
+            ? timing.lines
+            : timing.audio
+              ? [{audio: timing.audio, start: timing.audioStart}]
+              : [];
+
+        return lines.map((line, i) =>
+          line.audio ? (
+            <Sequence key={`voice-${timing.id}-${i}`} from={Math.round(line.start * fps)}>
+              <Audio src={staticFile(line.audio)} />
+            </Sequence>
+          ) : null,
+        );
+      })}
 
       {script.music ? (
         <Audio

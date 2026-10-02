@@ -1,0 +1,419 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "probe-shell",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Write-Host TASK_RUNNER_OK; Write-Host (Get-Location).Path"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-voice-stack",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-kokoro",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-g2p-probe",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-extra-deps",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-python312-kokoro",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force setup.ps1 -ErrorAction SilentlyContinue; Move-Item -Force scripts\\_setup_new.ps1 setup.ps1; & .\\setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-staged-install",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-venv-pip",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"setup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-attrs-verify",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .\\setup.ps1 2>&1 | Select-Object -Last 25"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "setup-phonemizer",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PYTHONIOENCODING='utf-8'; & .\\setup.ps1 2>&1 | Select-Object -Last 22"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-kokoro",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\verify_kokoro.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-tokens",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PYTHONIOENCODING='utf-8'; & .venv\\Scripts\\python.exe scripts\\probe_tokens.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "rhubarb-test",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$r='tools\\rhubarb\\Rhubarb-Lip-Sync-1.14.0-Windows\\rhubarb.exe'; & $r --help; Write-Host '=== RUN ON KOKORO AUDIO ==='; & $r -f json -o out\\_rhubarb_test.json -r phonetic out\\_kokoro_check.wav; Write-Host '=== OUTPUT ==='; Get-Content out\\_rhubarb_test.json -Raw"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "rhubarb-json-test",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_test_rhubarb.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "swap-and-compile",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force scripts\\tts.py; Move-Item scripts\\_tts_new.py scripts\\tts.py; Remove-Item -Force scripts\\probe_g2p.py,scripts\\probe_tokens.py,scripts\\_test_rhubarb.ps1; & .venv\\Scripts\\python.exe -m py_compile scripts\\tts.py; Write-Host \"compile-exit=$LASTEXITCODE\"; & .venv\\Scripts\\python.exe scripts\\tts.py --voices"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "make-character-dir",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"New-Item -ItemType Directory -Force -Path src\\components\\character | Out-Null; Write-Host \"created\"; Get-ChildItem src\\components -Recurse | Select-Object -ExpandProperty FullName"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "clear-character",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force src\\components\\character\\Character.tsx; Test-Path src\\components\\character\\Character.tsx"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "clean-stale",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force script.json; Remove-Item -Recurse -Force public\\audio -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Force -Path public\\audio | Out-Null; Remove-Item -Force src\\generated\\project.json -ErrorAction SilentlyContinue; Write-Host \"cleaned\"; Get-ChildItem -Recurse public,src\\generated -File | Select-Object -ExpandProperty FullName"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "run-kokoro-tts",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PYTHONIOENCODING=\"utf-8\"; & .venv\\Scripts\\python.exe scripts\\tts.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "typecheck",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"npx tsc --noEmit; Write-Host \"tsc-exit=$LASTEXITCODE\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check-timeline",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PYTHONIOENCODING=\"utf-8\"; & .venv\\Scripts\\python.exe scripts\\_check.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "render-character",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"npx remotion render Main out/video.mp4 2>&1 | Select-Object -Last 8"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-render",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe -m pip install --disable-pip-version-check --quiet pillow; & scripts\\_verify.ps1; & .venv\\Scripts\\python.exe scripts\\_verify.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-structure",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\_verify2.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "cleanup-probes",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force scripts\\_check.py,scripts\\_verify.py,scripts\\_verify2.py,scripts\\_verify.ps1,scripts\\from_txt.py,README.md -ErrorAction SilentlyContinue; Remove-Item -Force out\\*.png,out\\_kokoro_check.wav,public\\audio\\*.mouth.json,public\\audio\\*.dialog.txt -ErrorAction SilentlyContinue; Write-Host \"cleaned\"; Write-Host \"--- scripts ---\"; Get-ChildItem scripts -File | Select-Object -ExpandProperty Name; Write-Host \"--- audio ---\"; Get-ChildItem public\\audio | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-from-txt",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$env:PYTHONIOENCODING=\"utf-8\"; & .venv\\Scripts\\python.exe scripts\\from_txt.py out\\_t.txt -o out\\_t.json; Write-Host \"exit=$LASTEXITCODE\"; Get-Content out\\_t.json -Raw"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-from-txt-2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\from_txt.py out\\_t.txt -o out\\_t.json; Write-Host \"exit=$LASTEXITCODE\"; Get-Content out\\_t.json -Raw"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "final-verify",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force out\\_t.txt,out\\_t.json -ErrorAction SilentlyContinue; Write-Host \"=== npm run voice (cache path) ===\"; npm run voice --silent 2>&1 | Select-Object -Last 9; Write-Host \"`n=== typecheck ===\"; npx tsc --noEmit; Write-Host \"tsc-exit=$LASTEXITCODE\"; Write-Host \"`n=== output ===\"; Get-ChildItem out | Select-Object Name,@{n='MB';e={[math]::Round($_.Length/1MB,2)}}; Write-Host \"`n=== project files ===\"; Get-ChildItem -Recurse -File | Where-Object { $_.FullName -notmatch 'node_modules' -and $_.FullName -notmatch '\\\\out\\\\' -and $_.FullName -notmatch '\\\\.venv' -and $_.FullName -notmatch '\\\\tools\\\\' } | ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\\','') } | Sort-Object"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "final-check",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_final.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "final-check-2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_final.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "list-final",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force scripts\\_final.ps1; Remove-Item -Recurse -Force scripts\\__pycache__ -ErrorAction SilentlyContinue; $root=(Get-Location).Path; Get-ChildItem -Recurse -File | Where-Object { $_.FullName -notmatch 'node_modules' -and $_.FullName -notmatch '\\out\\' -and $_.FullName -notmatch '\\\\.venv' -and $_.FullName -notmatch '\\\\tools' -and $_.FullName -notmatch '\\\\\\.git\\\\' } | ForEach-Object { $_.FullName.Replace(\"$root\\\",\"\") } | Sort-Object"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "cleanup-done",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force scripts\\_final.ps1 -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force scripts\\__pycache__ -ErrorAction SilentlyContinue; Write-Host cleaned; Get-ChildItem scripts -File | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		}
+	]
+}

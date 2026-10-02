@@ -1,18 +1,17 @@
 {
   "script": {
     "title": "The Deep Sea",
-    "voice": "en-US-GuyNeural",
-    "rate": "+6%",
-    "pitch": "+0Hz",
-    "volume": "+0%",
+    "voice": "bm_george",
+    "speed": 1.0,
     "fps": 30,
     "width": 1920,
     "height": 1080,
     "tailPaddingSeconds": 1.2,
+    "sentencePauseSeconds": 0.18,
     "captions": {
       "enabled": true,
       "wordsPerCue": 4,
-      "bottom": 0.07,
+      "bottom": 0.06,
       "fontSize": 54,
       "uppercase": false,
       "highlight": true
@@ -26,10 +25,46 @@
       "headlineFont": "Georgia, 'Times New Roman', serif",
       "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
     },
+    "characters": {
+      "maya": {
+        "name": "Maya",
+        "voice": "af_heart",
+        "palette": {
+          "skin": "#f0c49a",
+          "skinShade": "#dba87c",
+          "hair": "#2f2a3a",
+          "shirt": "#e0653f",
+          "accent": "#ffd166",
+          "outline": "#232a33"
+        },
+        "hairstyle": "bun",
+        "accessory": "none"
+      },
+      "sam": {
+        "name": "Sam",
+        "voice": "am_michael",
+        "palette": {
+          "skin": "#c98d63",
+          "skinShade": "#ad7450",
+          "hair": "#1f1b18",
+          "shirt": "#3f6f8f",
+          "accent": "#8ed1fc",
+          "outline": "#232a33"
+        },
+        "hairstyle": "short",
+        "accessory": "glasses"
+      }
+    },
     "scenes": [
       {
         "id": "intro",
-        "narration": "Two thirds of our planet is ocean, and almost all of it is completely dark.",
+        "narration": "",
+        "lines": [
+          {
+            "character": "maya",
+            "text": "Two thirds of our planet is ocean, and almost all of it is completely dark."
+          }
+        ],
         "headline": "The Deep Sea",
         "subtext": "A short demo of the tube2dscript pipeline",
         "bullets": [],
@@ -40,14 +75,30 @@
           "to": "#0f3352",
           "angle": 160
         },
+        "cast": [
+          {
+            "id": "maya",
+            "x": 0.5,
+            "scale": 1
+          }
+        ],
         "padBefore": 0.0,
         "padAfter": 0.55,
-        "holdSeconds": 3.0,
-        "words": 15
+        "holdSeconds": 3.0
       },
       {
-        "id": "pressure",
-        "narration": "At four thousand meters, the pressure would crush a steel submarine like a tin can.",
+        "id": "dialogue",
+        "narration": "",
+        "lines": [
+          {
+            "character": "sam",
+            "text": "At four thousand meters, the pressure would crush a steel submarine like a tin can."
+          },
+          {
+            "character": "maya",
+            "text": "And yet something down there is making its own light."
+          }
+        ],
         "headline": "Four Thousand Meters Down",
         "subtext": "",
         "bullets": [],
@@ -61,14 +112,32 @@
           "bg": "#061321",
           "line": "#153a5c"
         },
+        "cast": [
+          {
+            "id": "maya",
+            "x": 0.29,
+            "scale": 0.92,
+            "flip": true
+          },
+          {
+            "id": "sam",
+            "x": 0.71,
+            "scale": 0.92
+          }
+        ],
         "padBefore": 0.0,
         "padAfter": 0.55,
-        "holdSeconds": 3.0,
-        "words": 15
+        "holdSeconds": 3.0
       },
       {
         "id": "life",
-        "narration": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock.",
+        "narration": "",
+        "lines": [
+          {
+            "character": null,
+            "text": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock."
+          }
+        ],
         "headline": "Yet Life Finds A Way",
         "subtext": "",
         "bullets": [
@@ -86,16 +155,22 @@
           "bg": "#071726",
           "line": "#1e4a70"
         },
+        "cast": [],
         "padBefore": 0.0,
         "padAfter": 0.55,
-        "holdSeconds": 3.0,
-        "words": 24
+        "holdSeconds": 3.0
       },
       {
-        "id": "mapped",
-        "narration": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page.",
+        "id": "outro",
+        "narration": "",
+        "lines": [
+          {
+            "character": "sam",
+            "text": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page."
+          }
+        ],
         "headline": "We Have Mapped 26%",
-        "subtext": "The rest is a blank page",
+        "subtext": "The rest is still a blank page",
         "bullets": [],
         "headlinePosition": "center",
         "background": {
@@ -104,424 +179,1963 @@
           "to": "#020a12",
           "angle": 200
         },
+        "cast": [
+          {
+            "id": "sam",
+            "x": 0.5,
+            "scale": 1
+          }
+        ],
         "padBefore": 0.0,
         "padAfter": 0.55,
-        "holdSeconds": 3.0,
-        "words": 20
+        "holdSeconds": 3.0
       }
     ]
   },
   "timings": {
-    "totalDuration": 26.704,
-    "totalWords": 74,
+    "totalDuration": 33.91,
+    "totalWords": 84,
     "scenes": [
       {
         "id": "intro",
         "index": 0,
         "start": 0.0,
-        "duration": 5.254,
+        "duration": 5.575,
         "audioStart": 0.0,
-        "audio": "audio/intro.mp3",
+        "audio": "audio/intro.wav",
         "words": [
           {
             "text": "Two",
-            "start": 0.0972,
-            "end": 0.2976
+            "start": 0.0,
+            "end": 0.2209
           },
           {
             "text": "thirds",
-            "start": 0.3094,
-            "end": 0.6042
+            "start": 0.2209,
+            "end": 0.6458
           },
           {
             "text": "of",
-            "start": 0.616,
-            "end": 0.6868
+            "start": 0.6458,
+            "end": 0.8271
           },
           {
             "text": "our",
-            "start": 0.7104,
-            "end": 0.8283
+            "start": 0.8271,
+            "end": 1.116
           },
           {
             "text": "planet",
-            "start": 0.8401,
-            "end": 1.1703
+            "start": 1.116,
+            "end": 1.6542
           },
           {
             "text": "is",
-            "start": 1.1939,
-            "end": 1.3236
+            "start": 1.6542,
+            "end": 1.8355
           },
           {
             "text": "ocean",
-            "start": 1.3472,
-            "end": 1.6656
+            "start": 1.8355,
+            "end": 2.2377
+          },
+          {
+            "text": ",",
+            "start": 2.2377,
+            "end": 2.2831
           },
           {
             "text": "and",
-            "start": 1.9132,
-            "end": 2.0193
+            "start": 2.2831,
+            "end": 2.5323
           },
           {
             "text": "almost",
-            "start": 2.0429,
-            "end": 2.3967
+            "start": 2.5323,
+            "end": 3.0705
           },
           {
             "text": "all",
-            "start": 2.4203,
-            "end": 2.609
+            "start": 3.0705,
+            "end": 3.2915
           },
           {
             "text": "of",
-            "start": 2.6325,
-            "end": 2.7269
+            "start": 3.2915,
+            "end": 3.4727
           },
           {
             "text": "it",
-            "start": 2.7387,
-            "end": 2.833
+            "start": 3.4727,
+            "end": 3.654
           },
           {
             "text": "is",
-            "start": 2.8448,
-            "end": 2.9627
+            "start": 3.654,
+            "end": 3.8353
           },
           {
             "text": "completely",
-            "start": 2.9745,
-            "end": 3.458
+            "start": 3.8353,
+            "end": 4.6228
           },
           {
             "text": "dark",
-            "start": 3.4698,
-            "end": 3.859
+            "start": 4.6228,
+            "end": 4.9797
+          },
+          {
+            "text": ".",
+            "start": 4.9797,
+            "end": 5.025
+          }
+        ],
+        "lines": [
+          {
+            "characterId": "maya",
+            "audio": "audio/intro.wav",
+            "start": 0.0,
+            "duration": 5.025,
+            "words": [
+              {
+                "text": "Two",
+                "start": 0.0,
+                "end": 0.2209
+              },
+              {
+                "text": "thirds",
+                "start": 0.2209,
+                "end": 0.6458
+              },
+              {
+                "text": "of",
+                "start": 0.6458,
+                "end": 0.8271
+              },
+              {
+                "text": "our",
+                "start": 0.8271,
+                "end": 1.116
+              },
+              {
+                "text": "planet",
+                "start": 1.116,
+                "end": 1.6542
+              },
+              {
+                "text": "is",
+                "start": 1.6542,
+                "end": 1.8355
+              },
+              {
+                "text": "ocean",
+                "start": 1.8355,
+                "end": 2.2377
+              },
+              {
+                "text": ",",
+                "start": 2.2377,
+                "end": 2.2831
+              },
+              {
+                "text": "and",
+                "start": 2.2831,
+                "end": 2.5323
+              },
+              {
+                "text": "almost",
+                "start": 2.5323,
+                "end": 3.0705
+              },
+              {
+                "text": "all",
+                "start": 3.0705,
+                "end": 3.2915
+              },
+              {
+                "text": "of",
+                "start": 3.2915,
+                "end": 3.4727
+              },
+              {
+                "text": "it",
+                "start": 3.4727,
+                "end": 3.654
+              },
+              {
+                "text": "is",
+                "start": 3.654,
+                "end": 3.8353
+              },
+              {
+                "text": "completely",
+                "start": 3.8353,
+                "end": 4.6228
+              },
+              {
+                "text": "dark",
+                "start": 4.6228,
+                "end": 4.9797
+              },
+              {
+                "text": ".",
+                "start": 4.9797,
+                "end": 5.025
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.26,
+                "value": "X"
+              },
+              {
+                "start": 0.26,
+                "end": 0.48,
+                "value": "F"
+              },
+              {
+                "start": 0.48,
+                "end": 0.83,
+                "value": "B"
+              },
+              {
+                "start": 0.83,
+                "end": 0.9,
+                "value": "G"
+              },
+              {
+                "start": 0.9,
+                "end": 0.97,
+                "value": "D"
+              },
+              {
+                "start": 0.97,
+                "end": 1.11,
+                "value": "A"
+              },
+              {
+                "start": 1.11,
+                "end": 1.18,
+                "value": "B"
+              },
+              {
+                "start": 1.18,
+                "end": 1.32,
+                "value": "C"
+              },
+              {
+                "start": 1.32,
+                "end": 1.6,
+                "value": "B"
+              },
+              {
+                "start": 1.6,
+                "end": 1.67,
+                "value": "E"
+              },
+              {
+                "start": 1.67,
+                "end": 1.74,
+                "value": "F"
+              },
+              {
+                "start": 1.74,
+                "end": 1.88,
+                "value": "B"
+              },
+              {
+                "start": 1.88,
+                "end": 2.09,
+                "value": "C"
+              },
+              {
+                "start": 2.09,
+                "end": 2.39,
+                "value": "B"
+              },
+              {
+                "start": 2.39,
+                "end": 2.46,
+                "value": "C"
+              },
+              {
+                "start": 2.46,
+                "end": 2.6,
+                "value": "D"
+              },
+              {
+                "start": 2.6,
+                "end": 2.67,
+                "value": "C"
+              },
+              {
+                "start": 2.67,
+                "end": 2.75,
+                "value": "A"
+              },
+              {
+                "start": 2.75,
+                "end": 2.86,
+                "value": "B"
+              },
+              {
+                "start": 2.86,
+                "end": 3.07,
+                "value": "E"
+              },
+              {
+                "start": 3.07,
+                "end": 3.21,
+                "value": "F"
+              },
+              {
+                "start": 3.21,
+                "end": 3.63,
+                "value": "B"
+              },
+              {
+                "start": 3.63,
+                "end": 3.72,
+                "value": "A"
+              },
+              {
+                "start": 3.72,
+                "end": 4.11,
+                "value": "B"
+              },
+              {
+                "start": 4.11,
+                "end": 4.32,
+                "value": "D"
+              },
+              {
+                "start": 4.32,
+                "end": 4.39,
+                "value": "E"
+              },
+              {
+                "start": 4.39,
+                "end": 4.6,
+                "value": "C"
+              },
+              {
+                "start": 4.6,
+                "end": 5.02,
+                "value": "X"
+              }
+            ]
           }
         ]
       },
       {
-        "id": "pressure",
+        "id": "dialogue",
         "index": 1,
-        "start": 5.254,
-        "duration": 5.494,
-        "audioStart": 5.254,
-        "audio": "audio/pressure.mp3",
+        "start": 5.575,
+        "duration": 9.75,
+        "audioStart": 5.575,
+        "audio": "audio/dialogue-1.wav",
         "words": [
           {
             "text": "At",
-            "start": 0.0972,
-            "end": 0.2622
+            "start": 0.0,
+            "end": 0.2523
           },
           {
             "text": "four",
-            "start": 0.2858,
-            "end": 0.4863
+            "start": 0.2523,
+            "end": 0.5822
           },
           {
             "text": "thousand",
-            "start": 0.5099,
-            "end": 0.8519
+            "start": 0.5822,
+            "end": 1.1451
           },
           {
             "text": "meters",
-            "start": 0.8755,
-            "end": 1.2175
+            "start": 1.1451,
+            "end": 1.7596
+          },
+          {
+            "text": ",",
+            "start": 1.7596,
+            "end": 1.8114
           },
           {
             "text": "the",
-            "start": 1.4179,
-            "end": 1.5358
+            "start": 1.8114,
+            "end": 2.0184
           },
           {
             "text": "pressure",
-            "start": 1.5594,
-            "end": 1.9014
+            "start": 2.0184,
+            "end": 2.633
           },
           {
             "text": "would",
-            "start": 1.925,
-            "end": 2.0429
+            "start": 2.633,
+            "end": 2.9177
           },
           {
             "text": "crush",
-            "start": 2.0665,
-            "end": 2.3141
+            "start": 2.9177,
+            "end": 3.3252
           },
           {
             "text": "a",
-            "start": 2.3378,
-            "end": 2.3967
+            "start": 3.3252,
+            "end": 3.4546
           },
           {
             "text": "steel",
-            "start": 2.4203,
-            "end": 2.6915
+            "start": 3.4546,
+            "end": 3.8622
           },
           {
             "text": "submarine",
-            "start": 2.7151,
-            "end": 3.2457
+            "start": 3.8622,
+            "end": 4.7291
           },
           {
             "text": "like",
-            "start": 3.2693,
-            "end": 3.4108
+            "start": 4.7291,
+            "end": 5.059
           },
           {
             "text": "a",
-            "start": 3.4226,
-            "end": 3.4816
+            "start": 5.059,
+            "end": 5.1884
           },
           {
             "text": "tin",
-            "start": 3.4934,
-            "end": 3.7057
+            "start": 5.1884,
+            "end": 5.5183
           },
           {
             "text": "can",
-            "start": 3.7292,
-            "end": 4.0948
+            "start": 5.5183,
+            "end": 5.8482
+          },
+          {
+            "text": ".",
+            "start": 5.8482,
+            "end": 5.9
+          },
+          {
+            "text": "And",
+            "start": 5.9,
+            "end": 6.2071
+          },
+          {
+            "text": "yet",
+            "start": 6.2071,
+            "end": 6.5142
+          },
+          {
+            "text": "something",
+            "start": 6.5142,
+            "end": 7.1285
+          },
+          {
+            "text": "down",
+            "start": 7.1285,
+            "end": 7.3874
+          },
+          {
+            "text": "there",
+            "start": 7.3874,
+            "end": 7.6524
+          },
+          {
+            "text": "is",
+            "start": 7.6524,
+            "end": 7.8451
+          },
+          {
+            "text": "making",
+            "start": 7.8451,
+            "end": 8.3449
+          },
+          {
+            "text": "its",
+            "start": 8.3449,
+            "end": 8.6099
+          },
+          {
+            "text": "own",
+            "start": 8.6099,
+            "end": 8.8447
+          },
+          {
+            "text": "light",
+            "start": 8.8447,
+            "end": 9.1518
+          },
+          {
+            "text": ".",
+            "start": 9.1518,
+            "end": 9.2
+          }
+        ],
+        "lines": [
+          {
+            "characterId": "sam",
+            "audio": "audio/dialogue-1.wav",
+            "start": 5.575,
+            "duration": 5.9,
+            "words": [
+              {
+                "text": "At",
+                "start": 0.0,
+                "end": 0.2523
+              },
+              {
+                "text": "four",
+                "start": 0.2523,
+                "end": 0.5822
+              },
+              {
+                "text": "thousand",
+                "start": 0.5822,
+                "end": 1.1451
+              },
+              {
+                "text": "meters",
+                "start": 1.1451,
+                "end": 1.7596
+              },
+              {
+                "text": ",",
+                "start": 1.7596,
+                "end": 1.8114
+              },
+              {
+                "text": "the",
+                "start": 1.8114,
+                "end": 2.0184
+              },
+              {
+                "text": "pressure",
+                "start": 2.0184,
+                "end": 2.633
+              },
+              {
+                "text": "would",
+                "start": 2.633,
+                "end": 2.9177
+              },
+              {
+                "text": "crush",
+                "start": 2.9177,
+                "end": 3.3252
+              },
+              {
+                "text": "a",
+                "start": 3.3252,
+                "end": 3.4546
+              },
+              {
+                "text": "steel",
+                "start": 3.4546,
+                "end": 3.8622
+              },
+              {
+                "text": "submarine",
+                "start": 3.8622,
+                "end": 4.7291
+              },
+              {
+                "text": "like",
+                "start": 4.7291,
+                "end": 5.059
+              },
+              {
+                "text": "a",
+                "start": 5.059,
+                "end": 5.1884
+              },
+              {
+                "text": "tin",
+                "start": 5.1884,
+                "end": 5.5183
+              },
+              {
+                "text": "can",
+                "start": 5.5183,
+                "end": 5.8482
+              },
+              {
+                "text": ".",
+                "start": 5.8482,
+                "end": 5.9
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.3,
+                "value": "X"
+              },
+              {
+                "start": 0.3,
+                "end": 0.35,
+                "value": "B"
+              },
+              {
+                "start": 0.35,
+                "end": 0.39,
+                "value": "C"
+              },
+              {
+                "start": 0.39,
+                "end": 0.53,
+                "value": "B"
+              },
+              {
+                "start": 0.53,
+                "end": 0.67,
+                "value": "G"
+              },
+              {
+                "start": 0.67,
+                "end": 0.81,
+                "value": "E"
+              },
+              {
+                "start": 0.81,
+                "end": 0.95,
+                "value": "B"
+              },
+              {
+                "start": 0.95,
+                "end": 1.02,
+                "value": "C"
+              },
+              {
+                "start": 1.02,
+                "end": 1.09,
+                "value": "E"
+              },
+              {
+                "start": 1.09,
+                "end": 1.44,
+                "value": "B"
+              },
+              {
+                "start": 1.44,
+                "end": 1.65,
+                "value": "E"
+              },
+              {
+                "start": 1.65,
+                "end": 1.79,
+                "value": "B"
+              },
+              {
+                "start": 1.79,
+                "end": 2.07,
+                "value": "X"
+              },
+              {
+                "start": 2.07,
+                "end": 2.15,
+                "value": "B"
+              },
+              {
+                "start": 2.15,
+                "end": 2.29,
+                "value": "A"
+              },
+              {
+                "start": 2.29,
+                "end": 2.34,
+                "value": "B"
+              },
+              {
+                "start": 2.34,
+                "end": 2.39,
+                "value": "C"
+              },
+              {
+                "start": 2.39,
+                "end": 2.53,
+                "value": "B"
+              },
+              {
+                "start": 2.53,
+                "end": 2.6,
+                "value": "E"
+              },
+              {
+                "start": 2.6,
+                "end": 2.67,
+                "value": "F"
+              },
+              {
+                "start": 2.67,
+                "end": 2.95,
+                "value": "B"
+              },
+              {
+                "start": 2.95,
+                "end": 3.02,
+                "value": "D"
+              },
+              {
+                "start": 3.02,
+                "end": 3.37,
+                "value": "B"
+              },
+              {
+                "start": 3.37,
+                "end": 3.58,
+                "value": "F"
+              },
+              {
+                "start": 3.58,
+                "end": 3.72,
+                "value": "B"
+              },
+              {
+                "start": 3.72,
+                "end": 3.79,
+                "value": "E"
+              },
+              {
+                "start": 3.79,
+                "end": 3.95,
+                "value": "A"
+              },
+              {
+                "start": 3.95,
+                "end": 4.0,
+                "value": "E"
+              },
+              {
+                "start": 4.0,
+                "end": 4.05,
+                "value": "F"
+              },
+              {
+                "start": 4.05,
+                "end": 4.19,
+                "value": "B"
+              },
+              {
+                "start": 4.19,
+                "end": 4.33,
+                "value": "A"
+              },
+              {
+                "start": 4.33,
+                "end": 4.4,
+                "value": "C"
+              },
+              {
+                "start": 4.4,
+                "end": 4.81,
+                "value": "B"
+              },
+              {
+                "start": 4.81,
+                "end": 5.09,
+                "value": "C"
+              },
+              {
+                "start": 5.09,
+                "end": 5.3,
+                "value": "B"
+              },
+              {
+                "start": 5.3,
+                "end": 5.9,
+                "value": "X"
+              }
+            ]
+          },
+          {
+            "characterId": "maya",
+            "audio": "audio/dialogue-2.wav",
+            "start": 11.475,
+            "duration": 3.3,
+            "words": [
+              {
+                "text": "And",
+                "start": 0.0,
+                "end": 0.3071
+              },
+              {
+                "text": "yet",
+                "start": 0.3071,
+                "end": 0.6142
+              },
+              {
+                "text": "something",
+                "start": 0.6142,
+                "end": 1.2285
+              },
+              {
+                "text": "down",
+                "start": 1.2285,
+                "end": 1.4874
+              },
+              {
+                "text": "there",
+                "start": 1.4874,
+                "end": 1.7524
+              },
+              {
+                "text": "is",
+                "start": 1.7524,
+                "end": 1.9451
+              },
+              {
+                "text": "making",
+                "start": 1.9451,
+                "end": 2.4449
+              },
+              {
+                "text": "its",
+                "start": 2.4449,
+                "end": 2.7099
+              },
+              {
+                "text": "own",
+                "start": 2.7099,
+                "end": 2.9447
+              },
+              {
+                "text": "light",
+                "start": 2.9447,
+                "end": 3.2518
+              },
+              {
+                "text": ".",
+                "start": 3.2518,
+                "end": 3.3
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.3,
+                "value": "X"
+              },
+              {
+                "start": 0.3,
+                "end": 0.58,
+                "value": "C"
+              },
+              {
+                "start": 0.58,
+                "end": 0.93,
+                "value": "B"
+              },
+              {
+                "start": 0.93,
+                "end": 1.21,
+                "value": "C"
+              },
+              {
+                "start": 1.21,
+                "end": 1.28,
+                "value": "B"
+              },
+              {
+                "start": 1.28,
+                "end": 1.35,
+                "value": "C"
+              },
+              {
+                "start": 1.35,
+                "end": 1.49,
+                "value": "E"
+              },
+              {
+                "start": 1.49,
+                "end": 1.67,
+                "value": "C"
+              },
+              {
+                "start": 1.67,
+                "end": 1.78,
+                "value": "B"
+              },
+              {
+                "start": 1.78,
+                "end": 1.92,
+                "value": "C"
+              },
+              {
+                "start": 1.92,
+                "end": 2.13,
+                "value": "B"
+              },
+              {
+                "start": 2.13,
+                "end": 2.34,
+                "value": "C"
+              },
+              {
+                "start": 2.34,
+                "end": 2.41,
+                "value": "E"
+              },
+              {
+                "start": 2.41,
+                "end": 2.5,
+                "value": "A"
+              },
+              {
+                "start": 2.5,
+                "end": 2.57,
+                "value": "H"
+              },
+              {
+                "start": 2.57,
+                "end": 2.63,
+                "value": "C"
+              },
+              {
+                "start": 2.63,
+                "end": 2.91,
+                "value": "B"
+              },
+              {
+                "start": 2.91,
+                "end": 3.3,
+                "value": "X"
+              }
+            ]
           }
         ]
       },
       {
         "id": "life",
         "index": 2,
-        "start": 10.748,
-        "duration": 8.71,
-        "audioStart": 10.748,
-        "audio": "audio/life.mp3",
+        "start": 15.325,
+        "duration": 10.555,
+        "audioStart": 15.325,
+        "audio": "audio/life.wav",
         "words": [
           {
             "text": "Yet",
-            "start": 0.0972,
-            "end": 0.3448
+            "start": 0.0,
+            "end": 0.4615
           },
           {
             "text": "life",
-            "start": 0.3684,
-            "end": 0.6042
+            "start": 0.4615,
+            "end": 0.9229
           },
           {
             "text": "survives",
-            "start": 0.6278,
-            "end": 1.1231
+            "start": 0.9229,
+            "end": 1.8911
           },
           {
             "text": "here",
-            "start": 1.1467,
-            "end": 1.5123
+            "start": 1.8911,
+            "end": 2.3526
+          },
+          {
+            "text": ".",
+            "start": 2.3526,
+            "end": 2.425
           },
           {
             "text": "Anglerfish",
-            "start": 2.3349,
-            "end": 2.8656
+            "start": 2.605,
+            "end": 3.5324
           },
           {
             "text": "that",
-            "start": 2.8892,
-            "end": 3.0307
+            "start": 3.5324,
+            "end": 3.8119
           },
           {
             "text": "make",
-            "start": 3.0543,
-            "end": 3.2075
+            "start": 3.8119,
+            "end": 4.1358
           },
           {
             "text": "their",
-            "start": 3.2311,
-            "end": 3.3844
+            "start": 4.1358,
+            "end": 4.4153
           },
           {
             "text": "own",
-            "start": 3.408,
-            "end": 3.5259
+            "start": 4.4153,
+            "end": 4.663
           },
           {
             "text": "light",
-            "start": 3.5495,
-            "end": 3.7736
+            "start": 4.663,
+            "end": 4.987
+          },
+          {
+            "text": ",",
+            "start": 4.987,
+            "end": 5.0378
           },
           {
             "text": "giant",
-            "start": 3.9623,
-            "end": 4.257
+            "start": 5.0378,
+            "end": 5.565
           },
           {
             "text": "squid",
-            "start": 4.2689,
-            "end": 4.5165
+            "start": 5.565,
+            "end": 6.0414
           },
           {
             "text": "the",
-            "start": 4.5401,
-            "end": 4.6226
+            "start": 6.0414,
+            "end": 6.2447
           },
           {
             "text": "size",
-            "start": 4.6462,
-            "end": 4.9174
+            "start": 6.2447,
+            "end": 6.5686
           },
           {
             "text": "of",
-            "start": 4.941,
-            "end": 5.0
+            "start": 6.5686,
+            "end": 6.7719
           },
           {
             "text": "a",
-            "start": 5.0118,
-            "end": 5.0707
+            "start": 6.7719,
+            "end": 6.8989
           },
           {
             "text": "bus",
-            "start": 5.0825,
-            "end": 5.3773
+            "start": 6.8989,
+            "end": 7.2229
+          },
+          {
+            "text": ",",
+            "start": 7.2229,
+            "end": 7.2737
           },
           {
             "text": "and",
-            "start": 5.6014,
-            "end": 5.7075
+            "start": 7.2737,
+            "end": 7.5532
           },
           {
             "text": "bacteria",
-            "start": 5.7311,
-            "end": 6.2146
+            "start": 7.5532,
+            "end": 8.4551
           },
           {
             "text": "that",
-            "start": 6.2382,
-            "end": 6.3679
+            "start": 8.4551,
+            "end": 8.7346
           },
           {
             "text": "feed",
-            "start": 6.3915,
-            "end": 6.6155
+            "start": 8.7346,
+            "end": 9.0586
           },
           {
             "text": "on",
-            "start": 6.6392,
-            "end": 6.7571
+            "start": 9.0586,
+            "end": 9.3063
           },
           {
             "text": "bare",
-            "start": 6.7807,
-            "end": 6.9811
+            "start": 9.3063,
+            "end": 9.6302
           },
           {
             "text": "rock",
-            "start": 7.0047,
-            "end": 7.3349
+            "start": 9.6302,
+            "end": 9.9542
+          },
+          {
+            "text": ".",
+            "start": 9.9542,
+            "end": 10.005
+          }
+        ],
+        "lines": [
+          {
+            "characterId": null,
+            "audio": "audio/life.wav",
+            "start": 15.325,
+            "duration": 10.005,
+            "words": [
+              {
+                "text": "Yet",
+                "start": 0.0,
+                "end": 0.4615
+              },
+              {
+                "text": "life",
+                "start": 0.4615,
+                "end": 0.9229
+              },
+              {
+                "text": "survives",
+                "start": 0.9229,
+                "end": 1.8911
+              },
+              {
+                "text": "here",
+                "start": 1.8911,
+                "end": 2.3526
+              },
+              {
+                "text": ".",
+                "start": 2.3526,
+                "end": 2.425
+              },
+              {
+                "text": "Anglerfish",
+                "start": 2.605,
+                "end": 3.5324
+              },
+              {
+                "text": "that",
+                "start": 3.5324,
+                "end": 3.8119
+              },
+              {
+                "text": "make",
+                "start": 3.8119,
+                "end": 4.1358
+              },
+              {
+                "text": "their",
+                "start": 4.1358,
+                "end": 4.4153
+              },
+              {
+                "text": "own",
+                "start": 4.4153,
+                "end": 4.663
+              },
+              {
+                "text": "light",
+                "start": 4.663,
+                "end": 4.987
+              },
+              {
+                "text": ",",
+                "start": 4.987,
+                "end": 5.0378
+              },
+              {
+                "text": "giant",
+                "start": 5.0378,
+                "end": 5.565
+              },
+              {
+                "text": "squid",
+                "start": 5.565,
+                "end": 6.0414
+              },
+              {
+                "text": "the",
+                "start": 6.0414,
+                "end": 6.2447
+              },
+              {
+                "text": "size",
+                "start": 6.2447,
+                "end": 6.5686
+              },
+              {
+                "text": "of",
+                "start": 6.5686,
+                "end": 6.7719
+              },
+              {
+                "text": "a",
+                "start": 6.7719,
+                "end": 6.8989
+              },
+              {
+                "text": "bus",
+                "start": 6.8989,
+                "end": 7.2229
+              },
+              {
+                "text": ",",
+                "start": 7.2229,
+                "end": 7.2737
+              },
+              {
+                "text": "and",
+                "start": 7.2737,
+                "end": 7.5532
+              },
+              {
+                "text": "bacteria",
+                "start": 7.5532,
+                "end": 8.4551
+              },
+              {
+                "text": "that",
+                "start": 8.4551,
+                "end": 8.7346
+              },
+              {
+                "text": "feed",
+                "start": 8.7346,
+                "end": 9.0586
+              },
+              {
+                "text": "on",
+                "start": 9.0586,
+                "end": 9.3063
+              },
+              {
+                "text": "bare",
+                "start": 9.3063,
+                "end": 9.6302
+              },
+              {
+                "text": "rock",
+                "start": 9.6302,
+                "end": 9.9542
+              },
+              {
+                "text": ".",
+                "start": 9.9542,
+                "end": 10.005
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.24,
+                "value": "X"
+              },
+              {
+                "start": 0.24,
+                "end": 0.3,
+                "value": "B"
+              },
+              {
+                "start": 0.3,
+                "end": 0.36,
+                "value": "C"
+              },
+              {
+                "start": 0.36,
+                "end": 0.64,
+                "value": "E"
+              },
+              {
+                "start": 0.64,
+                "end": 0.71,
+                "value": "C"
+              },
+              {
+                "start": 0.71,
+                "end": 0.85,
+                "value": "G"
+              },
+              {
+                "start": 0.85,
+                "end": 0.99,
+                "value": "B"
+              },
+              {
+                "start": 0.99,
+                "end": 1.13,
+                "value": "G"
+              },
+              {
+                "start": 1.13,
+                "end": 1.23,
+                "value": "D"
+              },
+              {
+                "start": 1.23,
+                "end": 1.27,
+                "value": "C"
+              },
+              {
+                "start": 1.27,
+                "end": 1.38,
+                "value": "A"
+              },
+              {
+                "start": 1.38,
+                "end": 1.71,
+                "value": "B"
+              },
+              {
+                "start": 1.71,
+                "end": 1.92,
+                "value": "E"
+              },
+              {
+                "start": 1.92,
+                "end": 2.84,
+                "value": "X"
+              },
+              {
+                "start": 2.84,
+                "end": 3.04,
+                "value": "C"
+              },
+              {
+                "start": 3.04,
+                "end": 3.11,
+                "value": "B"
+              },
+              {
+                "start": 3.11,
+                "end": 3.25,
+                "value": "G"
+              },
+              {
+                "start": 3.25,
+                "end": 3.32,
+                "value": "C"
+              },
+              {
+                "start": 3.32,
+                "end": 3.6,
+                "value": "B"
+              },
+              {
+                "start": 3.6,
+                "end": 3.69,
+                "value": "A"
+              },
+              {
+                "start": 3.69,
+                "end": 3.75,
+                "value": "C"
+              },
+              {
+                "start": 3.75,
+                "end": 4.02,
+                "value": "B"
+              },
+              {
+                "start": 4.02,
+                "end": 4.16,
+                "value": "E"
+              },
+              {
+                "start": 4.16,
+                "end": 4.37,
+                "value": "F"
+              },
+              {
+                "start": 4.37,
+                "end": 4.44,
+                "value": "D"
+              },
+              {
+                "start": 4.44,
+                "end": 4.51,
+                "value": "E"
+              },
+              {
+                "start": 4.51,
+                "end": 4.72,
+                "value": "B"
+              },
+              {
+                "start": 4.72,
+                "end": 5.04,
+                "value": "X"
+              },
+              {
+                "start": 5.04,
+                "end": 5.12,
+                "value": "B"
+              },
+              {
+                "start": 5.12,
+                "end": 5.26,
+                "value": "E"
+              },
+              {
+                "start": 5.26,
+                "end": 5.54,
+                "value": "B"
+              },
+              {
+                "start": 5.54,
+                "end": 5.68,
+                "value": "F"
+              },
+              {
+                "start": 5.68,
+                "end": 6.03,
+                "value": "B"
+              },
+              {
+                "start": 6.03,
+                "end": 6.1,
+                "value": "F"
+              },
+              {
+                "start": 6.1,
+                "end": 6.17,
+                "value": "C"
+              },
+              {
+                "start": 6.17,
+                "end": 6.31,
+                "value": "B"
+              },
+              {
+                "start": 6.31,
+                "end": 6.39,
+                "value": "A"
+              },
+              {
+                "start": 6.39,
+                "end": 6.55,
+                "value": "D"
+              },
+              {
+                "start": 6.55,
+                "end": 6.63,
+                "value": "C"
+              },
+              {
+                "start": 6.63,
+                "end": 6.91,
+                "value": "G"
+              },
+              {
+                "start": 6.91,
+                "end": 7.21,
+                "value": "X"
+              },
+              {
+                "start": 7.21,
+                "end": 7.25,
+                "value": "B"
+              },
+              {
+                "start": 7.25,
+                "end": 7.33,
+                "value": "A"
+              },
+              {
+                "start": 7.33,
+                "end": 7.43,
+                "value": "C"
+              },
+              {
+                "start": 7.43,
+                "end": 7.71,
+                "value": "B"
+              },
+              {
+                "start": 7.71,
+                "end": 7.78,
+                "value": "F"
+              },
+              {
+                "start": 7.78,
+                "end": 7.99,
+                "value": "B"
+              },
+              {
+                "start": 7.99,
+                "end": 8.13,
+                "value": "F"
+              },
+              {
+                "start": 8.13,
+                "end": 8.2,
+                "value": "B"
+              },
+              {
+                "start": 8.2,
+                "end": 8.34,
+                "value": "G"
+              },
+              {
+                "start": 8.34,
+                "end": 8.55,
+                "value": "B"
+              },
+              {
+                "start": 8.55,
+                "end": 8.62,
+                "value": "E"
+              },
+              {
+                "start": 8.62,
+                "end": 8.69,
+                "value": "F"
+              },
+              {
+                "start": 8.69,
+                "end": 8.77,
+                "value": "A"
+              },
+              {
+                "start": 8.77,
+                "end": 9.01,
+                "value": "C"
+              },
+              {
+                "start": 9.01,
+                "end": 9.29,
+                "value": "E"
+              },
+              {
+                "start": 9.29,
+                "end": 9.36,
+                "value": "C"
+              },
+              {
+                "start": 9.36,
+                "end": 9.5,
+                "value": "B"
+              },
+              {
+                "start": 9.5,
+                "end": 10.0,
+                "value": "X"
+              }
+            ]
           }
         ]
       },
       {
-        "id": "mapped",
+        "id": "outro",
         "index": 3,
-        "start": 19.458,
-        "duration": 7.246,
-        "audioStart": 19.458,
-        "audio": "audio/mapped.mp3",
+        "start": 25.88,
+        "duration": 8.03,
+        "audioStart": 25.88,
+        "audio": "audio/outro.wav",
         "words": [
           {
             "text": "We",
-            "start": 0.0972,
-            "end": 0.2505
+            "start": 0.0,
+            "end": 0.2339
           },
           {
             "text": "have",
-            "start": 0.274,
-            "end": 0.392
+            "start": 0.2339,
+            "end": 0.4979
           },
           {
             "text": "mapped",
-            "start": 0.4156,
-            "end": 0.6986
+            "start": 0.4979,
+            "end": 0.8758
           },
           {
             "text": "only",
-            "start": 0.7222,
-            "end": 0.9698
+            "start": 0.8758,
+            "end": 1.3017
           },
           {
             "text": "twenty",
-            "start": 0.9816,
-            "end": 1.3
+            "start": 1.3017,
+            "end": 1.8716
           },
           {
             "text": "six",
-            "start": 1.3236,
-            "end": 1.5594
+            "start": 1.8716,
+            "end": 2.2495
           },
           {
             "text": "percent",
-            "start": 1.5712,
-            "end": 1.925
+            "start": 2.2495,
+            "end": 2.8914
           },
           {
             "text": "of",
-            "start": 1.9486,
-            "end": 2.0193
+            "start": 2.8914,
+            "end": 3.0833
           },
           {
             "text": "the",
-            "start": 2.0429,
-            "end": 2.1372
+            "start": 3.0833,
+            "end": 3.2753
           },
           {
             "text": "sea",
-            "start": 2.1608,
-            "end": 2.3613
+            "start": 3.2753,
+            "end": 3.5092
           },
           {
             "text": "floor",
-            "start": 2.3849,
-            "end": 2.6679
+            "start": 3.5092,
+            "end": 3.8872
           },
           {
             "text": "in",
-            "start": 2.6797,
-            "end": 2.7622
+            "start": 3.8872,
+            "end": 4.0791
           },
           {
             "text": "detail",
-            "start": 2.7858,
-            "end": 3.3165
+            "start": 4.0791,
+            "end": 4.577
+          },
+          {
+            "text": ".",
+            "start": 4.577,
+            "end": 4.625
           },
           {
             "text": "The",
-            "start": 4.151,
-            "end": 4.2807
+            "start": 4.805,
+            "end": 5.0538
           },
           {
             "text": "rest",
-            "start": 4.3042,
-            "end": 4.6108
+            "start": 5.0538,
+            "end": 5.5437
           },
           {
             "text": "is",
-            "start": 4.6344,
-            "end": 4.7523
+            "start": 5.5437,
+            "end": 5.7926
           },
           {
             "text": "still",
-            "start": 4.776,
-            "end": 5.0118
+            "start": 5.7926,
+            "end": 6.2825
           },
           {
             "text": "a",
-            "start": 5.0354,
-            "end": 5.0943
+            "start": 6.2825,
+            "end": 6.438
           },
           {
             "text": "blank",
-            "start": 5.1061,
-            "end": 5.4009
+            "start": 6.438,
+            "end": 7.0212
           },
           {
             "text": "page",
-            "start": 5.4127,
-            "end": 5.8609
+            "start": 7.0212,
+            "end": 7.4178
+          },
+          {
+            "text": ".",
+            "start": 7.4178,
+            "end": 7.48
+          }
+        ],
+        "lines": [
+          {
+            "characterId": "sam",
+            "audio": "audio/outro.wav",
+            "start": 25.88,
+            "duration": 7.48,
+            "words": [
+              {
+                "text": "We",
+                "start": 0.0,
+                "end": 0.2339
+              },
+              {
+                "text": "have",
+                "start": 0.2339,
+                "end": 0.4979
+              },
+              {
+                "text": "mapped",
+                "start": 0.4979,
+                "end": 0.8758
+              },
+              {
+                "text": "only",
+                "start": 0.8758,
+                "end": 1.3017
+              },
+              {
+                "text": "twenty",
+                "start": 1.3017,
+                "end": 1.8716
+              },
+              {
+                "text": "six",
+                "start": 1.8716,
+                "end": 2.2495
+              },
+              {
+                "text": "percent",
+                "start": 2.2495,
+                "end": 2.8914
+              },
+              {
+                "text": "of",
+                "start": 2.8914,
+                "end": 3.0833
+              },
+              {
+                "text": "the",
+                "start": 3.0833,
+                "end": 3.2753
+              },
+              {
+                "text": "sea",
+                "start": 3.2753,
+                "end": 3.5092
+              },
+              {
+                "text": "floor",
+                "start": 3.5092,
+                "end": 3.8872
+              },
+              {
+                "text": "in",
+                "start": 3.8872,
+                "end": 4.0791
+              },
+              {
+                "text": "detail",
+                "start": 4.0791,
+                "end": 4.577
+              },
+              {
+                "text": ".",
+                "start": 4.577,
+                "end": 4.625
+              },
+              {
+                "text": "The",
+                "start": 4.805,
+                "end": 5.0538
+              },
+              {
+                "text": "rest",
+                "start": 5.0538,
+                "end": 5.5437
+              },
+              {
+                "text": "is",
+                "start": 5.5437,
+                "end": 5.7926
+              },
+              {
+                "text": "still",
+                "start": 5.7926,
+                "end": 6.2825
+              },
+              {
+                "text": "a",
+                "start": 6.2825,
+                "end": 6.438
+              },
+              {
+                "text": "blank",
+                "start": 6.438,
+                "end": 7.0212
+              },
+              {
+                "text": "page",
+                "start": 7.0212,
+                "end": 7.4178
+              },
+              {
+                "text": ".",
+                "start": 7.4178,
+                "end": 7.48
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.4,
+                "value": "X"
+              },
+              {
+                "start": 0.4,
+                "end": 0.46,
+                "value": "B"
+              },
+              {
+                "start": 0.46,
+                "end": 0.52,
+                "value": "C"
+              },
+              {
+                "start": 0.52,
+                "end": 0.59,
+                "value": "G"
+              },
+              {
+                "start": 0.59,
+                "end": 0.7,
+                "value": "A"
+              },
+              {
+                "start": 0.7,
+                "end": 0.81,
+                "value": "C"
+              },
+              {
+                "start": 0.81,
+                "end": 0.88,
+                "value": "B"
+              },
+              {
+                "start": 0.88,
+                "end": 1.09,
+                "value": "E"
+              },
+              {
+                "start": 1.09,
+                "end": 1.17,
+                "value": "A"
+              },
+              {
+                "start": 1.17,
+                "end": 1.39,
+                "value": "B"
+              },
+              {
+                "start": 1.39,
+                "end": 1.53,
+                "value": "F"
+              },
+              {
+                "start": 1.53,
+                "end": 1.88,
+                "value": "B"
+              },
+              {
+                "start": 1.88,
+                "end": 2.03,
+                "value": "A"
+              },
+              {
+                "start": 2.03,
+                "end": 2.23,
+                "value": "B"
+              },
+              {
+                "start": 2.23,
+                "end": 2.3,
+                "value": "C"
+              },
+              {
+                "start": 2.3,
+                "end": 2.38,
+                "value": "A"
+              },
+              {
+                "start": 2.38,
+                "end": 2.44,
+                "value": "B"
+              },
+              {
+                "start": 2.44,
+                "end": 2.5,
+                "value": "G"
+              },
+              {
+                "start": 2.5,
+                "end": 2.85,
+                "value": "B"
+              },
+              {
+                "start": 2.85,
+                "end": 2.99,
+                "value": "G"
+              },
+              {
+                "start": 2.99,
+                "end": 3.2,
+                "value": "E"
+              },
+              {
+                "start": 3.2,
+                "end": 3.62,
+                "value": "B"
+              },
+              {
+                "start": 3.62,
+                "end": 3.83,
+                "value": "C"
+              },
+              {
+                "start": 3.83,
+                "end": 4.04,
+                "value": "B"
+              },
+              {
+                "start": 4.04,
+                "end": 5.16,
+                "value": "X"
+              },
+              {
+                "start": 5.16,
+                "end": 5.22,
+                "value": "B"
+              },
+              {
+                "start": 5.22,
+                "end": 5.28,
+                "value": "C"
+              },
+              {
+                "start": 5.28,
+                "end": 5.35,
+                "value": "B"
+              },
+              {
+                "start": 5.35,
+                "end": 5.49,
+                "value": "C"
+              },
+              {
+                "start": 5.49,
+                "end": 5.7,
+                "value": "B"
+              },
+              {
+                "start": 5.7,
+                "end": 5.84,
+                "value": "E"
+              },
+              {
+                "start": 5.84,
+                "end": 5.91,
+                "value": "F"
+              },
+              {
+                "start": 5.91,
+                "end": 5.99,
+                "value": "A"
+              },
+              {
+                "start": 5.99,
+                "end": 6.21,
+                "value": "H"
+              },
+              {
+                "start": 6.21,
+                "end": 6.35,
+                "value": "B"
+              },
+              {
+                "start": 6.35,
+                "end": 6.7,
+                "value": "C"
+              },
+              {
+                "start": 6.7,
+                "end": 6.98,
+                "value": "B"
+              },
+              {
+                "start": 6.98,
+                "end": 7.48,
+                "value": "X"
+              }
+            ]
           }
         ]
       }

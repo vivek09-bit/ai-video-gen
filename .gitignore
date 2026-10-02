@@ -3,5 +3,12 @@ out/
 .remotion/
 *.log
 
+# Python environment for Kokoro (recreated by setup.ps1)
+.venv/
+__pycache__/
+
+# Rhubarb binary (~83 MB, re-downloaded by setup.ps1)
+tools/
+
 # Generated narration audio (re-created by `npm run voice`)
 public/audio/

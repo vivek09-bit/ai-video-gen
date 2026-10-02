@@ -18,14 +18,57 @@ export type BackgroundSpec =
     }
   | {type: 'video'; src: string; dim: number};
 
+export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
+
+export interface MouthCue {
+  start: number;
+  end: number;
+  value: MouthShape;
+}
+
+/** A reusable character. Defined once, reused across every episode. */
+export interface CharacterSpec {
+  name: string;
+  /** Kokoro voice id, e.g. `af_heart`. Gives each character a distinct voice. */
+  voice: string;
+  speed?: number;
+  palette: {
+    skin: string;
+    skinShade: string;
+    hair: string;
+    shirt: string;
+    accent: string;
+    outline: string;
+  };
+  hairstyle: 'short' | 'bob' | 'long' | 'bun' | 'bald';
+  accessory: 'none' | 'glasses';
+}
+
+/** Where a character stands in the frame. */
+export interface CastMember {
+  id: string;
+  /** Horizontal centre, 0 (left) to 1 (right). */
+  x: number;
+  scale: number;
+  flip?: boolean;
+}
+
+/** One spoken line. `character` null means narration with the default voice. */
+export interface ScriptLine {
+  character: string | null;
+  text: string;
+}
+
 export interface Scene {
   id: string;
   narration: string;
+  lines: ScriptLine[];
   headline: string;
   subtext: string;
   bullets: string[];
   headlinePosition: 'top' | 'center' | 'bottom';
   background: BackgroundSpec;
+  cast: CastMember[];
   /** Seconds of silence before narration starts. */
   padBefore: number;
   /** Seconds of silence after narration ends. */
@@ -55,25 +98,40 @@ export interface CaptionOptions {
 
 export interface ScriptFile {
   title: string;
+  /** Default Kokoro voice id for narration. */
   voice: string;
-  rate: string;
-  pitch: string;
-  volume: string;
+  speed: number;
   fps: number;
   width: number;
   height: number;
   tailPaddingSeconds: number;
+  /** Silence inserted between sentences, in seconds. */
+  sentencePauseSeconds: number;
   captions: CaptionOptions;
   music: {src: string; volume: number; fadeOutSeconds: number} | null;
   theme: Theme;
+  characters: Record<string, CharacterSpec>;
   scenes: Scene[];
 }
 
 export interface Word {
   text: string;
-  /** Seconds, relative to the start of the scene's narration audio. */
+  /** Seconds, relative to the start of the scene's audio. */
   start: number;
   end: number;
+}
+
+/** One rendered line of audio, optionally spoken by a character. */
+export interface LineTiming {
+  characterId: string | null;
+  /** Path relative to `public/`, or null when there is no audio. */
+  audio: string | null;
+  /** Seconds from the start of the scene. */
+  start: number;
+  duration: number;
+  words: Word[];
+  /** Rhubarb mouth shapes, timed from the start of this line's audio. */
+  mouthCues: MouthCue[];
 }
 
 export interface SceneTiming {
@@ -83,11 +141,13 @@ export interface SceneTiming {
   start: number;
   /** Total scene length including padding, in seconds. */
   duration: number;
-  /** Absolute time the narration audio begins (scene start + padBefore). */
+  /** Seconds from scene start to the first line's audio. */
   audioStart: number;
-  /** Path relative to the `public/` folder, or null when there is no narration. */
+  /** First line's audio, kept for the single-narrator case. */
   audio: string | null;
+  /** All words in the scene, relative to `audioStart`. Used by captions. */
   words: Word[];
+  lines: LineTiming[];
 }
 
 export interface Timings {
