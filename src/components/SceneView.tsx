@@ -126,21 +126,39 @@ export const SceneView: React.FC<{
         const {shape, talking} = mouthAt(member.id, time, timing.lines);
         const charHeight = height * 0.88 * (member.scale ?? 1);
         const charWidth = charHeight * 0.625;
+        const left = member.x * width - charWidth / 2;
+        const acting = member.acting ?? scene.acting;
 
         return (
-          <div
-            key={member.id}
-            style={{
-              position: 'absolute',
-              left: member.x * width - charWidth / 2,
-              top: height - charHeight,
-              width: charWidth,
-              height: charHeight,
-              transform: member.flip ? 'scaleX(-1)' : undefined,
-            }}
-          >
-            <Character spec={spec} mouth={shape} talking={talking} />
-          </div>
+          <React.Fragment key={member.id}>
+            {/* A soft pool of light behind the figure. Horror stages are almost
+                black, and an unlit character simply disappears into them. */}
+            <div
+              style={{
+                position: 'absolute',
+                left: left - charWidth * 0.35,
+                top: height - charHeight - charHeight * 0.1,
+                width: charWidth * 1.7,
+                height: charHeight * 1.15,
+                background: `radial-gradient(ellipse at 50% 55%, rgba(150, 176, 210, 0.20), rgba(120, 145, 180, 0.07) 45%, rgba(0,0,0,0) 72%)`,
+                mixBlendMode: 'screen',
+                pointerEvents: 'none',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left,
+                top: height - charHeight,
+                width: charWidth,
+                height: charHeight,
+                transform: member.flip ? 'scaleX(-1)' : undefined,
+                filter: 'drop-shadow(0 0 26px rgba(0,0,0,0.75))',
+              }}
+            >
+              <Character spec={spec} mouth={shape} talking={talking} acting={acting} />
+            </div>
+          </React.Fragment>
         );
       })}
 

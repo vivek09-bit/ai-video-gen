@@ -20,6 +20,46 @@ export type BackgroundSpec =
 
 export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 
+/** Emotional states a character can hold. Drives brows, lids, pupils and mouth. */
+export type EmotionName =
+  | 'neutral'
+  | 'calm'
+  | 'worried'
+  | 'scared'
+  | 'shock'
+  | 'angry'
+  | 'sad'
+  | 'sly';
+
+/** Where a character is looking or holding their head. */
+export type Facing = 'left' | 'center' | 'right';
+
+/** Named arm poses. Kept coarse so they read clearly at any scale. */
+export type GestureName =
+  | 'none'
+  | 'explain'
+  | 'point'
+  | 'reach'
+  | 'recoil'
+  | 'clutch';
+
+/**
+ * How a character performs in a shot.
+ *
+ * Deliberately mirrors how an animation director briefs a pose: emotion, where
+ * the head and eyes are turned, and what the hands are doing. It is all plain
+ * data, so it can be written by a planner, an LLM, or by hand, and re-rendered
+ * without touching code.
+ */
+export interface ActingSpec {
+  emotion?: EmotionName;
+  /** 0-1. Scales the expression and the amount of body movement. */
+  intensity?: number;
+  head?: Facing;
+  eyes?: Facing;
+  gesture?: GestureName;
+}
+
 /**
  * Procedural horror backdrops. Every one is drawn from code, so the project
  * needs no image assets and nothing to license.
@@ -101,6 +141,8 @@ export interface CastMember {
   x: number;
   scale: number;
   flip?: boolean;
+  /** Falls back to the scene's default `acting` when omitted. */
+  acting?: ActingSpec;
 }
 
 /** One spoken line. `character` null means narration with the default voice. */
@@ -121,6 +163,8 @@ export interface Scene {
   cast: CastMember[];
   /** Procedural visual beats. When present these replace `background`. */
   shots: ShotSpec[];
+  /** Default performance for every cast member in this scene. */
+  acting?: ActingSpec;
   /** Looping ambience bed, e.g. `amb_drone`. Mixed under the narration. */
   ambience: {src: string; volume: number} | null;
   /** One-shot stingers and impacts, timed from the scene start. */
@@ -144,12 +188,23 @@ export interface Theme {
 
 export interface CaptionOptions {
   enabled: boolean;
+  /** How many words appear at once. 2-3 reads as a statement, 4-5 as subtitles. */
   wordsPerCue: number;
   /** Distance from the bottom of the frame, as a fraction of frame height. */
   bottom: number;
   fontSize: number;
   uppercase: boolean;
   highlight: boolean;
+  /** Where the text sits. `center` turns subtitles into on-screen statements. */
+  position?: 'bottom' | 'center';
+  /** Dark outline width in pixels, for legibility over busy backgrounds. */
+  outline?: number;
+  /** Draw a translucent backdrop panel behind the text. */
+  panel?: boolean;
+  /** Widest the text block may get, as a fraction of frame width. */
+  maxWidth?: number;
+  /** How far words rise as they appear, in pixels. */
+  rise?: number;
 }
 
 export interface ScriptFile {

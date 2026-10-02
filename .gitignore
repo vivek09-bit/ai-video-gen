@@ -12,3 +12,6 @@ tools/
 
 # Generated narration audio (re-created by `npm run voice`)
 public/audio/
+
+# Generated grain texture and ambience beds (re-created by `npm run assets`)
+public/textures/

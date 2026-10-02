@@ -1,5 +1,5 @@
 {
-  "title": "आधी रात की दस्तक",
+  "title": "आधी रात की गिनती",
   "voice": "hm_omega",
   "speed": 0.94,
   "fps": 30,
@@ -7,11 +7,12 @@
   "height": 1080,
   "sentencePauseSeconds": 0.32,
   "captions": {
-    "enabled": false,
-    "wordsPerCue": 4,
+    "enabled": true,
+    "wordsPerCue": 3,
     "bottom": 0.06,
-    "fontSize": 54,
-    "highlight": true
+    "fontSize": 86,
+    "highlight": true,
+    "position": "center"
   },
   "theme": {
     "accent": "#c9524a",
@@ -21,132 +22,205 @@
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
   },
+  "characters": {
+    "lead": {
+      "name": "Aarav",
+      "voice": "hm_omega",
+      "hairstyle": "short",
+      "accessory": "none",
+      "palette": {
+        "skin": "#c98d63",
+        "skinShade": "#ad7450",
+        "hair": "#1f1b18",
+        "shirt": "#3d4a5c",
+        "accent": "#8a9099",
+        "outline": "#14181f"
+      }
+    }
+  },
   "scenes": [
     {
-      "id": "gaon",
-      "headline": "आधी रात की दस्तक",
-      "subtext": "एक सच्ची घटना",
-      "ambience": {"src": "amb_wind", "volume": 0.42},
+      "id": "scene-001",
+      "headline": "बंद हवेली",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
       "shots": [
         {
-          "visual": {"type": "forest", "fog": 0.7, "moonlight": 0.55},
+          "visual": {
+            "type": "figure",
+            "distance": 0.55,
+            "fog": 0.6,
+            "glow": 0.45
+          },
           "weight": 2,
-          "effects": {"vignette": 0.85, "grain": 0.45, "dust": 0.2, "zoom": 0.035, "drift": "in"},
-          "transition": {"type": "cut"}
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
         },
         {
-          "visual": {"type": "void", "creep": 0.6},
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.8,
+            "depth": 0.65
+          },
           "weight": 1,
-          "effects": {"vignette": 0.92, "grain": 0.5, "dust": 0.1, "zoom": 0.02, "drift": "out"},
-          "transition": {"type": "crossfade", "seconds": 1.6}
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
         }
       ],
-      "lines": [
-        {
-          "character": null,
-          "text": "गाँव के लोग उस घर के पास से गुज़रते हुए भी नज़र नीची कर लेते थे। कोई नहीं जानता था कि उस बंद घर में असल में कौन रहता है।"
-        }
-      ],
-      "background": {"type": "gradient", "from": "#05070c", "to": "#0d1219", "angle": 180},
-      "soundCues": [{"at": 0.4, "sfx": "sfx_whisper", "volume": 0.35}]
-    },
-    {
-      "id": "haveli",
-      "headline": "पुरानी हवेली",
-      "ambience": {"src": "amb_drone", "volume": 0.5},
-      "shots": [
-        {
-          "visual": {"type": "house", "fog": 0.55, "lit": true, "moonlight": 0.5},
-          "weight": 2,
-          "effects": {"vignette": 0.82, "grain": 0.42, "dust": 0.25, "zoom": 0.04, "drift": "in"}
-        },
-        {
-          "visual": {"type": "corridor", "flicker": 0.75, "depth": 0.55},
-          "weight": 2,
-          "effects": {"vignette": 0.88, "grain": 0.48, "dust": 0.3, "exposureFlicker": 0.3, "zoom": 0.05, "drift": "in"},
-          "transition": {"type": "crossfade", "seconds": 1.4}
-        },
-        {
-          "visual": {"type": "candle", "glow": 0.95},
-          "weight": 1,
-          "effects": {"vignette": 0.9, "grain": 0.4, "dust": 0.35, "zoom": 0.03, "drift": "none"},
-          "transition": {"type": "fade", "seconds": 1.1}
-        }
-      ],
-      "lines": [
-        {
-          "character": null,
-          "text": "उस रात मैंने हिम्मत करके दरवाज़ा खोला। अंदर एक जलती हुई मोमबत्ती थी। और मोमबत्ती के पीछे कोई खड़ा था।"
-        }
-      ],
-      "background": {"type": "color", "color": "#04060a"},
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.52
+      },
       "soundCues": [
-        {"at": 3.2, "sfx": "sfx_riser", "volume": 0.5},
-        {"at": 8.6, "sfx": "sfx_stinger", "volume": 0.85}
+        {
+          "at": 10.78,
+          "sfx": "sfx_riser",
+          "volume": 0.4
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#04060a"
+      },
+      "cast": [
+        {
+          "id": "lead",
+          "x": 0.66,
+          "scale": 0.74,
+          "flip": true
+        }
+      ],
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "गाँव के बाहर वाली पुरानी हवेली बहुत सालों से बंद पड़ी थी। लोग कहते थे कि उस घर में कोई रहता है, पर कोई कभी अंदर नहीं गया। हर रात ठीक आधी रात को वहाँ से आवाज़ आती थी। जैसे कोई धीरे धीरे गिनती कर रहा हो। कोई नहीं जानता था कि वो कौन था, और वो क्या गिन रहा था।"
+        }
       ]
     },
     {
-      "id": "aankhein",
-      "headline": "वो पलटा",
-      "ambience": {"src": "amb_heartbeat", "volume": 0.55},
+      "id": "scene-002",
+      "headline": "दरवाज़ा",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
       "shots": [
         {
-          "visual": {"type": "figure", "distance": 0.35, "fog": 0.65, "glow": 0.5},
-          "weight": 3,
-          "effects": {"vignette": 0.88, "grain": 0.5, "dust": 0.3, "shake": 0.35, "zoom": 0.06, "drift": "in"}
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
         },
         {
-          "visual": {"type": "eyes", "pairs": 4, "spread": 0.8},
+          "visual": {
+            "type": "eyes",
+            "pairs": 4,
+            "spread": 0.8
+          },
           "weight": 1,
-          "effects": {"vignette": 0.95, "grain": 0.55, "dust": 0, "shake": 0.15, "zoom": 0.02, "drift": "none"},
-          "transition": {"type": "crossfade", "seconds": 0.35}
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
         },
         {
-          "visual": {"type": "void", "creep": 0.85},
+          "visual": {
+            "type": "figure",
+            "distance": 0.2,
+            "fog": 0.5,
+            "glow": 0.4
+          },
           "weight": 1,
-          "effects": {"vignette": 0.96, "grain": 0.6, "dust": 0, "zoom": 0.015, "drift": "none"},
-          "transition": {"type": "fade", "seconds": 1.8}
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
         }
       ],
+      "ambience": {
+        "src": "amb_heartbeat",
+        "volume": 0.55
+      },
+      "soundCues": [
+        {
+          "at": 1.54,
+          "sfx": "sfx_stinger",
+          "volume": 1.0
+        },
+        {
+          "at": 18.49,
+          "sfx": "sfx_impact",
+          "volume": 0.69
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#04060a"
+      },
+      "cast": [
+        {
+          "id": "lead",
+          "x": 0.34,
+          "scale": 0.68,
+          "flip": false
+        }
+      ],
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
       "lines": [
         {
           "character": null,
-          "text": "मैंने पीछे मुड़कर देखा। अंधेरे में दो आँखें चमक रही थीं। बहुत देर तक वो मुझे ही देखती रहीं।"
+          "text": "एक दिन मैंने हिम्मत करके उस घर का दरवाज़ा खोल दिया। अंदर की हवा बर्फ जैसी ठंडी थी और फर्श पर धूल की मोटी परत जमी हुई थी। दीवार पर एक बंद घड़ी लटकी थी। उसकी सुइयाँ बरसों पहले रुक चुकी थीं, फिर भी अंदर से टिक टिक की आवाज़ आ रही थी। ऊपर की सीढ़ियों से किसी के नंगे पैरों की आहट सुनाई दी।"
         }
-      ],
-      "background": {"type": "color", "color": "#030406"},
-      "soundCues": [
-        {"at": 1.0, "sfx": "sfx_impact", "volume": 0.7},
-        {"at": 5.4, "sfx": "sfx_stinger", "volume": 1.0}
-      ]
-    },
-    {
-      "id": "ant",
-      "headline": "आज भी वो घर बंद है",
-      "ambience": {"src": "amb_drone", "volume": 0.4},
-      "shots": [
-        {
-          "visual": {"type": "rain", "intensity": 0.7, "lightning": true},
-          "weight": 2,
-          "effects": {"vignette": 0.86, "grain": 0.45, "dust": 0.15, "zoom": 0.03, "drift": "in"}
-        },
-        {
-          "visual": {"type": "grave", "fog": 0.7, "moonlight": 0.45},
-          "weight": 2,
-          "effects": {"vignette": 0.9, "grain": 0.5, "dust": 0.2, "zoom": 0.025, "drift": "out"},
-          "transition": {"type": "crossfade", "seconds": 1.5}
-        }
-      ],
-      "lines": [
-        {
-          "character": null,
-          "text": "अगर आप कभी उस गाँव से गुज़रें, तो उस घर के दरवाज़े पर दस्तक मत दीजिए। क्योंकि आज भी, आधी रात को, कोई अंदर से जवाब देता है।"
-        }
-      ],
-      "background": {"type": "color", "color": "#04060a"},
-      "soundCues": [
-        {"at": 6.0, "sfx": "sfx_riser", "volume": 0.45},
-        {"at": 12.5, "sfx": "sfx_bell", "volume": 0.6}
       ]
     }
   ]

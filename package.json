@@ -5,11 +5,15 @@
   "description": "Turn a written script into a long-form 2D faceless video. Zero AI-generation cost: narration via edge-tts, visuals rendered deterministically with Remotion.",
   "scripts": {
     "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
+    "assets": ".venv\\Scripts\\python.exe scripts\\make_assets.py",
+    "new": ".venv\\Scripts\\python.exe scripts\\new_video.py",
     "voice": ".venv\\Scripts\\python.exe scripts\\tts.py",
     "voices": ".venv\\Scripts\\python.exe scripts\\tts.py --voices",
+    "tokens": ".venv\\Scripts\\python.exe scripts\\token_report.py",
+    "test": ".venv\\Scripts\\python.exe scripts\\test_phonemise.py",
     "studio": "remotion studio",
     "render": "remotion render Main out/video.mp4",
-    "make": "npm run voice && npm run render",
+    "make": "npm run assets && npm run voice && npm run render",
     "preview": "npm run voice && remotion render Main out/preview.mp4 --frames 0-300"
   },
   "dependencies": {

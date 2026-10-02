@@ -41,7 +41,7 @@ export const Captions: React.FC<{
   options: CaptionOptions;
   theme: Theme;
 }> = ({words, time, options, theme}) => {
-  const {fps, height} = useVideoConfig();
+  const {fps, width} = useVideoConfig();
 
   if (!options.enabled || words.length === 0) {
     return null;
@@ -53,12 +53,29 @@ export const Captions: React.FC<{
     return null;
   }
 
+  // Two modes: `bottom` reads as subtitles, `center` turns the narration into
+  // on-screen statements. The centered form is the stronger choice for
+  // narration-driven videos with no characters on screen.
+  const centered = options.position === 'center';
+  const outline = options.outline ?? 0;
+  const panel = options.panel ?? true;
+  const rise = options.rise ?? (centered ? 26 : 18);
+  const maxWidth = (options.maxWidth ?? (centered ? 0.82 : 0.92)) * width;
+
   // Cues can be as short as half a second, so the entrance has to scale with
   // the cue length: a fixed fade would leave short cues barely legible.
   const ageInFrames = Math.max(0, (time - cue.start) * fps);
   const cueFrames = Math.max(1, (cue.end - cue.start) * fps);
-  const enterFrames = Math.max(2, Math.min(8, cueFrames * 0.3));
+  const enterFrames = Math.max(2, Math.min(10, cueFrames * 0.3));
   const eased = 1 - Math.pow(1 - Math.min(1, ageInFrames / enterFrames), 3);
+
+  // A layered shadow lifts the text off dark, foggy backdrops without needing a
+  // heavy panel, which would flatten the atmosphere.
+  const shadow = [
+    '0 0 18px rgba(0,0,0,0.95)',
+    '0 3px 8px rgba(0,0,0,0.9)',
+    '0 0 46px rgba(0,0,0,0.7)',
+  ].join(', ');
 
   return (
     <div
@@ -66,12 +83,14 @@ export const Captions: React.FC<{
         position: 'absolute',
         left: 0,
         right: 0,
-        bottom: `${options.bottom * 100}%`,
+        ...(centered
+          ? {top: '50%', transform: `translateY(-50%)`}
+          : {bottom: `${options.bottom * 100}%`}),
         display: 'flex',
         justifyContent: 'center',
-        padding: `0 ${Math.round(height * 0.08)}px`,
-        opacity: eased,
-        transform: `translateY(${(1 - eased) * 18}px)`,
+        padding: centered
+          ? `0 ${Math.round(width * 0.09)}px`
+          : `0 ${Math.round(width * 0.06)}px`,
       }}
     >
       <div
@@ -79,12 +98,18 @@ export const Captions: React.FC<{
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'center',
-          gap: `0 ${Math.round(options.fontSize * 0.32)}px`,
-          maxWidth: '100%',
-          padding: `${Math.round(options.fontSize * 0.26)}px ${Math.round(options.fontSize * 0.7)}px`,
+          alignItems: 'baseline',
+          gap: `0 ${Math.round(options.fontSize * 0.3)}px`,
+          rowGap: Math.round(options.fontSize * 0.22),
+          maxWidth,
+          padding: panel
+            ? `${Math.round(options.fontSize * 0.3)}px ${Math.round(options.fontSize * 0.75)}px`
+            : 0,
           borderRadius: Math.round(options.fontSize * 0.35),
-          backgroundColor: theme.panel,
-          backdropFilter: 'blur(8px)',
+          backgroundColor: panel ? theme.panel : undefined,
+          backdropFilter: panel ? 'blur(8px)' : undefined,
+          opacity: eased,
+          transform: `translateY(${(1 - eased) * rise}px)`,
         }}
       >
         {cue.words.map((w, i) => {
@@ -97,14 +122,20 @@ export const Captions: React.FC<{
               style={{
                 fontFamily: theme.bodyFont,
                 fontSize: options.fontSize,
-                lineHeight: 1.25,
+                lineHeight: 1.22,
                 fontWeight: isCurrent ? 800 : 700,
-                letterSpacing: -0.2,
+                letterSpacing: -0.3,
                 color: isCurrent ? theme.accent : theme.text,
                 textTransform: options.uppercase ? 'uppercase' : 'none',
-                opacity: options.highlight && !isCurrent && !isSpoken ? 0.82 : 1,
-                textShadow: '0 2px 12px rgba(0,0,0,0.65)',
-                transform: isCurrent ? 'scale(1.04)' : 'scale(1)',
+                opacity: options.highlight && !isCurrent && !isSpoken ? 0.86 : 1,
+                textShadow: shadow,
+                ...(outline > 0
+                  ? {
+                      WebkitTextStrokeWidth: `${outline}px`,
+                      WebkitTextStrokeColor: 'rgba(0,0,0,0.92)',
+                    }
+                  : {}),
+                transform: isCurrent ? 'scale(1.03)' : 'scale(1)',
               }}
             >
               {w.text}
