@@ -124,6 +124,47 @@ export const Main: React.FC<Project> = ({script, timings}) => {
         );
       })}
 
+      {/* Looping ambience bed per scene, mixed under the narration. */}
+      {script.scenes.map((scene) => {
+        if (!scene.ambience) {
+          return null;
+        }
+        const timing = timingById.get(scene.id);
+        if (!timing) {
+          return null;
+        }
+        return (
+          <Sequence
+            key={`amb-${scene.id}`}
+            from={Math.round(timing.start * fps)}
+            durationInFrames={Math.max(1, Math.round(timing.duration * fps))}
+          >
+            <Audio
+              src={staticFile(`audio/${scene.ambience.src}.wav`)}
+              loop
+              loopVolumeCurveBehavior="extend"
+              volume={scene.ambience.volume}
+            />
+          </Sequence>
+        );
+      })}
+
+      {/* One-shot stingers, risers and impacts, placed at story beats. */}
+      {script.scenes.flatMap((scene) => {
+        const timing = timingById.get(scene.id);
+        if (!timing) {
+          return [];
+        }
+        return (scene.soundCues ?? []).map((cue, index) => (
+          <Sequence
+            key={`sfx-${scene.id}-${index}`}
+            from={Math.round((timing.start + cue.at) * fps)}
+          >
+            <Audio src={staticFile(`audio/${cue.sfx}.wav`)} volume={cue.volume ?? 1} />
+          </Sequence>
+        ));
+      })}
+
       {script.music ? (
         <Audio
           src={staticFile(script.music.src)}

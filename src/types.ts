@@ -20,6 +20,56 @@ export type BackgroundSpec =
 
 export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 
+/**
+ * Procedural horror backdrops. Every one is drawn from code, so the project
+ * needs no image assets and nothing to license.
+ */
+export type VisualSpec =
+  | {type: 'void'; creep?: number; tint?: string}
+  | {type: 'fog'; density?: number; glow?: number; seed?: number}
+  | {type: 'forest'; fog?: number; moonlight?: number}
+  | {type: 'figure'; distance?: number; fog?: number; glow?: number}
+  | {type: 'house'; fog?: number; lit?: boolean; moonlight?: number}
+  | {type: 'corridor'; flicker?: number; depth?: number}
+  | {type: 'candle'; glow?: number}
+  | {type: 'rain'; intensity?: number; lightning?: boolean}
+  | {type: 'eyes'; pairs?: number; spread?: number}
+  | {type: 'grave'; fog?: number; moonlight?: number};
+
+/** Per-shot grading and camera treatment. All values are 0..1 unless noted. */
+export interface ShotEffects {
+  vignette?: number;
+  grain?: number;
+  dust?: number;
+  shake?: number;
+  flicker?: number;
+  exposureFlicker?: number;
+  /** Breathing zoom amount, e.g. 0.03 for a subtle push. */
+  zoom?: number;
+  drift?: 'in' | 'out' | 'left' | 'right' | 'none';
+}
+
+/**
+ * One visual beat. Shots carry a relative `weight`, not an absolute duration:
+ * they are normalised across the scene, so narration length stays authoritative
+ * and shots can never drift out of sync with the audio.
+ */
+export interface ShotSpec {
+  visual: VisualSpec;
+  weight?: number;
+  effects?: ShotEffects;
+  transition?: {type: 'cut' | 'fade' | 'crossfade'; seconds?: number};
+}
+
+/** A one-shot sound effect placed at a point in the scene. */
+export interface SoundCue {
+  /** Seconds from the start of the scene. */
+  at: number;
+  /** Asset basename produced by `make_assets.py`, e.g. `sfx_stinger`. */
+  sfx: string;
+  volume?: number;
+}
+
 export interface MouthCue {
   start: number;
   end: number;
@@ -69,6 +119,12 @@ export interface Scene {
   headlinePosition: 'top' | 'center' | 'bottom';
   background: BackgroundSpec;
   cast: CastMember[];
+  /** Procedural visual beats. When present these replace `background`. */
+  shots: ShotSpec[];
+  /** Looping ambience bed, e.g. `amb_drone`. Mixed under the narration. */
+  ambience: {src: string; volume: number} | null;
+  /** One-shot stingers and impacts, timed from the scene start. */
+  soundCues: SoundCue[];
   /** Seconds of silence before narration starts. */
   padBefore: number;
   /** Seconds of silence after narration ends. */

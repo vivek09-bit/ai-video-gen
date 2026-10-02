@@ -414,6 +414,292 @@
 				"Remove-Item -Force scripts\\_final.ps1 -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force scripts\\__pycache__ -ErrorAction SilentlyContinue; Write-Host cleaned; Get-ChildItem scripts -File | Select-Object -ExpandProperty Name"
 			],
 			"isBackground": false
+		},
+		{
+			"label": "probe-hindi",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\probe_hindi.py 2>&1 | Select-String -NotMatch 'Warning|warn|torch|deprecat|download|reconstruct|%\\|' | Select-Object -First 40"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-hindi2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\probe_hindi.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "clean-hindi-probe",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Remove-Item -Force out\\_hindi_*.wav -ErrorAction SilentlyContinue; Write-Host cleaned; Get-ChildItem out | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-espeak",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"New-Item -ItemType Directory -Force -Path src\\components\\horror | Out-Null; & .venv\\Scripts\\python.exe scripts\\probe_espeak.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "test-phonemise",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\test_phonemise.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "assets-and-phonemise",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\test_phonemise.py 2>&1 | Select-Object -First 12; Write-Host \"\"; & .venv\\Scripts\\python.exe scripts\\make_assets.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "make-assets",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\make_assets.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "swap-script",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"New-Item -ItemType Directory -Force -Path examples | Out-Null; Move-Item -Force script.json examples\\deep-sea.json; Remove-Item -Force public\\audio\\*.wav,public\\audio\\*.json -ErrorAction SilentlyContinue; Write-Host moved; Get-ChildItem examples | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tts-horror",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\tts.py; Write-Host \"tts-exit=$LASTEXITCODE\"; Write-Host \"\"; npx tsc --noEmit; Write-Host \"tsc-exit=$LASTEXITCODE\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tsc2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"npx tsc --noEmit; Write-Host \"tsc-exit=$LASTEXITCODE\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "render-horror",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"npx remotion render Main out/horror.mp4 2>&1 | Select-Object -Last 8"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "render-log",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_render.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "regen-assets",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Write-Host \"=== public\\audio before ===\"; Get-ChildItem public\\audio -File | Select-Object -ExpandProperty Name; Write-Host \"\"; & .venv\\Scripts\\python.exe scripts\\make_assets.py; Write-Host \"\"; Write-Host \"=== public\\audio after ===\"; Get-ChildItem public\\audio -File | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "render-horror2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"npx remotion render Main out/horror.mp4 2>&1 | Select-Object -Last 6"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "render-horror3",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_render.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check-render",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Start-Sleep -Seconds 90; Write-Host \"=== log tail ===\"; if (Test-Path out\\_render.log) { Get-Content out\\_render.log -Tail 10 | ForEach-Object { $_.Trim() } } else { Write-Host \"no log\" }; Write-Host \"\"; Write-Host \"=== out dir ===\"; Get-ChildItem out -File | Select-Object Name,@{n='MB';e={[math]::Round($_.Length/1MB,2)}}"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "wait-render",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Start-Sleep -Seconds 240; Write-Host \"=== log tail ===\"; Get-Content out\\_render.log -Tail 5 | ForEach-Object { $_.Trim() }; Write-Host \"\"; Get-ChildItem out -File | Select-Object Name, Size"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Get-Content out\\_render.log -Tail 8 | ForEach-Object { $_.Trim() }; Write-Host \"---\"; Get-ChildItem out -File | Select-Object -ExpandProperty Name"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-horror",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& scripts\\_stills.ps1; Write-Host \"\"; & .venv\\Scripts\\python.exe scripts\\_verify_horror.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "time-render",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_time.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "wait-time",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Start-Sleep -Seconds 200; Get-Content out\\_render2.log -Tail 3 | ForEach-Object { $_.Trim() }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "report",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\_report.ps1"
+			],
+			"isBackground": false
 		}
 	]
 }

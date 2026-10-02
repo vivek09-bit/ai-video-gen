@@ -4,6 +4,7 @@ import {Background} from './Background';
 import {Captions} from './Captions';
 import {Character} from './character/Character';
 import {MouthShape} from './character/Mouth';
+import {ShotSequence} from './horror/ShotSequence';
 import {
   CaptionOptions,
   CharacterSpec,
@@ -91,17 +92,26 @@ export const SceneView: React.FC<{
 
   const hasBody = scene.subtext.length > 0 || scene.bullets.length > 0;
   const headlinePx = headlineSize(scene.headline, Math.round(height * 0.088));
+  const usingShots = (scene.shots?.length ?? 0) > 0;
 
   return (
     <AbsoluteFill style={{backgroundColor: '#000'}}>
-      <Background spec={scene.background} durationInFrames={durationInFrames} />
+      {/* Procedural horror shots replace the single background when present. */}
+      {usingShots ? (
+        <ShotSequence shots={scene.shots} />
+      ) : (
+        <Background spec={scene.background} durationInFrames={durationInFrames} />
+      )}
 
-      {/* Scrim: keeps text legible over photos and video without washing them out. */}
+      {/* Scrim: keeps text legible over photos and video without washing them out.
+          Horror shots are already dark and graded, so they need far less. */}
       <AbsoluteFill
         style={{
-          backgroundImage: hasBody
-            ? 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 38%, rgba(0,0,0,0.82) 100%)'
-            : 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.75) 100%)',
+          backgroundImage: usingShots
+            ? 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 45%, rgba(0,0,0,0.7) 100%)'
+            : hasBody
+              ? 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 38%, rgba(0,0,0,0.82) 100%)'
+              : 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.75) 100%)',
         }}
       />
 

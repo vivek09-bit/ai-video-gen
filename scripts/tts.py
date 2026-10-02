@@ -41,6 +41,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Allow importing the sibling phonemise module when this file is run directly.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from phonemise import Phonemiser  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
 AUDIO_DIR = PUBLIC / "audio"
@@ -83,13 +88,6 @@ EN_VOICES = {
 # Rhubarb's Hanna-Barbera mouth shape set.
 MOUTH_SHAPES = {"A", "B", "C", "D", "E", "F", "G", "H", "X"}
 
-# Conservative vowel set covering Kokoro's ARPAbet-derived IPA. It is only used
-# to weight words against each other, so an occasional miss just softens the
-# estimate rather than breaking it.
-VOWELS = set("aeiouæɑɒɔəɜɛɪʊʌɐɨɵɘʉɞɶøœyAOIᵻᵊ")
-STRESS = set("ˈˌ")
-IGNORED = set(".,!?;:'\"()[]-—… \t\n")
-
 DEFAULT_SCRIPT = {
     "title": "Untitled",
     "voice": "am_michael",
@@ -129,6 +127,12 @@ DEFAULT_SCENE = {
     "headlinePosition": "center",
     "background": {"type": "gradient", "from": "#0b1220", "to": "#132a44", "angle": 160},
     "cast": [],
+    # Procedural horror shots. When present these replace `background`.
+    "shots": [],
+    # Looping ambience bed, e.g. {"src": "amb_drone", "volume": 0.35}.
+    "ambience": None,
+    # One-shot effects at story beats: {"at": 12.5, "sfx": "sfx_stinger"}.
+    "soundCues": [],
     "padBefore": 0.0,
     "padAfter": 0.55,
     "holdSeconds": 3.0,
@@ -182,15 +186,19 @@ def rate_to_speed(script: dict) -> float:
 
 
 def split_sentences(text: str) -> list[str]:
-    """Split narration into sentences, keeping common abbreviations intact."""
+    """Split narration into sentences, keeping common abbreviations intact.
+
+    Handles the Devanagari danda (।) and double danda (॥) as well as Latin
+    punctuation, since Hindi narration uses them exclusively.
+    """
     text = " ".join(text.split())
     if not text:
         return []
 
     sentences: list[str] = []
-    for part in re.split(r"(?<=[.!?])\s+", text):
+    for part in re.split(r"(?<=[.!?।॥])\s+", text):
         if sentences:
-            tail = re.split(r"[\s.]+", sentences[-1].rstrip())[-1].lower().strip(".")
+            tail = re.split(r"[\s.।॥]+", sentences[-1].rstrip())[-1].lower().strip(".")
             if tail in ABBREVIATIONS:
                 sentences[-1] = f"{sentences[-1]} {part}"
                 continue
@@ -199,22 +207,11 @@ def split_sentences(text: str) -> list[str]:
 
 
 def phoneme_weight(phonemes: str) -> float:
-    """Relative duration of a word's pronunciation.
+    """Kept for backwards compatibility; the real implementation lives in
+    ``phonemise.py`` so it can be shared and tested on its own."""
+    from phonemise import phoneme_weight as weight
 
-    Vowels carry most of a syllable's length; consonants are shorter. Stress and
-    length marks stretch the syllable they attach to.
-    """
-    weight = 0.0
-    for char in phonemes:
-        if char in IGNORED:
-            continue
-        if char in STRESS or char == "ː":
-            weight += 0.35
-        elif char in VOWELS:
-            weight += 1.0
-        else:
-            weight += 0.6
-    return max(weight, 0.4)
+    return weight(phonemes)
 
 
 # --------------------------------------------------------------------------
@@ -227,7 +224,7 @@ class Voice:
 
     def __init__(self) -> None:
         self._pipelines: dict[str, object] = {}
-        self._g2p = None
+        self.phonemiser = Phonemiser()
 
     def _pipeline(self, lang_code: str):
         if lang_code not in self._pipelines:
@@ -236,23 +233,15 @@ class Voice:
             self._pipelines[lang_code] = KPipeline(lang_code=lang_code)
         return self._pipelines[lang_code]
 
-    def _tokeniser(self):
-        if self._g2p is None:
-            from misaki import en
-
-            self._g2p = en.G2P()
-        return self._g2p
-
-    def tokens(self, text: str) -> list:
-        """Word tokens carrying per-word IPA phonemes."""
-        _phonemes, tokens = self._tokeniser()(text)
-        return [t for t in tokens if (getattr(t, "text", "") or "").strip()]
-
     def say(self, text: str, voice: str, speed: float):
-        """Synthesise one sentence; returns a float32 mono numpy array."""
+        """Synthesise one sentence; returns a float32 mono numpy array.
+
+        The Kokoro language code is the first letter of the voice id, so the
+        same call handles English, Hindi and the rest.
+        """
         import numpy as np
 
-        lang_code = voice[0] if voice[:1] in {"a", "b"} else "a"
+        lang_code = voice[:1].lower() or "a"
         chunks = [
             np.asarray(audio, dtype=np.float32)
             for _g, _p, audio in self._pipeline(lang_code)(text, voice=voice, speed=speed)
@@ -265,8 +254,13 @@ class Voice:
 def synthesise_line(engine: Voice, text: str, voice: str, speed: float, pause: float):
     """Synthesise a whole line, returning (audio, words).
 
-    Each sentence is rendered separately so its duration is exact, then that
-    duration is spread across the sentence's words by phoneme weight.
+    Each sentence is rendered separately so its duration is exact from the
+    sample count, then that duration is spread across the sentence's words in
+    proportion to how long each pronunciation actually is.
+
+    Weighting is per spoken word and works for every language: English uses
+    misaki's tokens, other languages zip espeak's phoneme groups against the
+    words, and anything that fails falls back to syllable counts.
     """
     import numpy as np
 
@@ -283,21 +277,24 @@ def synthesise_line(engine: Voice, text: str, voice: str, speed: float, pause: f
         audio = engine.say(sentence, voice, speed)
         duration = len(audio) / SAMPLE_RATE
 
-        tokens = engine.tokens(sentence)
-        if tokens:
-            weights = [phoneme_weight(getattr(t, "phonemes", "") or "") for t in tokens]
-            total = sum(weights) or 1.0
-            cursor = offset
-            for token, weight in zip(tokens, weights):
-                span = duration * weight / total
-                words.append(
-                    {
-                        "text": getattr(token, "text", ""),
-                        "start": round(cursor, 4),
-                        "end": round(cursor + span, 4),
-                    }
-                )
-                cursor += span
+        spoken = [w for w in sentence.split() if w]
+        weights = engine.phonemiser.weights(sentence, voice)
+        if len(weights) != len(spoken):
+            # Should not happen, but even weighting beats dropping the caption.
+            weights = [1.0] * len(spoken)
+
+        total = sum(weights) or 1.0
+        cursor = offset
+        for word, weight in zip(spoken, weights):
+            span = duration * weight / total
+            words.append(
+                {
+                    "text": word,
+                    "start": round(cursor, 4),
+                    "end": round(cursor + span, 4),
+                }
+            )
+            cursor += span
 
         pieces.append(audio)
         offset += duration

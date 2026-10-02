@@ -1,137 +1,153 @@
 {
-  "title": "The Deep Sea",
-  "voice": "bm_george",
-  "speed": 1.0,
+  "title": "आधी रात की दस्तक",
+  "voice": "hm_omega",
+  "speed": 0.94,
   "fps": 30,
   "width": 1920,
   "height": 1080,
-  "sentencePauseSeconds": 0.18,
+  "sentencePauseSeconds": 0.32,
   "captions": {
-    "enabled": true,
+    "enabled": false,
     "wordsPerCue": 4,
     "bottom": 0.06,
     "fontSize": 54,
     "highlight": true
   },
   "theme": {
-    "accent": "#38bdf8",
-    "text": "#ffffff",
-    "muted": "#cbd5e1",
-    "panel": "rgba(3, 7, 18, 0.55)",
+    "accent": "#c9524a",
+    "text": "#f2ece4",
+    "muted": "#a89f96",
+    "panel": "rgba(4, 4, 6, 0.62)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
   },
-  "characters": {
-    "maya": {
-      "name": "Maya",
-      "voice": "af_heart",
-      "palette": {
-        "skin": "#f0c49a",
-        "skinShade": "#dba87c",
-        "hair": "#2f2a3a",
-        "shirt": "#e0653f",
-        "accent": "#ffd166",
-        "outline": "#232a33"
-      },
-      "hairstyle": "bun",
-      "accessory": "none"
-    },
-    "sam": {
-      "name": "Sam",
-      "voice": "am_michael",
-      "palette": {
-        "skin": "#c98d63",
-        "skinShade": "#ad7450",
-        "hair": "#1f1b18",
-        "shirt": "#3f6f8f",
-        "accent": "#8ed1fc",
-        "outline": "#232a33"
-      },
-      "hairstyle": "short",
-      "accessory": "glasses"
-    }
-  },
   "scenes": [
     {
-      "id": "intro",
-      "headline": "The Deep Sea",
-      "subtext": "A short demo of the tube2dscript pipeline",
-      "cast": [{"id": "maya", "x": 0.5, "scale": 1}],
-      "lines": [
+      "id": "gaon",
+      "headline": "आधी रात की दस्तक",
+      "subtext": "एक सच्ची घटना",
+      "ambience": {"src": "amb_wind", "volume": 0.42},
+      "shots": [
         {
-          "character": "maya",
-          "text": "Two thirds of our planet is ocean, and almost all of it is completely dark."
-        }
-      ],
-      "background": {
-        "type": "gradient",
-        "from": "#04101c",
-        "to": "#0f3352",
-        "angle": 160
-      }
-    },
-    {
-      "id": "dialogue",
-      "headline": "Four Thousand Meters Down",
-      "cast": [
-        {"id": "maya", "x": 0.29, "scale": 0.92, "flip": true},
-        {"id": "sam", "x": 0.71, "scale": 0.92}
-      ],
-      "lines": [
-        {
-          "character": "sam",
-          "text": "At four thousand meters, the pressure would crush a steel submarine like a tin can."
+          "visual": {"type": "forest", "fog": 0.7, "moonlight": 0.55},
+          "weight": 2,
+          "effects": {"vignette": 0.85, "grain": 0.45, "dust": 0.2, "zoom": 0.035, "drift": "in"},
+          "transition": {"type": "cut"}
         },
         {
-          "character": "maya",
-          "text": "And yet something down there is making its own light."
+          "visual": {"type": "void", "creep": 0.6},
+          "weight": 1,
+          "effects": {"vignette": 0.92, "grain": 0.5, "dust": 0.1, "zoom": 0.02, "drift": "out"},
+          "transition": {"type": "crossfade", "seconds": 1.6}
         }
       ],
-      "background": {
-        "type": "pattern",
-        "pattern": "grid",
-        "bg": "#061321",
-        "line": "#153a5c"
-      }
-    },
-    {
-      "id": "life",
-      "headline": "Yet Life Finds A Way",
-      "bullets": [
-        "Anglerfish that make their own light",
-        "Giant squid the size of a bus",
-        "Bacteria that feed on bare rock"
-      ],
-      "background": {
-        "type": "pattern",
-        "pattern": "dots",
-        "bg": "#071726",
-        "line": "#1e4a70"
-      },
       "lines": [
         {
           "character": null,
-          "text": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock."
+          "text": "गाँव के लोग उस घर के पास से गुज़रते हुए भी नज़र नीची कर लेते थे। कोई नहीं जानता था कि उस बंद घर में असल में कौन रहता है।"
         }
+      ],
+      "background": {"type": "gradient", "from": "#05070c", "to": "#0d1219", "angle": 180},
+      "soundCues": [{"at": 0.4, "sfx": "sfx_whisper", "volume": 0.35}]
+    },
+    {
+      "id": "haveli",
+      "headline": "पुरानी हवेली",
+      "ambience": {"src": "amb_drone", "volume": 0.5},
+      "shots": [
+        {
+          "visual": {"type": "house", "fog": 0.55, "lit": true, "moonlight": 0.5},
+          "weight": 2,
+          "effects": {"vignette": 0.82, "grain": 0.42, "dust": 0.25, "zoom": 0.04, "drift": "in"}
+        },
+        {
+          "visual": {"type": "corridor", "flicker": 0.75, "depth": 0.55},
+          "weight": 2,
+          "effects": {"vignette": 0.88, "grain": 0.48, "dust": 0.3, "exposureFlicker": 0.3, "zoom": 0.05, "drift": "in"},
+          "transition": {"type": "crossfade", "seconds": 1.4}
+        },
+        {
+          "visual": {"type": "candle", "glow": 0.95},
+          "weight": 1,
+          "effects": {"vignette": 0.9, "grain": 0.4, "dust": 0.35, "zoom": 0.03, "drift": "none"},
+          "transition": {"type": "fade", "seconds": 1.1}
+        }
+      ],
+      "lines": [
+        {
+          "character": null,
+          "text": "उस रात मैंने हिम्मत करके दरवाज़ा खोला। अंदर एक जलती हुई मोमबत्ती थी। और मोमबत्ती के पीछे कोई खड़ा था।"
+        }
+      ],
+      "background": {"type": "color", "color": "#04060a"},
+      "soundCues": [
+        {"at": 3.2, "sfx": "sfx_riser", "volume": 0.5},
+        {"at": 8.6, "sfx": "sfx_stinger", "volume": 0.85}
       ]
     },
     {
-      "id": "outro",
-      "headline": "We Have Mapped 26%",
-      "subtext": "The rest is still a blank page",
-      "cast": [{"id": "sam", "x": 0.5, "scale": 1}],
-      "lines": [
+      "id": "aankhein",
+      "headline": "वो पलटा",
+      "ambience": {"src": "amb_heartbeat", "volume": 0.55},
+      "shots": [
         {
-          "character": "sam",
-          "text": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page."
+          "visual": {"type": "figure", "distance": 0.35, "fog": 0.65, "glow": 0.5},
+          "weight": 3,
+          "effects": {"vignette": 0.88, "grain": 0.5, "dust": 0.3, "shake": 0.35, "zoom": 0.06, "drift": "in"}
+        },
+        {
+          "visual": {"type": "eyes", "pairs": 4, "spread": 0.8},
+          "weight": 1,
+          "effects": {"vignette": 0.95, "grain": 0.55, "dust": 0, "shake": 0.15, "zoom": 0.02, "drift": "none"},
+          "transition": {"type": "crossfade", "seconds": 0.35}
+        },
+        {
+          "visual": {"type": "void", "creep": 0.85},
+          "weight": 1,
+          "effects": {"vignette": 0.96, "grain": 0.6, "dust": 0, "zoom": 0.015, "drift": "none"},
+          "transition": {"type": "fade", "seconds": 1.8}
         }
       ],
-      "background": {
-        "type": "gradient",
-        "from": "#0a1a2b",
-        "to": "#020a12",
-        "angle": 200
-      }
+      "lines": [
+        {
+          "character": null,
+          "text": "मैंने पीछे मुड़कर देखा। अंधेरे में दो आँखें चमक रही थीं। बहुत देर तक वो मुझे ही देखती रहीं।"
+        }
+      ],
+      "background": {"type": "color", "color": "#030406"},
+      "soundCues": [
+        {"at": 1.0, "sfx": "sfx_impact", "volume": 0.7},
+        {"at": 5.4, "sfx": "sfx_stinger", "volume": 1.0}
+      ]
+    },
+    {
+      "id": "ant",
+      "headline": "आज भी वो घर बंद है",
+      "ambience": {"src": "amb_drone", "volume": 0.4},
+      "shots": [
+        {
+          "visual": {"type": "rain", "intensity": 0.7, "lightning": true},
+          "weight": 2,
+          "effects": {"vignette": 0.86, "grain": 0.45, "dust": 0.15, "zoom": 0.03, "drift": "in"}
+        },
+        {
+          "visual": {"type": "grave", "fog": 0.7, "moonlight": 0.45},
+          "weight": 2,
+          "effects": {"vignette": 0.9, "grain": 0.5, "dust": 0.2, "zoom": 0.025, "drift": "out"},
+          "transition": {"type": "crossfade", "seconds": 1.5}
+        }
+      ],
+      "lines": [
+        {
+          "character": null,
+          "text": "अगर आप कभी उस गाँव से गुज़रें, तो उस घर के दरवाज़े पर दस्तक मत दीजिए। क्योंकि आज भी, आधी रात को, कोई अंदर से जवाब देता है।"
+        }
+      ],
+      "background": {"type": "color", "color": "#04060a"},
+      "soundCues": [
+        {"at": 6.0, "sfx": "sfx_riser", "volume": 0.45},
+        {"at": 12.5, "sfx": "sfx_bell", "volume": 0.6}
+      ]
     }
   ]
 }

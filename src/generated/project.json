@@ -1,15 +1,15 @@
 {
   "script": {
-    "title": "The Deep Sea",
-    "voice": "bm_george",
-    "speed": 1.0,
+    "title": "आधी रात की दस्तक",
+    "voice": "hm_omega",
+    "speed": 0.94,
     "fps": 30,
     "width": 1920,
     "height": 1080,
     "tailPaddingSeconds": 1.2,
-    "sentencePauseSeconds": 0.18,
+    "sentencePauseSeconds": 0.32,
     "captions": {
-      "enabled": true,
+      "enabled": false,
       "wordsPerCue": 4,
       "bottom": 0.06,
       "fontSize": 54,
@@ -18,172 +18,354 @@
     },
     "music": null,
     "theme": {
-      "accent": "#38bdf8",
-      "text": "#ffffff",
-      "muted": "#cbd5e1",
-      "panel": "rgba(3, 7, 18, 0.55)",
+      "accent": "#c9524a",
+      "text": "#f2ece4",
+      "muted": "#a89f96",
+      "panel": "rgba(4, 4, 6, 0.62)",
       "headlineFont": "Georgia, 'Times New Roman', serif",
       "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
     },
-    "characters": {
-      "maya": {
-        "name": "Maya",
-        "voice": "af_heart",
-        "palette": {
-          "skin": "#f0c49a",
-          "skinShade": "#dba87c",
-          "hair": "#2f2a3a",
-          "shirt": "#e0653f",
-          "accent": "#ffd166",
-          "outline": "#232a33"
-        },
-        "hairstyle": "bun",
-        "accessory": "none"
-      },
-      "sam": {
-        "name": "Sam",
-        "voice": "am_michael",
-        "palette": {
-          "skin": "#c98d63",
-          "skinShade": "#ad7450",
-          "hair": "#1f1b18",
-          "shirt": "#3f6f8f",
-          "accent": "#8ed1fc",
-          "outline": "#232a33"
-        },
-        "hairstyle": "short",
-        "accessory": "glasses"
-      }
-    },
+    "characters": {},
     "scenes": [
       {
-        "id": "intro",
-        "narration": "",
-        "lines": [
-          {
-            "character": "maya",
-            "text": "Two thirds of our planet is ocean, and almost all of it is completely dark."
-          }
-        ],
-        "headline": "The Deep Sea",
-        "subtext": "A short demo of the tube2dscript pipeline",
-        "bullets": [],
-        "headlinePosition": "center",
-        "background": {
-          "type": "gradient",
-          "from": "#04101c",
-          "to": "#0f3352",
-          "angle": 160
-        },
-        "cast": [
-          {
-            "id": "maya",
-            "x": 0.5,
-            "scale": 1
-          }
-        ],
-        "padBefore": 0.0,
-        "padAfter": 0.55,
-        "holdSeconds": 3.0
-      },
-      {
-        "id": "dialogue",
-        "narration": "",
-        "lines": [
-          {
-            "character": "sam",
-            "text": "At four thousand meters, the pressure would crush a steel submarine like a tin can."
-          },
-          {
-            "character": "maya",
-            "text": "And yet something down there is making its own light."
-          }
-        ],
-        "headline": "Four Thousand Meters Down",
-        "subtext": "",
-        "bullets": [],
-        "headlinePosition": "center",
-        "background": {
-          "type": "pattern",
-          "from": "#0b1220",
-          "to": "#132a44",
-          "angle": 160,
-          "pattern": "grid",
-          "bg": "#061321",
-          "line": "#153a5c"
-        },
-        "cast": [
-          {
-            "id": "maya",
-            "x": 0.29,
-            "scale": 0.92,
-            "flip": true
-          },
-          {
-            "id": "sam",
-            "x": 0.71,
-            "scale": 0.92
-          }
-        ],
-        "padBefore": 0.0,
-        "padAfter": 0.55,
-        "holdSeconds": 3.0
-      },
-      {
-        "id": "life",
+        "id": "gaon",
         "narration": "",
         "lines": [
           {
             "character": null,
-            "text": "Yet life survives here. Anglerfish that make their own light, giant squid the size of a bus, and bacteria that feed on bare rock."
+            "text": "गाँव के लोग उस घर के पास से गुज़रते हुए भी नज़र नीची कर लेते थे। कोई नहीं जानता था कि उस बंद घर में असल में कौन रहता है।"
           }
         ],
-        "headline": "Yet Life Finds A Way",
-        "subtext": "",
-        "bullets": [
-          "Anglerfish that make their own light",
-          "Giant squid the size of a bus",
-          "Bacteria that feed on bare rock"
-        ],
+        "headline": "आधी रात की दस्तक",
+        "subtext": "एक सच्ची घटना",
+        "bullets": [],
         "headlinePosition": "center",
         "background": {
-          "type": "pattern",
-          "from": "#0b1220",
-          "to": "#132a44",
-          "angle": 160,
-          "pattern": "dots",
-          "bg": "#071726",
-          "line": "#1e4a70"
+          "type": "gradient",
+          "from": "#05070c",
+          "to": "#0d1219",
+          "angle": 180
         },
         "cast": [],
+        "shots": [
+          {
+            "visual": {
+              "type": "forest",
+              "fog": 0.7,
+              "moonlight": 0.55
+            },
+            "weight": 2,
+            "effects": {
+              "vignette": 0.85,
+              "grain": 0.45,
+              "dust": 0.2,
+              "zoom": 0.035,
+              "drift": "in"
+            },
+            "transition": {
+              "type": "cut"
+            }
+          },
+          {
+            "visual": {
+              "type": "void",
+              "creep": 0.6
+            },
+            "weight": 1,
+            "effects": {
+              "vignette": 0.92,
+              "grain": 0.5,
+              "dust": 0.1,
+              "zoom": 0.02,
+              "drift": "out"
+            },
+            "transition": {
+              "type": "crossfade",
+              "seconds": 1.6
+            }
+          }
+        ],
+        "ambience": {
+          "src": "amb_wind",
+          "volume": 0.42
+        },
+        "soundCues": [
+          {
+            "at": 0.4,
+            "sfx": "sfx_whisper",
+            "volume": 0.35
+          }
+        ],
         "padBefore": 0.0,
         "padAfter": 0.55,
         "holdSeconds": 3.0
       },
       {
-        "id": "outro",
+        "id": "haveli",
         "narration": "",
         "lines": [
           {
-            "character": "sam",
-            "text": "We have mapped only twenty six percent of the sea floor in detail. The rest is still a blank page."
+            "character": null,
+            "text": "उस रात मैंने हिम्मत करके दरवाज़ा खोला। अंदर एक जलती हुई मोमबत्ती थी। और मोमबत्ती के पीछे कोई खड़ा था।"
           }
         ],
-        "headline": "We Have Mapped 26%",
-        "subtext": "The rest is still a blank page",
+        "headline": "पुरानी हवेली",
+        "subtext": "",
         "bullets": [],
         "headlinePosition": "center",
         "background": {
-          "type": "gradient",
-          "from": "#0a1a2b",
-          "to": "#020a12",
-          "angle": 200
+          "type": "color",
+          "from": "#0b1220",
+          "to": "#132a44",
+          "angle": 160,
+          "color": "#04060a"
         },
-        "cast": [
+        "cast": [],
+        "shots": [
           {
-            "id": "sam",
-            "x": 0.5,
-            "scale": 1
+            "visual": {
+              "type": "house",
+              "fog": 0.55,
+              "lit": true,
+              "moonlight": 0.5
+            },
+            "weight": 2,
+            "effects": {
+              "vignette": 0.82,
+              "grain": 0.42,
+              "dust": 0.25,
+              "zoom": 0.04,
+              "drift": "in"
+            }
+          },
+          {
+            "visual": {
+              "type": "corridor",
+              "flicker": 0.75,
+              "depth": 0.55
+            },
+            "weight": 2,
+            "effects": {
+              "vignette": 0.88,
+              "grain": 0.48,
+              "dust": 0.3,
+              "exposureFlicker": 0.3,
+              "zoom": 0.05,
+              "drift": "in"
+            },
+            "transition": {
+              "type": "crossfade",
+              "seconds": 1.4
+            }
+          },
+          {
+            "visual": {
+              "type": "candle",
+              "glow": 0.95
+            },
+            "weight": 1,
+            "effects": {
+              "vignette": 0.9,
+              "grain": 0.4,
+              "dust": 0.35,
+              "zoom": 0.03,
+              "drift": "none"
+            },
+            "transition": {
+              "type": "fade",
+              "seconds": 1.1
+            }
+          }
+        ],
+        "ambience": {
+          "src": "amb_drone",
+          "volume": 0.5
+        },
+        "soundCues": [
+          {
+            "at": 3.2,
+            "sfx": "sfx_riser",
+            "volume": 0.5
+          },
+          {
+            "at": 8.6,
+            "sfx": "sfx_stinger",
+            "volume": 0.85
+          }
+        ],
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0
+      },
+      {
+        "id": "aankhein",
+        "narration": "",
+        "lines": [
+          {
+            "character": null,
+            "text": "मैंने पीछे मुड़कर देखा। अंधेरे में दो आँखें चमक रही थीं। बहुत देर तक वो मुझे ही देखती रहीं।"
+          }
+        ],
+        "headline": "वो पलटा",
+        "subtext": "",
+        "bullets": [],
+        "headlinePosition": "center",
+        "background": {
+          "type": "color",
+          "from": "#0b1220",
+          "to": "#132a44",
+          "angle": 160,
+          "color": "#030406"
+        },
+        "cast": [],
+        "shots": [
+          {
+            "visual": {
+              "type": "figure",
+              "distance": 0.35,
+              "fog": 0.65,
+              "glow": 0.5
+            },
+            "weight": 3,
+            "effects": {
+              "vignette": 0.88,
+              "grain": 0.5,
+              "dust": 0.3,
+              "shake": 0.35,
+              "zoom": 0.06,
+              "drift": "in"
+            }
+          },
+          {
+            "visual": {
+              "type": "eyes",
+              "pairs": 4,
+              "spread": 0.8
+            },
+            "weight": 1,
+            "effects": {
+              "vignette": 0.95,
+              "grain": 0.55,
+              "dust": 0,
+              "shake": 0.15,
+              "zoom": 0.02,
+              "drift": "none"
+            },
+            "transition": {
+              "type": "crossfade",
+              "seconds": 0.35
+            }
+          },
+          {
+            "visual": {
+              "type": "void",
+              "creep": 0.85
+            },
+            "weight": 1,
+            "effects": {
+              "vignette": 0.96,
+              "grain": 0.6,
+              "dust": 0,
+              "zoom": 0.015,
+              "drift": "none"
+            },
+            "transition": {
+              "type": "fade",
+              "seconds": 1.8
+            }
+          }
+        ],
+        "ambience": {
+          "src": "amb_heartbeat",
+          "volume": 0.55
+        },
+        "soundCues": [
+          {
+            "at": 1.0,
+            "sfx": "sfx_impact",
+            "volume": 0.7
+          },
+          {
+            "at": 5.4,
+            "sfx": "sfx_stinger",
+            "volume": 1.0
+          }
+        ],
+        "padBefore": 0.0,
+        "padAfter": 0.55,
+        "holdSeconds": 3.0
+      },
+      {
+        "id": "ant",
+        "narration": "",
+        "lines": [
+          {
+            "character": null,
+            "text": "अगर आप कभी उस गाँव से गुज़रें, तो उस घर के दरवाज़े पर दस्तक मत दीजिए। क्योंकि आज भी, आधी रात को, कोई अंदर से जवाब देता है।"
+          }
+        ],
+        "headline": "आज भी वो घर बंद है",
+        "subtext": "",
+        "bullets": [],
+        "headlinePosition": "center",
+        "background": {
+          "type": "color",
+          "from": "#0b1220",
+          "to": "#132a44",
+          "angle": 160,
+          "color": "#04060a"
+        },
+        "cast": [],
+        "shots": [
+          {
+            "visual": {
+              "type": "rain",
+              "intensity": 0.7,
+              "lightning": true
+            },
+            "weight": 2,
+            "effects": {
+              "vignette": 0.86,
+              "grain": 0.45,
+              "dust": 0.15,
+              "zoom": 0.03,
+              "drift": "in"
+            }
+          },
+          {
+            "visual": {
+              "type": "grave",
+              "fog": 0.7,
+              "moonlight": 0.45
+            },
+            "weight": 2,
+            "effects": {
+              "vignette": 0.9,
+              "grain": 0.5,
+              "dust": 0.2,
+              "zoom": 0.025,
+              "drift": "out"
+            },
+            "transition": {
+              "type": "crossfade",
+              "seconds": 1.5
+            }
+          }
+        ],
+        "ambience": {
+          "src": "amb_drone",
+          "volume": 0.4
+        },
+        "soundCues": [
+          {
+            "at": 6.0,
+            "sfx": "sfx_riser",
+            "volume": 0.45
+          },
+          {
+            "at": 12.5,
+            "sfx": "sfx_bell",
+            "volume": 0.6
           }
         ],
         "padBefore": 0.0,
@@ -193,1514 +375,710 @@
     ]
   },
   "timings": {
-    "totalDuration": 33.91,
-    "totalWords": 84,
+    "totalDuration": 51.72,
+    "totalWords": 97,
     "scenes": [
       {
-        "id": "intro",
+        "id": "gaon",
         "index": 0,
         "start": 0.0,
-        "duration": 5.575,
+        "duration": 13.445,
         "audioStart": 0.0,
-        "audio": "audio/intro.wav",
+        "audio": "audio/gaon.wav",
         "words": [
           {
-            "text": "Two",
+            "text": "गाँव",
             "start": 0.0,
-            "end": 0.2209
+            "end": 0.5097
           },
           {
-            "text": "thirds",
-            "start": 0.2209,
-            "end": 0.6458
+            "text": "के",
+            "start": 0.5097,
+            "end": 0.7747
           },
           {
-            "text": "of",
-            "start": 0.6458,
-            "end": 0.8271
+            "text": "लोग",
+            "start": 0.7747,
+            "end": 1.1688
           },
           {
-            "text": "our",
-            "start": 0.8271,
-            "end": 1.116
+            "text": "उस",
+            "start": 1.1688,
+            "end": 1.4338
           },
           {
-            "text": "planet",
-            "start": 1.116,
-            "end": 1.6542
+            "text": "घर",
+            "start": 1.4338,
+            "end": 1.8619
           },
           {
-            "text": "is",
-            "start": 1.6542,
-            "end": 1.8355
+            "text": "के",
+            "start": 1.8619,
+            "end": 2.127
           },
           {
-            "text": "ocean",
-            "start": 1.8355,
-            "end": 2.2377
+            "text": "पास",
+            "start": 2.127,
+            "end": 2.5211
           },
           {
-            "text": ",",
-            "start": 2.2377,
-            "end": 2.2831
+            "text": "से",
+            "start": 2.5211,
+            "end": 2.7861
           },
           {
-            "text": "and",
-            "start": 2.2831,
-            "end": 2.5323
+            "text": "गुज़रते",
+            "start": 2.7861,
+            "end": 3.6151
           },
           {
-            "text": "almost",
-            "start": 2.5323,
-            "end": 3.0705
+            "text": "हुए",
+            "start": 3.6151,
+            "end": 4.0636
           },
           {
-            "text": "all",
-            "start": 3.0705,
-            "end": 3.2915
+            "text": "भी",
+            "start": 4.0636,
+            "end": 4.4102
           },
           {
-            "text": "of",
-            "start": 3.2915,
-            "end": 3.4727
+            "text": "नज़र",
+            "start": 4.4102,
+            "end": 4.9742
           },
           {
-            "text": "it",
-            "start": 3.4727,
-            "end": 3.654
+            "text": "नीची",
+            "start": 4.9742,
+            "end": 5.5043
           },
           {
-            "text": "is",
-            "start": 3.654,
-            "end": 3.8353
+            "text": "कर",
+            "start": 5.5043,
+            "end": 5.8508
           },
           {
-            "text": "completely",
-            "start": 3.8353,
-            "end": 4.6228
+            "text": "लेते",
+            "start": 5.8508,
+            "end": 6.4284
           },
           {
-            "text": "dark",
-            "start": 4.6228,
-            "end": 4.9797
+            "text": "थे।",
+            "start": 6.4284,
+            "end": 6.775
           },
           {
-            "text": ".",
-            "start": 4.9797,
-            "end": 5.025
-          }
-        ],
-        "lines": [
-          {
-            "characterId": "maya",
-            "audio": "audio/intro.wav",
-            "start": 0.0,
-            "duration": 5.025,
-            "words": [
-              {
-                "text": "Two",
-                "start": 0.0,
-                "end": 0.2209
-              },
-              {
-                "text": "thirds",
-                "start": 0.2209,
-                "end": 0.6458
-              },
-              {
-                "text": "of",
-                "start": 0.6458,
-                "end": 0.8271
-              },
-              {
-                "text": "our",
-                "start": 0.8271,
-                "end": 1.116
-              },
-              {
-                "text": "planet",
-                "start": 1.116,
-                "end": 1.6542
-              },
-              {
-                "text": "is",
-                "start": 1.6542,
-                "end": 1.8355
-              },
-              {
-                "text": "ocean",
-                "start": 1.8355,
-                "end": 2.2377
-              },
-              {
-                "text": ",",
-                "start": 2.2377,
-                "end": 2.2831
-              },
-              {
-                "text": "and",
-                "start": 2.2831,
-                "end": 2.5323
-              },
-              {
-                "text": "almost",
-                "start": 2.5323,
-                "end": 3.0705
-              },
-              {
-                "text": "all",
-                "start": 3.0705,
-                "end": 3.2915
-              },
-              {
-                "text": "of",
-                "start": 3.2915,
-                "end": 3.4727
-              },
-              {
-                "text": "it",
-                "start": 3.4727,
-                "end": 3.654
-              },
-              {
-                "text": "is",
-                "start": 3.654,
-                "end": 3.8353
-              },
-              {
-                "text": "completely",
-                "start": 3.8353,
-                "end": 4.6228
-              },
-              {
-                "text": "dark",
-                "start": 4.6228,
-                "end": 4.9797
-              },
-              {
-                "text": ".",
-                "start": 4.9797,
-                "end": 5.025
-              }
-            ],
-            "mouthCues": [
-              {
-                "start": 0.0,
-                "end": 0.26,
-                "value": "X"
-              },
-              {
-                "start": 0.26,
-                "end": 0.48,
-                "value": "F"
-              },
-              {
-                "start": 0.48,
-                "end": 0.83,
-                "value": "B"
-              },
-              {
-                "start": 0.83,
-                "end": 0.9,
-                "value": "G"
-              },
-              {
-                "start": 0.9,
-                "end": 0.97,
-                "value": "D"
-              },
-              {
-                "start": 0.97,
-                "end": 1.11,
-                "value": "A"
-              },
-              {
-                "start": 1.11,
-                "end": 1.18,
-                "value": "B"
-              },
-              {
-                "start": 1.18,
-                "end": 1.32,
-                "value": "C"
-              },
-              {
-                "start": 1.32,
-                "end": 1.6,
-                "value": "B"
-              },
-              {
-                "start": 1.6,
-                "end": 1.67,
-                "value": "E"
-              },
-              {
-                "start": 1.67,
-                "end": 1.74,
-                "value": "F"
-              },
-              {
-                "start": 1.74,
-                "end": 1.88,
-                "value": "B"
-              },
-              {
-                "start": 1.88,
-                "end": 2.09,
-                "value": "C"
-              },
-              {
-                "start": 2.09,
-                "end": 2.39,
-                "value": "B"
-              },
-              {
-                "start": 2.39,
-                "end": 2.46,
-                "value": "C"
-              },
-              {
-                "start": 2.46,
-                "end": 2.6,
-                "value": "D"
-              },
-              {
-                "start": 2.6,
-                "end": 2.67,
-                "value": "C"
-              },
-              {
-                "start": 2.67,
-                "end": 2.75,
-                "value": "A"
-              },
-              {
-                "start": 2.75,
-                "end": 2.86,
-                "value": "B"
-              },
-              {
-                "start": 2.86,
-                "end": 3.07,
-                "value": "E"
-              },
-              {
-                "start": 3.07,
-                "end": 3.21,
-                "value": "F"
-              },
-              {
-                "start": 3.21,
-                "end": 3.63,
-                "value": "B"
-              },
-              {
-                "start": 3.63,
-                "end": 3.72,
-                "value": "A"
-              },
-              {
-                "start": 3.72,
-                "end": 4.11,
-                "value": "B"
-              },
-              {
-                "start": 4.11,
-                "end": 4.32,
-                "value": "D"
-              },
-              {
-                "start": 4.32,
-                "end": 4.39,
-                "value": "E"
-              },
-              {
-                "start": 4.39,
-                "end": 4.6,
-                "value": "C"
-              },
-              {
-                "start": 4.6,
-                "end": 5.02,
-                "value": "X"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "dialogue",
-        "index": 1,
-        "start": 5.575,
-        "duration": 9.75,
-        "audioStart": 5.575,
-        "audio": "audio/dialogue-1.wav",
-        "words": [
-          {
-            "text": "At",
-            "start": 0.0,
-            "end": 0.2523
-          },
-          {
-            "text": "four",
-            "start": 0.2523,
-            "end": 0.5822
-          },
-          {
-            "text": "thousand",
-            "start": 0.5822,
-            "end": 1.1451
-          },
-          {
-            "text": "meters",
-            "start": 1.1451,
-            "end": 1.7596
-          },
-          {
-            "text": ",",
-            "start": 1.7596,
-            "end": 1.8114
-          },
-          {
-            "text": "the",
-            "start": 1.8114,
-            "end": 2.0184
-          },
-          {
-            "text": "pressure",
-            "start": 2.0184,
-            "end": 2.633
-          },
-          {
-            "text": "would",
-            "start": 2.633,
-            "end": 2.9177
-          },
-          {
-            "text": "crush",
-            "start": 2.9177,
-            "end": 3.3252
-          },
-          {
-            "text": "a",
-            "start": 3.3252,
-            "end": 3.4546
-          },
-          {
-            "text": "steel",
-            "start": 3.4546,
-            "end": 3.8622
-          },
-          {
-            "text": "submarine",
-            "start": 3.8622,
-            "end": 4.7291
-          },
-          {
-            "text": "like",
-            "start": 4.7291,
-            "end": 5.059
-          },
-          {
-            "text": "a",
-            "start": 5.059,
-            "end": 5.1884
-          },
-          {
-            "text": "tin",
-            "start": 5.1884,
-            "end": 5.5183
-          },
-          {
-            "text": "can",
-            "start": 5.5183,
-            "end": 5.8482
-          },
-          {
-            "text": ".",
-            "start": 5.8482,
-            "end": 5.9
-          },
-          {
-            "text": "And",
-            "start": 5.9,
-            "end": 6.2071
-          },
-          {
-            "text": "yet",
-            "start": 6.2071,
-            "end": 6.5142
-          },
-          {
-            "text": "something",
-            "start": 6.5142,
-            "end": 7.1285
-          },
-          {
-            "text": "down",
-            "start": 7.1285,
-            "end": 7.3874
-          },
-          {
-            "text": "there",
-            "start": 7.3874,
-            "end": 7.6524
-          },
-          {
-            "text": "is",
-            "start": 7.6524,
-            "end": 7.8451
-          },
-          {
-            "text": "making",
-            "start": 7.8451,
-            "end": 8.3449
-          },
-          {
-            "text": "its",
-            "start": 8.3449,
-            "end": 8.6099
-          },
-          {
-            "text": "own",
-            "start": 8.6099,
-            "end": 8.8447
-          },
-          {
-            "text": "light",
-            "start": 8.8447,
-            "end": 9.1518
-          },
-          {
-            "text": ".",
-            "start": 9.1518,
-            "end": 9.2
-          }
-        ],
-        "lines": [
-          {
-            "characterId": "sam",
-            "audio": "audio/dialogue-1.wav",
-            "start": 5.575,
-            "duration": 5.9,
-            "words": [
-              {
-                "text": "At",
-                "start": 0.0,
-                "end": 0.2523
-              },
-              {
-                "text": "four",
-                "start": 0.2523,
-                "end": 0.5822
-              },
-              {
-                "text": "thousand",
-                "start": 0.5822,
-                "end": 1.1451
-              },
-              {
-                "text": "meters",
-                "start": 1.1451,
-                "end": 1.7596
-              },
-              {
-                "text": ",",
-                "start": 1.7596,
-                "end": 1.8114
-              },
-              {
-                "text": "the",
-                "start": 1.8114,
-                "end": 2.0184
-              },
-              {
-                "text": "pressure",
-                "start": 2.0184,
-                "end": 2.633
-              },
-              {
-                "text": "would",
-                "start": 2.633,
-                "end": 2.9177
-              },
-              {
-                "text": "crush",
-                "start": 2.9177,
-                "end": 3.3252
-              },
-              {
-                "text": "a",
-                "start": 3.3252,
-                "end": 3.4546
-              },
-              {
-                "text": "steel",
-                "start": 3.4546,
-                "end": 3.8622
-              },
-              {
-                "text": "submarine",
-                "start": 3.8622,
-                "end": 4.7291
-              },
-              {
-                "text": "like",
-                "start": 4.7291,
-                "end": 5.059
-              },
-              {
-                "text": "a",
-                "start": 5.059,
-                "end": 5.1884
-              },
-              {
-                "text": "tin",
-                "start": 5.1884,
-                "end": 5.5183
-              },
-              {
-                "text": "can",
-                "start": 5.5183,
-                "end": 5.8482
-              },
-              {
-                "text": ".",
-                "start": 5.8482,
-                "end": 5.9
-              }
-            ],
-            "mouthCues": [
-              {
-                "start": 0.0,
-                "end": 0.3,
-                "value": "X"
-              },
-              {
-                "start": 0.3,
-                "end": 0.35,
-                "value": "B"
-              },
-              {
-                "start": 0.35,
-                "end": 0.39,
-                "value": "C"
-              },
-              {
-                "start": 0.39,
-                "end": 0.53,
-                "value": "B"
-              },
-              {
-                "start": 0.53,
-                "end": 0.67,
-                "value": "G"
-              },
-              {
-                "start": 0.67,
-                "end": 0.81,
-                "value": "E"
-              },
-              {
-                "start": 0.81,
-                "end": 0.95,
-                "value": "B"
-              },
-              {
-                "start": 0.95,
-                "end": 1.02,
-                "value": "C"
-              },
-              {
-                "start": 1.02,
-                "end": 1.09,
-                "value": "E"
-              },
-              {
-                "start": 1.09,
-                "end": 1.44,
-                "value": "B"
-              },
-              {
-                "start": 1.44,
-                "end": 1.65,
-                "value": "E"
-              },
-              {
-                "start": 1.65,
-                "end": 1.79,
-                "value": "B"
-              },
-              {
-                "start": 1.79,
-                "end": 2.07,
-                "value": "X"
-              },
-              {
-                "start": 2.07,
-                "end": 2.15,
-                "value": "B"
-              },
-              {
-                "start": 2.15,
-                "end": 2.29,
-                "value": "A"
-              },
-              {
-                "start": 2.29,
-                "end": 2.34,
-                "value": "B"
-              },
-              {
-                "start": 2.34,
-                "end": 2.39,
-                "value": "C"
-              },
-              {
-                "start": 2.39,
-                "end": 2.53,
-                "value": "B"
-              },
-              {
-                "start": 2.53,
-                "end": 2.6,
-                "value": "E"
-              },
-              {
-                "start": 2.6,
-                "end": 2.67,
-                "value": "F"
-              },
-              {
-                "start": 2.67,
-                "end": 2.95,
-                "value": "B"
-              },
-              {
-                "start": 2.95,
-                "end": 3.02,
-                "value": "D"
-              },
-              {
-                "start": 3.02,
-                "end": 3.37,
-                "value": "B"
-              },
-              {
-                "start": 3.37,
-                "end": 3.58,
-                "value": "F"
-              },
-              {
-                "start": 3.58,
-                "end": 3.72,
-                "value": "B"
-              },
-              {
-                "start": 3.72,
-                "end": 3.79,
-                "value": "E"
-              },
-              {
-                "start": 3.79,
-                "end": 3.95,
-                "value": "A"
-              },
-              {
-                "start": 3.95,
-                "end": 4.0,
-                "value": "E"
-              },
-              {
-                "start": 4.0,
-                "end": 4.05,
-                "value": "F"
-              },
-              {
-                "start": 4.05,
-                "end": 4.19,
-                "value": "B"
-              },
-              {
-                "start": 4.19,
-                "end": 4.33,
-                "value": "A"
-              },
-              {
-                "start": 4.33,
-                "end": 4.4,
-                "value": "C"
-              },
-              {
-                "start": 4.4,
-                "end": 4.81,
-                "value": "B"
-              },
-              {
-                "start": 4.81,
-                "end": 5.09,
-                "value": "C"
-              },
-              {
-                "start": 5.09,
-                "end": 5.3,
-                "value": "B"
-              },
-              {
-                "start": 5.3,
-                "end": 5.9,
-                "value": "X"
-              }
-            ]
-          },
-          {
-            "characterId": "maya",
-            "audio": "audio/dialogue-2.wav",
-            "start": 11.475,
-            "duration": 3.3,
-            "words": [
-              {
-                "text": "And",
-                "start": 0.0,
-                "end": 0.3071
-              },
-              {
-                "text": "yet",
-                "start": 0.3071,
-                "end": 0.6142
-              },
-              {
-                "text": "something",
-                "start": 0.6142,
-                "end": 1.2285
-              },
-              {
-                "text": "down",
-                "start": 1.2285,
-                "end": 1.4874
-              },
-              {
-                "text": "there",
-                "start": 1.4874,
-                "end": 1.7524
-              },
-              {
-                "text": "is",
-                "start": 1.7524,
-                "end": 1.9451
-              },
-              {
-                "text": "making",
-                "start": 1.9451,
-                "end": 2.4449
-              },
-              {
-                "text": "its",
-                "start": 2.4449,
-                "end": 2.7099
-              },
-              {
-                "text": "own",
-                "start": 2.7099,
-                "end": 2.9447
-              },
-              {
-                "text": "light",
-                "start": 2.9447,
-                "end": 3.2518
-              },
-              {
-                "text": ".",
-                "start": 3.2518,
-                "end": 3.3
-              }
-            ],
-            "mouthCues": [
-              {
-                "start": 0.0,
-                "end": 0.3,
-                "value": "X"
-              },
-              {
-                "start": 0.3,
-                "end": 0.58,
-                "value": "C"
-              },
-              {
-                "start": 0.58,
-                "end": 0.93,
-                "value": "B"
-              },
-              {
-                "start": 0.93,
-                "end": 1.21,
-                "value": "C"
-              },
-              {
-                "start": 1.21,
-                "end": 1.28,
-                "value": "B"
-              },
-              {
-                "start": 1.28,
-                "end": 1.35,
-                "value": "C"
-              },
-              {
-                "start": 1.35,
-                "end": 1.49,
-                "value": "E"
-              },
-              {
-                "start": 1.49,
-                "end": 1.67,
-                "value": "C"
-              },
-              {
-                "start": 1.67,
-                "end": 1.78,
-                "value": "B"
-              },
-              {
-                "start": 1.78,
-                "end": 1.92,
-                "value": "C"
-              },
-              {
-                "start": 1.92,
-                "end": 2.13,
-                "value": "B"
-              },
-              {
-                "start": 2.13,
-                "end": 2.34,
-                "value": "C"
-              },
-              {
-                "start": 2.34,
-                "end": 2.41,
-                "value": "E"
-              },
-              {
-                "start": 2.41,
-                "end": 2.5,
-                "value": "A"
-              },
-              {
-                "start": 2.5,
-                "end": 2.57,
-                "value": "H"
-              },
-              {
-                "start": 2.57,
-                "end": 2.63,
-                "value": "C"
-              },
-              {
-                "start": 2.63,
-                "end": 2.91,
-                "value": "B"
-              },
-              {
-                "start": 2.91,
-                "end": 3.3,
-                "value": "X"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "life",
-        "index": 2,
-        "start": 15.325,
-        "duration": 10.555,
-        "audioStart": 15.325,
-        "audio": "audio/life.wav",
-        "words": [
-          {
-            "text": "Yet",
-            "start": 0.0,
-            "end": 0.4615
-          },
-          {
-            "text": "life",
-            "start": 0.4615,
-            "end": 0.9229
-          },
-          {
-            "text": "survives",
-            "start": 0.9229,
-            "end": 1.8911
-          },
-          {
-            "text": "here",
-            "start": 1.8911,
-            "end": 2.3526
-          },
-          {
-            "text": ".",
-            "start": 2.3526,
-            "end": 2.425
-          },
-          {
-            "text": "Anglerfish",
-            "start": 2.605,
-            "end": 3.5324
-          },
-          {
-            "text": "that",
-            "start": 3.5324,
-            "end": 3.8119
-          },
-          {
-            "text": "make",
-            "start": 3.8119,
-            "end": 4.1358
-          },
-          {
-            "text": "their",
-            "start": 4.1358,
-            "end": 4.4153
-          },
-          {
-            "text": "own",
-            "start": 4.4153,
-            "end": 4.663
-          },
-          {
-            "text": "light",
-            "start": 4.663,
-            "end": 4.987
-          },
-          {
-            "text": ",",
-            "start": 4.987,
-            "end": 5.0378
-          },
-          {
-            "text": "giant",
-            "start": 5.0378,
-            "end": 5.565
-          },
-          {
-            "text": "squid",
-            "start": 5.565,
-            "end": 6.0414
-          },
-          {
-            "text": "the",
-            "start": 6.0414,
-            "end": 6.2447
-          },
-          {
-            "text": "size",
-            "start": 6.2447,
-            "end": 6.5686
-          },
-          {
-            "text": "of",
-            "start": 6.5686,
-            "end": 6.7719
-          },
-          {
-            "text": "a",
-            "start": 6.7719,
-            "end": 6.8989
-          },
-          {
-            "text": "bus",
-            "start": 6.8989,
-            "end": 7.2229
-          },
-          {
-            "text": ",",
-            "start": 7.2229,
-            "end": 7.2737
-          },
-          {
-            "text": "and",
-            "start": 7.2737,
-            "end": 7.5532
+            "text": "कोई",
+            "start": 7.095,
+            "end": 7.5227
           },
           {
-            "text": "bacteria",
-            "start": 7.5532,
-            "end": 8.4551
+            "text": "नहीं",
+            "start": 7.5227,
+            "end": 8.0606
           },
           {
-            "text": "that",
-            "start": 8.4551,
+            "text": "जानता",
+            "start": 8.0606,
             "end": 8.7346
           },
           {
-            "text": "feed",
+            "text": "था",
             "start": 8.7346,
-            "end": 9.0586
+            "end": 9.0651
           },
           {
-            "text": "on",
-            "start": 9.0586,
-            "end": 9.3063
+            "text": "कि",
+            "start": 9.0651,
+            "end": 9.3178
           },
           {
-            "text": "bare",
-            "start": 9.3063,
-            "end": 9.6302
+            "text": "उस",
+            "start": 9.3178,
+            "end": 9.5705
           },
           {
-            "text": "rock",
-            "start": 9.6302,
-            "end": 9.9542
+            "text": "बंद",
+            "start": 9.5705,
+            "end": 9.9788
           },
           {
-            "text": ".",
-            "start": 9.9542,
-            "end": 10.005
+            "text": "घर",
+            "start": 9.9788,
+            "end": 10.3871
+          },
+          {
+            "text": "में",
+            "start": 10.3871,
+            "end": 10.7176
+          },
+          {
+            "text": "असल",
+            "start": 10.7176,
+            "end": 11.1777
+          },
+          {
+            "text": "में",
+            "start": 11.1777,
+            "end": 11.5082
+          },
+          {
+            "text": "कौन",
+            "start": 11.5082,
+            "end": 11.8841
+          },
+          {
+            "text": "रहता",
+            "start": 11.8841,
+            "end": 12.6423
+          },
+          {
+            "text": "है।",
+            "start": 12.6423,
+            "end": 12.895
           }
         ],
         "lines": [
           {
             "characterId": null,
-            "audio": "audio/life.wav",
-            "start": 15.325,
-            "duration": 10.005,
+            "audio": "audio/gaon.wav",
+            "start": 0.0,
+            "duration": 12.895,
             "words": [
               {
-                "text": "Yet",
+                "text": "गाँव",
                 "start": 0.0,
-                "end": 0.4615
+                "end": 0.5097
               },
               {
-                "text": "life",
-                "start": 0.4615,
-                "end": 0.9229
+                "text": "के",
+                "start": 0.5097,
+                "end": 0.7747
               },
               {
-                "text": "survives",
-                "start": 0.9229,
-                "end": 1.8911
+                "text": "लोग",
+                "start": 0.7747,
+                "end": 1.1688
               },
               {
-                "text": "here",
-                "start": 1.8911,
-                "end": 2.3526
+                "text": "उस",
+                "start": 1.1688,
+                "end": 1.4338
               },
               {
-                "text": ".",
-                "start": 2.3526,
-                "end": 2.425
+                "text": "घर",
+                "start": 1.4338,
+                "end": 1.8619
               },
               {
-                "text": "Anglerfish",
-                "start": 2.605,
-                "end": 3.5324
+                "text": "के",
+                "start": 1.8619,
+                "end": 2.127
               },
               {
-                "text": "that",
-                "start": 3.5324,
-                "end": 3.8119
+                "text": "पास",
+                "start": 2.127,
+                "end": 2.5211
               },
               {
-                "text": "make",
-                "start": 3.8119,
-                "end": 4.1358
+                "text": "से",
+                "start": 2.5211,
+                "end": 2.7861
               },
               {
-                "text": "their",
-                "start": 4.1358,
-                "end": 4.4153
+                "text": "गुज़रते",
+                "start": 2.7861,
+                "end": 3.6151
               },
               {
-                "text": "own",
-                "start": 4.4153,
-                "end": 4.663
+                "text": "हुए",
+                "start": 3.6151,
+                "end": 4.0636
               },
               {
-                "text": "light",
-                "start": 4.663,
-                "end": 4.987
+                "text": "भी",
+                "start": 4.0636,
+                "end": 4.4102
               },
               {
-                "text": ",",
-                "start": 4.987,
-                "end": 5.0378
+                "text": "नज़र",
+                "start": 4.4102,
+                "end": 4.9742
               },
               {
-                "text": "giant",
-                "start": 5.0378,
-                "end": 5.565
+                "text": "नीची",
+                "start": 4.9742,
+                "end": 5.5043
               },
               {
-                "text": "squid",
-                "start": 5.565,
-                "end": 6.0414
+                "text": "कर",
+                "start": 5.5043,
+                "end": 5.8508
               },
               {
-                "text": "the",
-                "start": 6.0414,
-                "end": 6.2447
+                "text": "लेते",
+                "start": 5.8508,
+                "end": 6.4284
               },
               {
-                "text": "size",
-                "start": 6.2447,
-                "end": 6.5686
+                "text": "थे।",
+                "start": 6.4284,
+                "end": 6.775
               },
               {
-                "text": "of",
-                "start": 6.5686,
-                "end": 6.7719
+                "text": "कोई",
+                "start": 7.095,
+                "end": 7.5227
               },
               {
-                "text": "a",
-                "start": 6.7719,
-                "end": 6.8989
+                "text": "नहीं",
+                "start": 7.5227,
+                "end": 8.0606
               },
               {
-                "text": "bus",
-                "start": 6.8989,
-                "end": 7.2229
-              },
-              {
-                "text": ",",
-                "start": 7.2229,
-                "end": 7.2737
-              },
-              {
-                "text": "and",
-                "start": 7.2737,
-                "end": 7.5532
-              },
-              {
-                "text": "bacteria",
-                "start": 7.5532,
-                "end": 8.4551
-              },
-              {
-                "text": "that",
-                "start": 8.4551,
+                "text": "जानता",
+                "start": 8.0606,
                 "end": 8.7346
               },
               {
-                "text": "feed",
+                "text": "था",
                 "start": 8.7346,
-                "end": 9.0586
+                "end": 9.0651
               },
               {
-                "text": "on",
-                "start": 9.0586,
-                "end": 9.3063
+                "text": "कि",
+                "start": 9.0651,
+                "end": 9.3178
               },
               {
-                "text": "bare",
-                "start": 9.3063,
-                "end": 9.6302
+                "text": "उस",
+                "start": 9.3178,
+                "end": 9.5705
               },
               {
-                "text": "rock",
-                "start": 9.6302,
-                "end": 9.9542
+                "text": "बंद",
+                "start": 9.5705,
+                "end": 9.9788
               },
               {
-                "text": ".",
-                "start": 9.9542,
-                "end": 10.005
+                "text": "घर",
+                "start": 9.9788,
+                "end": 10.3871
+              },
+              {
+                "text": "में",
+                "start": 10.3871,
+                "end": 10.7176
+              },
+              {
+                "text": "असल",
+                "start": 10.7176,
+                "end": 11.1777
+              },
+              {
+                "text": "में",
+                "start": 11.1777,
+                "end": 11.5082
+              },
+              {
+                "text": "कौन",
+                "start": 11.5082,
+                "end": 11.8841
+              },
+              {
+                "text": "रहता",
+                "start": 11.8841,
+                "end": 12.6423
+              },
+              {
+                "text": "है।",
+                "start": 12.6423,
+                "end": 12.895
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.24,
+                "end": 0.49,
                 "value": "X"
               },
               {
-                "start": 0.24,
-                "end": 0.3,
-                "value": "B"
-              },
-              {
-                "start": 0.3,
-                "end": 0.36,
+                "start": 0.49,
+                "end": 0.75,
                 "value": "C"
               },
               {
-                "start": 0.36,
-                "end": 0.64,
+                "start": 0.75,
+                "end": 0.82,
                 "value": "E"
               },
               {
-                "start": 0.64,
-                "end": 0.71,
+                "start": 0.82,
+                "end": 0.89,
                 "value": "C"
               },
               {
-                "start": 0.71,
-                "end": 0.85,
-                "value": "G"
-              },
-              {
-                "start": 0.85,
-                "end": 0.99,
+                "start": 0.89,
+                "end": 1.1,
                 "value": "B"
               },
               {
-                "start": 0.99,
-                "end": 1.13,
-                "value": "G"
+                "start": 1.1,
+                "end": 1.17,
+                "value": "F"
               },
               {
-                "start": 1.13,
-                "end": 1.23,
-                "value": "D"
-              },
-              {
-                "start": 1.23,
-                "end": 1.27,
-                "value": "C"
-              },
-              {
-                "start": 1.27,
+                "start": 1.17,
                 "end": 1.38,
-                "value": "A"
+                "value": "E"
               },
               {
                 "start": 1.38,
-                "end": 1.71,
+                "end": 1.45,
+                "value": "C"
+              },
+              {
+                "start": 1.45,
+                "end": 1.52,
                 "value": "B"
               },
               {
-                "start": 1.71,
-                "end": 1.92,
-                "value": "E"
+                "start": 1.52,
+                "end": 1.78,
+                "value": "X"
               },
               {
-                "start": 1.92,
+                "start": 1.78,
+                "end": 1.85,
+                "value": "B"
+              },
+              {
+                "start": 1.85,
+                "end": 1.91,
+                "value": "F"
+              },
+              {
+                "start": 1.91,
+                "end": 1.98,
+                "value": "B"
+              },
+              {
+                "start": 1.98,
+                "end": 2.19,
+                "value": "C"
+              },
+              {
+                "start": 2.19,
+                "end": 2.4,
+                "value": "B"
+              },
+              {
+                "start": 2.4,
+                "end": 2.48,
+                "value": "A"
+              },
+              {
+                "start": 2.48,
+                "end": 2.7,
+                "value": "D"
+              },
+              {
+                "start": 2.7,
                 "end": 2.84,
-                "value": "X"
+                "value": "B"
               },
               {
                 "start": 2.84,
-                "end": 3.04,
+                "end": 2.98,
                 "value": "C"
               },
               {
-                "start": 3.04,
-                "end": 3.11,
+                "start": 2.98,
+                "end": 3.05,
                 "value": "B"
               },
               {
-                "start": 3.11,
-                "end": 3.25,
-                "value": "G"
-              },
-              {
-                "start": 3.25,
-                "end": 3.32,
-                "value": "C"
-              },
-              {
-                "start": 3.32,
-                "end": 3.6,
-                "value": "B"
-              },
-              {
-                "start": 3.6,
-                "end": 3.69,
-                "value": "A"
-              },
-              {
-                "start": 3.69,
-                "end": 3.75,
-                "value": "C"
-              },
-              {
-                "start": 3.75,
-                "end": 4.02,
-                "value": "B"
-              },
-              {
-                "start": 4.02,
-                "end": 4.16,
-                "value": "E"
-              },
-              {
-                "start": 4.16,
-                "end": 4.37,
-                "value": "F"
-              },
-              {
-                "start": 4.37,
-                "end": 4.44,
-                "value": "D"
-              },
-              {
-                "start": 4.44,
-                "end": 4.51,
-                "value": "E"
-              },
-              {
-                "start": 4.51,
-                "end": 4.72,
-                "value": "B"
-              },
-              {
-                "start": 4.72,
-                "end": 5.04,
+                "start": 3.05,
+                "end": 3.19,
                 "value": "X"
               },
               {
-                "start": 5.04,
-                "end": 5.12,
+                "start": 3.19,
+                "end": 3.39,
                 "value": "B"
               },
               {
-                "start": 5.12,
-                "end": 5.26,
-                "value": "E"
-              },
-              {
-                "start": 5.26,
-                "end": 5.54,
-                "value": "B"
-              },
-              {
-                "start": 5.54,
-                "end": 5.68,
-                "value": "F"
-              },
-              {
-                "start": 5.68,
-                "end": 6.03,
-                "value": "B"
-              },
-              {
-                "start": 6.03,
-                "end": 6.1,
-                "value": "F"
-              },
-              {
-                "start": 6.1,
-                "end": 6.17,
+                "start": 3.39,
+                "end": 3.46,
                 "value": "C"
               },
               {
-                "start": 6.17,
-                "end": 6.31,
-                "value": "B"
-              },
-              {
-                "start": 6.31,
-                "end": 6.39,
+                "start": 3.46,
+                "end": 3.54,
                 "value": "A"
               },
               {
-                "start": 6.39,
-                "end": 6.55,
-                "value": "D"
-              },
-              {
-                "start": 6.55,
-                "end": 6.63,
+                "start": 3.54,
+                "end": 3.63,
                 "value": "C"
               },
               {
-                "start": 6.63,
-                "end": 6.91,
-                "value": "G"
+                "start": 3.63,
+                "end": 3.7,
+                "value": "B"
               },
               {
-                "start": 6.91,
-                "end": 7.21,
+                "start": 3.7,
+                "end": 3.84,
+                "value": "F"
+              },
+              {
+                "start": 3.84,
+                "end": 3.91,
+                "value": "C"
+              },
+              {
+                "start": 3.91,
+                "end": 3.99,
+                "value": "A"
+              },
+              {
+                "start": 3.99,
+                "end": 4.31,
+                "value": "B"
+              },
+              {
+                "start": 4.31,
+                "end": 4.56,
                 "value": "X"
               },
               {
-                "start": 7.21,
-                "end": 7.25,
+                "start": 4.56,
+                "end": 4.61,
                 "value": "B"
               },
               {
-                "start": 7.25,
-                "end": 7.33,
+                "start": 4.61,
+                "end": 4.73,
+                "value": "C"
+              },
+              {
+                "start": 4.73,
+                "end": 4.8,
+                "value": "B"
+              },
+              {
+                "start": 4.8,
+                "end": 4.87,
+                "value": "C"
+              },
+              {
+                "start": 4.87,
+                "end": 5.43,
+                "value": "B"
+              },
+              {
+                "start": 5.43,
+                "end": 5.57,
+                "value": "C"
+              },
+              {
+                "start": 5.57,
+                "end": 5.71,
+                "value": "H"
+              },
+              {
+                "start": 5.71,
+                "end": 5.79,
                 "value": "A"
               },
               {
-                "start": 7.33,
-                "end": 7.43,
-                "value": "C"
-              },
-              {
-                "start": 7.43,
-                "end": 7.71,
+                "start": 5.79,
+                "end": 6.28,
                 "value": "B"
               },
               {
-                "start": 7.71,
-                "end": 7.78,
-                "value": "F"
+                "start": 6.28,
+                "end": 7.62,
+                "value": "X"
               },
               {
-                "start": 7.78,
-                "end": 7.99,
+                "start": 7.62,
+                "end": 7.69,
                 "value": "B"
               },
               {
-                "start": 7.99,
-                "end": 8.13,
-                "value": "F"
-              },
-              {
-                "start": 8.13,
-                "end": 8.2,
-                "value": "B"
-              },
-              {
-                "start": 8.2,
-                "end": 8.34,
-                "value": "G"
-              },
-              {
-                "start": 8.34,
-                "end": 8.55,
-                "value": "B"
-              },
-              {
-                "start": 8.55,
-                "end": 8.62,
+                "start": 7.69,
+                "end": 7.76,
                 "value": "E"
               },
               {
-                "start": 8.62,
-                "end": 8.69,
-                "value": "F"
+                "start": 7.76,
+                "end": 8.25,
+                "value": "B"
               },
               {
-                "start": 8.69,
-                "end": 8.77,
+                "start": 8.25,
+                "end": 8.35,
+                "value": "D"
+              },
+              {
+                "start": 8.35,
+                "end": 8.39,
+                "value": "C"
+              },
+              {
+                "start": 8.39,
+                "end": 8.45,
                 "value": "A"
               },
               {
-                "start": 8.77,
-                "end": 9.01,
+                "start": 8.45,
+                "end": 8.51,
                 "value": "C"
               },
               {
-                "start": 9.01,
-                "end": 9.29,
+                "start": 8.51,
+                "end": 8.59,
+                "value": "A"
+              },
+              {
+                "start": 8.59,
+                "end": 8.82,
+                "value": "C"
+              },
+              {
+                "start": 8.82,
+                "end": 8.89,
                 "value": "E"
               },
               {
-                "start": 9.29,
-                "end": 9.36,
-                "value": "C"
-              },
-              {
-                "start": 9.36,
-                "end": 9.5,
+                "start": 8.89,
+                "end": 8.96,
                 "value": "B"
               },
               {
-                "start": 9.5,
-                "end": 10.0,
+                "start": 8.96,
+                "end": 9.25,
+                "value": "X"
+              },
+              {
+                "start": 9.25,
+                "end": 9.42,
+                "value": "B"
+              },
+              {
+                "start": 9.42,
+                "end": 9.56,
+                "value": "F"
+              },
+              {
+                "start": 9.56,
+                "end": 9.63,
+                "value": "B"
+              },
+              {
+                "start": 9.63,
+                "end": 9.87,
+                "value": "A"
+              },
+              {
+                "start": 9.87,
+                "end": 10.08,
+                "value": "B"
+              },
+              {
+                "start": 10.08,
+                "end": 10.36,
+                "value": "C"
+              },
+              {
+                "start": 10.36,
+                "end": 10.46,
+                "value": "A"
+              },
+              {
+                "start": 10.46,
+                "end": 10.59,
+                "value": "C"
+              },
+              {
+                "start": 10.59,
+                "end": 10.66,
+                "value": "B"
+              },
+              {
+                "start": 10.66,
+                "end": 10.85,
+                "value": "X"
+              },
+              {
+                "start": 10.85,
+                "end": 10.9,
+                "value": "B"
+              },
+              {
+                "start": 10.9,
+                "end": 10.95,
+                "value": "C"
+              },
+              {
+                "start": 10.95,
+                "end": 11.16,
+                "value": "B"
+              },
+              {
+                "start": 11.16,
+                "end": 11.25,
+                "value": "A"
+              },
+              {
+                "start": 11.25,
+                "end": 11.33,
+                "value": "B"
+              },
+              {
+                "start": 11.33,
+                "end": 11.41,
+                "value": "A"
+              },
+              {
+                "start": 11.41,
+                "end": 11.54,
+                "value": "E"
+              },
+              {
+                "start": 11.54,
+                "end": 11.68,
+                "value": "D"
+              },
+              {
+                "start": 11.68,
+                "end": 11.82,
+                "value": "B"
+              },
+              {
+                "start": 11.82,
+                "end": 11.89,
+                "value": "C"
+              },
+              {
+                "start": 11.89,
+                "end": 11.97,
+                "value": "A"
+              },
+              {
+                "start": 11.97,
+                "end": 12.35,
+                "value": "C"
+              },
+              {
+                "start": 12.35,
+                "end": 12.42,
+                "value": "B"
+              },
+              {
+                "start": 12.42,
+                "end": 12.89,
                 "value": "X"
               }
             ]
@@ -1708,431 +1086,1660 @@
         ]
       },
       {
-        "id": "outro",
-        "index": 3,
-        "start": 25.88,
-        "duration": 8.03,
-        "audioStart": 25.88,
-        "audio": "audio/outro.wav",
+        "id": "haveli",
+        "index": 1,
+        "start": 13.445,
+        "duration": 12.84,
+        "audioStart": 13.445,
+        "audio": "audio/haveli.wav",
         "words": [
           {
-            "text": "We",
+            "text": "उस",
             "start": 0.0,
-            "end": 0.2339
+            "end": 0.274
           },
           {
-            "text": "have",
-            "start": 0.2339,
-            "end": 0.4979
+            "text": "रात",
+            "start": 0.274,
+            "end": 0.6815
           },
           {
-            "text": "mapped",
-            "start": 0.4979,
-            "end": 0.8758
+            "text": "मैंने",
+            "start": 0.6815,
+            "end": 1.3139
           },
           {
-            "text": "only",
-            "start": 0.8758,
-            "end": 1.3017
+            "text": "हिम्मत",
+            "start": 1.3139,
+            "end": 1.9814
           },
           {
-            "text": "twenty",
-            "start": 1.3017,
-            "end": 1.8716
+            "text": "करके",
+            "start": 1.9814,
+            "end": 2.6629
           },
           {
-            "text": "six",
-            "start": 1.8716,
-            "end": 2.2495
+            "text": "दरवाज़ा",
+            "start": 2.6629,
+            "end": 3.6185
           },
           {
-            "text": "percent",
-            "start": 2.2495,
-            "end": 2.8914
+            "text": "खोला।",
+            "start": 3.6185,
+            "end": 4.3
           },
           {
-            "text": "of",
-            "start": 2.8914,
-            "end": 3.0833
+            "text": "अंदर",
+            "start": 4.62,
+            "end": 5.2625
           },
           {
-            "text": "the",
-            "start": 3.0833,
-            "end": 3.2753
+            "text": "एक",
+            "start": 5.2625,
+            "end": 5.6185
           },
           {
-            "text": "sea",
-            "start": 3.2753,
-            "end": 3.5092
+            "text": "जलती",
+            "start": 5.6185,
+            "end": 6.3152
           },
           {
-            "text": "floor",
-            "start": 3.5092,
-            "end": 3.8872
+            "text": "हुई",
+            "start": 6.3152,
+            "end": 6.7719
           },
           {
-            "text": "in",
-            "start": 3.8872,
-            "end": 4.0791
+            "text": "मोमबत्ती",
+            "start": 6.7719,
+            "end": 7.9794
           },
           {
-            "text": "detail",
-            "start": 4.0791,
-            "end": 4.577
+            "text": "थी।",
+            "start": 7.9794,
+            "end": 8.32
           },
           {
-            "text": ".",
-            "start": 4.577,
-            "end": 4.625
+            "text": "और",
+            "start": 8.64,
+            "end": 8.8988
           },
           {
-            "text": "The",
-            "start": 4.805,
-            "end": 5.0538
+            "text": "मोमबत्ती",
+            "start": 8.8988,
+            "end": 9.9341
           },
           {
-            "text": "rest",
-            "start": 5.0538,
-            "end": 5.5437
+            "text": "के",
+            "start": 9.9341,
+            "end": 10.1929
           },
           {
-            "text": "is",
-            "start": 5.5437,
-            "end": 5.7926
+            "text": "पीछे",
+            "start": 10.1929,
+            "end": 10.8366
           },
           {
-            "text": "still",
-            "start": 5.7926,
-            "end": 6.2825
+            "text": "कोई",
+            "start": 10.8366,
+            "end": 11.2746
           },
           {
-            "text": "a",
-            "start": 6.2825,
-            "end": 6.438
+            "text": "खड़ा",
+            "start": 11.2746,
+            "end": 11.9515
           },
           {
-            "text": "blank",
-            "start": 6.438,
-            "end": 7.0212
-          },
-          {
-            "text": "page",
-            "start": 7.0212,
-            "end": 7.4178
-          },
-          {
-            "text": ".",
-            "start": 7.4178,
-            "end": 7.48
+            "text": "था।",
+            "start": 11.9515,
+            "end": 12.29
           }
         ],
         "lines": [
           {
-            "characterId": "sam",
-            "audio": "audio/outro.wav",
-            "start": 25.88,
-            "duration": 7.48,
+            "characterId": null,
+            "audio": "audio/haveli.wav",
+            "start": 13.445,
+            "duration": 12.29,
             "words": [
               {
-                "text": "We",
+                "text": "उस",
                 "start": 0.0,
-                "end": 0.2339
+                "end": 0.274
               },
               {
-                "text": "have",
-                "start": 0.2339,
-                "end": 0.4979
+                "text": "रात",
+                "start": 0.274,
+                "end": 0.6815
               },
               {
-                "text": "mapped",
-                "start": 0.4979,
-                "end": 0.8758
+                "text": "मैंने",
+                "start": 0.6815,
+                "end": 1.3139
               },
               {
-                "text": "only",
-                "start": 0.8758,
-                "end": 1.3017
+                "text": "हिम्मत",
+                "start": 1.3139,
+                "end": 1.9814
               },
               {
-                "text": "twenty",
-                "start": 1.3017,
-                "end": 1.8716
+                "text": "करके",
+                "start": 1.9814,
+                "end": 2.6629
               },
               {
-                "text": "six",
-                "start": 1.8716,
-                "end": 2.2495
+                "text": "दरवाज़ा",
+                "start": 2.6629,
+                "end": 3.6185
               },
               {
-                "text": "percent",
-                "start": 2.2495,
-                "end": 2.8914
+                "text": "खोला।",
+                "start": 3.6185,
+                "end": 4.3
               },
               {
-                "text": "of",
-                "start": 2.8914,
-                "end": 3.0833
+                "text": "अंदर",
+                "start": 4.62,
+                "end": 5.2625
               },
               {
-                "text": "the",
-                "start": 3.0833,
-                "end": 3.2753
+                "text": "एक",
+                "start": 5.2625,
+                "end": 5.6185
               },
               {
-                "text": "sea",
-                "start": 3.2753,
-                "end": 3.5092
+                "text": "जलती",
+                "start": 5.6185,
+                "end": 6.3152
               },
               {
-                "text": "floor",
-                "start": 3.5092,
-                "end": 3.8872
+                "text": "हुई",
+                "start": 6.3152,
+                "end": 6.7719
               },
               {
-                "text": "in",
-                "start": 3.8872,
-                "end": 4.0791
+                "text": "मोमबत्ती",
+                "start": 6.7719,
+                "end": 7.9794
               },
               {
-                "text": "detail",
-                "start": 4.0791,
-                "end": 4.577
+                "text": "थी।",
+                "start": 7.9794,
+                "end": 8.32
               },
               {
-                "text": ".",
-                "start": 4.577,
-                "end": 4.625
+                "text": "और",
+                "start": 8.64,
+                "end": 8.8988
               },
               {
-                "text": "The",
-                "start": 4.805,
-                "end": 5.0538
+                "text": "मोमबत्ती",
+                "start": 8.8988,
+                "end": 9.9341
               },
               {
-                "text": "rest",
-                "start": 5.0538,
-                "end": 5.5437
+                "text": "के",
+                "start": 9.9341,
+                "end": 10.1929
               },
               {
-                "text": "is",
-                "start": 5.5437,
-                "end": 5.7926
+                "text": "पीछे",
+                "start": 10.1929,
+                "end": 10.8366
               },
               {
-                "text": "still",
-                "start": 5.7926,
-                "end": 6.2825
+                "text": "कोई",
+                "start": 10.8366,
+                "end": 11.2746
               },
               {
-                "text": "a",
-                "start": 6.2825,
-                "end": 6.438
+                "text": "खड़ा",
+                "start": 11.2746,
+                "end": 11.9515
               },
               {
-                "text": "blank",
-                "start": 6.438,
-                "end": 7.0212
-              },
-              {
-                "text": "page",
-                "start": 7.0212,
-                "end": 7.4178
-              },
-              {
-                "text": ".",
-                "start": 7.4178,
-                "end": 7.48
+                "text": "था।",
+                "start": 11.9515,
+                "end": 12.29
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.4,
+                "end": 0.53,
                 "value": "X"
               },
               {
-                "start": 0.4,
-                "end": 0.46,
+                "start": 0.53,
+                "end": 0.78,
                 "value": "B"
               },
               {
-                "start": 0.46,
-                "end": 0.52,
+                "start": 0.78,
+                "end": 0.85,
                 "value": "C"
+              },
+              {
+                "start": 0.85,
+                "end": 0.95,
+                "value": "D"
+              },
+              {
+                "start": 0.95,
+                "end": 0.99,
+                "value": "C"
+              },
+              {
+                "start": 0.99,
+                "end": 1.33,
+                "value": "A"
+              },
+              {
+                "start": 1.33,
+                "end": 1.6,
+                "value": "C"
+              },
+              {
+                "start": 1.6,
+                "end": 1.67,
+                "value": "B"
+              },
+              {
+                "start": 1.67,
+                "end": 1.85,
+                "value": "X"
+              },
+              {
+                "start": 1.85,
+                "end": 1.97,
+                "value": "B"
+              },
+              {
+                "start": 1.97,
+                "end": 2.12,
+                "value": "A"
+              },
+              {
+                "start": 2.12,
+                "end": 2.39,
+                "value": "C"
+              },
+              {
+                "start": 2.39,
+                "end": 2.46,
+                "value": "E"
+              },
+              {
+                "start": 2.46,
+                "end": 2.67,
+                "value": "B"
+              },
+              {
+                "start": 2.67,
+                "end": 2.81,
+                "value": "C"
+              },
+              {
+                "start": 2.81,
+                "end": 2.88,
+                "value": "B"
+              },
+              {
+                "start": 2.88,
+                "end": 2.96,
+                "value": "A"
+              },
+              {
+                "start": 2.96,
+                "end": 3.08,
+                "value": "C"
+              },
+              {
+                "start": 3.08,
+                "end": 3.22,
+                "value": "B"
+              },
+              {
+                "start": 3.22,
+                "end": 3.36,
+                "value": "C"
+              },
+              {
+                "start": 3.36,
+                "end": 3.64,
+                "value": "F"
+              },
+              {
+                "start": 3.64,
+                "end": 3.85,
+                "value": "B"
+              },
+              {
+                "start": 3.85,
+                "end": 5.14,
+                "value": "X"
+              },
+              {
+                "start": 5.14,
+                "end": 5.2,
+                "value": "B"
+              },
+              {
+                "start": 5.2,
+                "end": 5.25,
+                "value": "D"
+              },
+              {
+                "start": 5.25,
+                "end": 5.46,
+                "value": "C"
+              },
+              {
+                "start": 5.46,
+                "end": 5.67,
+                "value": "B"
+              },
+              {
+                "start": 5.67,
+                "end": 5.81,
+                "value": "C"
+              },
+              {
+                "start": 5.81,
+                "end": 6.09,
+                "value": "B"
+              },
+              {
+                "start": 6.09,
+                "end": 6.16,
+                "value": "C"
+              },
+              {
+                "start": 6.16,
+                "end": 6.23,
+                "value": "G"
+              },
+              {
+                "start": 6.23,
+                "end": 6.44,
+                "value": "B"
+              },
+              {
+                "start": 6.44,
+                "end": 6.58,
+                "value": "F"
+              },
+              {
+                "start": 6.58,
+                "end": 6.88,
+                "value": "B"
+              },
+              {
+                "start": 6.88,
+                "end": 7.06,
+                "value": "C"
+              },
+              {
+                "start": 7.06,
+                "end": 7.19,
+                "value": "A"
+              },
+              {
+                "start": 7.19,
+                "end": 7.23,
+                "value": "F"
+              },
+              {
+                "start": 7.23,
+                "end": 7.31,
+                "value": "A"
+              },
+              {
+                "start": 7.31,
+                "end": 7.88,
+                "value": "B"
+              },
+              {
+                "start": 7.88,
+                "end": 9.14,
+                "value": "X"
+              },
+              {
+                "start": 9.14,
+                "end": 9.41,
+                "value": "E"
+              },
+              {
+                "start": 9.41,
+                "end": 9.59,
+                "value": "A"
+              },
+              {
+                "start": 9.59,
+                "end": 9.69,
+                "value": "E"
+              },
+              {
+                "start": 9.69,
+                "end": 9.78,
+                "value": "A"
+              },
+              {
+                "start": 9.78,
+                "end": 9.94,
+                "value": "C"
+              },
+              {
+                "start": 9.94,
+                "end": 10.15,
+                "value": "B"
+              },
+              {
+                "start": 10.15,
+                "end": 10.29,
+                "value": "C"
+              },
+              {
+                "start": 10.29,
+                "end": 10.82,
+                "value": "B"
+              },
+              {
+                "start": 10.82,
+                "end": 11.0,
+                "value": "A"
+              },
+              {
+                "start": 11.0,
+                "end": 11.11,
+                "value": "F"
+              },
+              {
+                "start": 11.11,
+                "end": 11.18,
+                "value": "B"
+              },
+              {
+                "start": 11.18,
+                "end": 11.32,
+                "value": "C"
+              },
+              {
+                "start": 11.32,
+                "end": 11.39,
+                "value": "B"
+              },
+              {
+                "start": 11.39,
+                "end": 11.46,
+                "value": "C"
+              },
+              {
+                "start": 11.46,
+                "end": 11.62,
+                "value": "A"
+              },
+              {
+                "start": 11.62,
+                "end": 11.85,
+                "value": "B"
+              },
+              {
+                "start": 11.85,
+                "end": 12.29,
+                "value": "X"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "aankhein",
+        "index": 2,
+        "start": 26.285,
+        "duration": 12.09,
+        "audioStart": 26.285,
+        "audio": "audio/aankhein.wav",
+        "words": [
+          {
+            "text": "मैंने",
+            "start": 0.0,
+            "end": 0.6728
+          },
+          {
+            "text": "पीछे",
+            "start": 0.6728,
+            "end": 1.398
+          },
+          {
+            "text": "मुड़कर",
+            "start": 1.398,
+            "end": 2.3998
+          },
+          {
+            "text": "देखा।",
+            "start": 2.3998,
+            "end": 3.125
+          },
+          {
+            "text": "अंधेरे",
+            "start": 3.445,
+            "end": 4.3444
+          },
+          {
+            "text": "में",
+            "start": 4.3444,
+            "end": 4.7
+          },
+          {
+            "text": "दो",
+            "start": 4.7,
+            "end": 5.0208
+          },
+          {
+            "text": "आँखें",
+            "start": 5.0208,
+            "end": 5.7808
+          },
+          {
+            "text": "चमक",
+            "start": 5.7808,
+            "end": 6.3595
+          },
+          {
+            "text": "रही",
+            "start": 6.3595,
+            "end": 6.8545
+          },
+          {
+            "text": "थीं।",
+            "start": 6.8545,
+            "end": 7.245
+          },
+          {
+            "text": "बहुत",
+            "start": 7.565,
+            "end": 8.1627
+          },
+          {
+            "text": "देर",
+            "start": 8.1627,
+            "end": 8.5804
+          },
+          {
+            "text": "तक",
+            "start": 8.5804,
+            "end": 8.9476
+          },
+          {
+            "text": "वो",
+            "start": 8.9476,
+            "end": 9.2285
+          },
+          {
+            "text": "मुझे",
+            "start": 9.2285,
+            "end": 9.8765
+          },
+          {
+            "text": "ही",
+            "start": 9.8765,
+            "end": 10.1574
+          },
+          {
+            "text": "देखती",
+            "start": 10.1574,
+            "end": 10.9423
+          },
+          {
+            "text": "रहीं।",
+            "start": 10.9423,
+            "end": 11.54
+          }
+        ],
+        "lines": [
+          {
+            "characterId": null,
+            "audio": "audio/aankhein.wav",
+            "start": 26.285,
+            "duration": 11.54,
+            "words": [
+              {
+                "text": "मैंने",
+                "start": 0.0,
+                "end": 0.6728
+              },
+              {
+                "text": "पीछे",
+                "start": 0.6728,
+                "end": 1.398
+              },
+              {
+                "text": "मुड़कर",
+                "start": 1.398,
+                "end": 2.3998
+              },
+              {
+                "text": "देखा।",
+                "start": 2.3998,
+                "end": 3.125
+              },
+              {
+                "text": "अंधेरे",
+                "start": 3.445,
+                "end": 4.3444
+              },
+              {
+                "text": "में",
+                "start": 4.3444,
+                "end": 4.7
+              },
+              {
+                "text": "दो",
+                "start": 4.7,
+                "end": 5.0208
+              },
+              {
+                "text": "आँखें",
+                "start": 5.0208,
+                "end": 5.7808
+              },
+              {
+                "text": "चमक",
+                "start": 5.7808,
+                "end": 6.3595
+              },
+              {
+                "text": "रही",
+                "start": 6.3595,
+                "end": 6.8545
+              },
+              {
+                "text": "थीं।",
+                "start": 6.8545,
+                "end": 7.245
+              },
+              {
+                "text": "बहुत",
+                "start": 7.565,
+                "end": 8.1627
+              },
+              {
+                "text": "देर",
+                "start": 8.1627,
+                "end": 8.5804
+              },
+              {
+                "text": "तक",
+                "start": 8.5804,
+                "end": 8.9476
+              },
+              {
+                "text": "वो",
+                "start": 8.9476,
+                "end": 9.2285
+              },
+              {
+                "text": "मुझे",
+                "start": 9.2285,
+                "end": 9.8765
+              },
+              {
+                "text": "ही",
+                "start": 9.8765,
+                "end": 10.1574
+              },
+              {
+                "text": "देखती",
+                "start": 10.1574,
+                "end": 10.9423
+              },
+              {
+                "text": "रहीं।",
+                "start": 10.9423,
+                "end": 11.54
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.46,
+                "value": "X"
+              },
+              {
+                "start": 0.46,
+                "end": 0.54,
+                "value": "B"
+              },
+              {
+                "start": 0.54,
+                "end": 0.65,
+                "value": "A"
+              },
+              {
+                "start": 0.65,
+                "end": 0.84,
+                "value": "C"
+              },
+              {
+                "start": 0.84,
+                "end": 1.31,
+                "value": "B"
+              },
+              {
+                "start": 1.31,
+                "end": 1.38,
+                "value": "C"
+              },
+              {
+                "start": 1.38,
+                "end": 1.73,
+                "value": "B"
+              },
+              {
+                "start": 1.73,
+                "end": 1.87,
+                "value": "F"
+              },
+              {
+                "start": 1.87,
+                "end": 2.01,
+                "value": "C"
+              },
+              {
+                "start": 2.01,
+                "end": 2.08,
+                "value": "B"
+              },
+              {
+                "start": 2.08,
+                "end": 2.5,
+                "value": "C"
+              },
+              {
+                "start": 2.5,
+                "end": 2.57,
+                "value": "E"
+              },
+              {
+                "start": 2.57,
+                "end": 2.71,
+                "value": "B"
+              },
+              {
+                "start": 2.71,
+                "end": 3.96,
+                "value": "X"
+              },
+              {
+                "start": 3.96,
+                "end": 4.1,
+                "value": "D"
+              },
+              {
+                "start": 4.1,
+                "end": 4.17,
+                "value": "C"
+              },
+              {
+                "start": 4.17,
+                "end": 4.52,
+                "value": "B"
+              },
+              {
+                "start": 4.52,
+                "end": 4.62,
+                "value": "A"
+              },
+              {
+                "start": 4.62,
+                "end": 4.77,
+                "value": "C"
+              },
+              {
+                "start": 4.77,
+                "end": 4.97,
+                "value": "B"
+              },
+              {
+                "start": 4.97,
+                "end": 5.05,
+                "value": "A"
+              },
+              {
+                "start": 5.05,
+                "end": 5.16,
+                "value": "F"
+              },
+              {
+                "start": 5.16,
+                "end": 5.21,
+                "value": "E"
+              },
+              {
+                "start": 5.21,
+                "end": 5.35,
+                "value": "H"
+              },
+              {
+                "start": 5.35,
+                "end": 5.54,
+                "value": "D"
+              },
+              {
+                "start": 5.54,
+                "end": 5.59,
+                "value": "C"
+              },
+              {
+                "start": 5.59,
+                "end": 5.91,
+                "value": "B"
+              },
+              {
+                "start": 5.91,
+                "end": 5.98,
+                "value": "C"
+              },
+              {
+                "start": 5.98,
+                "end": 6.06,
+                "value": "A"
+              },
+              {
+                "start": 6.06,
+                "end": 6.24,
+                "value": "C"
+              },
+              {
+                "start": 6.24,
+                "end": 6.8,
+                "value": "B"
+              },
+              {
+                "start": 6.8,
+                "end": 8.0,
+                "value": "X"
+              },
+              {
+                "start": 8.0,
+                "end": 8.07,
+                "value": "B"
+              },
+              {
+                "start": 8.07,
+                "end": 8.14,
+                "value": "A"
+              },
+              {
+                "start": 8.14,
+                "end": 8.29,
+                "value": "E"
+              },
+              {
+                "start": 8.29,
+                "end": 8.5,
+                "value": "C"
+              },
+              {
+                "start": 8.5,
+                "end": 8.85,
+                "value": "B"
+              },
+              {
+                "start": 8.85,
+                "end": 8.93,
+                "value": "A"
+              },
+              {
+                "start": 8.93,
+                "end": 9.04,
+                "value": "C"
+              },
+              {
+                "start": 9.04,
+                "end": 9.36,
+                "value": "B"
+              },
+              {
+                "start": 9.36,
+                "end": 9.43,
+                "value": "E"
+              },
+              {
+                "start": 9.43,
+                "end": 9.57,
+                "value": "F"
+              },
+              {
+                "start": 9.57,
+                "end": 9.68,
+                "value": "A"
+              },
+              {
+                "start": 9.68,
+                "end": 9.75,
+                "value": "B"
+              },
+              {
+                "start": 9.75,
+                "end": 9.88,
+                "value": "C"
+              },
+              {
+                "start": 9.88,
+                "end": 9.95,
+                "value": "B"
+              },
+              {
+                "start": 9.95,
+                "end": 10.02,
+                "value": "G"
+              },
+              {
+                "start": 10.02,
+                "end": 10.09,
+                "value": "B"
+              },
+              {
+                "start": 10.09,
+                "end": 10.37,
+                "value": "C"
+              },
+              {
+                "start": 10.37,
+                "end": 10.65,
+                "value": "B"
+              },
+              {
+                "start": 10.65,
+                "end": 10.72,
+                "value": "C"
+              },
+              {
+                "start": 10.72,
+                "end": 11.07,
+                "value": "B"
+              },
+              {
+                "start": 11.07,
+                "end": 11.54,
+                "value": "X"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ant",
+        "index": 3,
+        "start": 38.375,
+        "duration": 13.345,
+        "audioStart": 38.375,
+        "audio": "audio/ant.wav",
+        "words": [
+          {
+            "text": "अगर",
+            "start": 0.0,
+            "end": 0.4478
+          },
+          {
+            "text": "आप",
+            "start": 0.4478,
+            "end": 0.7379
+          },
+          {
+            "text": "कभी",
+            "start": 0.7379,
+            "end": 1.2613
+          },
+          {
+            "text": "उस",
+            "start": 1.2613,
+            "end": 1.5073
+          },
+          {
+            "text": "गाँव",
+            "start": 1.5073,
+            "end": 1.9802
+          },
+          {
+            "text": "से",
+            "start": 1.9802,
+            "end": 2.2262
+          },
+          {
+            "text": "गुज़रें,",
+            "start": 2.2262,
+            "end": 2.9893
+          },
+          {
+            "text": "तो",
+            "start": 2.9893,
+            "end": 3.2794
+          },
+          {
+            "text": "उस",
+            "start": 3.2794,
+            "end": 3.5253
+          },
+          {
+            "text": "घर",
+            "start": 3.5253,
+            "end": 3.9226
+          },
+          {
+            "text": "के",
+            "start": 3.9226,
+            "end": 4.1686
+          },
+          {
+            "text": "दरवाज़े",
+            "start": 4.1686,
+            "end": 5.0263
+          },
+          {
+            "text": "पर",
+            "start": 5.0263,
+            "end": 5.3479
+          },
+          {
+            "text": "दस्तक",
+            "start": 5.3479,
+            "end": 5.947
+          },
+          {
+            "text": "मत",
+            "start": 5.947,
+            "end": 6.2687
+          },
+          {
+            "text": "दीजिए।",
+            "start": 6.2687,
+            "end": 6.975
+          },
+          {
+            "text": "क्योंकि",
+            "start": 7.295,
+            "end": 7.9962
+          },
+          {
+            "text": "आज",
+            "start": 7.9962,
+            "end": 8.3125
+          },
+          {
+            "text": "भी,",
+            "start": 8.3125,
+            "end": 8.7456
+          },
+          {
+            "text": "आधी",
+            "start": 8.7456,
+            "end": 9.2819
+          },
+          {
+            "text": "रात",
+            "start": 9.2819,
+            "end": 9.6806
+          },
+          {
+            "text": "को,",
+            "start": 9.6806,
+            "end": 10.0313
+          },
+          {
+            "text": "कोई",
+            "start": 10.0313,
+            "end": 10.485
+          },
+          {
+            "text": "अंदर",
+            "start": 10.485,
+            "end": 11.0556
+          },
+          {
+            "text": "से",
+            "start": 11.0556,
+            "end": 11.3238
+          },
+          {
+            "text": "जवाब",
+            "start": 11.3238,
+            "end": 11.9425
+          },
+          {
+            "text": "देता",
+            "start": 11.9425,
+            "end": 12.5269
+          },
+          {
+            "text": "है।",
+            "start": 12.5269,
+            "end": 12.795
+          }
+        ],
+        "lines": [
+          {
+            "characterId": null,
+            "audio": "audio/ant.wav",
+            "start": 38.375,
+            "duration": 12.795,
+            "words": [
+              {
+                "text": "अगर",
+                "start": 0.0,
+                "end": 0.4478
+              },
+              {
+                "text": "आप",
+                "start": 0.4478,
+                "end": 0.7379
+              },
+              {
+                "text": "कभी",
+                "start": 0.7379,
+                "end": 1.2613
+              },
+              {
+                "text": "उस",
+                "start": 1.2613,
+                "end": 1.5073
+              },
+              {
+                "text": "गाँव",
+                "start": 1.5073,
+                "end": 1.9802
+              },
+              {
+                "text": "से",
+                "start": 1.9802,
+                "end": 2.2262
+              },
+              {
+                "text": "गुज़रें,",
+                "start": 2.2262,
+                "end": 2.9893
+              },
+              {
+                "text": "तो",
+                "start": 2.9893,
+                "end": 3.2794
+              },
+              {
+                "text": "उस",
+                "start": 3.2794,
+                "end": 3.5253
+              },
+              {
+                "text": "घर",
+                "start": 3.5253,
+                "end": 3.9226
+              },
+              {
+                "text": "के",
+                "start": 3.9226,
+                "end": 4.1686
+              },
+              {
+                "text": "दरवाज़े",
+                "start": 4.1686,
+                "end": 5.0263
+              },
+              {
+                "text": "पर",
+                "start": 5.0263,
+                "end": 5.3479
+              },
+              {
+                "text": "दस्तक",
+                "start": 5.3479,
+                "end": 5.947
+              },
+              {
+                "text": "मत",
+                "start": 5.947,
+                "end": 6.2687
+              },
+              {
+                "text": "दीजिए।",
+                "start": 6.2687,
+                "end": 6.975
+              },
+              {
+                "text": "क्योंकि",
+                "start": 7.295,
+                "end": 7.9962
+              },
+              {
+                "text": "आज",
+                "start": 7.9962,
+                "end": 8.3125
+              },
+              {
+                "text": "भी,",
+                "start": 8.3125,
+                "end": 8.7456
+              },
+              {
+                "text": "आधी",
+                "start": 8.7456,
+                "end": 9.2819
+              },
+              {
+                "text": "रात",
+                "start": 9.2819,
+                "end": 9.6806
+              },
+              {
+                "text": "को,",
+                "start": 9.6806,
+                "end": 10.0313
+              },
+              {
+                "text": "कोई",
+                "start": 10.0313,
+                "end": 10.485
+              },
+              {
+                "text": "अंदर",
+                "start": 10.485,
+                "end": 11.0556
+              },
+              {
+                "text": "से",
+                "start": 11.0556,
+                "end": 11.3238
+              },
+              {
+                "text": "जवाब",
+                "start": 11.3238,
+                "end": 11.9425
+              },
+              {
+                "text": "देता",
+                "start": 11.9425,
+                "end": 12.5269
+              },
+              {
+                "text": "है।",
+                "start": 12.5269,
+                "end": 12.795
+              }
+            ],
+            "mouthCues": [
+              {
+                "start": 0.0,
+                "end": 0.52,
+                "value": "X"
               },
               {
                 "start": 0.52,
                 "end": 0.59,
-                "value": "G"
-              },
-              {
-                "start": 0.59,
-                "end": 0.7,
-                "value": "A"
-              },
-              {
-                "start": 0.7,
-                "end": 0.81,
                 "value": "C"
               },
               {
-                "start": 0.81,
-                "end": 0.88,
+                "start": 0.59,
+                "end": 0.8,
                 "value": "B"
               },
               {
-                "start": 0.88,
-                "end": 1.09,
-                "value": "E"
+                "start": 0.8,
+                "end": 0.94,
+                "value": "D"
               },
               {
-                "start": 1.09,
+                "start": 0.94,
+                "end": 1.01,
+                "value": "C"
+              },
+              {
+                "start": 1.01,
                 "end": 1.17,
                 "value": "A"
               },
               {
                 "start": 1.17,
-                "end": 1.39,
+                "end": 1.26,
                 "value": "B"
               },
               {
-                "start": 1.39,
-                "end": 1.53,
-                "value": "F"
-              },
-              {
-                "start": 1.53,
-                "end": 1.88,
-                "value": "B"
-              },
-              {
-                "start": 1.88,
-                "end": 2.03,
+                "start": 1.26,
+                "end": 1.34,
                 "value": "A"
               },
               {
-                "start": 2.03,
-                "end": 2.23,
+                "start": 1.34,
+                "end": 1.65,
                 "value": "B"
               },
               {
-                "start": 2.23,
-                "end": 2.3,
-                "value": "C"
-              },
-              {
-                "start": 2.3,
-                "end": 2.38,
-                "value": "A"
-              },
-              {
-                "start": 2.38,
-                "end": 2.44,
-                "value": "B"
-              },
-              {
-                "start": 2.44,
-                "end": 2.5,
-                "value": "G"
-              },
-              {
-                "start": 2.5,
-                "end": 2.85,
-                "value": "B"
-              },
-              {
-                "start": 2.85,
-                "end": 2.99,
-                "value": "G"
-              },
-              {
-                "start": 2.99,
-                "end": 3.2,
-                "value": "E"
-              },
-              {
-                "start": 3.2,
-                "end": 3.62,
-                "value": "B"
-              },
-              {
-                "start": 3.62,
-                "end": 3.83,
-                "value": "C"
-              },
-              {
-                "start": 3.83,
-                "end": 4.04,
-                "value": "B"
-              },
-              {
-                "start": 4.04,
-                "end": 5.16,
+                "start": 1.65,
+                "end": 1.85,
                 "value": "X"
               },
               {
-                "start": 5.16,
-                "end": 5.22,
+                "start": 1.85,
+                "end": 1.9,
                 "value": "B"
               },
               {
-                "start": 5.22,
-                "end": 5.28,
-                "value": "C"
-              },
-              {
-                "start": 5.28,
-                "end": 5.35,
-                "value": "B"
-              },
-              {
-                "start": 5.35,
-                "end": 5.49,
-                "value": "C"
-              },
-              {
-                "start": 5.49,
-                "end": 5.7,
-                "value": "B"
-              },
-              {
-                "start": 5.7,
-                "end": 5.84,
-                "value": "E"
-              },
-              {
-                "start": 5.84,
-                "end": 5.91,
+                "start": 1.9,
+                "end": 2.01,
                 "value": "F"
               },
               {
-                "start": 5.91,
-                "end": 5.99,
-                "value": "A"
-              },
-              {
-                "start": 5.99,
-                "end": 6.21,
-                "value": "H"
-              },
-              {
-                "start": 6.21,
-                "end": 6.35,
-                "value": "B"
-              },
-              {
-                "start": 6.35,
-                "end": 6.7,
+                "start": 2.01,
+                "end": 2.22,
                 "value": "C"
               },
               {
-                "start": 6.7,
-                "end": 6.98,
+                "start": 2.22,
+                "end": 2.29,
+                "value": "E"
+              },
+              {
+                "start": 2.29,
+                "end": 2.36,
+                "value": "C"
+              },
+              {
+                "start": 2.36,
+                "end": 2.5,
                 "value": "B"
               },
               {
-                "start": 6.98,
-                "end": 7.48,
+                "start": 2.5,
+                "end": 2.57,
+                "value": "C"
+              },
+              {
+                "start": 2.57,
+                "end": 2.64,
+                "value": "B"
+              },
+              {
+                "start": 2.64,
+                "end": 2.71,
+                "value": "F"
+              },
+              {
+                "start": 2.71,
+                "end": 2.78,
+                "value": "B"
+              },
+              {
+                "start": 2.78,
+                "end": 2.99,
+                "value": "C"
+              },
+              {
+                "start": 2.99,
+                "end": 3.06,
+                "value": "B"
+              },
+              {
+                "start": 3.06,
+                "end": 3.38,
+                "value": "X"
+              },
+              {
+                "start": 3.38,
+                "end": 3.42,
+                "value": "B"
+              },
+              {
+                "start": 3.42,
+                "end": 3.67,
+                "value": "F"
+              },
+              {
+                "start": 3.67,
+                "end": 3.81,
+                "value": "B"
+              },
+              {
+                "start": 3.81,
+                "end": 4.02,
+                "value": "C"
+              },
+              {
+                "start": 4.02,
+                "end": 4.3,
+                "value": "B"
+              },
+              {
+                "start": 4.3,
+                "end": 4.44,
+                "value": "C"
+              },
+              {
+                "start": 4.44,
+                "end": 4.52,
+                "value": "A"
+              },
+              {
+                "start": 4.52,
+                "end": 4.64,
+                "value": "C"
+              },
+              {
+                "start": 4.64,
+                "end": 4.78,
+                "value": "B"
+              },
+              {
+                "start": 4.78,
+                "end": 4.86,
+                "value": "A"
+              },
+              {
+                "start": 4.86,
+                "end": 5.03,
+                "value": "C"
+              },
+              {
+                "start": 5.03,
+                "end": 5.19,
+                "value": "B"
+              },
+              {
+                "start": 5.19,
+                "end": 5.27,
+                "value": "A"
+              },
+              {
+                "start": 5.27,
+                "end": 5.44,
+                "value": "C"
+              },
+              {
+                "start": 5.44,
+                "end": 5.51,
+                "value": "B"
+              },
+              {
+                "start": 5.51,
+                "end": 5.65,
+                "value": "C"
+              },
+              {
+                "start": 5.65,
+                "end": 5.72,
+                "value": "B"
+              },
+              {
+                "start": 5.72,
+                "end": 5.83,
+                "value": "A"
+              },
+              {
+                "start": 5.83,
+                "end": 5.89,
+                "value": "C"
+              },
+              {
+                "start": 5.89,
+                "end": 5.95,
+                "value": "A"
+              },
+              {
+                "start": 5.95,
+                "end": 6.53,
+                "value": "B"
+              },
+              {
+                "start": 6.53,
+                "end": 7.8,
+                "value": "X"
+              },
+              {
+                "start": 7.8,
+                "end": 7.9,
+                "value": "F"
+              },
+              {
+                "start": 7.9,
+                "end": 7.98,
+                "value": "A"
+              },
+              {
+                "start": 7.98,
+                "end": 8.22,
+                "value": "B"
+              },
+              {
+                "start": 8.22,
+                "end": 8.36,
+                "value": "D"
+              },
+              {
+                "start": 8.36,
+                "end": 8.5,
+                "value": "B"
+              },
+              {
+                "start": 8.5,
+                "end": 8.58,
+                "value": "A"
+              },
+              {
+                "start": 8.58,
+                "end": 8.95,
+                "value": "B"
+              },
+              {
+                "start": 8.95,
+                "end": 9.17,
+                "value": "X"
+              },
+              {
+                "start": 9.17,
+                "end": 9.22,
+                "value": "B"
+              },
+              {
+                "start": 9.22,
+                "end": 9.26,
+                "value": "C"
+              },
+              {
+                "start": 9.26,
+                "end": 9.61,
+                "value": "B"
+              },
+              {
+                "start": 9.61,
+                "end": 9.75,
+                "value": "C"
+              },
+              {
+                "start": 9.75,
+                "end": 9.96,
+                "value": "B"
+              },
+              {
+                "start": 9.96,
+                "end": 10.17,
+                "value": "H"
+              },
+              {
+                "start": 10.17,
+                "end": 10.24,
+                "value": "B"
+              },
+              {
+                "start": 10.24,
+                "end": 10.39,
+                "value": "X"
+              },
+              {
+                "start": 10.39,
+                "end": 10.43,
+                "value": "B"
+              },
+              {
+                "start": 10.43,
+                "end": 10.54,
+                "value": "F"
+              },
+              {
+                "start": 10.54,
+                "end": 10.61,
+                "value": "B"
+              },
+              {
+                "start": 10.61,
+                "end": 10.68,
+                "value": "C"
+              },
+              {
+                "start": 10.68,
+                "end": 11.31,
+                "value": "B"
+              },
+              {
+                "start": 11.31,
+                "end": 11.38,
+                "value": "C"
+              },
+              {
+                "start": 11.38,
+                "end": 11.45,
+                "value": "G"
+              },
+              {
+                "start": 11.45,
+                "end": 11.52,
+                "value": "D"
+              },
+              {
+                "start": 11.52,
+                "end": 11.6,
+                "value": "A"
+              },
+              {
+                "start": 11.6,
+                "end": 11.77,
+                "value": "B"
+              },
+              {
+                "start": 11.77,
+                "end": 11.85,
+                "value": "A"
+              },
+              {
+                "start": 11.85,
+                "end": 12.25,
+                "value": "C"
+              },
+              {
+                "start": 12.25,
+                "end": 12.32,
+                "value": "B"
+              },
+              {
+                "start": 12.32,
+                "end": 12.79,
                 "value": "X"
               }
             ]
