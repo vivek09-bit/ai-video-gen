@@ -83,6 +83,8 @@ Write-Host "  transformers exit code: $LASTEXITCODE"
 Write-Host "  misaki + spacy exit code: $LASTEXITCODE"
 & $venvPy -m pip install --disable-pip-version-check --quiet --no-deps kokoro
 Write-Host "  kokoro exit code: $LASTEXITCODE"
+& $venvPy -m pip install --disable-pip-version-check --quiet --only-binary ":all:" diffusers accelerate
+Write-Host "  diffusers + accelerate (local image gen) exit code: $LASTEXITCODE"
 
 Write-Host ''
 Write-Host '=== [4/4] Rhubarb Lip Sync (MIT) ==='

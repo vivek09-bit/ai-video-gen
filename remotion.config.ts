@@ -7,6 +7,9 @@ Config.setOverwriteOutput(true);
 Config.setCodec('h264');
 Config.setCrf(18);
 
-// Long-form renders are frame-count bound; leaving headroom keeps the machine
-// usable while a 30-60 minute video encodes.
-Config.setConcurrency(4);
+// 2x concurrency is stable across high-res portrait (9:16) & landscape renders
+// on Windows, preventing browser process stack buffer overruns / OOM crashes.
+const concurrency = Number(
+  process.env.REMOTION_CONCURRENCY || process.env.CONCURRENCY || 2
+);
+Config.setConcurrency(concurrency);

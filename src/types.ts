@@ -61,10 +61,11 @@ export interface ActingSpec {
 }
 
 /**
- * Procedural horror backdrops. Every one is drawn from code, so the project
- * needs no image assets and nothing to license.
+ * Horror backdrops. Can be procedural (drawn from code with zero assets) or
+ * AI generated background images.
  */
 export type VisualSpec =
+  | {type: 'image'; src: string; kenBurns?: 'in' | 'out' | 'left' | 'right' | 'none'; dim?: number; prompt?: string}
   | {type: 'void'; creep?: number; tint?: string}
   | {type: 'fog'; density?: number; glow?: number; seed?: number}
   | {type: 'forest'; fog?: number; moonlight?: number}
@@ -178,12 +179,15 @@ export interface Scene {
 }
 
 export interface Theme {
+  key?: string;
+  name?: string;
   accent: string;
   text: string;
   muted: string;
   panel: string;
   headlineFont: string;
   bodyFont: string;
+  bg_color?: string;
 }
 
 export interface CaptionOptions {

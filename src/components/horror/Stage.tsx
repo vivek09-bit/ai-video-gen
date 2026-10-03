@@ -1,4 +1,4 @@
-import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import React from 'react';
 import {FlickeringLight, Rain} from './Effects';
 import {hash, noise1} from './noise';
@@ -269,10 +269,58 @@ const Eyes: React.FC<{pairs: number; spread: number}> = ({pairs, spread}) => {
 
 export const Stage: React.FC<{spec: VisualSpec}> = ({spec}) => {
   const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const {fps, durationInFrames} = useVideoConfig();
   const time = frame / fps;
 
   switch (spec.type) {
+    case 'image': {
+      const mode = spec.kenBurns ?? 'in';
+      const p = durationInFrames <= 1 ? 0 : Math.min(1, Math.max(0, frame / (durationInFrames - 1)));
+      let scale = 1;
+      let x = 0;
+      switch (mode) {
+        case 'in':
+          scale = 1 + 0.12 * p;
+          break;
+        case 'out':
+          scale = 1.12 - 0.12 * p;
+          break;
+        case 'left':
+          scale = 1.14;
+          x = 30 - 60 * p;
+          break;
+        case 'right':
+          scale = 1.14;
+          x = -30 + 60 * p;
+          break;
+        case 'none':
+          break;
+      }
+      const isUrl =
+        spec.src.startsWith('http://') ||
+        spec.src.startsWith('https://') ||
+        spec.src.startsWith('data:');
+      const imageSource = isUrl ? spec.src : staticFile(spec.src.replace(/^[/\\]+/, ''));
+      const dim = Math.max(0, Math.min(1, spec.dim ?? 0));
+
+      return (
+        <AbsoluteFill style={{backgroundColor: BLACK, overflow: 'hidden'}}>
+          <Img
+            src={imageSource}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: `translateX(${x}px) scale(${scale})`,
+            }}
+          />
+          {dim > 0 && (
+            <AbsoluteFill style={{backgroundColor: `rgba(0,0,0,${dim})`}} />
+          )}
+        </AbsoluteFill>
+      );
+    }
+
     case 'void': {
       const creep = spec.creep ?? 0.5;
       const closing = 1 - Math.min(1, 0.34 + Math.abs(noise1(time * 0.19)) * creep);

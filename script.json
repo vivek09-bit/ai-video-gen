@@ -1,64 +1,67 @@
 {
-  "title": "आधी रात की गिनती",
-  "voice": "hm_omega",
-  "speed": 0.94,
+  "title": "साइबर शेर और डिजिटल भूत",
+  "topic": "sher or bhoot",
+  "language": "hi",
+  "genre": "scifi",
+  "visualStyle": null,
+  "format": "reel",
+  "aspectRatio": "9:16",
+  "width": 1080,
+  "height": 1920,
   "fps": 30,
-  "width": 1920,
-  "height": 1080,
+  "voice": "hm_omega",
+  "secondaryVoice": null,
+  "speed": 0.94,
   "sentencePauseSeconds": 0.32,
   "captions": {
     "enabled": true,
     "wordsPerCue": 3,
-    "bottom": 0.06,
-    "fontSize": 86,
+    "bottom": 0.18,
+    "fontSize": 99,
+    "uppercase": false,
     "highlight": true,
-    "position": "center"
+    "position": "center",
+    "outline": 0,
+    "panel": false,
+    "maxWidth": 0.82,
+    "rise": 30,
+    "hinglish": true
   },
   "theme": {
-    "accent": "#c9524a",
-    "text": "#f2ece4",
-    "muted": "#a89f96",
-    "panel": "rgba(4, 4, 6, 0.62)",
-    "headlineFont": "Georgia, 'Times New Roman', serif",
-    "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif"
+    "key": "solar_flare",
+    "name": "Solar Flare",
+    "accent": "#eab308",
+    "text": "#ffffff",
+    "muted": "#cbd5e1",
+    "panel": "rgba(25, 20, 5, 0.75)",
+    "headlineFont": "'Segoe UI', system-ui, sans-serif",
+    "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
+    "bg_color": "#0a0802"
   },
-  "characters": {
-    "lead": {
-      "name": "Aarav",
-      "voice": "hm_omega",
-      "hairstyle": "short",
-      "accessory": "none",
-      "palette": {
-        "skin": "#c98d63",
-        "skinShade": "#ad7450",
-        "hair": "#1f1b18",
-        "shirt": "#3d4a5c",
-        "accent": "#8a9099",
-        "outline": "#14181f"
-      }
-    }
-  },
+  "characters": {},
   "scenes": [
     {
       "id": "scene-001",
-      "headline": "बंद हवेली",
+      "beat": "establish",
+      "headline": "साइबर शेर का पहरा",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.55,
-            "fog": 0.6,
-            "glow": 0.45
+            "type": "image",
+            "src": "images/scene-001.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cyberpunk mecha lion neon city skyline metropolis, featuring corridor, flickering flame light, forest, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.9,
-            "grain": 0.52,
-            "dust": 0.26,
-            "zoom": 0.05,
+            "vignette": 0.8,
+            "grain": 0.35,
+            "dust": 0.2,
+            "zoom": 0.03,
             "drift": "in"
           },
           "transition": {
@@ -67,16 +70,18 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.8,
-            "depth": 0.65
+            "type": "image",
+            "src": "images/scene-001.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cyberpunk mecha lion neon city skyline metropolis, featuring corridor, flickering flame light, forest, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.9,
-            "grain": 0.52,
-            "dust": 0.26,
-            "zoom": 0.05,
+            "vignette": 0.8,
+            "grain": 0.35,
+            "dust": 0.2,
+            "zoom": 0.03,
             "drift": "in"
           },
           "transition": {
@@ -86,56 +91,147 @@
         }
       ],
       "ambience": {
-        "src": "amb_drone",
-        "volume": 0.52
+        "src": "amb_hum",
+        "volume": 0.31
       },
       "soundCues": [
         {
-          "at": 10.78,
-          "sfx": "sfx_riser",
-          "volume": 0.4
+          "at": 3.14,
+          "sfx": "sfx_whoosh",
+          "volume": 0.26
         }
       ],
       "background": {
         "type": "color",
-        "color": "#04060a"
+        "color": "#0a0802"
       },
-      "cast": [
-        {
-          "id": "lead",
-          "x": 0.66,
-          "scale": 0.74,
-          "flip": true
-        }
-      ],
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.26,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
       "padBefore": 0.0,
       "padAfter": 0.55,
       "holdSeconds": 3.0,
       "lines": [
         {
           "character": null,
-          "text": "गाँव के बाहर वाली पुरानी हवेली बहुत सालों से बंद पड़ी थी। लोग कहते थे कि उस घर में कोई रहता है, पर कोई कभी अंदर नहीं गया। हर रात ठीक आधी रात को वहाँ से आवाज़ आती थी। जैसे कोई धीरे धीरे गिनती कर रहा हो। कोई नहीं जानता था कि वो कौन था, और वो क्या गिन रहा था।"
+          "text": "साल इक्कीस सौ पचास के साइबर शहर में, टाइटेनियम का बना बायो-मैकेनिकल शेर सबसे ताकतवर सिक्योरिटी गार्ड था। उसके क्वांटम सेंसर्स हर खतरे को सेकंड में स्कैन कर लेते थे।"
         }
-      ]
+      ],
+      "visualKeywords": "cyberpunk mecha lion neon city"
     },
     {
       "id": "scene-002",
-      "headline": "दरवाज़ा",
+      "beat": "dread",
+      "headline": "डिजिटल भूत का हमला",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.94,
-            "grain": 0.55,
-            "dust": 0.1,
-            "shake": 0.35,
+            "vignette": 0.85,
+            "grain": 0.4,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in",
+            "exposureFlicker": 0.15
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.4,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in",
+            "exposureFlicker": 0.15
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.41
+      },
+      "soundCues": [
+        {
+          "at": 6.27,
+          "sfx": "sfx_glitch",
+          "volume": 0.39
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0a0802"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.55,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "तभी मेनफ्रेम में एक अजीब डिजिटल भूत प्रकट हुआ। यह कोई साधारण वायरस नहीं, बल्कि पुरानी दुनिया की एक भटकी हुई चेतना थी, जो पूरे पावर ग्रिड को हैक कर रही थी।"
+        }
+      ],
+      "visualKeywords": "glowing holographic ghost data mainframe"
+    },
+    {
+      "id": "scene-003",
+      "beat": "reveal",
+      "headline": "न्यूरल महायुद्ध",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.2,
+            "shake": 0.3,
             "zoom": 0.05,
             "drift": "in"
           },
@@ -145,16 +241,18 @@
         },
         {
           "visual": {
-            "type": "eyes",
-            "pairs": 4,
-            "spread": 0.8
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.94,
-            "grain": 0.55,
-            "dust": 0.1,
-            "shake": 0.35,
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.2,
+            "shake": 0.3,
             "zoom": 0.05,
             "drift": "in"
           },
@@ -165,16 +263,17 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.2,
-            "fog": 0.5,
-            "glow": 0.4
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.94,
-            "grain": 0.55,
-            "dust": 0.1,
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.2,
             "shake": 0.45,
             "zoom": 0.05,
             "drift": "in"
@@ -186,42 +285,127 @@
         }
       ],
       "ambience": {
-        "src": "amb_heartbeat",
-        "volume": 0.55
+        "src": "amb_cyber",
+        "volume": 0.6
       },
       "soundCues": [
         {
-          "at": 1.54,
-          "sfx": "sfx_stinger",
-          "volume": 1.0
+          "at": 0.78,
+          "sfx": "sfx_boom",
+          "volume": 0.98
         },
         {
-          "at": 18.49,
-          "sfx": "sfx_impact",
-          "volume": 0.69
+          "at": 9.41,
+          "sfx": "sfx_boom",
+          "volume": 0.8
         }
       ],
       "background": {
         "type": "color",
-        "color": "#04060a"
+        "color": "#0a0802"
       },
-      "cast": [
-        {
-          "id": "lead",
-          "x": 0.34,
-          "scale": 0.68,
-          "flip": false
-        }
-      ],
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "recoil"
+      },
       "padBefore": 0.0,
       "padAfter": 0.55,
       "holdSeconds": 3.0,
       "lines": [
         {
           "character": null,
-          "text": "एक दिन मैंने हिम्मत करके उस घर का दरवाज़ा खोल दिया। अंदर की हवा बर्फ जैसी ठंडी थी और फर्श पर धूल की मोटी परत जमी हुई थी। दीवार पर एक बंद घड़ी लटकी थी। उसकी सुइयाँ बरसों पहले रुक चुकी थीं, फिर भी अंदर से टिक टिक की आवाज़ आ रही थी। ऊपर की सीढ़ियों से किसी के नंगे पैरों की आहट सुनाई दी।"
+          "text": "शेर ने अपनी लेज़र बीम से वार किया, लेकिन वह ऊर्जा भूत के आर-पार निकल गई। खतरे को भांपते हुए उसने अपनी न्यूरल चिप को सीधे उस अनजानी शक्ति से जोड़ दिया।"
         }
-      ]
+      ],
+      "visualKeywords": "cyber predator laser battle quantum ghost"
+    },
+    {
+      "id": "scene-004",
+      "beat": "react",
+      "headline": "अमर डिजिटल रक्षक",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: glowing cosmic cybernetic beast ethereal energy spirit, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.4,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: glowing cosmic cybernetic beast ethereal energy spirit, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.4,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_hum",
+        "volume": 0.33
+      },
+      "soundCues": [
+        {
+          "at": 6.27,
+          "sfx": "sfx_whoosh",
+          "volume": 0.35
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0a0802"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.62,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "clutch"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मशीन और आत्मा का यह टकराव एक नए महा-इंटेलिजेंस में बदल गया। अब वह सिर्फ एक रोबोट नहीं, बल्कि पूरे ब्रह्मांड का पहला अमर डिजिटल रक्षक बन चुका था।"
+        }
+      ],
+      "visualKeywords": "glowing cosmic cybernetic beast ethereal energy"
     }
   ]
 }

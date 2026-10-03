@@ -68,8 +68,87 @@ npm run render    # -> out/video.mp4
 npm run studio    # visual editor with live scrubbing
 ```
 
-`npm run make` chains assets, voice and render. `npm test` checks the phoneme
-alignment that word timings depend on.
+`npm run make` chains assets, voice and render. `npm test` runs both suites: the
+phoneme alignment that word timings depend on, and the narration prosody and
+mastering chain.
+
+## Story structure
+
+Beats are visual grammar, not a story. Cycling them is why a long video used to loop
+the same six shots and never actually end — atmosphere instead of a plot.
+
+So the runtime is apportioned across **narrative movements**, and the same movements
+are present at every length. A one-minute piece gets shorter scenes, not half a story:
+
+| Movement | Share | What has to happen |
+|---|---|---|
+| `hook` | 0.05 | A line that makes them stay |
+| `setup` | 0.13 | Who this is about and where they are |
+| `inciting` | 0.12 | The disturbance arrives |
+| `rising` | 0.32 | Complications; each attempt makes it worse |
+| `climax` | 0.16 | The confrontation, faced directly |
+| `resolution` | 0.14 | What it cost; close the loop |
+| `button` | 0.08 | A last line that reframes it |
+
+Scenes are allocated by largest-remainder proportion, one scene minimum each, and the
+planner refuses to go below four scenes — `setup`, `inciting`, `climax` and
+`resolution` are always present. Short pieces drop `button` first, then `hook`, never
+an essential.
+
+The writer is told the story job for each scene, and where it sits inside a movement
+that spans several scenes (`complication 3 of 7, and it must be worse than the one
+before it`). Without that, a seven-scene middle comes back as seven interchangeable
+scenes.
+
+Measured shape at each length (`npm run test:story` prints this table):
+
+```
+  length  scenes  story arc
+   1 min       4  setup -> inciting -> climax -> resolution
+   3 min       8  setup -> inciting -> rising -> climax -> resolution -> button
+  10 min      25  hook -> setup -> inciting -> rising -> climax -> resolution -> button
+                  rising=7  climax=4  resolution=4
+  60 min     150  hook -> setup -> inciting -> rising -> climax -> resolution -> button
+                  rising=47 climax=24 resolution=21
+```
+
+## Narration quality
+
+Kokoro is clean but dry and uneven, so the narration is shaped before it is written:
+
+- **Punctuation-aware pauses.** One fixed gap for every sentence is the main reason
+  synthetic narration sounds mechanical, so the silence depends on the mark that ends
+  the sentence (`?` and `!` hang, `।` lands, `॥` lands harder) with a small
+  deterministic wobble. Kokoro still handles commas inside a sentence itself.
+- **Fades** on every segment, so joining sentences cannot click.
+- **Mastering chain**: 75 Hz high-pass, presence lift around 3 kHz for consonants,
+  gentle compression (`-24 dBFS`, 3:1), loudness matched to `-18 dBFS`, then a
+  transient limiter under `-1.5 dBFS`.
+
+Measured on six Hindi lines across two voices:
+
+| | before | after |
+|---|---|---|
+| line-to-line loudness spread | 0.96 dB | **0.01 dB** |
+| `hm_omega` vs `hm_psi` level gap | 1.6 dB | **0.01 dB** |
+| within-line loudness spread | 7.29 dB | **6.60 dB** |
+| peak | uncontrolled, varies | limited to `-1.5 dBFS` |
+
+The limiter shaves the offending transients rather than scaling the whole line. That
+distinction matters: scaling to the loudest plosive was throwing away up to 3 dB on
+everything else and was the actual cause of the line-to-line drift. The regression
+test asserts the rest of the line moves less than 0.2 dB while the transient is ducked.
+
+Both voices work for horror; `hm_omega` is the steadier narrator, `hm_psi` darker.
+Listen with:
+
+```powershell
+npm run voice                      # synthesise, then play public/audio/*.wav
+.venv\Scripts\python.exe scripts\new_video.py --topic "x" --minutes 1 --show-prompt
+```
+
+`--narration` replaces the writing step entirely, so the topic then only shapes the
+visuals and the words come from that file.
 
 ## One command, topic to finished video
 
@@ -91,16 +170,27 @@ Useful flags:
 
 | Flag | Purpose |
 |---|---|
-| `--topic` / `--minutes` | what and how long (both required) |
-| `--dry-run` | print the shot plan and stop |
-| `--no-render` | write `script.json` and stop |
+| `--topic` / `--minutes` | what and how long (`--topic` required) |
+| `--language` | language for narration (`hi`, `hinglish`, or `en`; generates conversational Devanagari Hindi for TTS voice authenticity) |
+| `--subtitles` | on-screen captions & .srt script: `hinglish` (default for Hindi voice) or `devanagari` |
+| `--no-hinglish-subtitles` | keep Devanagari script for captions and subtitles instead of Roman Hinglish |
+| `--voice` | primary narrator voice, alias, or blend (e.g. `hm_omega`, `hindi_female`, `bm_george`, `af_heart+af_bella`) |
+| `--voice-2` / `--secondary-voice` | secondary voice for dialogue/antagonist in character scenes |
+| `--voices` | list all 30+ available Kokoro voices, aliases, and blending syntax |
+| `--genre` / `--genres` | story/visual genre (horror, fantasy, scifi, documentary, anime, comedy, etc.) |
+| `--format` / `--formats` | video framing preset (`reel` [9:16], `landscape` [16:9], `square` [1:1], `portrait` [4:5], `cinema` [21:9], `classic` [4:3]) |
+| `--theme` / `--themes` | visual color/font theme (e.g. `cyber_neon`, `blood_red`, `synthwave`, `#ff007f`) |
+| `--dry-run` | print the plan and stop |
+| `--show-prompt` | print the brief sent to the writer, then stop |
+| `--no-render` | write `script.json` and synthesise the narration, but skip the render |
 | `--narration FILE` | use narration you already have |
-| `--voice` / `--speed` | default `hm_omega` at `0.94` |
+| `--speed` | speech speed multiplier (e.g. `0.8` to `1.5`, default from genre) |
 | `--scene-seconds` | scene length target, default 24 |
 | `--shots` | shots per scene, default 2 |
 | `--caption-style` | `statement` (default) or `subtitle` |
 | `--no-captions` | switch on-screen text off entirely |
 | `--characters` | cast a character; **off by default** |
+| `--metadata` / `--no-metadata` | auto-generate upload metadata for YouTube, Instagram, Facebook, TikTok (default: enabled) |
 | `--out` | output path, default `out/video.mp4` |
 
 ### On-screen text
@@ -149,16 +239,64 @@ length then determines the timeline.
 
 ### Configuring a narration writer
 
-Narration has three sources, tried in order:
+Narration has multiple sources selectable via `--model` or `--llmprovider`:
 
-1. `--narration FILE` — narration you already have
-2. an LLM — any OpenAI-compatible endpoint, via `LLM_BASE_URL`, `LLM_API_KEY`,
-   `LLM_MODEL`. A local **Ollama** server is detected automatically at
-   `http://localhost:11434/v1` and needs no key, which makes the whole pipeline
-   free end to end.
-3. a brief — if neither is available, the exact prompt is written to
-   `out/narration-todo.txt` for an agent to fill in, and the command stops
-   cleanly rather than producing a silent video.
+| Provider Option | Flag / Name | API Key / Env | Default Model | Approx Cost / Script |
+|---|---|---|---|---|
+| **DeepSeek** | `--model deepseek` | `DEEPSEEK_API_KEY` | `deepseek-chat` | $\approx \$0.0001$ |
+| **Fireworks AI** | `--model fireworks` | `FIREWORKS_API_KEY` | `accounts/fireworks/models/deepseek-v3` | $\approx \$0.0002$ |
+| **Together AI** | `--model together` | `TOGETHER_API_KEY` | `deepseek-ai/DeepSeek-V3` | $\approx \$0.0002$ |
+| **Omniroute / OpenRouter** | `--model omniroute` | `OMNIROUTE_API_KEY` or `OPENROUTER_API_KEY` | `auto` (proxy decides) | $\approx \$0.0002$ |
+| **Local Ollama** | `--model ollama` | None (Local CPU/GPU) | `llama3.1` | **$0.00 (Free)** |
+
+If you already have a prepared text script, simply pass `--narration examples/your_script.txt`.
+
+### AI Image Generation ($0.00 / Free – $0.04 / image)
+
+For high-end cinematic horror backdrops, the pipeline supports automated image generation via `--imageprovider`:
+
+| Provider | CLI Option | Model | Cost / Image | Quality & Best Use Case |
+|---|---|---|---|---|
+| **Pollinations AI** | `--imageprovider free` or `--free` | FLUX.1 [schnell] | **$0.00 (100% Free)** | **No API key needed**, instant free FLUX AI image generation |
+| **Fireworks AI** | `--imageprovider fireworks` | FLUX.1 [schnell] | **$0.0014** | **Best ultra-budget pick** (4-step 12B distilled FLUX) |
+| **Together AI** | `--imageprovider together` | FLUX.1-schnell | **$0.0030** | High-speed serverless 4-step FLUX |
+| **fal.ai** | `--imageprovider fal` | FLUX.1 [schnell] | **$0.0030** | Fast FLUX with promo balance |
+| **fal.ai / Together** | `--imageprovider together --imagemodel flux-dev` | FLUX.1 [dev] | **$0.0250** | 12B non-distilled (high detail, 28 steps) |
+| **fal.ai / Together / Replicate** | `--imageprovider together --imagemodel flux-pro` | FLUX 1.1 [pro] | **$0.0400** | Flagship SOTA cinematic photorealism |
+| **Replicate** | `--imageprovider replicate` | Recraft V3 (`red_panda`) | **$0.0400** | SOTA 2D vector, graphic art & typography |
+
+Configure keys in `.env` or set environment variables:
+```env
+DEEPSEEK_API_KEY=sk-...
+IMAGE_PROVIDER=free         # free | pollinations | fireworks | together | fal | replicate | openai
+IMAGE_MODEL=flux            # flux (free), flux-schnell ($0.0014-$0.003), flux-dev ($0.025), flux-pro ($0.04)
+```
+
+### CLI Command Examples
+
+**1. 100% Free AI Image Generation (No API key needed):**
+```powershell
+.venv\Scripts\python.exe scripts\new_video.py --topic "ai dekho son pari" --minutes 1 --narration examples\aadha-din-aadhi-raat.txt --imageprovider free --out out\text.mp4
+```
+or with DeepSeek script writing:
+```powershell
+.venv\Scripts\python.exe scripts\new_video.py --topic "ai dekho son pari" --minutes 1 --model deepseek --free --out out\text.mp4
+```
+
+**2. Full AI Script + Image Generation with DeepSeek & Fireworks AI ($0.0014/image):**
+```powershell
+.venv\Scripts\python.exe scripts\new_video.py --topic "ai dekho son pari" --minutes 1 --model deepseek --imageprovider fireworks --out out\text.mp4
+```
+
+**3. Existing Narration file + Together AI FLUX Images ($0.003/image):**
+```powershell
+.venv\Scripts\python.exe scripts\new_video.py --topic "ai dekho son pari" --minutes 1 --narration examples\aadha-din-aadhi-raat.txt --imageprovider together --out out\text.mp4
+```
+
+**4. Omniroute LLM + Fireworks AI Images:**
+```powershell
+.venv\Scripts\python.exe scripts\new_video.py --topic "khooni haveli" --minutes 1 --model omniroute --imageprovider fireworks --out out\text.mp4
+```
 
 ### Why structure is generated by code
 
@@ -315,24 +453,43 @@ and the loops have no clicks at the seam.
 Ambience loops for the whole scene and mixes under the narration. Sound cues are
 placed in seconds from the scene start, so you can land a stinger exactly on a beat.
 
-## Hindi narration
+## Multi-Voice and Multi-Language Narration
 
-Kokoro ships Hindi voices and they work here. Measured:
+Kokoro-82M runs 100% locally with zero API costs across 30+ neural voices in Hindi, English (US/UK), Japanese, Mandarin Chinese, Spanish, French, Italian, and Portuguese.
+
+To view all available voices:
+```bash
+npm run new -- --voices
+# or: .venv\Scripts\python.exe scripts\tts.py --voices
+```
+
+### Voice Blending (Mixing Voices)
+You can blend two or more voices together with `+` or `,` to create unique custom vocal tones:
+```bash
+npm run new -- --topic "epic battle" --voice "af_heart+af_bella"
+npm run new -- --topic "mystic forest" --voice "hm_omega+hf_alpha"
+```
+
+### Friendly Voice Aliases
+Directly pass intuitive shortcuts instead of raw IDs:
+- `--voice hindi_female` (maps to `hf_alpha`)
+- `--voice documentary` (maps to `bm_george` - authoritative BBC documentary tone)
+- `--voice deep_male` (maps to `am_onyx` - deep cinematic bass)
+- `--voice anime_female` (maps to `jf_nezumi`)
+- `--voice trailer` (maps to `am_onyx`)
+
+### Hindi Narration
+
+Kokoro ships four dedicated Hindi voices:
 
 ```
-hm_omega   10.78s audio in 7.68s   (rtf 0.71)
-hm_psi     10.68s audio in 7.51s   (rtf 0.70)
-hf_alpha   10.07s audio in 7.28s   (rtf 0.72)
-hf_beta     9.10s audio in 7.11s   (rtf 0.78)
+hm_omega   Aarav    Deep, resonant & authoritative (horror, mythology, epics)
+hm_psi     Kabir    Calm, natural & conversational (documentary, scifi)
+hf_alpha   Priya    Warm, expressive & engaging (fantasy, drama, storytelling)
+hf_beta    Ananya   Soft, cheerful & pleasant (comedy, children)
 ```
 
-`hm_omega` (male) and `hf_alpha` (female) suit horror narration. **Hinglish works
-too** — mixed Hindi and English in one line is common in these videos and is handled
-without configuration.
-
-Hindi needs no setup beyond `npm run setup`. Note that narration is read as written,
-so numbers are spoken in the language you wrote them in — write `बीस साल` rather than
-`20 साल` if you want Hindi numerals spoken.
+**Hinglish works too** — mixed Hindi and English in one line is common in these videos and is handled automatically. Narration is read as written, so numbers are spoken in the language written — write `बीस साल` rather than `20 साल` if you want Hindi numerals spoken.
 
 ## Word timing and captions
 
@@ -361,6 +518,27 @@ the format supports them:
 
 ```json
 "captions": {"enabled": true, "wordsPerCue": 4, "highlight": true}
+```
+
+## Multi-Platform Social Media Upload Metadata
+
+Whenever a video is created, the pipeline automatically writes ready-to-use upload metadata tailored for each major social platform:
+
+- **Machine-readable**: `out/metadata.json` (for automated uploader bots, API integration, or scripts)
+- **Human-readable**: `out/metadata.md` (for instant copy-pasting)
+
+### Supported Platforms & Data
+
+| Platform | Generated Metadata |
+|---|---|
+| **YouTube** | High-CTR SEO title (<100 chars), structured description with auto-computed chapters/timestamps (`00:00 - ...`), tag array, YouTube category ID (e.g. 28 Scifi, 27 Education, 1 Animation, 24 Entertainment), and `#Shorts` classification |
+| **Instagram** | Attention-grabbing 1-line hook, formatted story body with spacing/emojis, engagement discussion question for comments, CTA, and 25-30 curated hashtags |
+| **Facebook** | Click-worthy headline (<255 chars), discussion-starter description to maximize shares, topic tags, and 3-5 strategic hashtags |
+| **TikTok** | Short punchy caption (<150 chars) + high-retention hashtags (`#fyp`, `#viral`, topic tags) |
+
+You can also run or test the generator independently:
+```powershell
+.venv\Scripts\python.exe scripts\metadata.py --script script.json --out-json out\metadata.json --out-md out\metadata.md
 ```
 
 ## Characters (the second format)

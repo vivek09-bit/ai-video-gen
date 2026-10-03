@@ -247,6 +247,274 @@
 				"_test.ps1"
 			],
 			"isBackground": false
+		},
+		{
+			"label": "diag",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"Write-Host ALIVE; Get-ChildItem out -File | Select-Object Name,Length; Write-Host ---; if (Test-Path script.json) { & .venv\\Scripts\\python.exe -c \"import json,pathlib; d=json.loads(pathlib.Path('script.json').read_text(encoding='utf-8')); print('title:', d['title']); [print(' ', s['id'], '|', (s.get('lines') or [{}])[0].get('text','')[:60]) for s in d['scenes']]\""
+			],
+			"isBackground": false
+		},
+		{
+			"label": "diag2",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe _diag.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "topic-run",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"_test.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "still-caps",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"_test.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-text",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"& .venv\\Scripts\\python.exe scripts\\_verify_text.py"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "wrap",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"_wrap.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "story-check",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_check_story.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "audio-check",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_check_audio.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "voice-probe",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_probe_voice.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "voice-probe2",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_probe_voice2.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "test-audio",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\test_audio.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "dry-run-1min",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\new_video.py",
+				"--topic",
+				"aadha din aadhi raat",
+				"--minutes",
+				"1",
+				"--dry-run",
+				"--narration",
+				"examples\\aadha-din-aadhi-raat.txt"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "show-prompt-10min",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\new_video.py",
+				"--topic",
+				"aadha din aadhi raat",
+				"--minutes",
+				"10",
+				"--show-prompt"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "voice-e2e-1min",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\new_video.py",
+				"--topic",
+				"aadha din aadhi raat",
+				"--minutes",
+				"1",
+				"--narration",
+				"examples\\aadha-din-aadhi-raat.txt",
+				"--out",
+				"out\\text.mp4",
+				"--no-render"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "npm-test",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "test-story",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\test_story.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "cleanup-throwaways",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"del",
+				"/q",
+				"scripts\\_check_audio.py",
+				"scripts\\_check_story.py",
+				"scripts\\_probe_voice.py",
+				"scripts\\_probe_voice2.py",
+				"scripts\\_verify_acting.py",
+				"scripts\\_verify_text.py"
+			],
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "render-text-1min",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\new_video.py",
+				"--topic",
+				"aadha din aadhi raat",
+				"--minutes",
+				"1",
+				"--narration",
+				"examples\\aadha-din-aadhi-raat.txt",
+				"--out",
+				"out\\text.mp4"
+			],
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "final-audio-check",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_final_check.py"
+			],
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "cleanup-final",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"del",
+				"/q",
+				"scripts\\_final_check.py"
+			],
+			"problemMatcher": [],
+			"group": "none"
+		},
+		{
+			"label": "authcheck",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\_authcheck.py"
+			],
+			"problemMatcher": [],
+			"group": "none"
 		}
 	]
 }

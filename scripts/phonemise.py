@@ -62,10 +62,27 @@ DEVA_ANUSVARA = {0x0902, 0x0901, 0x0903}
 
 
 def resolve_language(voice: str, override: str | None = None) -> str:
-    """Map a Kokoro voice id to an espeak language tag."""
+    """Map a Kokoro voice id, alias, or multi-voice blend to an espeak language tag."""
     if override:
-        return override
-    letter = voice[:1].lower()
+        ov = override.lower().strip()
+        if ov in ("hi", "hindi", "hinglish"):
+            return "hi"
+        if ov in ("en", "english", "en-us"):
+            return "en-us"
+        if ov in ("en-gb", "british"):
+            return "en-gb"
+        if ov in ("ja", "japanese"):
+            return "ja"
+        return ESPEAK_LANGUAGE.get(ov, ov)
+    # If voice is an alias or blend, extract primary resolved voice
+    primary = voice.split(",")[0].split("+")[0].strip()
+    try:
+        from tts import resolve_voice
+        resolved = resolve_voice(primary)
+        primary = resolved.split(",")[0].strip()
+    except Exception:
+        pass
+    letter = primary[:1].lower()
     return VOICE_LANGUAGE.get(letter, "en-us")
 
 

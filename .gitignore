@@ -1,4 +1,6 @@
-node_modules/
+# Environment secrets
+.env
+.env.local
 out/
 .remotion/
 *.log
@@ -6,12 +8,14 @@ out/
 # Python environment for Kokoro (recreated by setup.ps1)
 .venv/
 __pycache__/
-
+node_modules/
+examples/
 # Rhubarb binary (~83 MB, re-downloaded by setup.ps1)
 tools/
 
 # Generated narration audio (re-created by `npm run voice`)
 public/audio/
+public/images/
 
 # Generated grain texture and ambience beds (re-created by `npm run assets`)
 public/textures/
