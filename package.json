@@ -22,7 +22,8 @@
     "studio": "remotion studio",
     "render": "remotion render Main out/video.mp4",
     "make": "npm run assets && npm run voice && npm run render",
-    "preview": "npm run voice && remotion render Main out/preview.mp4 --frames 0-300"
+    "preview": "npm run voice && remotion render Main out/preview.mp4 --frames 0-300",
+    "bot": ".venv\\Scripts\\python.exe -m bot.main"
   },
   "dependencies": {
     "@remotion/cli": "4.0.418",

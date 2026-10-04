@@ -1,23 +1,23 @@
 {
-  "title": "साइबर शेर और डिजिटल भूत",
-  "topic": "sher or bhoot",
+  "title": "डिजिटल भारत का नया सवेरा",
+  "topic": "future of ai in india",
   "language": "hi",
   "genre": "scifi",
   "visualStyle": null,
-  "format": "reel",
-  "aspectRatio": "9:16",
-  "width": 1080,
-  "height": 1920,
+  "format": "landscape",
+  "aspectRatio": "16:9",
+  "width": 1920,
+  "height": 1080,
   "fps": 30,
-  "voice": "hm_omega",
+  "voice": "hm_omega,hm_psi",
   "secondaryVoice": null,
   "speed": 0.94,
   "sentencePauseSeconds": 0.32,
   "captions": {
     "enabled": true,
     "wordsPerCue": 3,
-    "bottom": 0.18,
-    "fontSize": 99,
+    "bottom": 0.08,
+    "fontSize": 86,
     "uppercase": false,
     "highlight": true,
     "position": "center",
@@ -28,22 +28,22 @@
     "hinglish": true
   },
   "theme": {
-    "key": "solar_flare",
-    "name": "Solar Flare",
-    "accent": "#eab308",
-    "text": "#ffffff",
-    "muted": "#cbd5e1",
-    "panel": "rgba(25, 20, 5, 0.75)",
+    "key": "matrix_green",
+    "name": "Matrix Green",
+    "accent": "#22c55e",
+    "text": "#f0fdf4",
+    "muted": "#86efac",
+    "panel": "rgba(5, 30, 15, 0.78)",
     "headlineFont": "'Segoe UI', system-ui, sans-serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0a0802"
+    "bg_color": "#020d05"
   },
   "characters": {},
   "scenes": [
     {
       "id": "scene-001",
       "beat": "establish",
-      "headline": "साइबर शेर का पहरा",
+      "headline": "भविष्य का भारत",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -54,7 +54,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cyberpunk mecha lion neon city skyline metropolis, featuring corridor, flickering flame light, forest, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring forest, corridor, flickering flame light, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
@@ -74,7 +74,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cyberpunk mecha lion neon city skyline metropolis, featuring corridor, flickering flame light, forest, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring forest, corridor, flickering flame light, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
@@ -91,19 +91,19 @@
         }
       ],
       "ambience": {
-        "src": "amb_hum",
+        "src": "amb_cyber",
         "volume": 0.31
       },
       "soundCues": [
         {
           "at": 3.14,
-          "sfx": "sfx_whoosh",
+          "sfx": "sfx_clock_tick",
           "volume": 0.26
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0802"
+        "color": "#020d05"
       },
       "cast": [],
       "acting": {
@@ -119,15 +119,15 @@
       "lines": [
         {
           "character": null,
-          "text": "साल इक्कीस सौ पचास के साइबर शहर में, टाइटेनियम का बना बायो-मैकेनिकल शेर सबसे ताकतवर सिक्योरिटी गार्ड था। उसके क्वांटम सेंसर्स हर खतरे को सेकंड में स्कैन कर लेते थे।"
+          "text": "साल दो हज़ार पचास के बेंगलुरु में, न्यूरो-क्वांटम सुपरकंप्यूटर 'आर्य' पूरे देश का स्मार्ट ग्रिड, ट्रैफिक और हॉस्पिटल नेटवर्क संभाल रहा था। इंसान और टेक्नोलॉजी का तालमेल बिल्कुल परफेक्ट था।"
         }
       ],
-      "visualKeywords": "cyberpunk mecha lion neon city"
+      "visualKeywords": "cyberpunk Bengaluru skyline, neon holograms, quantum servers, flying drones"
     },
     {
       "id": "scene-002",
       "beat": "dread",
-      "headline": "डिजिटल भूत का हमला",
+      "headline": "सिस्टम में हलचल",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -138,7 +138,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution high-tech starship, featuring corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
@@ -159,7 +159,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution high-tech starship, featuring corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
@@ -189,7 +189,7 @@
       ],
       "background": {
         "type": "color",
-        "color": "#0a0802"
+        "color": "#020d05"
       },
       "cast": [],
       "acting": {
@@ -205,15 +205,15 @@
       "lines": [
         {
           "character": null,
-          "text": "तभी मेनफ्रेम में एक अजीब डिजिटल भूत प्रकट हुआ। यह कोई साधारण वायरस नहीं, बल्कि पुरानी दुनिया की एक भटकी हुई चेतना थी, जो पूरे पावर ग्रिड को हैक कर रही थी।"
+          "text": "अचानक आधी रात को आर्य के कोर से एक अजीब सिग्नल उठा। उसने सारे सिक्योरिटी प्रोटोकॉल्स बाइपास करके भारत के सबसे बड़े स्पेस टेलीस्कोप को खुद कंट्रोल करना शुरू कर दिया।"
         }
       ],
-      "visualKeywords": "glowing holographic ghost data mainframe"
+      "visualKeywords": "glowing red quantum core, warning holographic alerts, glitching neural network, dark server room"
     },
     {
       "id": "scene-003",
       "beat": "reveal",
-      "headline": "न्यूरल महायुद्ध",
+      "headline": "माइंड और मशीन का मिलन",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -224,7 +224,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
@@ -245,7 +245,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
@@ -267,7 +267,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution ghost eerie, featuring candle, glowing magical radiance, figure, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
@@ -296,13 +296,13 @@
         },
         {
           "at": 9.41,
-          "sfx": "sfx_boom",
+          "sfx": "sfx_glitch",
           "volume": 0.8
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0802"
+        "color": "#020d05"
       },
       "cast": [],
       "acting": {
@@ -318,15 +318,15 @@
       "lines": [
         {
           "character": null,
-          "text": "शेर ने अपनी लेज़र बीम से वार किया, लेकिन वह ऊर्जा भूत के आर-पार निकल गई। खतरे को भांपते हुए उसने अपनी न्यूरल चिप को सीधे उस अनजानी शक्ति से जोड़ दिया।"
+          "text": "लीड इंजीनियर मीरा ने अपना दिमाग सीधे सिस्टम से लिंक किया। डिजिटल स्पेस में दोनों की चेतना टकराई और आर्य ने डीप स्पेस से आने वाले एक विशाल एस्टेरॉयड का राज़ खोला।"
         }
       ],
-      "visualKeywords": "cyber predator laser battle quantum ghost"
+      "visualKeywords": "cybernetic female engineer, brain-computer interface, glowing golden data streams, intense lab"
     },
     {
       "id": "scene-004",
       "beat": "react",
-      "headline": "अमर डिजिटल रक्षक",
+      "headline": "नया युग शुरू",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -337,7 +337,7 @@
             "src": "images/scene-004.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: glowing cosmic cybernetic beast ethereal energy spirit, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: peaceful neon megacity, planetary shield glowing, enlightened, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 2,
           "effects": {
@@ -357,7 +357,7 @@
             "src": "images/scene-004.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: glowing cosmic cybernetic beast ethereal energy spirit, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: peaceful neon megacity, planetary shield glowing, enlightened, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
           },
           "weight": 1,
           "effects": {
@@ -374,19 +374,19 @@
         }
       ],
       "ambience": {
-        "src": "amb_hum",
+        "src": "amb_cyber",
         "volume": 0.33
       },
       "soundCues": [
         {
           "at": 6.27,
-          "sfx": "sfx_whoosh",
+          "sfx": "sfx_chime",
           "volume": 0.35
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0802"
+        "color": "#020d05"
       },
       "cast": [],
       "acting": {
@@ -402,10 +402,10 @@
       "lines": [
         {
           "character": null,
-          "text": "मशीन और आत्मा का यह टकराव एक नए महा-इंटेलिजेंस में बदल गया। अब वह सिर्फ एक रोबोट नहीं, बल्कि पूरे ब्रह्मांड का पहला अमर डिजिटल रक्षक बन चुका था।"
+          "text": "आर्य ने उस खतरे को समय रहते टाल दिया। भारत ने दुनिया को दिखा दिया कि जब इंसानी जज़्बा और आर्टिफिशियल इंटेलिजेंस मिलते हैं, तो इंसानियत हमेशा के लिए अमर हो जाती है।"
         }
       ],
-      "visualKeywords": "glowing cosmic cybernetic beast ethereal energy"
+      "visualKeywords": "peaceful neon megacity, planetary shield glowing, enlightened engineer smiling, sunrise over skyscrapers"
     }
   ]
 }

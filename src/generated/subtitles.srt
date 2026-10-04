@@ -1,167 +1,171 @@
 1
-00:00:00,000 --> 00:00:01,099
-sal ikkis sau
+00:00:00,000 --> 00:00:01,160
+sal do hazar
 
 2
-00:00:01,099 --> 00:00:02,530
-pachas ke cyber
+00:00:01,160 --> 00:00:02,775
+pachas ke bengaluru
 
 3
-00:00:02,530 --> 00:00:04,554
-shahar mein, taiteniyam
+00:00:02,775 --> 00:00:05,868
+mein, nyuro-kvantam suparaknpyutar
 
 4
-00:00:04,554 --> 00:00:06,706
-ka bana bayo-maikenikal
+00:00:05,868 --> 00:00:07,189
+'aary' pure desh
 
 5
-00:00:06,706 --> 00:00:08,544
-sher sabse takatavar
+00:00:07,189 --> 00:00:08,362
+ka smart grid,
 
 6
-00:00:08,544 --> 00:00:10,225
-security gard tha.
+00:00:08,362 --> 00:00:10,078
+traffic aur hospital
 
 7
-00:00:10,541 --> 00:00:12,547
-usake kvantam sensars
+00:00:10,078 --> 00:00:12,070
+network snbhal raha
 
 8
-00:00:12,547 --> 00:00:13,852
-har khatare ko
+00:00:12,070 --> 00:00:13,595
+tha. insan aur
 
 9
-00:00:13,852 --> 00:00:15,315
-seknd mein skain
+00:00:13,595 --> 00:00:15,860
+technology ka talamel
 
 10
-00:00:15,315 --> 00:00:16,541
-kar lete the.
+00:00:15,860 --> 00:00:17,816
+bilkul paraphekt tha.
 
 11
-00:00:17,091 --> 00:00:18,924
-tabhi menaphrem mein
+00:00:18,366 --> 00:00:20,143
+achanak aadhi raat
 
 12
-00:00:18,924 --> 00:00:20,570
-ek ajib digital
+00:00:20,143 --> 00:00:21,270
+ko aary ke
 
 13
-00:00:20,570 --> 00:00:22,116
-bhut prakat huaa.
+00:00:21,270 --> 00:00:22,303
+kor se ek
 
 14
-00:00:22,432 --> 00:00:23,924
-yah koee sadharan
+00:00:22,303 --> 00:00:24,116
+ajib signal utha.
 
 15
-00:00:23,924 --> 00:00:25,699
-vayaras nahi, balki
+00:00:24,432 --> 00:00:26,496
+usane sare security
 
 16
-00:00:25,699 --> 00:00:27,196
-purani duniya ki
+00:00:26,496 --> 00:00:28,822
+protokols baipas karake
 
 17
-00:00:27,196 --> 00:00:28,393
-ek bhataki huee
+00:00:28,822 --> 00:00:30,276
+bharat ke sabse
 
 18
-00:00:28,393 --> 00:00:29,585
-chetana thi, jo
+00:00:30,276 --> 00:00:32,156
+bade spes teliskop
 
 19
-00:00:29,585 --> 00:00:30,961
-pure pavar grid
+00:00:32,156 --> 00:00:33,475
+ko khud kntrol
 
 20
-00:00:30,961 --> 00:00:31,817
-ko hack kar
+00:00:33,475 --> 00:00:34,855
+karana shuru kar
 
 21
-00:00:31,817 --> 00:00:32,482
-rahi thi.
+00:00:34,855 --> 00:00:35,332
+diya.
 
 22
-00:00:33,032 --> 00:00:34,224
-sher ne apni
+00:00:35,882 --> 00:00:37,847
+lid injiniyar mira
 
 23
-00:00:34,224 --> 00:00:35,450
-lezar bim se
+00:00:37,847 --> 00:00:39,276
+ne apna dimag
 
 24
-00:00:35,450 --> 00:00:37,010
-var kiya, lekin
+00:00:39,276 --> 00:00:40,770
+sidhe system se
 
 25
-00:00:37,010 --> 00:00:38,314
-vah oorja bhut
+00:00:40,770 --> 00:00:42,768
+link kiya. digital
 
 26
-00:00:38,314 --> 00:00:39,795
-ke aara-par nikal
+00:00:42,768 --> 00:00:44,100
+spes mein donon
 
 27
-00:00:39,795 --> 00:00:41,443
-gaee. khatare ko
+00:00:44,100 --> 00:00:45,697
+ki chetana takaraee
 
 28
-00:00:41,443 --> 00:00:43,181
-bhanpate hue usane
+00:00:45,697 --> 00:00:46,726
+aur aary ne
 
 29
-00:00:43,181 --> 00:00:44,657
-apni nyural chip
+00:00:46,726 --> 00:00:47,781
+dip spes se
 
 30
-00:00:44,657 --> 00:00:45,775
-ko sidhe us
+00:00:47,781 --> 00:00:49,069
+aane vale ek
 
 31
-00:00:45,775 --> 00:00:47,302
-anajani shakti se
+00:00:49,069 --> 00:00:50,944
+vishal esteroyad ka
 
 32
-00:00:47,302 --> 00:00:48,247
-jor diya.
+00:00:50,944 --> 00:00:51,922
+raz khola.
 
 33
-00:00:48,797 --> 00:00:50,265
-mashin aur aatma
+00:00:52,472 --> 00:00:53,563
+aary ne us
 
 34
-00:00:50,265 --> 00:00:51,630
-ka yah takarav
+00:00:53,563 --> 00:00:55,155
+khatare ko samay
 
 35
-00:00:51,630 --> 00:00:54,168
-ek naye maha-intelijens
+00:00:55,155 --> 00:00:56,847
+rahate tal diya.
 
 36
-00:00:54,168 --> 00:00:55,622
-mein badal gaya.
+00:00:57,163 --> 00:00:58,728
+bharat ne duniya
 
 37
-00:00:55,938 --> 00:00:56,962
-ab vah sirf
+00:00:58,728 --> 00:00:59,951
+ko dikha diya
 
 38
-00:00:56,962 --> 00:00:58,438
-ek robot nahi,
+00:00:59,951 --> 00:01:01,132
+ki jab insani
 
 39
-00:00:58,438 --> 00:01:00,218
-balki pure brahmand
+00:01:01,132 --> 00:01:03,147
+jazba aur aartiphishiyal
 
 40
-00:01:00,218 --> 00:01:01,626
-ka pehla amar
+00:01:03,147 --> 00:01:05,114
+intelijens milate hain,
 
 41
-00:01:01,626 --> 00:01:03,288
-digital rakshk ban
+00:01:05,114 --> 00:01:07,027
+to insaniyat hamesha
 
 42
-00:01:03,288 --> 00:01:04,088
-chuka tha.
+00:01:07,027 --> 00:01:08,067
+ke lie amar
+
+43
+00:01:08,067 --> 00:01:08,988
+ho jati hai.
