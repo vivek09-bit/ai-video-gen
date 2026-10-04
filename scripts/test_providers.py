@@ -19,6 +19,7 @@ import metadata
 import new_video
 import phonemise
 import tts
+import uploader
 
 
 def test_genres() -> None:
@@ -756,6 +757,85 @@ def test_metadata_generator() -> None:
     print("  ✓ All Multi-Platform Metadata Generation (YouTube, Instagram, Facebook, TikTok) checks passed.")
 
 
+def test_auto_uploader() -> None:
+    print("Testing Multi-Platform Auto-Uploader (YouTube, Facebook, Instagram)...")
+
+    # Sample test metadata structure
+    meta = {
+        "youtube": {
+            "title": "साइबर शेर vs डिजिटल भूत #Shorts",
+            "description": "00:00 - शुरुआत\n00:15 - लड़ाई\n\n#SciFi #Anime",
+            "tags": ["cyber lion", "digital ghost", "sci fi hindi"],
+            "category_id": "24",
+            "is_shorts": True,
+        },
+        "facebook": {
+            "title": "2150 का महायुद्ध: शेर बनाम भूत! 🦁⚡👻",
+            "description": "साल 2150 का सबसे बड़ा मुकाबला!",
+            "tags": ["SciFi", "Cyberpunk"],
+            "hashtags": ["#SciFi", "#AI", "#Future"],
+        },
+        "instagram": {
+            "hook_line": "साल 2150 का सबसे बड़ा मुकाबला!",
+            "caption": "साल 2150 का सबसे बड़ा मुकाबला! पूरा वीडियो देखें!",
+            "hashtags": ["#reels", "#scifi", "#hindi"],
+            "call_to_action": "Follow for more",
+        },
+    }
+
+    # 1. YouTube Uploader dry-run test
+    yt = uploader.YouTubeUploader()
+    yt_res = yt.upload_video(
+        video_path=Path("out") / "video.mp4",
+        meta=meta.get("youtube"),
+        privacy="public",
+        dry_run=True,
+    )
+    assert yt_res["success"] is True
+    assert yt_res["id"] == "DRY_RUN_YT_ID"
+    assert "https://youtu.be/DRY_RUN_YT_ID" in yt_res["url"]
+
+    # 2. Facebook Uploader dry-run test
+    fb = uploader.FacebookUploader()
+    fb_res = fb.upload_reel(
+        video_path=Path("out") / "video.mp4",
+        meta=meta.get("facebook"),
+        dry_run=True,
+    )
+    assert fb_res["success"] is True
+    assert fb_res["id"] == "DRY_RUN_FB_ID"
+    assert "facebook.com" in fb_res["url"]
+
+    # 3. Instagram Uploader dry-run test
+    ig = uploader.InstagramUploader()
+    ig_res = ig.upload_reel(
+        video_path=Path("out") / "video.mp4",
+        meta=meta.get("instagram"),
+        dry_run=True,
+    )
+    assert ig_res["success"] is True
+    assert ig_res["id"] == "DRY_RUN_IG_ID"
+    assert "instagram.com" in ig_res["url"]
+
+    # 4. Multi-platform upload_all dry-run test
+    test_meta_file = Path("out") / "test_uploader_meta.json"
+    test_meta_file.parent.mkdir(parents=True, exist_ok=True)
+    test_meta_file.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    all_res = uploader.upload_all(
+        video_path=Path("out") / "video.mp4",
+        metadata_path=str(test_meta_file),
+        platforms=["youtube", "facebook", "instagram"],
+        dry_run=True,
+    )
+    assert all_res["platforms"]["youtube"]["success"] is True
+    assert all_res["platforms"]["facebook"]["success"] is True
+    assert all_res["platforms"]["instagram"]["success"] is True
+
+    test_meta_file.unlink(missing_ok=True)
+    print("  ✓ All Multi-Platform Auto-Uploader checks passed.")
+
+
 if __name__ == "__main__":
     test_genres()
     test_themes()
@@ -766,4 +846,5 @@ if __name__ == "__main__":
     test_image_routing()
     test_audio_and_speed()
     test_metadata_generator()
+    test_auto_uploader()
     print("\nAll provider, theme, audio, format, voice, and genre routing tests completed successfully!")

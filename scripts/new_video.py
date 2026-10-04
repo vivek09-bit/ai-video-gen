@@ -821,6 +821,38 @@ def main() -> int:
         help="disable generating upload metadata",
     )
     parser.add_argument(
+        "--upload",
+        "--publish",
+        dest="auto_upload",
+        action="store_true",
+        help="automatically upload the rendered video to YouTube, Facebook, and Instagram",
+    )
+    parser.add_argument(
+        "--upload-platforms",
+        "--platforms",
+        dest="upload_platforms",
+        default="youtube,facebook,instagram",
+        help="comma-separated platforms to upload to (youtube, facebook, instagram, or all; default: all)",
+    )
+    parser.add_argument(
+        "--upload-dry-run",
+        dest="upload_dry_run",
+        action="store_true",
+        help="simulate social media upload process without making actual API calls",
+    )
+    parser.add_argument(
+        "--privacy",
+        choices=["public", "unlisted", "private"],
+        default="public",
+        help="privacy status for YouTube uploads (public, unlisted, private; default: public)",
+    )
+    parser.add_argument(
+        "--publish-at",
+        dest="publish_at",
+        default=None,
+        help="scheduled publish time in ISO 8601 format (e.g. 2026-10-04T12:00:00Z)",
+    )
+    parser.add_argument(
         "--no-render",
         action="store_true",
         help="write script.json and synthesise the narration, but skip the render",
@@ -1148,6 +1180,26 @@ def main() -> int:
         shell=True,
     ):
         return 1
+
+    # ---- auto-upload to social platforms ---------------------------------
+    if args.auto_upload or args.upload_dry_run:
+        try:
+            import uploader
+            platforms_list = [p.strip() for p in args.upload_platforms.split(",") if p.strip()]
+            meta_path = ROOT / "out" / "metadata.json"
+            srt_path = ROOT / "out" / "subtitles.srt"
+            
+            uploader.upload_all(
+                video_path=args.out,
+                metadata_path=str(meta_path) if meta_path.exists() else None,
+                platforms=platforms_list,
+                privacy=args.privacy,
+                publish_at=args.publish_at,
+                srt_path=str(srt_path) if srt_path.exists() else None,
+                dry_run=args.upload_dry_run,
+            )
+        except Exception as e:
+            print(f"note: upload encountered an error: {e}", file=sys.stderr)
 
     # ---- report ----------------------------------------------------------
     report(args)
