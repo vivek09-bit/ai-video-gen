@@ -5,6 +5,7 @@ import {Captions} from './Captions';
 import {Character} from './character/Character';
 import {MouthShape} from './character/Mouth';
 import {ShotSequence} from './horror/ShotSequence';
+import {HookIntroEffect, PatternInterruptEffect} from './horror/Effects';
 import {
   CaptionOptions,
   CharacterSpec,
@@ -72,7 +73,16 @@ export const SceneView: React.FC<{
   theme: Theme;
   captions: CaptionOptions;
   characters: Record<string, CharacterSpec>;
-}> = ({scene, timing, durationInFrames, theme, captions, characters}) => {
+  isFirstScene?: boolean;
+}> = ({
+  scene,
+  timing,
+  durationInFrames,
+  theme,
+  captions,
+  characters,
+  isFirstScene = false,
+}) => {
   const frame = useCurrentFrame();
   const {fps, width, height} = useVideoConfig();
   const time = timing.start + frame / fps;
@@ -280,6 +290,8 @@ export const SceneView: React.FC<{
       </AbsoluteFill>
 
       <Captions words={words} time={time} options={captions} theme={theme} />
+      <PatternInterruptEffect />
+      {isFirstScene ? <HookIntroEffect /> : null}
     </AbsoluteFill>
   );
 };

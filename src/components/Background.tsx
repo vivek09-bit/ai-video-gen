@@ -8,28 +8,38 @@ const KenBurnsImage: React.FC<{
   src: string;
   mode: 'in' | 'out' | 'left' | 'right' | 'none';
   durationInFrames: number;
-}> = ({src, mode, durationInFrames}) => {
+  isFirstScene?: boolean;
+}> = ({src, mode, durationInFrames, isFirstScene = false}) => {
   const frame = useCurrentFrame();
   const p = durationInFrames <= 1 ? 0 : Math.min(1, Math.max(0, frame / (durationInFrames - 1)));
+
+  // Starting hook snap zoom: snappy punch into the first frame for instantaneous viewer capture
+  const hookSnap = isFirstScene
+    ? Math.max(0, 1 - p * 4.5) * 0.08
+    : 0;
+
+  // 3-4s Pattern Interrupts: Periodic micro zoom pulse to keep short-form viewer retention past 15s
+  const patternPulse = Math.sin(p * Math.PI * 6.5) * 0.024;
 
   let scale = 1;
   let x = 0;
   switch (mode) {
     case 'in':
-      scale = 1 + 0.14 * p;
+      scale = 1 + 0.18 * p + hookSnap + patternPulse;
       break;
     case 'out':
-      scale = 1.14 - 0.14 * p;
+      scale = 1.18 - 0.18 * p + hookSnap + patternPulse;
       break;
     case 'left':
-      scale = 1.16;
-      x = 40 - 80 * p;
+      scale = 1.18 + hookSnap + patternPulse;
+      x = 45 - 90 * p;
       break;
     case 'right':
-      scale = 1.16;
-      x = -40 + 80 * p;
+      scale = 1.18 + hookSnap + patternPulse;
+      x = -45 + 90 * p;
       break;
     case 'none':
+      scale = 1.0 + hookSnap + patternPulse;
       break;
   }
 
@@ -49,7 +59,8 @@ const KenBurnsImage: React.FC<{
 export const Background: React.FC<{
   spec: BackgroundSpec;
   durationInFrames: number;
-}> = ({spec, durationInFrames}) => {
+  isFirstScene?: boolean;
+}> = ({spec, durationInFrames, isFirstScene = false}) => {
   if (spec.type === 'color') {
     return <AbsoluteFill style={{backgroundColor: spec.color}} />;
   }
@@ -87,7 +98,7 @@ export const Background: React.FC<{
   if (spec.type === 'image') {
     return (
       <>
-        <KenBurnsImage src={spec.src} mode={spec.kenBurns} durationInFrames={durationInFrames} />
+        <KenBurnsImage src={spec.src} mode={spec.kenBurns} durationInFrames={durationInFrames} isFirstScene={isFirstScene} />
         {spec.dim > 0 ? (
           <AbsoluteFill style={{backgroundColor: `rgba(0,0,0,${spec.dim})`}} />
         ) : null}

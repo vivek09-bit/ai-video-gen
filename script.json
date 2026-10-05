@@ -1,6 +1,6 @@
 {
-  "title": "लाल उजाले वाली रात",
-  "topic": "laal ujale wali raat",
+  "title": "आईने का खौफनाक सच",
+  "topic": "khooni aaina",
   "language": "hi",
   "genre": "horror",
   "visualStyle": null,
@@ -9,9 +9,9 @@
   "width": 1080,
   "height": 1920,
   "fps": 30,
-  "voice": "hf_beta",
+  "voice": "hm_omega",
   "secondaryVoice": null,
-  "speed": 1.2,
+  "speed": 0.88,
   "sentencePauseSeconds": 0.32,
   "captions": {
     "enabled": true,
@@ -28,22 +28,22 @@
     "hinglish": true
   },
   "theme": {
-    "key": "blood_red",
-    "name": "Blood Red",
-    "accent": "#ef4444",
-    "text": "#fef2f2",
-    "muted": "#fca5a5",
-    "panel": "rgba(45, 10, 10, 0.75)",
+    "key": "monochrome_noir",
+    "name": "Monochrome Noir",
+    "accent": "#e2e8f0",
+    "text": "#ffffff",
+    "muted": "#94a3b8",
+    "panel": "rgba(20, 20, 24, 0.82)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0c0404"
+    "bg_color": "#050507"
   },
   "characters": {},
   "scenes": [
     {
       "id": "scene-001",
       "beat": "establish",
-      "headline": "",
+      "headline": "आईने का खौफ",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -54,7 +54,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark wooden cabin interior night majestic mountain, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution cemetery graveyard, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -74,7 +74,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark wooden cabin interior night majestic mountain, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution cemetery graveyard, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -91,19 +91,19 @@
         }
       ],
       "ambience": {
-        "src": "amb_wind",
+        "src": "amb_drone",
         "volume": 0.31
       },
       "soundCues": [
         {
-          "at": 2.33,
+          "at": 0.0,
           "sfx": "sfx_whisper",
           "volume": 0.22
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050507"
       },
       "cast": [],
       "acting": {
@@ -119,15 +119,15 @@
       "lines": [
         {
           "character": null,
-          "text": "अमन पहाड़ों के पुराने केबिन में अकेला था। रात के दो बजे कमरे में सन्नाटा था। उसने चाय का कप मेज पर रखा और सोने की तैयारी करने लगा, बिल्कुल बेखबर कि बाहर क्या है।"
+          "text": "रात के तीन बजे आईने में अपनी परछाईं को कभी मत देखना।"
         }
       ],
-      "visualKeywords": "dark wooden cabin interior night"
+      "visualKeywords": "antique mirror, dark room, dim flickering candlelight"
     },
     {
       "id": "scene-002",
       "beat": "dread",
-      "headline": "",
+      "headline": "कांच पर खून",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -138,7 +138,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: window red light glowing mist illuminated chamber, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: cracked glass, dripping blood, terrified man golden, featuring house, lit window warm illumination, fog, glowing magical radiance, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -159,7 +159,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: window red light glowing mist illuminated chamber, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: cracked glass, dripping blood, terrified man golden, featuring house, lit window warm illumination, fog, glowing magical radiance, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -182,14 +182,14 @@
       },
       "soundCues": [
         {
-          "at": 7.78,
+          "at": 2.97,
           "sfx": "sfx_clock_tick",
           "volume": 0.29
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050507"
       },
       "cast": [],
       "acting": {
@@ -205,15 +205,15 @@
       "lines": [
         {
           "character": null,
-          "text": "अचानक पर्दे के पीछे से गहरा लाल उजाला कमरे में फैलने लगा। कोई आवाज नहीं थी। उसने खिड़की का पर्दा हटाया तो देखा, बाहर पूरे घने जंगल पर सिर्फ वही खौफनाक लाल रोशनी छाई हुई थी।"
+          "text": "राहुल ने शीशा छुआ, तो कांच पर ताजा खून बहने लगा।"
         }
       ],
-      "visualKeywords": "window red light glowing mist"
+      "visualKeywords": "cracked glass, dripping blood, terrified man"
     },
     {
       "id": "scene-003",
       "beat": "reveal",
-      "headline": "",
+      "headline": "काली ताकत",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -224,7 +224,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: sinister smiling reflection, grabbing hands, cinematic horror, featuring candle, glowing magical radiance, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -245,7 +245,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: sinister smiling reflection, grabbing hands, cinematic horror, featuring candle, glowing magical radiance, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -267,7 +267,7 @@
             "src": "images/scene-003.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: sinister smiling reflection, grabbing hands, cinematic horror, featuring candle, glowing magical radiance, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -290,19 +290,19 @@
       },
       "soundCues": [
         {
-          "at": 0.78,
-          "sfx": "sfx_boom",
+          "at": 0.3,
+          "sfx": "sfx_impact",
           "volume": 1.0
         },
         {
-          "at": 9.33,
+          "at": 3.57,
           "sfx": "sfx_boom",
           "volume": 0.69
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050507"
       },
       "cast": [],
       "acting": {
@@ -318,15 +318,15 @@
       "lines": [
         {
           "character": null,
-          "text": "उस लाल उजाले के बीच एक लंबा, अजीब साया सीधे उसकी खिड़की की तरफ बढ़ने लगा। अमन का शरीर डर से जम गया। फोन का सिग्नल गायब था, और साये ने कांच पर हाथ रख दिया।"
+          "text": "शीशे के अंदर का अक्स बाहर खड़े राहुल को खींचने लगा।"
         }
       ],
-      "visualKeywords": "dark shadow silhouette window glass"
+      "visualKeywords": "sinister smiling reflection, grabbing hands, cinematic horror"
     },
     {
       "id": "scene-004",
       "beat": "react",
-      "headline": "",
+      "headline": "उल्टा सच",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -337,7 +337,7 @@
             "src": "images/scene-004.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: majestic peacock feathers radiant garden illuminated window, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: trapped man inside mirror, evil duplicate walking, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -358,7 +358,7 @@
             "src": "images/scene-004.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: majestic peacock feathers radiant garden illuminated window, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: trapped man inside mirror, evil duplicate walking, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -376,19 +376,19 @@
         }
       ],
       "ambience": {
-        "src": "amb_drone",
+        "src": "amb_rain",
         "volume": 0.32
       },
       "soundCues": [
         {
-          "at": 6.22,
-          "sfx": "sfx_bell",
+          "at": 2.38,
+          "sfx": "sfx_whisper",
           "volume": 0.3
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050507"
       },
       "cast": [],
       "acting": {
@@ -404,10 +404,10 @@
       "lines": [
         {
           "character": null,
-          "text": "सुबह सूरज निकला, पर अमन उस केबिन से कभी बाहर नहीं आया। कांच पर लाल उंगलियों के निशान छूट गए, और हर रात वह खौफनाक लाल उजाला ठीक दो बजे खिड़की पर लौट आता है।"
+          "text": "अब असली राहुल शीशे के अंदर बंद था, और परछाईं बाहर।"
         }
       ],
-      "visualKeywords": "morning foggy cabin bloody handprint"
+      "visualKeywords": "trapped man inside mirror, evil duplicate walking away"
     }
   ]
 }

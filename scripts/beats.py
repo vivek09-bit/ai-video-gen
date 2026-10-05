@@ -307,14 +307,14 @@ MOVEMENTS: dict[str, Movement] = {
     ),
 }
 
-# Which movements fit in a given number of scenes. The essential four are always
-# present, so even the shortest piece has a beginning, a turn, a climax and an
-# ending.
+# Which movements fit in a given number of scenes.
+# For short-form / 4-6 scene videos, hook is ALWAYS included because the first 3 seconds
+# determine watch time and viral algorithm distribution.
 MOVEMENT_SETS: list[tuple[int, list[str]]] = [
     (9, ["hook", "setup", "inciting", "rising", "climax", "resolution", "button"]),
-    (7, ["setup", "inciting", "rising", "climax", "resolution", "button"]),
-    (5, ["setup", "inciting", "rising", "climax", "resolution"]),
-    (0, ["setup", "inciting", "climax", "resolution"]),
+    (7, ["hook", "setup", "inciting", "rising", "climax", "resolution", "button"]),
+    (5, ["hook", "inciting", "rising", "climax", "resolution"]),
+    (0, ["hook", "inciting", "climax", "resolution"]),
 ]
 
 # Below this, a story cannot be whole, so the planner refuses to go shorter.
@@ -1045,7 +1045,11 @@ def resolve_dynamic_audio(
             sfx_options = pool.get("sfx_setup") or ["sfx_chime", "sfx_sparkle", "sfx_whisper"]
 
         chosen_sfx = rng.choice(sfx_options) if sfx_options else default_sfx
-        at_sec = round(min(estimated_seconds * 0.92, max(0.2, estimated_seconds * pos)), 2)
+        # For the very first hook/opening cue of scene 1, hit instantaneously at 0.0s for viral audio retention
+        if scene_index == 0 and c_idx == 0:
+            at_sec = 0.0
+        else:
+            at_sec = round(min(estimated_seconds * 0.92, max(0.2, estimated_seconds * pos)), 2)
         final_vol = round(min(1.0, base_vol * (0.75 + tension * 0.4)), 2)
         sound_cues.append({"at": at_sec, "sfx": chosen_sfx, "volume": final_vol})
 
@@ -2489,13 +2493,20 @@ def allocate(scene_count: int, movements: list[Movement]) -> list[int]:
     return [1 + extra for extra in share]
 
 
-def duty_for(movement: Movement, step: int, total: int) -> str:
-    """The instruction for one scene, sharpened when a movement spans several.
+def duty_for(movement: Movement, step: int, total: int, scene_count: int = 4) -> str:
+    """The instruction for one scene, sharpened when a movement spans several or for short form."""
+    if scene_count <= 5:
+        short_duties = {
+            "hook": "Introduce protagonist/subject and the terrifying catalyst immediately in one breath.",
+            "inciting": "The point of no return: the anomaly escalates directly and traps the subject.",
+            "rising": "High stakes complication: rapid escalation with no escape.",
+            "climax": "Direct confrontation or horrific revelation at peak intensity.",
+            "resolution": "Definitive conclusion: reveal the final fate/twist and bring total closure to the story.",
+            "button": "Chilling final punchline that seals the story's fate.",
+        }
+        if movement.key in short_duties:
+            return short_duties[movement.key]
 
-    A movement that owns seven scenes cannot be handed the same sentence seven
-    times or the writer returns seven interchangeable scenes. The step number
-    says where it is, and that the pressure has to keep rising.
-    """
     if total <= 1:
         return movement.duty
     if movement.key == "rising":
@@ -2527,7 +2538,7 @@ def story_plan(scene_count: int, genre_profile: GenreProfile | None = None) -> l
                 rising_index += 1
             else:
                 beat = movement.beat
-            plan.append((movement, beat, duty_for(movement, step, count)))
+            plan.append((movement, beat, duty_for(movement, step, count, scene_count)))
 
     return plan
 
@@ -2775,8 +2786,9 @@ DEFAULT_SCENE_SECONDS = 24
 
 def plan(
     topic: str,
-    minutes: float,
+    minutes: float = 1.0,
     *,
+    seconds: float | None = None,
     genre: str | None = None,
     theme: str | dict | None = None,
     video_format: str | None = None,
@@ -2797,15 +2809,20 @@ def plan(
     has its shots, effects, ambience and sound cues. Only `headline` and the
     narration text are placeholders for the writer to fill.
     """
-    minutes = max(0.25, float(minutes))
-    total_seconds = minutes * 60
-    total_words = int(round((total_seconds / 60) * wpm))
+    if seconds is not None and seconds > 0:
+        total_seconds = max(10.0, float(seconds))
+        minutes = total_seconds / 60.0
+    else:
+        minutes = max(0.15, float(minutes))
+        total_seconds = minutes * 60.0
+
+    total_words = int(round((total_seconds / 60.0) * wpm))
 
     # Never drop below the scene count a whole story needs, even if that makes
     # scenes shorter than the target. A short video is a short story, not a
     # fragment of one.
     scene_count = max(MIN_SCENES, int(round(total_seconds / scene_seconds)))
-    words_per_scene = max(10, int(round(total_words / scene_count)))
+    words_per_scene = max(4, int(round(total_words / scene_count)))
 
     genre_profile = detect_genre(topic, genre)
     beats_map = genre_profile.beats
@@ -2917,6 +2934,7 @@ def plan(
         "characters": DEFAULT_CHARACTERS if with_characters else {},
         "target": {
             "minutes": minutes,
+            "seconds": round(total_seconds, 1),
             "wpm": wpm,
             "totalWords": total_words,
             "scenes": scene_count,
@@ -2948,7 +2966,7 @@ def describe(planned: dict) -> str:
         f"format       : {fmt.name} [{fmt.aspect_ratio}, {fmt.width}x{fmt.height} @ {fmt.fps}fps]",
         f"theme        : {theme_name} [accent: {theme_accent}]",
         f"voice        : {voice_str}" if voice_str else "",
-        f"target       : {target['minutes']:g} min  ~{target['totalWords']} words  "
+        f"target       : {target['minutes']:g} min ({target.get('seconds', round(target['minutes'] * 60))}s)  ~{target['totalWords']} words  "
         f"@ {target['wpm']} wpm",
         f"structure    : {target['scenes']} scenes, {target['shots']} shots "
         f"({target['wordsPerScene']} words each)",

@@ -95,8 +95,8 @@ def build_prompt(
 ) -> str:
     """The instruction sent to a model when it writes the narration.
 
-    Deliberately compact. The structure is already decided, so the model is asked
-    for prose, headlines, and concise English visual descriptors for each scene.
+    Deliberately tailored for high virality retention scores with distinct
+    narrative frameworks for short-form (Reels/Shorts/TikTok <90s) vs long-form content.
     """
     target = planned["target"]
     raw_lang = (planned.get("language") or "hi").lower().strip()
@@ -104,26 +104,67 @@ def build_prompt(
     gp = genre_profile or beats.get_genre(planned.get("genre"))
     tone = voice_style or gp.tone
     is_hindi_family = raw_lang in ("hi", "hindi", "hinglish")
+    minutes = float(target.get("minutes", 1.0))
+    target_sec = float(target.get("seconds", round(minutes * 60.0, 1)))
+    is_short_form = minutes <= 1.5 or target_sec <= 90.0
+
+    length_str = (
+        f"{target_sec:.0f}-second short video (~{target['totalWords']} words target)"
+        if target_sec < 60
+        else f"{target['minutes']:g}-minute video (~{target_sec:.0f}s, ~{target['totalWords']} words target)"
+    )
 
     lines = [
         gp.writer_instructions,
         "",
-        f"Length: {target['minutes']:g}-minute video ({target['totalWords']} words target)",
-        f"Language: {language}",
-        f"Topic: {planned['topic']}",
-        f"Genre: {gp.name}",
-        f"Tone: {tone}",
+        f"Target Length : {length_str}",
+        f"Language      : {language}",
+        f"Topic         : {planned['topic']}",
+        f"Genre         : {gp.name}",
+        f"Tone          : {tone}",
+        f"Format Type   : {'SHORT-FORM (Reel / YouTube Short / TikTok)' if is_short_form else 'LONG-FORM STORY / DOCUMENTARY'}",
         "",
-        "What you are writing is ONE COMPLETE STORY, not a fragment or a mood "
-        "piece. It must open with a gripping hook, turn, build tension/wonder, "
-        "reach a powerful climax, and finish with satisfying emotional closure. "
-        "When the last scene ends the listener should feel the story is complete, not stopped.",
+    ]
+
+    if is_short_form:
+        lines += [
+            "==========================================================================",
+            "VIRAL SHORT-FORM RETENTION & COMPLETE-ARC FORMULA:",
+            "==========================================================================",
+            "CRITICAL: Even though this is a short video, you MUST tell ONE COMPLETE, SELF-CONTAINED STORY with a beginning, middle, climax, and conclusive ending. NEVER write an unfinished fragment, a cliffhanger without payoff, or an open-ended setup.",
+            "",
+            "1. THE 3-SECOND ZERO-FRICTION HOOK (Scene 1):",
+            "   - Open IMMEDIATELY with the subject + shocking disturbance/catalyst in one punchy line.",
+            "   - NEVER start with 'Namaste', greetings, or slow pleasantries.",
+            "   - Example Hook: 'रात के दो बजे जब रोहन ने आईने में देखा, तो उसका अक्स हिल नहीं रहा था...'",
+            "2. RAPID ESCALATION & TURNING POINT (Scene 2):",
+            "   - The danger or mystery instantly escalates; stakes become personal and irreversible.",
+            "3. SHOCKING CLIMAX & CONFRONTATION (Scene 3):",
+            "   - Direct face-to-face clash, horrific discovery, or terrifying peak of the encounter.",
+            "4. COMPLETE PAYOFF & CHILLING RESOLUTION (Scene 4 / Final Scene):",
+            "   - The story MUST finish and resolve completely: state what happened to the protagonist, reveal the final twist, or deliver a chilling conclusive punchline that brings full narrative closure.",
+            "   - NEVER end on 'क्या होगा?', 'जारी रहेगा...', or an unanswered question.",
+            "",
+        ]
+    else:
+        lines += [
+            "==========================================================================",
+            "LONG-FORM CINEMATIC STORYTELLING & ENGAGEMENT FRAMEWORK:",
+            "==========================================================================",
+            "1. IMMERSIVE WORLD-BUILDING & ATMOSPHERE:",
+            "   - Rich sensory details, deep character motivations, environmental textures, and grounded realism.",
+            "2. MULTI-LAYERED RISING TENSION & STAKES:",
+            "   - Build escalating layers of mystery, evidence, escalating peril, and emotional depth.",
+            "3. EPIC CLIMAX & PROFOUND RESOLUTION:",
+            "   - Deliver a cathartic, fully-developed climax followed by a lasting emotional insight or takeaway.",
+            "",
+        ]
+
+    lines += [
+        "What you are writing is ONE COMPLETE STORY, not a fragment or a mood piece.",
+        "Use the same protagonist/central subject and continuous context from the first scene to the last.",
         "",
-        "Use the same protagonist/central subject and continuous context from the first scene to "
-        "the last. Every scene must move the story forward; never add filler.",
-        "",
-        "Scene list. Each scene has a story job to do. Follow it, and write the narration "
-        "and a visual setting tag for that scene:",
+        "Scene list. Each scene has a specific story duty to advance the narrative:",
     ]
     for index, scene in enumerate(planned["scenes"], start=1):
         story = scene.get("_story", scene["beat"])
@@ -155,24 +196,20 @@ def build_prompt(
         "",
         "Rules:",
         f"- Write the spoken narration entirely in {language}.",
-        "- Match each scene's word count within 15 percent; the audio length "
-        "depends on it, so short scenes make a short video.",
-        "- Plain spoken prose only. No markdown formatting, no emoji, no stage directions, no "
-        "sound-effect labels.",
-        "- Write numbers as words in the target language, because the narration "
-        "is read aloud by text-to-speech exactly as written.",
-        "- Never address the audience as a video or mention cameras/visuals in the narration text.",
+        "- Match each scene's word count within 15 percent; the audio length depends on it.",
+        "- Plain spoken prose only. No markdown formatting, no emoji, no stage directions, no sound-effect labels.",
+        "- Write numbers as words in the target language (e.g. 'दो' instead of '2'), because the narration is read aloud by TTS exactly as written.",
+        "- Never address the audience as a video or mention cameras/visuals in the spoken narration.",
         "- Do not skip a scene and do not merge two scenes into one.",
-        "- For each scene headline, append `| VISUAL: <3-5 concrete English visual keywords>` describing "
-        "the exact setting, lighting, and main subject of that scene (used to retrieve matching scene artwork).",
-        "- The final scene must resolve the story or deliver the concluding lesson/punchline.",
+        "- For each scene headline, append `| VISUAL: <3-5 concrete English visual keywords>` describing the exact setting, lighting, and main subject of that scene.",
+        "- The final scene must resolve the story or deliver the concluding twist/payoff.",
         "",
         "Output format, exactly this and nothing else:",
         "",
-        "TITLE: <a short compelling story title>",
-        "###1|<short scene headline in story language> | VISUAL: <3-5 concrete English visual keywords for scene 1>",
+        "TITLE: <a short viral compelling story title>",
+        "###1|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 1>",
         "<spoken narration for scene 1>",
-        "###2|<short scene headline in story language> | VISUAL: <3-5 concrete English visual keywords for scene 2>",
+        "###2|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 2>",
         "<spoken narration for scene 2>",
         "...",
     ]
@@ -587,7 +624,7 @@ def run_step(label: str, command: list[str], *, shell: bool = False) -> bool:
     return True
 
 
-def report(args) -> None:
+def report(args, target_sec: float | None = None) -> None:
     """Summarise the run: how long the narration actually came out."""
     print()
     print("=" * 74)
@@ -597,9 +634,9 @@ def report(args) -> None:
         return
     timing = json.loads(GENERATED.read_text(encoding="utf-8"))["timings"]
     actual = timing["totalDuration"]
-    target_seconds = args.minutes * 60
+    target_seconds = target_sec if target_sec is not None else (args.seconds if getattr(args, "seconds", None) else args.minutes * 60)
     delta = actual - target_seconds
-    print(f"  target : {args.minutes:g} min ({target_seconds:.0f}s)")
+    print(f"  target : {target_seconds / 60:.2f} min ({target_seconds:.0f}s)")
     print(f"  actual : {actual / 60:.2f} min ({actual:.0f}s)")
     print(f"  delta  : {delta:+.0f}s  ({delta / target_seconds * 100:+.1f}%)")
     if not args.no_render:
@@ -612,6 +649,15 @@ def main() -> int:
     )
     parser.add_argument("--topic", help="what the video is about")
     parser.add_argument("--minutes", type=float, default=1.0, help="target length in minutes (default 1.0)")
+    parser.add_argument(
+        "--seconds",
+        "--sec",
+        "--second",
+        dest="seconds",
+        type=float,
+        default=None,
+        help="target length in seconds (e.g. --seconds 30, --seconds 45, overrides --minutes)",
+    )
     parser.add_argument(
         "--voice",
         default=None,
@@ -972,6 +1018,7 @@ def main() -> int:
     planned = beats.plan(
         args.topic,
         args.minutes,
+        seconds=args.seconds,
         genre=target_genre,
         theme=selected_theme,
         video_format=args.video_format,
@@ -1191,9 +1238,10 @@ def main() -> int:
 
     # The useful checkpoint: narration and timings now exist, so the audio can be
     # judged before committing to a render that can take hours.
+    target_sec = planned["target"].get("seconds") if "target" in planned else None
     if args.no_render:
         print("\n(--no-render: narration and timings written, nothing rendered)")
-        report(args)
+        report(args, target_sec=target_sec)
         return 0
 
     if not run_step(
@@ -1224,7 +1272,8 @@ def main() -> int:
             print(f"note: upload encountered an error: {e}", file=sys.stderr)
 
     # ---- report ----------------------------------------------------------
-    report(args)
+    target_sec = planned["target"].get("seconds") if "target" in planned else None
+    report(args, target_sec=target_sec)
     return 0
 
 

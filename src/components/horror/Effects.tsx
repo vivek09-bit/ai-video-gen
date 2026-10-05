@@ -1,4 +1,4 @@
-import {AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, interpolate, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import React from 'react';
 import {flicker, hash, noise1, steppedNoise} from './noise';
 
@@ -311,5 +311,96 @@ export const LivingFrame: React.FC<{
     >
       {children}
     </AbsoluteFill>
+  );
+};
+
+/**
+ * Opening Visual Hook Intro Effect for high retention & viral engagement:
+ * - High-speed initial zoom snap with subtle chromatic abberation/glitch flash
+ * - Rapid frame-1 camera shake and light flicker
+ * - Pulsing vignette punch in the first 0.6 seconds
+ * - Atmospheric cinematic opening flash
+ */
+export const HookIntroEffect: React.FC = () => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+
+  // 24 frames (~0.8s) opening hook dynamics
+  const hookDuration = Math.round(fps * 0.8);
+  if (frame > hookDuration) {
+    return null;
+  }
+
+  const p = frame / hookDuration;
+  const flashOpacity = interpolate(p, [0, 0.12, 0.45, 1], [0.8, 0.5, 0.18, 0], {
+    extrapolateRight: 'clamp',
+  });
+  const glitchOffset = interpolate(p, [0, 0.25, 0.6, 1], [18, 10, 3, 0], {
+    extrapolateRight: 'clamp',
+  });
+  // Frame 1-6 rapid micro camera shake
+  const initialShake = p < 0.3 ? (Math.sin(frame * 4.2) * 6 * (1 - p / 0.3)) : 0;
+
+  return (
+    <AbsoluteFill
+      style={{
+        pointerEvents: 'none',
+        mixBlendMode: 'screen',
+        transform: initialShake ? `translateX(${initialShake.toFixed(1)}px)` : undefined,
+      }}
+    >
+      {/* High-intensity red/white radial flash */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(255, 40, 40, 0.5) 0%, rgba(255, 255, 255, 0.35) 25%, transparent 70%)',
+          opacity: flashOpacity,
+        }}
+      />
+      {/* Glitch RGB chromatic offset simulation */}
+      {glitchOffset > 0 && frame % 2 === 0 ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            boxShadow: `inset ${glitchOffset}px 0 rgba(255,0,80,0.45), inset -${glitchOffset}px 0 rgba(0,220,255,0.45)`,
+            opacity: flashOpacity * 1.5,
+          }}
+        />
+      ) : null}
+    </AbsoluteFill>
+  );
+};
+
+/**
+ * 3-4 Second Pattern Interrupts:
+ * Injects periodic micro-lighting shifts and chromatic tension so viewer attention doesn't drift.
+ */
+export const PatternInterruptEffect: React.FC = () => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const time = frame / fps;
+
+  // Cycle every 3.5 seconds
+  const cycleTime = 3.5;
+  const modTime = time % cycleTime;
+
+  // Pulse in a 0.4s window every 3.5 seconds
+  if (modTime > 0.4) {
+    return null;
+  }
+
+  const p = modTime / 0.4;
+  const intensity = Math.sin(p * Math.PI) * 0.22;
+
+  return (
+    <AbsoluteFill
+      style={{
+        pointerEvents: 'none',
+        mixBlendMode: 'color-dodge',
+        backgroundColor: `rgba(255, 60, 30, ${intensity.toFixed(3)})`,
+      }}
+    />
   );
 };

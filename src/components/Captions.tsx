@@ -69,12 +69,12 @@ export const Captions: React.FC<{
   const enterFrames = Math.max(2, Math.min(10, cueFrames * 0.3));
   const eased = 1 - Math.pow(1 - Math.min(1, ageInFrames / enterFrames), 3);
 
-  // A layered shadow lifts the text off dark, foggy backdrops without needing a
-  // heavy panel, which would flatten the atmosphere.
+  // High-contrast viral text outline and layered drop shadow
   const shadow = [
-    '0 0 18px rgba(0,0,0,0.95)',
-    '0 3px 8px rgba(0,0,0,0.9)',
-    '0 0 46px rgba(0,0,0,0.7)',
+    '0 0 20px rgba(0,0,0,0.98)',
+    '0 4px 12px rgba(0,0,0,0.95)',
+    '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000',
+    '0 0 46px rgba(0,0,0,0.85)',
   ].join(', ');
 
   return (

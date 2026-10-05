@@ -100,6 +100,7 @@ export const Main: React.FC<Project> = ({script, timings}) => {
               theme={script.theme}
               captions={script.captions}
               characters={script.characters ?? {}}
+              isFirstScene={i === 0}
             />
           </Sequence>
         );
