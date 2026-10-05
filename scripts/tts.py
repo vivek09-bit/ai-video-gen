@@ -62,21 +62,22 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 2
+AUDIO_PIPELINE_VERSION = 3
 
 # How long to hold silence after a sentence, relative to the configured base
-# pause. One fixed gap for every sentence is the main reason synthesised
-# narration sounds mechanical: a question should hang, a full stop should land.
+# pause. Gaps and pauses are restricted strictly to full stops and terminal marks
+# (dandas, periods, exclamation, questions) to prevent unnatural pauses on minor punctuation.
 PAUSE_SCALE = {
-    ",": 0.45,
-    ";": 0.7,
-    ":": 0.7,
-    "\u2014": 0.5,
+    ",": 0.0,
+    ";": 0.0,
+    ":": 0.0,
+    "\u2014": 0.0,
+    "-": 0.0,
     ".": 1.0,
-    "\u0964": 1.05,  # danda
-    "\u0965": 1.3,  # double danda
-    "!": 1.15,
-    "?": 1.15,
+    "\u0964": 1.0,  # Devanagari danda
+    "\u0965": 1.2,  # Devanagari double danda
+    "!": 1.0,
+    "?": 1.0,
 }
 
 # Quotes and brackets that can follow the mark which actually ends a sentence.
@@ -420,6 +421,10 @@ def resolve_voice(
             return "jf_nezumi" if genre == "anime" else "jm_kumo"
         return "hm_omega"
 
+    # Common typo fix: 'hm_beta' does not exist in Kokoro; map it to 'hf_beta' (Hindi female Ananya)
+    if voice_input.strip().lower() == "hm_beta":
+        return "hf_beta"
+
     # Replace '+' with ',' for blend syntax
     normalized = voice_input.replace("+", ",")
     parts = [p.strip() for p in normalized.split(",") if p.strip()]
@@ -654,18 +659,26 @@ class Voice:
 
         The Kokoro language code is the first letter of the primary voice id, so the
         same call handles English, Hindi, blends (e.g. 'af_heart,af_bella'), and aliases.
+        Minor internal punctuation like commas, semicolons, and dashes is cleaned to prevent
+        unnatural mid-sentence audio pauses.
         """
         import numpy as np
+
+        # Strip internal pauses caused by minor punctuation (commas, colons, semicolons, em-dashes)
+        clean_text = re.sub(r"[,;:—–\-]+", " ", text)
+        clean_text = " ".join(clean_text.split())
+        if not clean_text:
+            clean_text = text
 
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
         lang_code = primary[:1].lower() or "a"
         chunks = [
             np.asarray(audio, dtype=np.float32)
-            for _g, _p, audio in self._pipeline(lang_code)(text, voice=resolved_voice, speed=speed)
+            for _g, _p, audio in self._pipeline(lang_code)(clean_text, voice=resolved_voice, speed=speed)
         ]
         if not chunks:
-            raise RuntimeError(f"Kokoro produced no audio for: {text[:60]!r}")
+            raise RuntimeError(f"Kokoro produced no audio for: {clean_text[:60]!r}")
         return np.concatenate(chunks)
 
 

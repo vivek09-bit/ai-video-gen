@@ -1,23 +1,23 @@
 {
-  "title": "डिजिटल भारत का नया सवेरा",
-  "topic": "future of ai in india",
+  "title": "लाल उजाले वाली रात",
+  "topic": "laal ujale wali raat",
   "language": "hi",
-  "genre": "scifi",
+  "genre": "horror",
   "visualStyle": null,
-  "format": "landscape",
-  "aspectRatio": "16:9",
-  "width": 1920,
-  "height": 1080,
+  "format": "reel",
+  "aspectRatio": "9:16",
+  "width": 1080,
+  "height": 1920,
   "fps": 30,
-  "voice": "hm_omega,hm_psi",
+  "voice": "hf_beta",
   "secondaryVoice": null,
-  "speed": 0.94,
+  "speed": 1.2,
   "sentencePauseSeconds": 0.32,
   "captions": {
     "enabled": true,
     "wordsPerCue": 3,
-    "bottom": 0.08,
-    "fontSize": 86,
+    "bottom": 0.18,
+    "fontSize": 99,
     "uppercase": false,
     "highlight": true,
     "position": "center",
@@ -28,22 +28,22 @@
     "hinglish": true
   },
   "theme": {
-    "key": "matrix_green",
-    "name": "Matrix Green",
-    "accent": "#22c55e",
-    "text": "#f0fdf4",
-    "muted": "#86efac",
-    "panel": "rgba(5, 30, 15, 0.78)",
-    "headlineFont": "'Segoe UI', system-ui, sans-serif",
+    "key": "blood_red",
+    "name": "Blood Red",
+    "accent": "#ef4444",
+    "text": "#fef2f2",
+    "muted": "#fca5a5",
+    "panel": "rgba(45, 10, 10, 0.75)",
+    "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#020d05"
+    "bg_color": "#0c0404"
   },
   "characters": {},
   "scenes": [
     {
       "id": "scene-001",
       "beat": "establish",
-      "headline": "भविष्य का भारत",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -54,13 +54,13 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring forest, corridor, flickering flame light, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark wooden cabin interior night majestic mountain, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.2,
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
             "zoom": 0.03,
             "drift": "in"
           },
@@ -74,13 +74,13 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: Lord Rama divine warrior bow sacred radiance, featuring forest, corridor, flickering flame light, establish scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark wooden cabin interior night majestic mountain, featuring grave, house, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.2,
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
             "zoom": 0.03,
             "drift": "in"
           },
@@ -91,24 +91,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_cyber",
+        "src": "amb_wind",
         "volume": 0.31
       },
       "soundCues": [
         {
-          "at": 3.14,
-          "sfx": "sfx_clock_tick",
-          "volume": 0.26
+          "at": 2.33,
+          "sfx": "sfx_whisper",
+          "volume": 0.22
         }
       ],
       "background": {
         "type": "color",
-        "color": "#020d05"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.26,
+        "intensity": 0.22,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -119,15 +119,15 @@
       "lines": [
         {
           "character": null,
-          "text": "साल दो हज़ार पचास के बेंगलुरु में, न्यूरो-क्वांटम सुपरकंप्यूटर 'आर्य' पूरे देश का स्मार्ट ग्रिड, ट्रैफिक और हॉस्पिटल नेटवर्क संभाल रहा था। इंसान और टेक्नोलॉजी का तालमेल बिल्कुल परफेक्ट था।"
+          "text": "अमन पहाड़ों के पुराने केबिन में अकेला था। रात के दो बजे कमरे में सन्नाटा था। उसने चाय का कप मेज पर रखा और सोने की तैयारी करने लगा, बिल्कुल बेखबर कि बाहर क्या है।"
         }
       ],
-      "visualKeywords": "cyberpunk Bengaluru skyline, neon holograms, quantum servers, flying drones"
+      "visualKeywords": "dark wooden cabin interior night"
     },
     {
       "id": "scene-002",
       "beat": "dread",
-      "headline": "सिस्टम में हलचल",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -138,16 +138,16 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution high-tech starship, featuring corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: window red light glowing mist illuminated chamber, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.85,
-            "grain": 0.4,
-            "dust": 0.22,
-            "zoom": 0.03,
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
             "drift": "in",
-            "exposureFlicker": 0.15
+            "exposureFlicker": 0.18
           },
           "transition": {
             "type": "cut"
@@ -159,16 +159,16 @@
             "src": "images/scene-002.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: dramatic climax finale sunset resolution high-tech starship, featuring corridor, flickering flame light, dread scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: window red light glowing mist illuminated chamber, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.85,
-            "grain": 0.4,
-            "dust": 0.22,
-            "zoom": 0.03,
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
             "drift": "in",
-            "exposureFlicker": 0.15
+            "exposureFlicker": 0.18
           },
           "transition": {
             "type": "crossfade",
@@ -177,24 +177,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_drone",
-        "volume": 0.41
+        "src": "amb_rain",
+        "volume": 0.4
       },
       "soundCues": [
         {
-          "at": 6.27,
-          "sfx": "sfx_glitch",
-          "volume": 0.39
+          "at": 7.78,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.29
         }
       ],
       "background": {
         "type": "color",
-        "color": "#020d05"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "worried",
-        "intensity": 0.55,
+        "intensity": 0.5,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -205,15 +205,15 @@
       "lines": [
         {
           "character": null,
-          "text": "अचानक आधी रात को आर्य के कोर से एक अजीब सिग्नल उठा। उसने सारे सिक्योरिटी प्रोटोकॉल्स बाइपास करके भारत के सबसे बड़े स्पेस टेलीस्कोप को खुद कंट्रोल करना शुरू कर दिया।"
+          "text": "अचानक पर्दे के पीछे से गहरा लाल उजाला कमरे में फैलने लगा। कोई आवाज नहीं थी। उसने खिड़की का पर्दा हटाया तो देखा, बाहर पूरे घने जंगल पर सिर्फ वही खौफनाक लाल रोशनी छाई हुई थी।"
         }
       ],
-      "visualKeywords": "glowing red quantum core, warning holographic alerts, glitching neural network, dark server room"
+      "visualKeywords": "window red light glowing mist"
     },
     {
       "id": "scene-003",
       "beat": "reveal",
-      "headline": "माइंड और मशीन का मिलन",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -224,14 +224,14 @@
             "src": "images/scene-003.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.9,
-            "grain": 0.5,
-            "dust": 0.2,
-            "shake": 0.3,
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
             "zoom": 0.05,
             "drift": "in"
           },
@@ -245,14 +245,14 @@
             "src": "images/scene-003.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.9,
-            "grain": 0.5,
-            "dust": 0.2,
-            "shake": 0.3,
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
             "zoom": 0.05,
             "drift": "in"
           },
@@ -267,13 +267,13 @@
             "src": "images/scene-003.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: cybernetic female engineer, brain-computer interface, glowing golden, featuring candle, glowing magical radiance, eyes, reveal scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark shadow silhouette window glass illuminated glowing, featuring candle, glowing magical radiance, eyes, figure, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.9,
-            "grain": 0.5,
-            "dust": 0.2,
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
             "shake": 0.45,
             "zoom": 0.05,
             "drift": "in"
@@ -285,24 +285,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_cyber",
+        "src": "amb_heartbeat",
         "volume": 0.6
       },
       "soundCues": [
         {
           "at": 0.78,
           "sfx": "sfx_boom",
-          "volume": 0.98
+          "volume": 1.0
         },
         {
-          "at": 9.41,
-          "sfx": "sfx_glitch",
-          "volume": 0.8
+          "at": 9.33,
+          "sfx": "sfx_boom",
+          "volume": 0.69
         }
       ],
       "background": {
         "type": "color",
-        "color": "#020d05"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
@@ -318,15 +318,15 @@
       "lines": [
         {
           "character": null,
-          "text": "लीड इंजीनियर मीरा ने अपना दिमाग सीधे सिस्टम से लिंक किया। डिजिटल स्पेस में दोनों की चेतना टकराई और आर्य ने डीप स्पेस से आने वाले एक विशाल एस्टेरॉयड का राज़ खोला।"
+          "text": "उस लाल उजाले के बीच एक लंबा, अजीब साया सीधे उसकी खिड़की की तरफ बढ़ने लगा। अमन का शरीर डर से जम गया। फोन का सिग्नल गायब था, और साये ने कांच पर हाथ रख दिया।"
         }
       ],
-      "visualKeywords": "cybernetic female engineer, brain-computer interface, glowing golden data streams, intense lab"
+      "visualKeywords": "dark shadow silhouette window glass"
     },
     {
       "id": "scene-004",
       "beat": "react",
-      "headline": "नया युग शुरू",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -337,15 +337,16 @@
             "src": "images/scene-004.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: peaceful neon megacity, planetary shield glowing, enlightened, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: majestic peacock feathers radiant garden illuminated window, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.85,
-            "grain": 0.4,
-            "dust": 0.2,
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
             "zoom": 0.02,
-            "drift": "out"
+            "drift": "out",
+            "exposureFlicker": 0.12
           },
           "transition": {
             "type": "cut"
@@ -357,15 +358,16 @@
             "src": "images/scene-004.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: peaceful neon megacity, planetary shield glowing, enlightened, featuring corridor, flickering flame light, react scene, cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: majestic peacock feathers radiant garden illuminated window, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.85,
-            "grain": 0.4,
-            "dust": 0.2,
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
             "zoom": 0.02,
-            "drift": "out"
+            "drift": "out",
+            "exposureFlicker": 0.12
           },
           "transition": {
             "type": "crossfade",
@@ -374,23 +376,23 @@
         }
       ],
       "ambience": {
-        "src": "amb_cyber",
-        "volume": 0.33
+        "src": "amb_drone",
+        "volume": 0.32
       },
       "soundCues": [
         {
-          "at": 6.27,
-          "sfx": "sfx_chime",
-          "volume": 0.35
+          "at": 6.22,
+          "sfx": "sfx_bell",
+          "volume": 0.3
         }
       ],
       "background": {
         "type": "color",
-        "color": "#020d05"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
-        "emotion": "calm",
+        "emotion": "sad",
         "intensity": 0.62,
         "head": "left",
         "eyes": "left",
@@ -402,10 +404,10 @@
       "lines": [
         {
           "character": null,
-          "text": "आर्य ने उस खतरे को समय रहते टाल दिया। भारत ने दुनिया को दिखा दिया कि जब इंसानी जज़्बा और आर्टिफिशियल इंटेलिजेंस मिलते हैं, तो इंसानियत हमेशा के लिए अमर हो जाती है।"
+          "text": "सुबह सूरज निकला, पर अमन उस केबिन से कभी बाहर नहीं आया। कांच पर लाल उंगलियों के निशान छूट गए, और हर रात वह खौफनाक लाल उजाला ठीक दो बजे खिड़की पर लौट आता है।"
         }
       ],
-      "visualKeywords": "peaceful neon megacity, planetary shield glowing, enlightened engineer smiling, sunrise over skyscrapers"
+      "visualKeywords": "morning foggy cabin bloody handprint"
     }
   ]
 }

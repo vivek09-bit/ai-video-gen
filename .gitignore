@@ -12,7 +12,7 @@ node_modules/
 examples/
 # Rhubarb binary (~83 MB, re-downloaded by setup.ps1)
 tools/
-
+youtube_token.json
 # Generated narration audio (re-created by `npm run voice`)
 public/audio/
 public/images/

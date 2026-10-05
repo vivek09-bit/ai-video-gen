@@ -1,0 +1,2 @@
+video gen=.\.venv\Scripts\python.exe scripts\new_video.py --topic "laal ujale wali raat" --voice hf_beta --genre horror --model omniroute --minutes 1 --format reel --speed 1.2 --out out/horror_new1.mp4 --no-title
+video upload=.\.venv\Scripts\python.exe scripts\uploader.py out\horror_new1.mp4 --platforms youtube

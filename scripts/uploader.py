@@ -305,15 +305,36 @@ class YouTubeUploader:
         if publish_at and effective_privacy == "private":
             status_body["publishAt"] = publish_at
 
+        # YouTube tag requirements:
+        # - Must not contain '<' or '>'
+        # - No empty strings
+        # - Total combined characters across all tags must not exceed ~400-500 chars
+        # - Individual tag length < 100 chars
+        clean_tags = []
+        total_len = 0
+        for t in tags:
+            tag_s = re.sub(r"[<>\r\n]+", "", str(t)).strip()
+            if not tag_s:
+                continue
+            if len(tag_s) > 80:
+                tag_s = tag_s[:80].strip()
+            if total_len + len(tag_s) + 1 > 400:
+                break
+            clean_tags.append(tag_s)
+            total_len += len(tag_s) + 1
+
+        snippet_body: dict[str, Any] = {
+            "title": title[:100],
+            "description": description[:5000],
+            "categoryId": category_id,
+            "defaultLanguage": yt_meta.get("default_language", "hi"),
+            "defaultAudioLanguage": yt_meta.get("default_audio_language", "hi"),
+        }
+        if clean_tags:
+            snippet_body["tags"] = clean_tags
+
         resource_body = {
-            "snippet": {
-                "title": title[:100],
-                "description": description[:5000],
-                "tags": tags[:500],
-                "categoryId": category_id,
-                "defaultLanguage": yt_meta.get("default_language", "hi"),
-                "defaultAudioLanguage": yt_meta.get("default_audio_language", "hi"),
-            },
+            "snippet": snippet_body,
             "status": status_body,
         }
 
@@ -1010,6 +1031,12 @@ def main() -> int:
     )
     parser.add_argument("video", nargs="?", default=None, help="path to video file (defaults to out/video.mp4)")
     parser.add_argument(
+        "--video",
+        dest="video_opt",
+        default=None,
+        help="path to video file (alias for positional video argument)",
+    )
+    parser.add_argument(
         "--platforms",
         "-p",
         default="youtube,facebook,instagram",
@@ -1071,7 +1098,7 @@ def main() -> int:
         return 0 if success else 1
 
     # Locate video file
-    video_file = args.video
+    video_file = args.video_opt or args.video
     if not video_file:
         for candidate in [ROOT / "out" / "video.mp4", ROOT / "out" / "imagetext.mp4", ROOT / "out" / "mobilephonescamalert.mp4"]:
             if candidate.exists():

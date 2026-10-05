@@ -668,6 +668,199 @@ def sfx_cinematic_hit() -> np.ndarray:
     return stereo(normalise(left, 0.95), normalise(right, 0.95))
 
 
+def sfx_jumpscare() -> np.ndarray:
+    """Brutal sudden shrieking jumpscare hit with terrifying dissonant sub crash."""
+    duration = 2.4
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(193)
+
+    # Dissonant cluster shrieks: tritone + minor 2nd clash
+    shriek = (
+        signal.sawtooth(2 * np.pi * 666.0 * t) * 0.45
+        + signal.sawtooth(2 * np.pi * 707.0 * t) * 0.4
+        + signal.sawtooth(2 * np.pi * 1414.0 * t) * 0.3
+    )
+    shriek = bandpass(shriek, 500, 5500, order=2)
+
+    # Explosive transient burst
+    noise = gen.normal(0, 1, n)
+    burst = highpass(noise, 1500, order=2) * np.exp(-t * 25.0) * 0.85
+
+    # Bone-rattling sub punch
+    f_sub = 110.0 * np.exp(-t * 12.0) + 28.0
+    sub = np.sin(2 * np.pi * f_sub * t) * np.exp(-t * 3.2) * 0.8
+
+    env = np.exp(-t * 2.2) * np.minimum(1.0, t / 0.003)
+    mixed = (shriek * 0.55 + burst + sub) * env
+    left = mixed
+    right = np.roll(mixed, 30) * 0.96
+    return stereo(normalise(left, 0.98), normalise(right, 0.98))
+
+
+def sfx_creak() -> np.ndarray:
+    """Eerie slow wooden door / floorboard creak in an abandoned room."""
+    duration = 2.5
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(197)
+
+    # FM synthesis for wood resonance friction
+    mod = np.sin(2 * np.pi * (18.0 + 8.0 * np.sin(2 * np.pi * 1.5 * t)) * t) * 90.0
+    carrier_freq = 320.0 + 140.0 * np.sin(2 * np.pi * 0.8 * t) + mod
+    creak_raw = signal.sawtooth(2 * np.pi * np.cumsum(carrier_freq) / SR)
+    wood_filter = bandpass(creak_raw, 200, 1800, order=2)
+
+    # Friction texture
+    friction = gen.normal(0, 1, n) * (creak_raw > 0.6) * 0.35
+    friction_f = bandpass(friction, 400, 2800, order=2)
+
+    env = (np.sin(np.pi * (t / duration) ** 0.8) ** 1.5) * np.minimum(1.0, t / 0.15)
+    mixed = (wood_filter * 0.7 + friction_f * 0.3) * env
+    left = mixed
+    right = np.roll(mixed, 70) * 0.95
+    return stereo(normalise(left, 0.85), normalise(right, 0.85))
+
+
+def sfx_ghostly_groan() -> np.ndarray:
+    """Supernatural entity vocal groan / demon breathing from the dark."""
+    duration = 3.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(199)
+
+    f_drift = 85.0 - 25.0 * (t / duration) + 6.0 * np.sin(2 * np.pi * 3.5 * t)
+    pulse = signal.sawtooth(2 * np.pi * np.cumsum(f_drift) / SR) * 0.6
+    vocal = bandpass(pulse, 180, 850, order=2)
+
+    # Breath turbulences
+    breath = gen.normal(0, 1, n)
+    breath_f = bandpass(breath, 350, 1600, order=2) * (0.4 + 0.3 * np.sin(2 * np.pi * 2.0 * t))
+
+    env = (np.sin(np.pi * (t / duration)) ** 1.8) * np.minimum(1.0, t / 0.4)
+    mixed = (vocal * 0.65 + breath_f * 0.35) * env
+    left = mixed
+    right = np.roll(mixed, 110) * 0.94
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
+def sfx_scare_string() -> np.ndarray:
+    """Horror string crescendo screech (Psycho / Insidious style shrieking violin scrape)."""
+    duration = 3.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(211)
+
+    # Screeching high pitches with intense tremolo & jitter
+    freq1 = 1864.66 + 30.0 * np.sin(2 * np.pi * 14.0 * t)  # A#6
+    freq2 = 1975.53 + 35.0 * np.sin(2 * np.pi * 16.0 * t)  # B6
+    freq3 = 2637.02 + 45.0 * np.sin(2 * np.pi * 19.0 * t)  # E7
+
+    strings = (
+        signal.sawtooth(2 * np.pi * np.cumsum(freq1) / SR) * 0.35
+        + signal.sawtooth(2 * np.pi * np.cumsum(freq2) / SR) * 0.35
+        + signal.sawtooth(2 * np.pi * np.cumsum(freq3) / SR) * 0.30
+    )
+    bow_scrape = bandpass(gen.normal(0, 1, n), 2200, 7500, order=2) * 0.25
+
+    attack_curve = (t / duration) ** 2.2
+    tremolo = 0.7 + 0.3 * np.sin(2 * np.pi * 22.0 * t)
+    mixed = (strings + bow_scrape) * attack_curve * tremolo
+    left = mixed
+    right = np.roll(mixed, 55) * 0.96
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_dark_whoosh() -> np.ndarray:
+    """Sinister shadowy swoosh / phantom rushing past the camera."""
+    duration = 1.6
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(223)
+
+    raw_noise = gen.normal(0, 1, n)
+    sweep_cf = 120.0 + 2400.0 * np.sin(np.pi * (t / duration)) ** 3
+    filtered = np.zeros(n)
+    step = int(0.015 * SR)
+    for idx in range(0, n, step):
+        chunk = raw_noise[idx : min(n, idx + step)]
+        cf = sweep_cf[min(n - 1, idx + len(chunk) // 2)]
+        f_low = max(30.0, cf * 0.4)
+        f_high = min(SR * 0.45, cf * 1.5)
+        filtered[idx : idx + len(chunk)] = bandpass(chunk, f_low, f_high, order=2) if f_high > f_low + 20 else chunk
+
+    sub_thump = np.sin(2 * np.pi * 45 * t) * np.exp(-((t - 0.7) / 0.3) ** 2) * 0.5
+    env = (np.sin(np.pi * (t / duration)) ** 2) * np.minimum(1.0, t / 0.05)
+    pan_l = np.cos((np.pi / 2.0) * (t / duration))
+    pan_r = np.sin((np.pi / 2.0) * (t / duration))
+    left = (filtered * 0.75 + sub_thump) * env * pan_l
+    right = (filtered * 0.75 + sub_thump) * env * pan_r
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_footstep_wood() -> np.ndarray:
+    """Heavy ominous single footstep on hollow old floorboard."""
+    duration = 0.9
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(227)
+
+    f_heel = 90.0 * np.exp(-t * 28.0) + 40.0
+    heel = np.sin(2 * np.pi * f_heel * t) * np.exp(-t * 18.0) * 0.65
+    wood_creak_tap = bandpass(signal.sawtooth(2 * np.pi * 380 * t), 250, 1400, order=2) * np.exp(-t * 22.0) * 0.35
+    grit = bandpass(gen.normal(0, 1, n), 1200, 4200, order=2) * np.exp(-t * 45.0) * 0.25
+
+    mixed = heel + wood_creak_tap + grit
+    left = mixed
+    right = np.roll(mixed, 25)
+    return stereo(normalise(left, 0.9), normalise(right, 0.9))
+
+
+def sfx_monster_growl() -> np.ndarray:
+    """Guttural terrifying demon / beast growl vibrating in chest."""
+    duration = 2.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(229)
+
+    f_growl = 42.0 + 12.0 * np.sin(2 * np.pi * 5.0 * t) + 8.0 * np.sin(2 * np.pi * 1.2 * t)
+    pulse = signal.sawtooth(2 * np.pi * np.cumsum(f_growl) / SR)
+    distorted = np.tanh(pulse * 3.5)
+
+    sub_body = lowpass(distorted, 350, order=2) * 0.65
+    snarl = bandpass(distorted, 600, 2200, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 18.0 * t)) * 0.4
+
+    env = (np.sin(np.pi * (t / duration) ** 0.9) ** 1.6) * np.minimum(1.0, t / 0.1)
+    mixed = (sub_body + snarl) * env
+    left = mixed
+    right = np.roll(mixed, 65) * 0.95
+    return stereo(normalise(left, 0.95), normalise(right, 0.95))
+
+
+def sfx_heartbeat_single() -> np.ndarray:
+    """Isolated high-impact double-thump heartbeat (lub-dub). Panic / sudden terror."""
+    duration = 1.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+
+    out = np.zeros(n)
+    for offset, amp in ((0.0, 0.85), (0.24, 0.55)):
+        start = int(offset * SR)
+        length = int(0.32 * SR)
+        if start + length > n:
+            continue
+        seg_t = np.arange(length) / SR
+        f = 68.0 * np.exp(-seg_t * 14.0) + 26.0
+        thump = np.sin(2 * np.pi * f * seg_t) * np.exp(-seg_t * 9.5) * amp
+        out[start : start + length] += thump
+
+    sub_drone = np.sin(2 * np.pi * 32.0 * t) * np.exp(-t * 2.5) * 0.25
+    mixed = out + sub_drone
+    left = mixed
+    right = np.roll(mixed, 30)
+    return stereo(normalise(left, 0.95), normalise(right, 0.95))
+
+
 # --------------------------------------------------------------------------
 # Textures
 # --------------------------------------------------------------------------
@@ -724,6 +917,14 @@ EFFECTS = {
     "sfx_swell": sfx_swell,
     "sfx_clock_tick": sfx_clock_tick,
     "sfx_cinematic_hit": sfx_cinematic_hit,
+    "sfx_jumpscare": sfx_jumpscare,
+    "sfx_creak": sfx_creak,
+    "sfx_ghostly_groan": sfx_ghostly_groan,
+    "sfx_scare_string": sfx_scare_string,
+    "sfx_dark_whoosh": sfx_dark_whoosh,
+    "sfx_footstep_wood": sfx_footstep_wood,
+    "sfx_monster_growl": sfx_monster_growl,
+    "sfx_heartbeat_single": sfx_heartbeat_single,
 }
 
 

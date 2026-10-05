@@ -500,6 +500,7 @@ def build_script(
     genre_profile: beats.GenreProfile | None = None,
     visual_style: str | None = None,
     secondary_voice: str | None = None,
+    show_headline: bool = True,
 ) -> tuple[dict, list[int]]:
     """Combine the planned structure with written narration into script.json."""
     gp = genre_profile or beats.get_genre(planned.get("genre"))
@@ -530,9 +531,13 @@ def build_script(
         # planner starts emitting -- which is exactly how the acting block was
         # lost on the first pass.
         entry = {key: value for key, value in scene.items() if not key.startswith("_")}
-        entry["headline"] = headline or scene["headline"]
+        resolved_headline = headline or scene["headline"]
+        entry["headline"] = resolved_headline if show_headline else ""
         if visual_keywords:
             entry["visualKeywords"] = visual_keywords
+        elif resolved_headline and not show_headline:
+            # Preserve the generated headline as visual keywords for image retrieval if needed
+            entry["visualKeywords"] = resolved_headline
         entry["lines"] = [{"character": None, "text": narration}] if narration else []
         scenes.append(entry)
 
@@ -670,6 +675,22 @@ def main() -> int:
         dest="no_hinglish_subtitles",
         action="store_true",
         help="keep Devanagari script for on-screen captions and subtitles instead of Roman Hinglish",
+    )
+    parser.add_argument(
+        "--headline",
+        dest="show_headline",
+        action="store_true",
+        default=True,
+        help="(default) show scene headline / prompt text on screen",
+    )
+    parser.add_argument(
+        "--no-headline",
+        "--hide-headline",
+        "--no-title-cards",
+        "--hide-prompt",
+        dest="show_headline",
+        action="store_false",
+        help="hide scene headlines and image prompt text from the video (only background image + subtitles)",
     )
     parser.add_argument(
         "--characters", action="store_true",
@@ -1089,6 +1110,7 @@ def main() -> int:
         genre_profile=gp,
         visual_style=args.visual_style,
         secondary_voice=sec_voice,
+        show_headline=args.show_headline,
     )
 
     # ---- generate AI images if enabled ------------------------------------
