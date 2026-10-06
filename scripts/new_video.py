@@ -128,24 +128,25 @@ def build_prompt(
 
     if is_short_form:
         lines += [
-            "==========================================================================",
-            "VIRAL SHORT-FORM RETENTION & COMPLETE-ARC FORMULA:",
-            "==========================================================================",
-            "CRITICAL: Even though this is a short video, you MUST tell ONE COMPLETE, SELF-CONTAINED STORY with a beginning, middle, climax, and conclusive ending. NEVER write an unfinished fragment, a cliffhanger without payoff, or an open-ended setup.",
-            "",
-            "1. THE 3-SECOND ZERO-FRICTION HOOK (Scene 1):",
-            "   - Open IMMEDIATELY with the subject + shocking disturbance/catalyst in one punchy line.",
-            "   - NEVER start with 'Namaste', greetings, or slow pleasantries.",
-            "   - Example Hook: 'रात के दो बजे जब रोहन ने आईने में देखा, तो उसका अक्स हिल नहीं रहा था...'",
-            "2. RAPID ESCALATION & TURNING POINT (Scene 2):",
-            "   - The danger or mystery instantly escalates; stakes become personal and irreversible.",
-            "3. SHOCKING CLIMAX & CONFRONTATION (Scene 3):",
-            "   - Direct face-to-face clash, horrific discovery, or terrifying peak of the encounter.",
-            "4. COMPLETE PAYOFF & CHILLING RESOLUTION (Scene 4 / Final Scene):",
-            "   - The story MUST finish and resolve completely: state what happened to the protagonist, reveal the final twist, or deliver a chilling conclusive punchline that brings full narrative closure.",
-            "   - NEVER end on 'क्या होगा?', 'जारी रहेगा...', or an unanswered question.",
-            "",
-        ]
+        "==========================================================================",
+        "ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
+        "==========================================================================",
+        "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
+        "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
+        "   - Start MID-CRISIS with a jarring, impossible fact, forbidden warning, or a chilling anomaly (e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।').",
+        "   - Zero greetings, zero slow intro, zero background exposition.",
+        "2. OPEN LOOPS & MICRO-CLIFFHANGERS (SCENES 2-5):",
+        "   - Plant a burning, unanswered question or mystery in Scene 1 and withhold the explanation until the climax.",
+        "   - Every sentence must deliver a new escalation, discovery, or shock that makes swiping away impossible.",
+        "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
+        "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
+        "   - Ground the setting in familiar, everyday situations (WhatsApp chats, late-night lifts, quiet flats, village roads, phone alerts) so the viewer feels immediate personal dread and intrigue.",
+        "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
+        "   - Deliver a mind-bending revelation or twist in the last sentence.",
+        "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop on short-form platforms.",
+        "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps, no 'to be continued'.",
+        "",
+    ]
     else:
         lines += [
             "==========================================================================",
@@ -881,7 +882,7 @@ def main() -> int:
         "--imagemodel",
         "--image-model",
         dest="image_model",
-        help="Image model (e.g. SimianLuo/LCM_Dreamshaper_v7, flux-schnell, flux-dev, flux-pro, recraft)",
+        help="Image model (e.g. segmind/SSD-1B, SimianLuo/LCM_Dreamshaper_v7, flux-schnell, flux-dev, flux-pro, recraft)",
     )
     parser.add_argument("--force-images", action="store_true", help="force re-generating images even if cached")
     parser.add_argument(

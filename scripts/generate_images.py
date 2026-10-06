@@ -682,7 +682,7 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     if provider in ("fetch", "free", "stock", "unsplash", "lexica"):
         return "fetch", "free", model or "free-search"
     if provider == "local":
-        local_model = model if (model and model.lower() not in ("flux", "default", "free-search", "none")) else "SimianLuo/LCM_Dreamshaper_v7"
+        local_model = model if (model and model.lower() not in ("flux", "default", "free-search", "none")) else "segmind/SSD-1B"
         return "local", "local", local_model
     if provider == "pollinations":
         key = os.environ.get("POLLINATIONS_API_KEY", "")
@@ -1576,7 +1576,14 @@ def generate_images_for_script(
     if resolved_provider == "fetch":
         provider_title = "Free Related Image Search (Lexica / Unsplash / Stock)"
     elif resolved_provider == "local":
-        provider_title = f"Local SD 1.5 + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
+        if is_ssd_model(model):
+            provider_title = f"Local SSD-1B + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
+        elif is_turbo_model(model):
+            provider_title = f"Local SDXL-Turbo ({aspect_ratio} @ {width}x{height})"
+        elif is_flux_model(model):
+            provider_title = f"Local FLUX ({aspect_ratio} @ {width}x{height})"
+        else:
+            provider_title = f"Local SD 1.5 + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
     elif resolved_provider == "pollinations":
         provider_title = f"Pollinations AI (FREE, {aspect_ratio} @ {width}x{height})"
     else:
@@ -1688,7 +1695,7 @@ def main() -> None:
         "--imagemodel",
         "--image-model",
         dest="model",
-        help="Model name (e.g. SimianLuo/LCM_Dreamshaper_v7, flux-schnell, flux-dev, flux-pro, recraft)",
+        help="Model name (e.g. segmind/SSD-1B, SimianLuo/LCM_Dreamshaper_v7, flux-schnell, flux-dev, flux-pro, recraft)",
     )
     parser.add_argument("--force", action="store_true", help="Force regeneration of existing images")
 

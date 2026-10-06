@@ -116,6 +116,11 @@ export const Captions: React.FC<{
           const isCurrent = options.highlight && time >= w.start && time < w.end;
           const isSpoken = options.highlight && time >= w.end;
 
+          // Word-level pop animation for karaoke reading flow
+          const wordAge = Math.max(0, (time - w.start) * fps);
+          const popProgress = isCurrent ? Math.min(1, wordAge / 4) : 0;
+          const popScale = isCurrent ? 1.08 + Math.sin(popProgress * Math.PI) * 0.08 : 1;
+
           return (
             <span
               key={`${w.text}-${i}`}
@@ -123,19 +128,23 @@ export const Captions: React.FC<{
                 fontFamily: theme.bodyFont,
                 fontSize: options.fontSize,
                 lineHeight: 1.22,
-                fontWeight: isCurrent ? 800 : 700,
+                fontWeight: isCurrent ? 900 : 700,
                 letterSpacing: -0.3,
                 color: isCurrent ? theme.accent : theme.text,
                 textTransform: options.uppercase ? 'uppercase' : 'none',
-                opacity: options.highlight && !isCurrent && !isSpoken ? 0.86 : 1,
-                textShadow: shadow,
+                opacity: options.highlight && !isCurrent && !isSpoken ? 0.85 : 1,
+                textShadow: isCurrent
+                  ? `${shadow}, 0 0 16px ${theme.accent}`
+                  : shadow,
                 ...(outline > 0
                   ? {
                       WebkitTextStrokeWidth: `${outline}px`,
                       WebkitTextStrokeColor: 'rgba(0,0,0,0.92)',
                     }
                   : {}),
-                transform: isCurrent ? 'scale(1.03)' : 'scale(1)',
+                transform: `scale(${popScale})`,
+                display: 'inline-block',
+                transition: 'transform 0.08s ease-out',
               }}
             >
               {w.text}

@@ -1,23 +1,23 @@
 {
-  "title": "लाल बाल का खौफ",
-  "topic": "laal bal",
+  "title": "रिश्तेदार की कुटिया का खौफनाक सच",
+  "topic": "rishtedar ki kuthiya",
   "language": "hi",
   "genre": "horror",
   "visualStyle": null,
-  "format": "reel",
-  "aspectRatio": "9:16",
-  "width": 1080,
-  "height": 1920,
+  "format": "landscape",
+  "aspectRatio": "16:9",
+  "width": 1920,
+  "height": 1080,
   "fps": 30,
   "voice": "hf_beta",
   "secondaryVoice": null,
-  "speed": 0.88,
+  "speed": 1.1,
   "sentencePauseSeconds": 0.32,
   "captions": {
     "enabled": true,
     "wordsPerCue": 3,
-    "bottom": 0.18,
-    "fontSize": 99,
+    "bottom": 0.08,
+    "fontSize": 86,
     "uppercase": false,
     "highlight": true,
     "position": "center",
@@ -28,22 +28,22 @@
     "hinglish": true
   },
   "theme": {
-    "key": "toxic_lime",
-    "name": "Toxic Lime",
-    "accent": "#84cc16",
-    "text": "#f7fee7",
-    "muted": "#bef264",
-    "panel": "rgba(20, 30, 10, 0.75)",
-    "headlineFont": "'Segoe UI', system-ui, sans-serif",
+    "key": "blood_red",
+    "name": "Blood Red",
+    "accent": "#ef4444",
+    "text": "#fef2f2",
+    "muted": "#fca5a5",
+    "panel": "rgba(45, 10, 10, 0.75)",
+    "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#060b03"
+    "bg_color": "#0c0404"
   },
   "characters": {},
   "scenes": [
     {
       "id": "scene-001",
       "beat": "establish",
-      "headline": "अजीब लाल बाल",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -54,7 +54,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark bedroom, eerie red strand on pillow,, featuring fog, glowing magical radiance, grave, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark foggy forest road, lone traveler, eerie, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -74,7 +74,175 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark bedroom, eerie red strand on pillow,, featuring fog, glowing magical radiance, grave, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dark foggy forest road, lone traveler, eerie, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 0.0,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.22
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.22,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "क्या आपने कभी किसी ऐसे रिश्तेदार के बारे में सुना है, जिसके बारे में परिवार में सिर्फ फुसफुसाकर बात की जाती हो? एक ऐसा घर, जहाँ जाने से सब कतराते हैं, और जिसकी दहलीज पर पैर रखते ही खौफ शुरू हो जाता है।"
+        }
+      ],
+      "visualKeywords": "dark foggy forest road, lone traveler, eerie night"
+    },
+    {
+      "id": "scene-002",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: overgrown isolated cottage, moonlight, dense trees winding, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: overgrown isolated cottage, moonlight, dense trees winding, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 3.11,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.22
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.23,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मेरी दादी हमेशा कहती थीं कि जंगल के उस पुराने कोने में बनी कुटिया की तरफ कभी मत देखना। लेकिन जब इंसान के पास कोई रास्ता नहीं बचता, तो वह अनजाने में उसी रास्ते पर कदम बढ़ा देता है जहाँ से वापसी नामुमकिन होती है।"
+        }
+      ],
+      "visualKeywords": "overgrown isolated cottage, moonlight, dense trees"
+    },
+    {
+      "id": "scene-003",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dusty car window, dense pine trees, evening, featuring house, grave, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dusty car window, dense pine trees, evening, featuring house, grave, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -96,19 +264,103 @@
       },
       "soundCues": [
         {
-          "at": 0.0,
+          "at": 3.11,
           "sfx": "sfx_clock_tick",
           "volume": 0.22
         }
       ],
       "background": {
         "type": "color",
-        "color": "#060b03"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.22,
+        "intensity": 0.24,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मेरा नाम कबीर है और मैं शहर की भागदौड़ भरी जिंदगी से बुरी तरह टूट चुका था। नौकरी छूटने के बाद जब कोई सहारा नहीं मिला, तो मुझे याद आया कि पहाड़ों के पास हमारे एक दूर के फूफा जी की पुरानी कुटिया है।"
+        }
+      ],
+      "visualKeywords": "dusty car window, dense pine trees, evening dusk"
+    },
+    {
+      "id": "scene-004",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: rusted iron gate, dry autumn leaves, vintage, featuring fog, glowing magical radiance, forest, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: rusted iron gate, dry autumn leaves, vintage, featuring fog, glowing magical radiance, forest, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 3.11,
+          "sfx": "sfx_whisper",
+          "volume": 0.22
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.24,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -119,15 +371,15 @@
       "lines": [
         {
           "character": null,
-          "text": "रात के दो बजे रोहन को अपने तकिए पर एक लंबा लाल बाल मिला, जबकि वो उस बंद कमरे में बिल्कुल अकेला रहता था।"
+          "text": "परिवार के लोगों ने कई साल पहले उनसे रिश्ता तोड़ लिया था, लेकिन मेरे पास रहने के लिए कोई और छत नहीं थी। मैंने पुराने ट्रंक से कुटिया के पते की पर्ची निकाली और अपनी पुरानी कार से उस वीरान रास्ते की तरफ निकल पड़ा।"
         }
       ],
-      "visualKeywords": "dark bedroom, eerie red strand on pillow, cinematic moody lighting"
+      "visualKeywords": "rusted iron gate, dry autumn leaves, vintage key"
     },
     {
-      "id": "scene-002",
-      "beat": "dread",
-      "headline": "गले पर कसता फंदा",
+      "id": "scene-005",
+      "beat": "establish",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -135,10 +387,178 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-002.png",
+            "src": "images/scene-005.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: moss covered stone cabin, thick evening mist,, featuring house, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-005.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: shadows wrapping neck, dim hallway, terrified man, featuring fog, glowing magical radiance, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: moss covered stone cabin, thick evening mist,, featuring house, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 3.11,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.22
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.25,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "शाम ढलते-ढलते मैं उस सुनसान पहाड़ी मोड़ पर पहुँचा जहाँ घने चीड़ के पेड़ों के बीच वह पुरानी कुटिया खड़ी थी। लकड़ी की दीवारें सीलन से काली पड़ चुकी थीं और चारों तरफ एक अजीब, भारी सन्नाटा पसरा हुआ था जो चुभता था।"
+        }
+      ],
+      "visualKeywords": "moss covered stone cabin, thick evening mist, gloomy sky"
+    },
+    {
+      "id": "scene-006",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-006.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: peeling wooden door, rusted lock, dim doorway, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-006.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: peeling wooden door, rusted lock, dim doorway, featuring forest, fog, glowing magical radiance, establish scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.85,
+            "grain": 0.45,
+            "dust": 0.22,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 3.11,
+          "sfx": "sfx_whisper",
+          "volume": 0.22
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.25,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मैंने कार से अपना बैग निकाला और कुटिया के जंग लगे दरवाजे की तरफ बढ़ा। हवा में सूखे पत्तों की सरसराहट और एक अजीब सी बदबू तैर रही थी। जैसे ही मैंने दरवाजे पर हाथ रखा, वह अपने आप चरमराते हुए धीरे से खुल गया।"
+        }
+      ],
+      "visualKeywords": "peeling wooden door, rusted lock, dim doorway"
+    },
+    {
+      "id": "scene-007",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-007.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dusty interior hallway, ancient grandfather clock, shadows, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -156,10 +576,268 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-002.png",
+            "src": "images/scene-007.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dusty interior hallway, ancient grandfather clock, shadows, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_tension",
+        "volume": 0.4
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_riser",
+          "volume": 0.29
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.47,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अंदर कदम रखते ही ऐसा लगा जैसे कमरे का तापमान अचानक कई गुना गिर गया हो। सामने एक पुराना हॉल था, जहाँ दीवारों पर हमारे खानदान की धूल भरी तस्वीरें टंगी थीं, लेकिन हर तस्वीर में चेहरे खुरच कर मिटाए गए थे।"
+        }
+      ],
+      "visualKeywords": "dusty interior hallway, ancient grandfather clock, shadows"
+    },
+    {
+      "id": "scene-008",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-008.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution deep shadows, featuring corridor, flickering flame light, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-008.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution deep shadows, featuring corridor, flickering flame light, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_tension",
+        "volume": 0.4
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.29
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.48,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मैं अंदर जाकर अपना सामान रखने लगा, लेकिन पीठ के पीछे लगातार ऐसा लग रहा था कि कोई बहुत करीब खड़ा होकर मुझे देख रहा है। जब भी मैं मुड़कर देखता, सिर्फ खाली अंधेरा और धूल के उड़ते कण ही नजर आते थे।"
+        }
+      ],
+      "visualKeywords": "scratched family portraits, flickering lantern light, dark hallway"
+    },
+    {
+      "id": "scene-009",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-009.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: claw marks wooden wall, cracked floorboards, dim, featuring house, lit window warm illumination, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-009.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: claw marks wooden wall, cracked floorboards, dim, featuring house, lit window warm illumination, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_tension",
+        "volume": 0.4
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.29
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.49,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "कमरे की दीवार पर गहरे खरोंचों के निशान थे, जैसे किसी ने नाखूनों से लकड़ी को बुरी तरह कुरेदा हो। तभी मेरे फोन का सिग्नल पूरी तरह गायब हो गया और स्क्रीन पर अजीब सी गड़बड़ी होने लगी, जिससे मेरा दिल तेजी से धड़कने लगा।"
+        }
+      ],
+      "visualKeywords": "claw marks wooden wall, cracked floorboards, dim light"
+    },
+    {
+      "id": "scene-010",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-010.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: bedside candle flickering, cold vapor breath, dark, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-010.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: shadows wrapping neck, dim hallway, terrified man, featuring fog, glowing magical radiance, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: bedside candle flickering, cold vapor breath, dark, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -182,19 +860,361 @@
       },
       "soundCues": [
         {
-          "at": 7.78,
+          "at": 10.36,
           "sfx": "sfx_riser",
           "volume": 0.29
         }
       ],
       "background": {
         "type": "color",
-        "color": "#060b03"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "worried",
         "intensity": 0.5,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "रात के ठीक बारह बजे कुटिया के ठीक ऊपर वाले कमरे से भारी जूतों के चलने की आवाज आने लगी। कदम बहुत धीमे थे, जैसे कोई लंगड़ाते हुए भारी बोझ घसीट रहा हो, और वह आवाज सीधे मेरी छत के ऊपर आकर रुक गई।"
+        }
+      ],
+      "visualKeywords": "bedside candle flickering, cold vapor breath, dark window"
+    },
+    {
+      "id": "scene-011",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-011.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wooden spiral staircase, dark ceiling opening, cobwebs, featuring corridor, flickering flame light, figure, glowing magical radiance, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-011.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wooden spiral staircase, dark ceiling opening, cobwebs, featuring corridor, flickering flame light, figure, glowing magical radiance, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in",
+            "shake": 0.2
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.43
+      },
+      "soundCues": [
+        {
+          "at": 7.25,
+          "sfx": "sfx_riser",
+          "volume": 0.42
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.65,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "reach"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मैंने हिम्मत जुटाकर टॉर्च जलाई और ऊपर जाने वाली सीढ़ियों की तरफ देखा। सीढ़ियों की लकड़ी इतनी कमजोर थी कि हर कदम पर चीखती थी। फूफा जी तो सालों पहले लापता हो चुके थे, फिर उस वीरान कमरे में कौन चल रहा था?"
+        }
+      ],
+      "visualKeywords": "wooden spiral staircase, dark ceiling opening, cobwebs"
+    },
+    {
+      "id": "scene-012",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-012.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: locked wooden door, dried bloodstain, glowing keyhole, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-012.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: locked wooden door, dried bloodstain, glowing keyhole, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.4
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_whisper",
+          "volume": 0.29
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.52,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "ऊपरी मंजिल पर सिर्फ एक कमरा था, जिसके बाहर लोहे की भारी जंजीरें लिपटी हुई थीं। जंजीरों के नीचे जमीन पर एक गहरा, सूखा हुआ लाल धब्बा था, और उस बंद दरवाजे के भीतर से सड़ने जैसी भयानक दुर्गंध बाहर आ रही थी।"
+        }
+      ],
+      "visualKeywords": "locked wooden door, dried bloodstain, glowing keyhole"
+    },
+    {
+      "id": "scene-013",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-013.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: rusty lock falling, door swinging inward, dark, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-013.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: rusty lock falling, door swinging inward, dark, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in",
+            "shake": 0.21
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.44
+      },
+      "soundCues": [
+        {
+          "at": 7.25,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.42
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.67,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "reach"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "जैसे ही मैंने उस ताले को छुआ, वह बेहद ठंडा था और मेरे हाथ लगाते ही बिना चाबी के खुद-ब-खुद नीचे गिर गया। भारी दरवाजा धीरे-धीरे अंदर की तरफ खुला और कमरे के बीचों-बीच रखे एक बड़े काले बक्से पर मेरी नजर पड़ी।"
+        }
+      ],
+      "visualKeywords": "rusty lock falling, door swinging inward, dark room"
+    },
+    {
+      "id": "scene-014",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-014.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution illuminated window, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-014.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: dramatic climax finale sunset resolution illuminated window, featuring fog, glowing magical radiance, house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_tension",
+        "volume": 0.41
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_riser",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.54,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -205,15 +1225,15 @@
       "lines": [
         {
           "character": null,
-          "text": "अगली रात वही लाल बाल उसकी गर्दन के चारों तरफ लिपटा हुआ था और कमरे का पंखा बिना बिजली के ही तेज घूमने लगा।"
+          "text": "उस पुराने बक्से पर अजीबोगरीब आकृतियाँ खुदी हुई थीं और उस पर मेरे फूफा जी का नाम लिखा था। कमरे की खिड़की से आती ठंडी हवा ने मेरे रोंगटे खड़े कर दिए, क्योंकि बक्से के भीतर से किसी के बहुत धीमी साँसें लेने की आवाज आ रही थी।"
         }
       ],
-      "visualKeywords": "shadows wrapping neck, dim hallway, terrified man sweating"
+      "visualKeywords": "antique wooden chest, strange symbols carving, dust floating"
     },
     {
-      "id": "scene-003",
-      "beat": "reveal",
-      "headline": "दीवार के पार से साया",
+      "id": "scene-015",
+      "beat": "approach",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -221,10 +1241,352 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-003.png",
+            "src": "images/scene-015.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: terrifying pale face, glowing red hair, dark, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: aged handwritten diary, yellow pages, candlelight glow, featuring forest, corridor, flickering flame light, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-015.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: aged handwritten diary, yellow pages, candlelight glow, featuring forest, corridor, flickering flame light, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in",
+            "shake": 0.22
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.44
+      },
+      "soundCues": [
+        {
+          "at": 7.25,
+          "sfx": "sfx_riser",
+          "volume": 0.43
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.69,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "reach"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "बक्से के पास जमीन पर एक पुरानी डायरी खुली पड़ी थी। पन्नों पर फूफा जी की कांपती लिखावट में दर्ज था कि इस कुटिया की जमीन किसी बुरी शक्ति की कैद है, और उस शक्ति को जिंदा रहने के लिए हर पीढ़ी का खून चाहिए।"
+        }
+      ],
+      "visualKeywords": "aged handwritten diary, yellow pages, candlelight glow"
+    },
+    {
+      "id": "scene-016",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-016.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: golden desert sand dunes wind sweeping graceful, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-016.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: golden desert sand dunes wind sweeping graceful, featuring fog, glowing magical radiance, corridor, flickering flame light, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_tension",
+        "volume": 0.41
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.55,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "डायरी में लिखा था कि परिवार के लोगों ने अपनी जान बचाने के लिए फूफा जी को यहाँ अकेला छोड़ दिया था। और अब, कई सालों बाद, मैं खुद चलकर इस जाल में फँस चुका था ताकि वह सदियों पुरानी शैतानी भूख मिटाई जा सके।"
+        }
+      ],
+      "visualKeywords": "torn photograph, horrifying realization face, shadows stretching"
+    },
+    {
+      "id": "scene-017",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-017.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: running down hallway, slamming doors, dark shadows, featuring corridor, flickering flame light, forest, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-017.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: running down hallway, slamming doors, dark shadows, featuring corridor, flickering flame light, forest, approach scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.52,
+            "dust": 0.26,
+            "zoom": 0.05,
+            "drift": "in",
+            "shake": 0.23
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.44
+      },
+      "soundCues": [
+        {
+          "at": 7.25,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.43
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.72,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "reach"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "सच्चाई समझ आते ही मैं नीचे की तरफ भागा, लेकिन कुटिया का मुख्य दरवाजा अब बाहर से पूरी तरह बंद हो चुका था। खिड़कियों के शीशे इतने मजबूत थे कि पत्थर मारने पर भी उन पर एक खरोंच तक नहीं आ रही थी।"
+        }
+      ],
+      "visualKeywords": "running down hallway, slamming doors, dark shadows pursuing"
+    },
+    {
+      "id": "scene-018",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-018.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: shadow crawling on walls, flickering flashlight, trapped, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-018.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: shadow crawling on walls, flickering flashlight, trapped, featuring house, lit window warm illumination, dread scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "in",
+            "exposureFlicker": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.41
+      },
+      "soundCues": [
+        {
+          "at": 10.36,
+          "sfx": "sfx_clock_tick",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "worried",
+        "intensity": 0.57,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मेरे हाथ से टॉर्च छूटकर गिर गई और कमरे के कोनों से काली, घनी परछाइयाँ उठकर छत की तरफ रेंगने लगीं। हवा में इतनी ठंड बढ़ गई कि मेरे मुँह से धुआँ निकलने लगा और कानों में दर्जनों लोगों की फुसफुसाहट गूँजने लगी।"
+        }
+      ],
+      "visualKeywords": "shadow crawling on walls, flickering flashlight, trapped corner"
+    },
+    {
+      "id": "scene-019",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-019.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: tall grotesque silhouette, glowing hollow eyes, dark, featuring figure, glowing magical radiance, candle, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -242,10 +1604,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-003.png",
+            "src": "images/scene-019.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: terrifying pale face, glowing red hair, dark, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: tall grotesque silhouette, glowing hollow eyes, dark, featuring figure, glowing magical radiance, candle, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -264,10 +1626,349 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-003.png",
+            "src": "images/scene-019.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: terrifying pale face, glowing red hair, dark, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: tall grotesque silhouette, glowing hollow eyes, dark, featuring figure, glowing magical radiance, candle, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.6
+      },
+      "soundCues": [
+        {
+          "at": 1.04,
+          "sfx": "sfx_impact",
+          "volume": 1.0
+        },
+        {
+          "at": 12.43,
+          "sfx": "sfx_impact",
+          "volume": 0.69
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "तभी सामने के अंधेरे में से एक लंबा, सूखा हुआ साया बाहर निकला। उसका चेहरा मेरे फूफा जी जैसा था, लेकिन आँखें बिल्कुल खाली और काली थीं, और उसके चेहरे पर एक भयानक, रूह कंपा देने वाली दर्दनाक मुस्कान फैली हुई थी।"
+        }
+      ],
+      "visualKeywords": "tall grotesque silhouette, glowing hollow eyes, dark room"
+    },
+    {
+      "id": "scene-020",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-020.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: pale twisted hands, decaying skin, cold blue, featuring figure, glowing magical radiance, eyes, candle, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-020.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: pale twisted hands, decaying skin, cold blue, featuring figure, glowing magical radiance, eyes, candle, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-020.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: pale twisted hands, decaying skin, cold blue, featuring figure, glowing magical radiance, eyes, candle, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.6
+      },
+      "soundCues": [
+        {
+          "at": 1.04,
+          "sfx": "sfx_impact",
+          "volume": 1.0
+        },
+        {
+          "at": 12.43,
+          "sfx": "sfx_impact",
+          "volume": 0.69
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "उस साये ने अपना सूखा हुआ हाथ मेरी तरफ बढ़ाया और बहुत भारी आवाज में बोला, तुमने यहाँ आकर हमारा अधूरा समझौता पूरा कर दिया। उसकी उँगलियों के नाखून नुकीले थे और उसकी देह से कब्र जैसी सड़ी हुई गंध उठ रही थी।"
+        }
+      ],
+      "visualKeywords": "pale twisted hands, decaying skin, cold blue mist"
+    },
+    {
+      "id": "scene-021",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-021.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: kerosene lamp breaking, fire catching curtains, violent, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-021.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: kerosene lamp breaking, fire catching curtains, violent, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-021.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: kerosene lamp breaking, fire catching curtains, violent, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.6
+      },
+      "soundCues": [
+        {
+          "at": 1.04,
+          "sfx": "sfx_stinger",
+          "volume": 1.0
+        },
+        {
+          "at": 12.43,
+          "sfx": "sfx_boom",
+          "volume": 0.69
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मुझ पर एक अदृश्य दबाव पड़ने लगा, जिससे मेरा दम घुटने लगा। अपनी बची हुई पूरी ताकत लगाकर मैंने पास रखी केरोसिन की पुरानी लालटेन उठाई और उस साये के पैरों के पास जमीन पर पूरी ताकत से दे मारी।"
+        }
+      ],
+      "visualKeywords": "kerosene lamp breaking, fire catching curtains, violent struggle"
+    },
+    {
+      "id": "scene-022",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-022.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wooden cabin burning, screaming shadow, blazing orange, featuring figure, glowing magical radiance, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-022.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wooden cabin burning, screaming shadow, blazing orange, featuring figure, glowing magical radiance, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-022.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wooden cabin burning, screaming shadow, blazing orange, featuring figure, glowing magical radiance, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -290,26 +1991,26 @@
       },
       "soundCues": [
         {
-          "at": 0.78,
-          "sfx": "sfx_impact",
+          "at": 1.04,
+          "sfx": "sfx_stinger",
           "volume": 1.0
         },
         {
-          "at": 9.33,
-          "sfx": "sfx_impact",
+          "at": 12.43,
+          "sfx": "sfx_boom",
           "volume": 0.69
         }
       ],
       "background": {
         "type": "color",
-        "color": "#060b03"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "shock",
         "intensity": 1.0,
-        "head": "right",
-        "eyes": "right",
+        "head": "left",
+        "eyes": "left",
         "gesture": "recoil"
       },
       "padBefore": 0.0,
@@ -318,15 +2019,15 @@
       "lines": [
         {
           "character": null,
-          "text": "दीवार के कोने से लंबे लाल बालों वाली एक सफेद परछाईं रेंगते हुए बाहर निकली और उसने रोहन का मुंह कसकर दबा दिया।"
+          "text": "लालटेन टूटते ही सूखी लकड़ी के फर्श पर आग भड़क उठी। आग की लपटों ने उस साये को घेर लिया और कमरे में ऐसी चीख गूँजी जिसने मेरे कान के पर्दे हिला दिए, जैसे कोई रूह आग में तड़पकर छटपटा रही हो।"
         }
       ],
-      "visualKeywords": "terrifying pale face, glowing red hair, dark ceiling corner"
+      "visualKeywords": "wooden cabin burning, screaming shadow, blazing orange flames"
     },
     {
-      "id": "scene-004",
-      "beat": "react",
-      "headline": "अलमारी का खौफनाक राज",
+      "id": "scene-023",
+      "beat": "reveal",
+      "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
@@ -334,10 +2035,123 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-004.png",
+            "src": "images/scene-023.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: smashing wooden window, glass shards flying, escaping, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-023.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: closet door open, cold static atmosphere, locked, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: smashing wooden window, glass shards flying, escaping, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.35,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-023.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: smashing wooden window, glass shards flying, escaping, featuring candle, glowing magical radiance, figure, eyes, reveal scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.94,
+            "grain": 0.55,
+            "dust": 0.1,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.6
+      },
+      "soundCues": [
+        {
+          "at": 1.04,
+          "sfx": "sfx_stinger",
+          "volume": 1.0
+        },
+        {
+          "at": 12.43,
+          "sfx": "sfx_stinger",
+          "volume": 0.69
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आग तेजी से दीवारों पर फैलने लगी। उस साये के पीछे हटते ही मैंने दीवार पर लगा एक भारी शीशा लकड़ी के कुंदे से तोड़ा और बिना पीछे देखे, कांच के टुकड़ों को चीरते हुए बाहर कीचड़ में छलांग लगा दी।"
+        }
+      ],
+      "visualKeywords": "smashing wooden window, glass shards flying, escaping into rain"
+    },
+    {
+      "id": "scene-024",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-024.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wounded man crawling, burning cottage backdrop, muddy, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 2,
           "effects": {
@@ -355,10 +2169,182 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-004.png",
+            "src": "images/scene-024.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: closet door open, cold static atmosphere, locked, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: wounded man crawling, burning cottage backdrop, muddy, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.32
+      },
+      "soundCues": [
+        {
+          "at": 8.28,
+          "sfx": "sfx_bell",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "sad",
+        "intensity": 0.57,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "clutch"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मैं पहाड़ी ढलान पर लुढ़कता हुआ नीचे गिरा। मेरे हाथ और चेहरे पर गहरे कट लग चुके थे और खून बह रहा था, लेकिन मैंने रुकने की गलती नहीं की और उठकर अपनी कार की तरफ पागलों की तरह भागता चला गया।"
+        }
+      ],
+      "visualKeywords": "wounded man crawling, burning cottage backdrop, muddy ground"
+    },
+    {
+      "id": "scene-025",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-025.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: smoking ashes of cabin, dawn breaking, foggy, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-025.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: smoking ashes of cabin, dawn breaking, foggy, featuring candle, glowing magical radiance, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.32
+      },
+      "soundCues": [
+        {
+          "at": 8.28,
+          "sfx": "sfx_bell",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "sad",
+        "intensity": 0.58,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "clutch"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "जब मैंने कार स्टार्ट की और पीछे मुड़कर देखा, तो वह पूरी कुटिया आग के शोलों में जलकर राख हो रही थी। भोर की पहली किरण फूटने लगी थी, लेकिन उस राख के ढेर से अभी भी काला, घना धुआँ आसमान की ओर उठ रहा था।"
+        }
+      ],
+      "visualKeywords": "smoking ashes of cabin, dawn breaking, foggy mountains"
+    },
+    {
+      "id": "scene-026",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-026.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: clinical medical interior illuminated ancient stone arch, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-026.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: clinical medical interior illuminated ancient stone arch, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
           },
           "weight": 1,
           "effects": {
@@ -381,21 +2367,21 @@
       },
       "soundCues": [
         {
-          "at": 6.22,
-          "sfx": "sfx_impact",
+          "at": 8.28,
+          "sfx": "sfx_whisper",
           "volume": 0.3
         }
       ],
       "background": {
         "type": "color",
-        "color": "#060b03"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
         "emotion": "sad",
-        "intensity": 0.62,
-        "head": "left",
-        "eyes": "left",
+        "intensity": 0.59,
+        "head": "center",
+        "eyes": "center",
         "gesture": "clutch"
       },
       "padBefore": 0.0,
@@ -404,10 +2390,348 @@
       "lines": [
         {
           "character": null,
-          "text": "सुबह जब पुलिस ने कमरा खोला, तो रोहन अलमारी में बंद मिला, और उसके अपने सारे काले बाल अब पूरी तरह लाल हो चुके थे।"
+          "text": "अगले दिन जब मैं शहर के एक छोटे हॉस्पिटल में होश में आया, तो डॉक्टर ने बताया कि मुझे जंगल के किनारे स्थानीय लोगों ने बेहोश पाया था। मैंने पुलिस को कुछ नहीं बताया, क्योंकि जानता था कि कोई इस सच पर यकीन नहीं करेगा।"
         }
       ],
-      "visualKeywords": "closet door open, cold static atmosphere, locked room"
+      "visualKeywords": "hospital bed, bandaged hands, staring out window"
+    },
+    {
+      "id": "scene-027",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-027.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: sparkling stars constellations night sky cosmos dramatic, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-027.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: sparkling stars constellations night sky cosmos dramatic, featuring rain, react scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.92,
+            "grain": 0.5,
+            "dust": 0.14,
+            "zoom": 0.02,
+            "drift": "out",
+            "exposureFlicker": 0.12
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.32
+      },
+      "soundCues": [
+        {
+          "at": 8.28,
+          "sfx": "sfx_impact",
+          "volume": 0.3
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "sad",
+        "intensity": 0.6,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "clutch"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "हॉस्पिटल से लौटने के बाद मैंने परिवार के पुराने बक्से खंगाले, जहाँ दादी की एक पुरानी चिट्ठी मिली। उसमें साफ लिखा था कि कुटिया कभी लकड़ी की बनी ही नहीं थी, वह तो सिर्फ उस खौफ का एक छलावा थी जो इंसानों को खींचता था।"
+        }
+      ],
+      "visualKeywords": "old family letter, trembling fingers, distant stare"
+    },
+    {
+      "id": "scene-028",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-028.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: looking into bathroom mirror, faint scratch mark,, featuring rain, lightning storm flashes, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-028.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: looking into bathroom mirror, faint scratch mark,, featuring rain, lightning storm flashes, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 14.5,
+          "sfx": "sfx_impact",
+          "volume": 0.48
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.43,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अब मैं अपने शहर के पक्के फ्लैट में रहता हूँ, जहाँ हर तरफ लाइट और लोगों का शोर है। लेकिन कभी-कभी, जब रात के बारह बजते हैं, मुझे अपने बंद बेडरूम के फर्श से लकड़ी के चरमराने की वही पुरानी आवाज सुनाई देती है।"
+        }
+      ],
+      "visualKeywords": "looking into bathroom mirror, faint scratch mark, dark reflection"
+    },
+    {
+      "id": "scene-029",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-029.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: apartment door peephole, dark hallway, ominous silence, featuring rain, lightning storm flashes, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-029.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: apartment door peephole, dark hallway, ominous silence, featuring rain, lightning storm flashes, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_wind",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 14.5,
+          "sfx": "sfx_impact",
+          "volume": 0.48
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.43,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मैंने उस रात सिर्फ उस कुटिया को जलाया था, उस साये को नहीं। वह समझौता अब भी अधूरा है और मुझे हर पल यह डर सताता है कि मेरे परिवार का वह पुराना खौफ अब मेरे पीछे शहर तक आ चुका है।"
+        }
+      ],
+      "visualKeywords": "apartment door peephole, dark hallway, ominous silence"
+    },
+    {
+      "id": "scene-030",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-030.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: isolated path in mist, warning sign, pitch, featuring rain, lightning storm flashes, grave, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-030.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: isolated path in mist, warning sign, pitch, featuring rain, lightning storm flashes, grave, resolve scene, highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.9,
+            "grain": 0.5,
+            "dust": 0.18,
+            "zoom": 0.025,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_rain",
+        "volume": 0.31
+      },
+      "soundCues": [
+        {
+          "at": 14.5,
+          "sfx": "sfx_impact",
+          "volume": 0.48
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.44,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.55,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अगर आपके खानदान में भी किसी वीरान घर या रिश्तेदार का जिक्र करने से सब बचते हों, तो भूलकर भी वहाँ मत जाना। क्योंकि कुछ दरवाजे सिर्फ इसलिए बंद रखे जाते हैं, ताकि उनके पीछे छुपी शैतानी दुनिया बाहर न आ सके।"
+        }
+      ],
+      "visualKeywords": "isolated path in mist, warning sign, pitch black night"
     }
   ]
 }

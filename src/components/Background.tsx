@@ -11,24 +11,31 @@ const KenBurnsImage: React.FC<{
   isFirstScene?: boolean;
 }> = ({src, mode, durationInFrames, isFirstScene = false}) => {
   const frame = useCurrentFrame();
-  const p = durationInFrames <= 1 ? 0 : Math.min(1, Math.max(0, frame / (durationInFrames - 1)));
+  const rawP = durationInFrames <= 1 ? 0 : Math.min(1, Math.max(0, frame / (durationInFrames - 1)));
+  // Smooth sine easing for natural, cinematic camera movement
+  const p = Math.sin((rawP * Math.PI) / 2);
+  // Gentle entrance crossfade to prevent visual jar on scene cuts
+  const sceneFadeIn = Math.min(1, frame / 7);
 
   let scale = 1;
   let x = 0;
+  let y = 0;
   switch (mode) {
     case 'in':
-      scale = 1 + 0.18 * p;
+      scale = 1 + 0.16 * p;
+      y = -10 * p;
       break;
     case 'out':
-      scale = 1.18 - 0.18 * p;
+      scale = 1.16 - 0.14 * p;
+      y = 8 * p;
       break;
     case 'left':
-      scale = 1.18;
-      x = 45 - 90 * p;
+      scale = 1.15;
+      x = 35 - 70 * p;
       break;
     case 'right':
-      scale = 1.18;
-      x = -45 + 90 * p;
+      scale = 1.15;
+      x = -35 + 70 * p;
       break;
     case 'none':
       scale = 1.0;
@@ -36,12 +43,12 @@ const KenBurnsImage: React.FC<{
   }
 
   return (
-    <AbsoluteFill style={{overflow: 'hidden'}}>
+    <AbsoluteFill style={{overflow: 'hidden', opacity: isFirstScene ? 1 : sceneFadeIn}}>
       <Img
         src={staticFile(src)}
         style={{
           ...fill,
-          transform: `translateX(${x}px) scale(${scale})`,
+          transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,
         }}
       />
     </AbsoluteFill>
