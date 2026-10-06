@@ -54,12 +54,14 @@ load_env_file()
 
 
 STYLE_PROMPT_PREFIX = (
-    "Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, "
-    "volumetric fog, deep shadows, ominous mystery: "
+    "Cinematic horror masterpiece, hyper-realistic eerie 2D digital painting, "
+    "intense dark moody lighting, thick volumetric fog, deep unsettling shadows, "
+    "ominous mystery, high contrast, terrifying atmosphere: "
 )
 
 STYLE_PROMPT_SUFFIX = (
-    ", highly detailed background, cinematic composition, widescreen 16:9, dramatic lighting."
+    ", highly detailed background, cinematic composition, widescreen 16:9, "
+    "dramatic lighting, sharp focus, 8k resolution, masterpiece."
 )
 
 
@@ -871,70 +873,153 @@ def fetch_free_related_image(scene: dict, topic: str = "", index: int = 0, genre
 _LOCAL_DIFFUSION_PIPELINE = None
 
 
-def get_local_lcm_pipeline(model_name: str = ""):
-    """Lazily load and cache local SD 1.5 + LCM pipeline on CPU / OpenVINO."""
+def is_turbo_model(model_name: str | None) -> bool:
+    """Check if model name refers to SDXL-Turbo."""
+    if not model_name:
+        return False
+    m = model_name.lower().strip()
+    return "turbo" in m or "sdxl-turbo" in m
+
+
+def is_ssd_model(model_name: str | None) -> bool:
+    """Check if model name refers to Segmind SSD-1B."""
+    if not model_name:
+        return False
+    m = model_name.lower().strip()
+    return "ssd" in m or "ssd-1b" in m or "segmind" in m
+
+
+def is_flux_model(model_name: str | None) -> bool:
+    """Check if model name refers to FLUX model."""
+    if not model_name:
+        return False
+    m = model_name.lower().strip()
+    return "flux" in m
+
+
+def get_local_diffusion_pipeline(model_name: str = ""):
+    """Lazily load and cache local diffusion pipeline (SD 1.5 LCM, SSD-1B + LCM-LoRA, SDXL-Turbo) on CPU."""
     global _LOCAL_DIFFUSION_PIPELINE
     if _LOCAL_DIFFUSION_PIPELINE is not None:
         return _LOCAL_DIFFUSION_PIPELINE
 
     import torch
-    from diffusers import AutoPipelineForText2Image, LCMScheduler, DiffusionPipeline
+    from diffusers import (
+        AutoPipelineForText2Image,
+        DiffusionPipeline,
+        LCMScheduler,
+        StableDiffusionXLPipeline,
+    )
 
-    target = model_name or "SimianLuo/LCM_Dreamshaper_v7"
-    if target in ("lcm", "lcm-sd15", "default", "sd15", "local", "lcm-dreamshaper"):
-        target = "SimianLuo/LCM_Dreamshaper_v7"
-    elif target in ("lcm-lora", "dreamshaper-lcm", "dreamshaper"):
-        target = "Lykon/dreamshaper-7"
+    target = (model_name or "").strip()
 
-    print(f"  [Local LCM] Loading pipeline '{target}' on CPU (cached for subsequent scenes)...")
-    pipe = None
-    try:
-        # First attempt: load with automatic download or local cache
-        pipe = AutoPipelineForText2Image.from_pretrained(
-            target,
-            torch_dtype=torch.float32,
-            safety_checker=None,
-        )
-    except Exception:
+    # 1. Handle SDXL-Turbo (1-step adversarial distilled SDXL)
+    if is_turbo_model(target):
+        turbo_id = "stabilityai/sdxl-turbo"
+        print(f"  [Local SDXL-Turbo] Loading 1-step model '{turbo_id}' on CPU...")
         try:
-            # Fallback 1: load strictly from local Hugging Face cache
+            pipe = AutoPipelineForText2Image.from_pretrained(
+                turbo_id,
+                torch_dtype=torch.float32,
+                safety_checker=None,
+            )
+            _LOCAL_DIFFUSION_PIPELINE = pipe
+        except Exception as e:
+            print(f"  [Local SDXL-Turbo Notice] Failed to load SDXL-Turbo ({e}). Falling back to LCM DreamShaper...")
+            target = "SimianLuo/LCM_Dreamshaper_v7"
+
+    # 2. Handle Segmind SSD-1B with LCM-LoRA (pruned SDXL model, 50% smaller)
+    elif is_ssd_model(target):
+        ssd_id = "segmind/SSD-1B"
+        print(f"  [Local SSD-1B] Loading fast 1B model '{ssd_id}' with LCM-LoRA on CPU...")
+        try:
+            pipe = StableDiffusionXLPipeline.from_pretrained(
+                ssd_id,
+                torch_dtype=torch.float32,
+                safety_checker=None,
+            )
+            pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+            pipe.load_lora_weights("latent-consistency/lcm-lora-sdxl")
+            pipe.fuse_lora()
+            _LOCAL_DIFFUSION_PIPELINE = pipe
+        except Exception as e:
+            print(f"  [Local SSD-1B Notice] Failed to load SSD-1B ({e}). Falling back to LCM DreamShaper...")
+            target = "SimianLuo/LCM_Dreamshaper_v7"
+
+    # 3. Handle FLUX if specified
+    elif is_flux_model(target):
+        print(f"  [Local FLUX] Initializing FLUX pipeline for '{target}'...")
+        try:
+            from diffusers import Flux2KleinPipeline
+            base_model_id = "black-forest-labs/FLUX.2-klein-4B"
+            pipe = Flux2KleinPipeline.from_pretrained(
+                base_model_id,
+                torch_dtype=torch.bfloat16 if hasattr(torch, "bfloat16") else torch.float32,
+            )
+            _LOCAL_DIFFUSION_PIPELINE = pipe
+        except Exception as e:
+            print(f"  [Local FLUX] FLUX load notice ({e}). Falling back to optimized LCM / SD pipeline...")
+            target = "SimianLuo/LCM_Dreamshaper_v7"
+
+    # 3. Default / SD 1.5 LCM Pipeline
+    if _LOCAL_DIFFUSION_PIPELINE is None:
+        if not target or target in ("lcm", "lcm-sd15", "default", "sd15", "local", "lcm-dreamshaper"):
+            target = "SimianLuo/LCM_Dreamshaper_v7"
+        elif target in ("lcm-lora", "dreamshaper-lcm", "dreamshaper"):
+            target = "Lykon/dreamshaper-7"
+
+        print(f"  [Local LCM] Loading pipeline '{target}' on CPU (cached for subsequent scenes)...")
+        pipe = None
+        try:
             pipe = AutoPipelineForText2Image.from_pretrained(
                 target,
                 torch_dtype=torch.float32,
                 safety_checker=None,
-                local_files_only=True,
             )
         except Exception:
-            # Fallback 2: custom LCM pipeline
             try:
-                pipe = DiffusionPipeline.from_pretrained(
-                    target,
-                    custom_pipeline="latent_consistency_txt2img",
-                    custom_revision="main",
-                    torch_dtype=torch.float32,
-                    safety_checker=None,
-                )
-            except Exception:
-                pipe = DiffusionPipeline.from_pretrained(
+                pipe = AutoPipelineForText2Image.from_pretrained(
                     target,
                     torch_dtype=torch.float32,
                     safety_checker=None,
                     local_files_only=True,
                 )
+            except Exception:
+                try:
+                    pipe = DiffusionPipeline.from_pretrained(
+                        target,
+                        custom_pipeline="latent_consistency_txt2img",
+                        custom_revision="main",
+                        torch_dtype=torch.float32,
+                        safety_checker=None,
+                    )
+                except Exception:
+                    pipe = DiffusionPipeline.from_pretrained(
+                        target,
+                        torch_dtype=torch.float32,
+                        safety_checker=None,
+                        local_files_only=True,
+                    )
 
-    if target == "Lykon/dreamshaper-7" or "lcm-lora" in target.lower():
-        pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
-        pipe.load_lora_weights("latent-consistency/lcm-lora-sdv1-5")
-        pipe.fuse_lora()
-    elif hasattr(pipe, "scheduler") and not isinstance(pipe.scheduler, LCMScheduler):
-        pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+        if target == "Lykon/dreamshaper-7" or "lcm-lora" in target.lower():
+            pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
+            pipe.load_lora_weights("latent-consistency/lcm-lora-sdv1-5")
+            pipe.fuse_lora()
+        elif hasattr(pipe, "scheduler") and not isinstance(pipe.scheduler, LCMScheduler):
+            pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
 
-    pipe.to("cpu")
-    if hasattr(pipe, "enable_attention_slicing"):
-        pipe.enable_attention_slicing()
+        _LOCAL_DIFFUSION_PIPELINE = pipe
 
-    _LOCAL_DIFFUSION_PIPELINE = pipe
+    _LOCAL_DIFFUSION_PIPELINE.to("cpu")
+    if hasattr(_LOCAL_DIFFUSION_PIPELINE, "enable_attention_slicing"):
+        _LOCAL_DIFFUSION_PIPELINE.enable_attention_slicing()
+
     return _LOCAL_DIFFUSION_PIPELINE
+
+
+def get_local_lcm_pipeline(model_name: str = ""):
+    """Alias for backwards compatibility."""
+    return get_local_diffusion_pipeline(model_name)
 
 
 def cleanup_local_pipeline() -> None:
@@ -953,9 +1038,24 @@ def cleanup_local_pipeline() -> None:
             _LOCAL_DIFFUSION_PIPELINE = None
 
 
-def calculate_sd_dimensions(width: int, height: int) -> tuple[int, int]:
+def calculate_sd_dimensions(width: int, height: int, is_flux: bool = False) -> tuple[int, int]:
     """Calculate multiple-of-8 SD latent dimensions for an arbitrary target aspect ratio."""
     aspect = width / max(1, height)
+    if is_flux:
+        # Flux Transformer runs O(N^2) in sequence length; use fast lightweight latents for CPU
+        if aspect <= 0.6:  # 9:16 portrait / reel
+            return 384, 640
+        elif aspect <= 0.85:  # 4:5 portrait
+            return 384, 480
+        elif aspect <= 1.15:  # 1:1 square
+            return 448, 448
+        elif aspect <= 1.45:  # 4:3 classic
+            return 512, 384
+        elif aspect <= 1.95:  # 16:9 widescreen
+            return 640, 384
+        else:  # 21:9 ultrawide / cinema
+            return 704, 320
+
     if aspect <= 0.6:  # 9:16 portrait / reel
         return 432, 768
     elif aspect <= 0.85:  # 4:5 portrait
@@ -1017,28 +1117,70 @@ def generate_local_lcm(
     # In-process CPU pipeline using diffusers
     import torch
 
-    pipe = get_local_lcm_pipeline(model)
+    is_flux = is_flux_model(model)
+    is_turbo = is_turbo_model(model)
+    pipe = get_local_diffusion_pipeline(model)
     generator = None
     if seed is not None:
         generator = torch.Generator(device="cpu").manual_seed(seed)
 
-    # LCM performs best at native SD latent sizes (multiple of 8/64), upscaled to target canvas
+    # Calculate dimensions
     if sd_width and sd_height:
         sd_w, sd_h = sd_width, sd_height
     else:
-        sd_w, sd_h = calculate_sd_dimensions(width, height)
+        sd_w, sd_h = calculate_sd_dimensions(width, height, is_flux=is_flux)
 
-    inf_steps = steps if (steps and steps > 0) else 4
-    cfg = guidance_scale if guidance_scale else 1.5
+    # SDXL-Turbo requires 1 step and guidance_scale=0.0 (or <=1.0)
+    if is_turbo:
+        inf_steps = 1
+        cfg = 0.0
+    elif is_flux:
+        inf_steps = steps if (steps and steps > 0) else 3
+        cfg = 0.0
+    else:
+        inf_steps = steps if (steps and steps > 0) else 4
+        cfg = guidance_scale if guidance_scale else 1.5
 
-    result = pipe(
-        prompt=prompt,
-        width=sd_w,
-        height=sd_h,
-        num_inference_steps=inf_steps,
-        guidance_scale=cfg,
-        generator=generator,
-    )
+    try:
+        if is_flux:
+            result = pipe(
+                prompt=prompt,
+                width=sd_w,
+                height=sd_h,
+                num_inference_steps=inf_steps,
+                guidance_scale=cfg,
+                generator=generator,
+                max_sequence_length=128,
+            )
+        elif is_turbo:
+            result = pipe(
+                prompt=prompt,
+                width=sd_w,
+                height=sd_h,
+                num_inference_steps=inf_steps,
+                guidance_scale=cfg,
+                generator=generator,
+            )
+        else:
+            result = pipe(
+                prompt=prompt,
+                width=sd_w,
+                height=sd_h,
+                num_inference_steps=inf_steps,
+                guidance_scale=cfg,
+                generator=generator,
+            )
+    except Exception as e:
+        print(f"  [Local Generation Warning] {e}. Falling back to default generation...")
+        result = pipe(
+            prompt=prompt,
+            width=sd_w,
+            height=sd_h,
+            num_inference_steps=1 if is_turbo else 4,
+            guidance_scale=0.0 if is_turbo else 1.5,
+            generator=generator,
+        )
+
     img = result.images[0]
     if (img.width, img.height) != (width, height):
         img = img.resize((width, height), Image.Resampling.LANCZOS)

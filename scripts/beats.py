@@ -2789,6 +2789,7 @@ def plan(
     minutes: float = 1.0,
     *,
     seconds: float | None = None,
+    scenes: int | None = None,
     genre: str | None = None,
     theme: str | dict | None = None,
     video_format: str | None = None,
@@ -2818,10 +2819,15 @@ def plan(
 
     total_words = int(round((total_seconds / 60.0) * wpm))
 
-    # Never drop below the scene count a whole story needs, even if that makes
-    # scenes shorter than the target. A short video is a short story, not a
-    # fragment of one.
-    scene_count = max(MIN_SCENES, int(round(total_seconds / scene_seconds)))
+    # Allow explicit override of scene/image count via `scenes` parameter
+    if scenes is not None and int(scenes) > 0:
+        scene_count = max(MIN_SCENES, int(scenes))
+    else:
+        # Never drop below the scene count a whole story needs, even if that makes
+        # scenes shorter than the target. A short video is a short story, not a
+        # fragment of one.
+        scene_count = max(MIN_SCENES, int(round(total_seconds / scene_seconds)))
+
     words_per_scene = max(4, int(round(total_words / scene_count)))
 
     genre_profile = detect_genre(topic, genre)

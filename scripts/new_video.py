@@ -416,11 +416,17 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
             raw_blocks.append((current_headline, list(buffer)))
 
     for line in text.splitlines():
-        match = re.match(r"^\s*#{2,3}\s*(\d+)\s*[|:]\s*(.*)$", line)
-        if match:
+        match = re.match(r"^\s*(?:#{1,4}\s*)?(?:scene\s*)?(\d+)\s*[|:\.\-]\s*(.*)$", line, flags=re.IGNORECASE)
+        # Only treat as a scene divider if it starts with # or "scene 1:" or "1|" or "1."
+        if (
+            re.match(r"^\s*#{1,4}\s*(\d+)", line)
+            or re.match(r"^\s*scene\s*\d+\s*[|:\.\-]", line, flags=re.IGNORECASE)
+            or re.match(r"^\s*\d+\s*[|]\s*", line)
+        ):
             flush()
             buffer = []
-            current_headline = match.group(2).strip()
+            m = re.search(r"^\s*(?:#{1,4}\s*)?(?:scene\s*)?\d+\s*[|:\.\-]?\s*(.*)$", line, flags=re.IGNORECASE)
+            current_headline = m.group(1).strip() if m else ""
             continue
         if current_headline is not None:
             buffer.append(line)
@@ -692,6 +698,17 @@ def main() -> int:
         default=None,
         help="target words per minute (calculated from genre and speech speed if omitted)",
     )
+    parser.add_argument(
+        "--scenes",
+        "--scene-count",
+        "--images-count",
+        "--num-images",
+        "--images-total",
+        dest="scenes",
+        type=int,
+        default=None,
+        help="explicit number of scenes / images in the video (e.g. --scenes 4, --scenes 6, min 4)",
+    )
     parser.add_argument("--scene-seconds", type=int, default=beats.DEFAULT_SCENE_SECONDS)
     parser.add_argument("--shots", type=int, default=2, help="shots per scene")
     parser.add_argument(
@@ -733,6 +750,7 @@ def main() -> int:
         "--no-headline",
         "--hide-headline",
         "--no-title-cards",
+        "--no-title",
         "--hide-prompt",
         dest="show_headline",
         action="store_false",
@@ -1019,6 +1037,7 @@ def main() -> int:
         args.topic,
         args.minutes,
         seconds=args.seconds,
+        scenes=args.scenes,
         genre=target_genre,
         theme=selected_theme,
         video_format=args.video_format,

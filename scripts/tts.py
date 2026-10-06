@@ -62,7 +62,31 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 3
+AUDIO_PIPELINE_VERSION = 5
+
+# Emotional and narrative beat speed multipliers for natural, humanized delivery.
+# In human storytelling, setup and dread are spoken slower and more deliberately,
+# while action and climax accelerate with rising tension.
+BEAT_SPEED_MULTIPLIERS = {
+    "establish": 0.96,   # Deliberate, atmospheric opening
+    "dread": 0.92,       # Slow, tense, unsettling whisper pace
+    "inciting": 1.02,    # Hooking the listener with slight urgency
+    "approach": 1.08,    # Rising action, acceleration
+    "rising": 1.10,      # Building suspense and pace
+    "reveal": 1.18,      # Fast, urgent, climactic burst
+    "climax": 1.20,      # Peak adrenaline and shock delivery
+    "react": 0.94,       # Catching breath, sobering realization
+    "resolve": 0.95,     # Lingering, chilling conclusion
+    "button": 0.98,      # Punchy closing takeaway
+}
+
+EMOTION_SPEED_MULTIPLIERS = {
+    "calm": 0.95,
+    "worried": 0.93,
+    "shock": 1.16,
+    "sad": 0.90,
+    "neutral": 1.00,
+}
 
 # How long to hold silence after a sentence, relative to the configured base
 # pause. Gaps and pauses are restricted strictly to full stops and terminal marks
@@ -76,8 +100,8 @@ PAUSE_SCALE = {
     ".": 1.0,
     "\u0964": 1.0,  # Devanagari danda
     "\u0965": 1.2,  # Devanagari double danda
-    "!": 1.0,
-    "?": 1.0,
+    "!": 0.75, # Urgent breathless continuation after exclamations
+    "?": 1.15, # Reflective pause after questions
 }
 
 # Quotes and brackets that can follow the mark which actually ends a sentence.
@@ -1001,6 +1025,8 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("script", nargs="?", default=str(ROOT / "script.json"))
+    parser.add_argument("--dynamic-speed", dest="dynamic_speed", action="store_true", default=True, help="modulate speed dynamically based on scene emotion & beats for natural human tone")
+    parser.add_argument("--flat-speed", dest="dynamic_speed", action="store_false", help="disable emotion-based speed modulation and use strictly flat speed")
     parser.add_argument("--speed", type=float, default=None, help="speech speed multiplier (e.g. 0.8 to 1.5, default from script.json or .env)")
     parser.add_argument("--force", action="store_true", help="re-synthesise cached audio")
     parser.add_argument("--no-lipsync", action="store_true", help="skip Rhubarb mouth shapes")
@@ -1110,7 +1136,20 @@ def main() -> int:
             character = (characters.get(character_id) or {}) if character_id else {}
             line_raw_voice = line.get("voice") or character.get("voice") or scene.get("voice") or voice_default
             voice = resolve_voice(line_raw_voice)
-            line_speed = float(character.get("speed") or scene.get("speed") or speed)
+
+            # Dynamic Humanized Speed & Emotion Tone Calculation
+            base_speed = float(character.get("speed") or scene.get("speed") or speed)
+            if args.dynamic_speed:
+                beat_name = str(scene.get("beat") or scene.get("movement") or "").lower()
+                scene_emotion = str(scene.get("emotion") or (scene.get("cast") and scene["cast"][0].get("emotion")) or "").lower()
+                
+                beat_factor = BEAT_SPEED_MULTIPLIERS.get(beat_name, 1.0)
+                emotion_factor = EMOTION_SPEED_MULTIPLIERS.get(scene_emotion, 1.0)
+                
+                # Combine base multiplier with emotional inflection (bounded between 0.6x and 1.8x)
+                line_speed = round(max(0.6, min(1.8, base_speed * beat_factor * emotion_factor)), 3)
+            else:
+                line_speed = base_speed
 
             suffix = f"-{line_index + 1}" if len(scene["lines"]) > 1 else ""
             audio_path = AUDIO_DIR / f"{scene['id']}{suffix}.wav"

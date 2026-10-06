@@ -13,33 +13,25 @@ const KenBurnsImage: React.FC<{
   const frame = useCurrentFrame();
   const p = durationInFrames <= 1 ? 0 : Math.min(1, Math.max(0, frame / (durationInFrames - 1)));
 
-  // Starting hook snap zoom: snappy punch into the first frame for instantaneous viewer capture
-  const hookSnap = isFirstScene
-    ? Math.max(0, 1 - p * 4.5) * 0.08
-    : 0;
-
-  // 3-4s Pattern Interrupts: Periodic micro zoom pulse to keep short-form viewer retention past 15s
-  const patternPulse = Math.sin(p * Math.PI * 6.5) * 0.024;
-
   let scale = 1;
   let x = 0;
   switch (mode) {
     case 'in':
-      scale = 1 + 0.18 * p + hookSnap + patternPulse;
+      scale = 1 + 0.18 * p;
       break;
     case 'out':
-      scale = 1.18 - 0.18 * p + hookSnap + patternPulse;
+      scale = 1.18 - 0.18 * p;
       break;
     case 'left':
-      scale = 1.18 + hookSnap + patternPulse;
+      scale = 1.18;
       x = 45 - 90 * p;
       break;
     case 'right':
-      scale = 1.18 + hookSnap + patternPulse;
+      scale = 1.18;
       x = -45 + 90 * p;
       break;
     case 'none':
-      scale = 1.0 + hookSnap + patternPulse;
+      scale = 1.0;
       break;
   }
 
