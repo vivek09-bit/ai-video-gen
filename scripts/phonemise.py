@@ -82,6 +82,10 @@ def resolve_language(voice: str, override: str | None = None) -> str:
         primary = resolved.split(",")[0].strip()
     except Exception:
         pass
+
+    if primary.lower().startswith("cartesia") or "hindi" in primary.lower():
+        return "hi"
+
     letter = primary[:1].lower()
     return VOICE_LANGUAGE.get(letter, "en-us")
 

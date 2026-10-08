@@ -367,6 +367,106 @@ def bed_uplift() -> np.ndarray:
     return stereo(normalise(left, 0.55), normalise(right, 0.55))
 
 
+def bed_whispers() -> np.ndarray:
+    """Multilayered spectral background whispers and shadow murmurs. Horror, mystery, supernatural."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(307)
+
+    # Sub-bass dread foundation
+    sub = np.sin(2 * np.pi * 38.0 * t) * 0.35 * slow_lfo(n, 14.0, depth=0.4)
+
+    # Wandering formant voice-like whisper layers
+    raw_noise = gen.normal(0, 1, n)
+    whisper_left = np.zeros(n)
+    whisper_right = np.zeros(n)
+
+    # Formant regions (F1: 400-900 Hz, F2: 1200-2400 Hz)
+    step = int(0.2 * SR)
+    for idx in range(0, n - step, step):
+        seg_noise = raw_noise[idx : idx + step]
+        f1 = gen.uniform(450.0, 950.0)
+        f2 = gen.uniform(1300.0, 2600.0)
+        filt1 = bandpass(seg_noise, f1 * 0.75, f1 * 1.35, order=2)
+        filt2 = bandpass(seg_noise, f2 * 0.8, f2 * 1.25, order=2) * 0.6
+        vocal_grain = (filt1 + filt2) * gen.uniform(0.3, 0.9)
+
+        # Pan back and forth across stereo field
+        pan = 0.5 + 0.45 * np.sin(2 * np.pi * (idx / n) * 3.5)
+        whisper_left[idx : idx + step] += vocal_grain * pan
+        whisper_right[idx : idx + step] += vocal_grain * (1.0 - pan)
+
+    breath_envelope = (0.5 + 0.5 * np.sin(2 * np.pi * 0.18 * t) ** 2) * slow_lfo(n, 8.0, depth=0.3)
+    whisper_left *= breath_envelope
+    whisper_right *= breath_envelope
+
+    left = sub + whisper_left * 0.7
+    right = sub + whisper_right * 0.7
+    return stereo(normalise(left, 0.52), normalise(right, 0.52))
+
+
+def bed_ghost_voices() -> np.ndarray:
+    """Eerie supernatural choir and vocal drone pad. Mythology, paranormal, ghostly ruins."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(311)
+
+    # Dissonant minor / tritone chord cluster for spine-chilling vocal pad
+    # A2 (110), C3 (130.81), D#3 (155.56), E3 (164.81), A3 (220)
+    chord = [110.0, 130.81, 155.56, 164.81, 220.0]
+    choir = np.zeros(n)
+    for i, freq in enumerate(chord):
+        vibrato = 1.0 + 0.004 * np.sin(2 * np.pi * (0.2 + 0.05 * i) * t)
+        inst_f = freq * vibrato
+        # Rich vocal harmonics
+        wave = (
+            np.sin(2 * np.pi * inst_f * t) * 0.5
+            + np.sin(2 * np.pi * inst_f * 2 * t) * 0.3
+            + np.sin(2 * np.pi * inst_f * 3 * t) * 0.2
+        )
+        # Formant shaping (vowel /ah/-/oh/ resonance)
+        shaped = bandpass(wave, freq * 0.9, min(SR * 0.45, freq * 4.5), order=2)
+        choir += shaped * (0.35 / (1.0 + 0.2 * i))
+
+    spectral_air = bandpass(gen.normal(0, 1, n), 600, 3200, order=2) * 0.12 * slow_lfo(n, 12.0, depth=0.4)
+    mixed = choir * slow_lfo(n, 16.0, depth=0.3) + spectral_air
+    left = mixed
+    right = np.roll(mixed, 185) * 0.96
+    return stereo(normalise(left, 0.54), normalise(right, 0.54))
+
+
+def bed_radio_voices() -> np.ndarray:
+    """Muffled CB radio dispatch, police broadcast chatter, and static transmissions. Sci-fi, mystery, urban legends."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(317)
+
+    # 60Hz power hum + telephone frequency response (300Hz - 3400Hz)
+    hum = np.sin(2 * np.pi * 60.0 * t) * 0.15 + np.sin(2 * np.pi * 120.0 * t) * 0.08
+    raw_noise = gen.normal(0, 1, n)
+    static = bandpass(raw_noise, 350, 3200, order=2) * 0.25
+
+    # Simulated radio bursts / dispatch vocal formants
+    radio_speech = np.zeros(n)
+    burst_interval = int(4.5 * SR)
+    burst_len = int(2.2 * SR)
+    for start in range(0, n - burst_len, burst_interval):
+        end = start + burst_len
+        seg_t = np.arange(burst_len) / SR
+        # Formant chatter carrier
+        f_speech = gen.uniform(180.0, 340.0)
+        carrier = signal.sawtooth(2 * np.pi * f_speech * seg_t)
+        vocal_f = bandpass(carrier, 600, 2400, order=2)
+        mod = (0.5 + 0.5 * np.sin(2 * np.pi * gen.uniform(3.5, 8.0) * seg_t)) ** 2
+        squelch = gen.normal(0, 1, burst_len) * 0.2
+        radio_speech[start:end] += bandpass(vocal_f * mod + squelch, 400, 3000, order=2) * 0.45
+
+    mixed = hum + static + radio_speech
+    left = mixed
+    right = np.roll(mixed, 95) * 0.94
+    return stereo(normalise(left, 0.5), normalise(right, 0.5))
+
+
 # --------------------------------------------------------------------------
 # One-shot effects
 # --------------------------------------------------------------------------
@@ -861,6 +961,198 @@ def sfx_heartbeat_single() -> np.ndarray:
     return stereo(normalise(left, 0.95), normalise(right, 0.95))
 
 
+def sfx_ghost_laugh() -> np.ndarray:
+    """Eerie distant supernatural chuckle / giggle echoing in the dark."""
+    duration = 3.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(337)
+
+    # Rhythmic staccato formant pulses simulating laughing cadence (ha-ha-ha-ha)
+    laugh_track = np.zeros(n)
+    pulses = [0.15, 0.45, 0.75, 1.05, 1.38, 1.72]
+    base_pitches = [520.0, 560.0, 610.0, 580.0, 510.0, 440.0]
+
+    for p_time, f0 in zip(pulses, base_pitches):
+        start_idx = int(p_time * SR)
+        pulse_len = int(0.22 * SR)
+        if start_idx + pulse_len > n:
+            continue
+        pt = np.arange(pulse_len) / SR
+        # Formant voice tone
+        carrier = signal.sawtooth(2 * np.pi * f0 * pt)
+        formant = bandpass(carrier, f0 * 0.85, f0 * 2.6, order=2)
+        env = (np.sin(np.pi * (pt / 0.22)) ** 2) * np.exp(-pt * 6.0)
+        breath = gen.normal(0, 1, pulse_len) * 0.25 * env
+        laugh_track[start_idx : start_idx + pulse_len] += (formant * 0.75 + breath) * env
+
+    # Echo reverb tail
+    reverb_tail = bandpass(np.roll(laugh_track, int(0.28 * SR)), 400, 2400, order=2) * 0.45
+    mixed = laugh_track + reverb_tail
+    left = mixed
+    right = np.roll(mixed, 85) * 0.95
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
+def sfx_phantom_shriek() -> np.ndarray:
+    """Terrifying banshee / phantom screech cutting through the dark with resonant wail."""
+    duration = 3.0
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(349)
+
+    # Gliding pitch with chaotic vibrato
+    f_shriek = 1400.0 + 850.0 * np.sin(np.pi * (t / duration) ** 0.8) + 90.0 * np.sin(2 * np.pi * 24.0 * t)
+    carrier = signal.sawtooth(2 * np.pi * np.cumsum(f_shriek) / SR)
+    shriek_vocal = bandpass(carrier, 800, 6500, order=2)
+
+    # Harsh breath turbulence
+    noise = gen.normal(0, 1, n)
+    shriek_noise = bandpass(noise, 1500, 7000, order=2) * (0.5 + 0.5 * np.sin(2 * np.pi * 16.0 * t))
+
+    env = (np.sin(np.pi * (t / duration) ** 0.7) ** 1.8) * np.minimum(1.0, t / 0.08)
+    mixed = (shriek_vocal * 0.65 + shriek_noise * 0.45) * env
+    left = mixed
+    right = np.roll(mixed, 45) * 0.95
+    return stereo(normalise(left, 0.95), normalise(right, 0.95))
+
+
+def sfx_demonic_whisper() -> np.ndarray:
+    """Close-mic binaural demonic growled whisper right next to the listener's ear."""
+    duration = 2.6
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(353)
+
+    # Low guttural vocal cord pulse
+    f_pulse = 65.0 + 15.0 * np.sin(2 * np.pi * 4.0 * t)
+    throat_pulse = signal.sawtooth(2 * np.pi * np.cumsum(f_pulse) / SR)
+    throat_body = bandpass(throat_pulse, 90, 650, order=2)
+
+    # Close whisper rasp
+    noise = gen.normal(0, 1, n)
+    whisper_rasp = bandpass(noise, 800, 3800, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 12.0 * t))
+
+    env = (np.sin(np.pi * (t / duration)) ** 1.5) * np.minimum(1.0, t / 0.12)
+    left_sig = (throat_body * 0.55 + whisper_rasp * 0.45) * env
+    right_sig = (throat_body * 0.50 + np.roll(whisper_rasp, 70) * 0.50) * env
+    return stereo(normalise(left_sig, 0.92), normalise(right_sig, 0.92))
+
+
+def sfx_eerie_drone_swell() -> np.ndarray:
+    """Long ominous sub-harmonic atmospheric drone swell (4.5s)."""
+    duration = 4.5
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(401)
+
+    f_sub1 = 44.0 + 6.0 * np.sin(2 * np.pi * 0.3 * t)
+    f_sub2 = 55.0 + 8.0 * np.sin(2 * np.pi * 0.45 * t)
+    f_high = 220.0 + 40.0 * (t / duration) ** 2
+    drone = (
+        np.sin(2 * np.pi * np.cumsum(f_sub1) / SR) * 0.45
+        + np.sin(2 * np.pi * np.cumsum(f_sub2) / SR) * 0.35
+        + signal.sawtooth(2 * np.pi * np.cumsum(f_high) / SR) * 0.20
+    )
+    drone_f = lowpass(drone, 450, order=2)
+    noise = bandpass(gen.normal(0, 1, n), 200, 1800, order=2) * 0.25
+    env = np.sin(np.pi * (t / duration)) ** 1.6
+    mixed = (drone_f * 0.75 + noise * 0.25) * env
+    left = mixed
+    right = np.roll(mixed, 95) * 0.96
+    return stereo(normalise(left, 0.90), normalise(right, 0.90))
+
+
+def sfx_ghost_crying() -> np.ndarray:
+    """Eerie distant supernatural wailing / weeping entity vocal (4.2s)."""
+    duration = 4.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(409)
+
+    pitch_mod = 420.0 + 120.0 * np.sin(2 * np.pi * 0.85 * t) - 60.0 * (t / duration) + 18.0 * np.sin(2 * np.pi * 6.5 * t)
+    carrier = signal.sawtooth(2 * np.pi * np.cumsum(pitch_mod) / SR)
+    vocal_formant = bandpass(carrier, 350, 2400, order=2)
+    sob_envelope = 0.6 + 0.4 * (np.sin(2 * np.pi * 1.8 * t) ** 2)
+    breath = bandpass(gen.normal(0, 1, n), 800, 3200, order=2) * 0.28 * sob_envelope
+    env = (np.sin(np.pi * (t / duration)) ** 1.4) * np.minimum(1.0, t / 0.3)
+    mixed = (vocal_formant * 0.7 + breath) * env
+    left = mixed
+    right = np.roll(mixed, 120) * 0.94
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
+def sfx_creepy_music_box() -> np.ndarray:
+    """Chilling antique music box melody in a minor scale with eerie flutter (4.6s)."""
+    duration = 4.6
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(419)
+
+    notes = [
+        (0.1, 523.25),   # C5
+        (0.85, 622.25),  # Eb5
+        (1.65, 783.99),  # G5
+        (2.45, 830.61),  # Ab5
+        (3.30, 587.33),  # D5
+    ]
+    box = np.zeros(n)
+    for onset, freq in notes:
+        start_idx = int(onset * SR)
+        note_len = int(1.4 * SR)
+        if start_idx + note_len > n:
+            note_len = n - start_idx
+        nt = np.arange(note_len) / SR
+        flutter = 1.0 + 0.004 * np.sin(2 * np.pi * 5.0 * nt)
+        tine = np.sin(2 * np.pi * freq * flutter * nt) * 0.7 + np.sin(2 * np.pi * freq * 2.76 * nt) * 0.3
+        decay = np.exp(-nt * 3.2)
+        box[start_idx : start_idx + note_len] += tine * decay
+
+    tape_noise = bandpass(gen.normal(0, 1, n), 1200, 5500, order=2) * 0.08
+    env = np.minimum(1.0, (duration - t) / 0.4)
+    mixed = (box + tape_noise) * env
+    left = mixed
+    right = np.roll(mixed, 60) * 0.95
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
+def sfx_thunder_rumble() -> np.ndarray:
+    """Deep atmospheric rolling thunder rumble across the horizon (4.8s)."""
+    duration = 4.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(431)
+
+    raw_noise = gen.normal(0, 1, n)
+    sub_rumble = lowpass(raw_noise, 85, order=2)
+    mid_crack = bandpass(raw_noise, 110, 450, order=2) * np.exp(-((t - 0.8) / 0.6) ** 2) * 0.6
+    sub_sine = np.sin(2 * np.pi * (38.0 + 8.0 * np.sin(2 * np.pi * 0.4 * t)) * t) * 0.4
+    env = np.sin(np.pi * (t / duration) ** 0.6) ** 1.8
+    mixed = (sub_rumble * 0.7 + mid_crack * 0.5 + sub_sine * 0.3) * env
+    left = mixed
+    right = np.roll(mixed, 150) * 0.95
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_haunted_breathing() -> np.ndarray:
+    """Chilling entity breathing and chest vibration close to mic (4.0s)."""
+    duration = 4.0
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(439)
+
+    breath_noise = gen.normal(0, 1, n)
+    inhale_env = np.exp(-((t - 1.0) / 0.5) ** 2)
+    exhale_env = np.exp(-((t - 2.9) / 0.6) ** 2)
+    inhale_f = bandpass(breath_noise, 400, 2200, order=2) * inhale_env
+    exhale_f = bandpass(breath_noise, 250, 1600, order=2) * exhale_env * 1.2
+    chest_sub = np.sin(2 * np.pi * 55.0 * t) * (inhale_env * 0.3 + exhale_env * 0.4)
+    mixed = inhale_f + exhale_f + chest_sub
+    left = mixed
+    right = np.roll(mixed, 80) * 0.95
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
 # --------------------------------------------------------------------------
 # Textures
 # --------------------------------------------------------------------------
@@ -899,6 +1191,9 @@ BEDS = {
     "amb_warm": bed_warm,
     "amb_tension": bed_tension,
     "amb_uplift": bed_uplift,
+    "amb_whispers": bed_whispers,
+    "amb_ghost_voices": bed_ghost_voices,
+    "amb_radio_voices": bed_radio_voices,
 }
 
 EFFECTS = {
@@ -925,6 +1220,14 @@ EFFECTS = {
     "sfx_footstep_wood": sfx_footstep_wood,
     "sfx_monster_growl": sfx_monster_growl,
     "sfx_heartbeat_single": sfx_heartbeat_single,
+    "sfx_ghost_laugh": sfx_ghost_laugh,
+    "sfx_phantom_shriek": sfx_phantom_shriek,
+    "sfx_demonic_whisper": sfx_demonic_whisper,
+    "sfx_eerie_drone_swell": sfx_eerie_drone_swell,
+    "sfx_ghost_crying": sfx_ghost_crying,
+    "sfx_creepy_music_box": sfx_creepy_music_box,
+    "sfx_thunder_rumble": sfx_thunder_rumble,
+    "sfx_haunted_breathing": sfx_haunted_breathing,
 }
 
 

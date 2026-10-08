@@ -299,9 +299,9 @@ def test_image_routing() -> None:
         prov, key, model = generate_images.detect_provider("unsplash")
         assert prov == "fetch" and key == "free"
 
-        # Local SD 1.5 + LCM image routing
+        # Local SD 1.5 + LCM / SSD-1B image routing
         prov, key, model = generate_images.detect_provider("local")
-        assert prov == "local" and key == "local" and "LCM" in model
+        assert prov == "local" and key == "local" and ("LCM" in model or "SSD-1B" in model)
 
         prov, key, model = generate_images.detect_provider("lcm")
         assert prov == "local" and key == "local"
@@ -438,8 +438,8 @@ def test_audio_and_speed() -> None:
 
     # 4. Test genre default speech speeds and WPM scaling
     g_horror = beats.get_genre("horror")
-    assert g_horror.default_speed == 0.88
-    assert g_horror.default_wpm == 100
+    assert g_horror.default_speed == 1.0
+    assert g_horror.default_wpm == 110
 
     g_motivational = beats.get_genre("motivational")
     assert g_motivational.default_speed == 1.05
@@ -450,7 +450,7 @@ def test_audio_and_speed() -> None:
     assert g_fantasy.default_wpm == 115
 
     # 5. Test beats.plan integration with audio cues and ambience
-    plan_fantasy = beats.plan("ai dekho son pari", minutes=1.0, genre="fantasy")
+    plan_fantasy = beats.plan("ai dekho son pari", minutes=1.0, scenes=4, genre="fantasy")
     ambiences = [s["ambience"] for s in plan_fantasy["scenes"]]
     assert len(ambiences) == 4
     for amb in ambiences:
@@ -521,12 +521,12 @@ def test_video_formats() -> None:
 
     # 4. Test caption_options format adaptation
     captions_reel = new_video.caption_options("subtitle", True, format_profile=fmt_reel)
-    assert captions_reel["bottom"] == 0.18
-    assert captions_reel["fontSize"] == 71
+    assert captions_reel["bottom"] == 0.28
+    assert captions_reel["fontSize"] == 55
 
     captions_land = new_video.caption_options("subtitle", True, format_profile=fmt_land)
-    assert captions_land["bottom"] == 0.08
-    assert captions_land["fontSize"] == 62
+    assert captions_land["bottom"] == 0.14
+    assert captions_land["fontSize"] == 48
 
     # 5. Test SD latent dimension calculation
     assert generate_images.calculate_sd_dimensions(1080, 1920) == (432, 768)

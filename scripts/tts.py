@@ -62,7 +62,8 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 5
+AUDIO_PIPELINE_VERSION = 10
+
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
 # In human storytelling, setup and dread are spoken slower and more deliberately,
@@ -97,11 +98,11 @@ PAUSE_SCALE = {
     ":": 0.0,
     "\u2014": 0.0,
     "-": 0.0,
-    ".": 1.0,
-    "\u0964": 1.0,  # Devanagari danda
-    "\u0965": 1.2,  # Devanagari double danda
-    "!": 0.75, # Urgent breathless continuation after exclamations
-    "?": 1.15, # Reflective pause after questions
+    ".": 0.85,
+    "\u0964": 0.85,  # Devanagari danda
+    "\u0965": 1.00,  # Devanagari double danda
+    "!": 0.65, # Urgent breathless continuation after exclamations
+    "?": 0.90, # Reflective pause after questions
 }
 
 # Quotes and brackets that can follow the mark which actually ends a sentence.
@@ -111,8 +112,8 @@ TRAILING_MARKS = "\"'\u201d\u2019)]} \t\u00a0"
 # small mastering chain before it is written out.
 DEFAULT_MASTER = {
     "enabled": True,
-    "highpassHz": 75.0,
-    "presence": 0.3,
+    "highpassHz": 85.0,
+    "presence": 0.35,
     "compress": True,
     "thresholdDbfs": -24.0,
     "ratio": 3.0,
@@ -120,28 +121,211 @@ DEFAULT_MASTER = {
     "peakCeilingDbfs": -1.5,
 }
 
+# Hindi colloquial phonetic normalizations for TTS pronunciation.
+# In standard written Hindi literature, 'वह' is written for 'woh' (/voː/) but standard
+# eSpeak / Kokoro G2P reads it strictly literally as 'vah'/'wah' (/vəh/).
+# Similarly 'यह' is read as 'yah' instead of natural 'ye' (/jeː/).
+# Normalizing these spoken homophones prior to synthesis gives natural, authentic pronunciation.
+HINDI_0_TO_99 = [
+    "शून्य", "एक", "दो", "तीन", "चार", "पांच", "छह", "सात", "आठ", "नौ",
+    "दस", "ग्यारह", "बारह", "तेरह", "चौदह", "पंद्रह", "सोलह", "सत्रह", "अठारह", "उन्नीस",
+    "बीस", "इक्कीस", "बाईस", "तेईस", "चौबीस", "पच्चीस", "छब्बीस", "सत्ताईस", "अट्ठाईस", "उनतीस",
+    "तीस", "इकत्तीस", "बत्तीस", "तैंतीस", "चौंतीस", "पैंतीस", "छत्तीस", "सैंतीस", "अड़तीस", "उनतालीस",
+    "चालीस", "इकतालीस", "बयालीस", "तैंतालीस", "चवालीस", "पैंतालीस", "छियालीस", "सैंतालीस", "अड़तालीस", "उनचास",
+    "पचास", "इक्यावन", "बावन", "तिरपन", "चौवन", "पचपन", "छप्पन", "सत्तावन", "अट्ठावन", "उनसठ",
+    "साठ", "इकसठ", "बासठ", "तिरसठ", "चौंसठ", "पैंसठ", "छियासठ", "सरसठ", "अड़सठ", "उनहत्तर",
+    "सत्तर", "इकहत्तर", "बहत्तर", "तिहत्तर", "चौहत्तर", "पचहत्तर", "छिहत्तर", "सतहत्तर", "अठहत्तर", "उनासी",
+    "अस्सी", "इक्यासी", "बयासी", "तिरासी", "चौरासी", "पचासी", "छियासी", "सत्तासी", "अट्ठासी", "नवासी",
+    "नब्बे", "इक्यानवे", "बानवे", "तिरानवे", "चौरानवे", "पचानवे", "छियानवे", "सत्तानवे", "अट्ठानवे", "निन्यानवे",
+]
+
+DEVA_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
+
+
+def num_to_hindi(n: int) -> str:
+    """Convert integer to natural conversational Hindi words."""
+    if n < 0:
+        return "माइनस " + num_to_hindi(-n)
+    if n < 100:
+        return HINDI_0_TO_99[n]
+    if 100 <= n < 1000:
+        hundreds = n // 100
+        rem = n % 100
+        res = HINDI_0_TO_99[hundreds] + " सौ"
+        if rem > 0:
+            res += " " + num_to_hindi(rem)
+        return res
+    if 1000 <= n < 100000:
+        thousands = n // 1000
+        rem = n % 1000
+        res = num_to_hindi(thousands) + " हज़ार"
+        if rem > 0:
+            res += " " + num_to_hindi(rem)
+        return res
+    if 100000 <= n < 10000000:
+        lakhs = n // 100000
+        rem = n % 100000
+        res = num_to_hindi(lakhs) + " लाख"
+        if rem > 0:
+            res += " " + num_to_hindi(rem)
+        return res
+    crores = n // 10000000
+    rem = n % 10000000
+    res = num_to_hindi(crores) + " करोड़"
+    if rem > 0:
+        res += " " + num_to_hindi(rem)
+    return res
+
+
+def expand_hindi_numbers(text: str) -> str:
+    """Replace all Arabic and Devanagari digits with spoken Hindi Devanagari words."""
+    text = text.translate(DEVA_DIGITS)
+
+    def repl(m: re.Match) -> str:
+        try:
+            return num_to_hindi(int(m.group(0)))
+        except Exception:
+            return m.group(0)
+
+    return re.sub(r"(?<![0-9])[0-9]+(?![0-9])", repl, text)
+
+
+def _deva_word_regex(word: str) -> str:
+    # Python \b doesn't treat Unicode combining vowel signs (matras) as \w.
+    # We use Devanagari Unicode block [0900-097F] lookarounds for exact word boundaries.
+    return rf"(?<![ऀ-ॿ]){re.escape(word)}(?![ऀ-ॿ])"
+
+
+HINDI_PHONETIC_PAIRS = [
+    ("वह", "वो"),
+    ("यह", "ये"),
+    ("वही", "वोही"),
+    ("यही", "येही"),
+    ("वे", "वो"),
+    ("इन्हें", "इन्हे"),
+    ("उन्हें", "उन्हे"),
+    ("जिन्हें", "जिन्हे"),
+    ("किन्हें", "किन्हे"),
+    ("क्योंकि", "क्युंकी"),
+    ("बहुत", "बोहत"),
+    ("पहला", "पेहला"),
+    ("पहली", "पेहली"),
+    ("पहले", "पेहले"),
+    ("रहता", "रेहता"),
+    ("रहती", "रेहती"),
+    ("रहते", "रेहते"),
+    ("कहना", "केहना"),
+    ("कहता", "केहता"),
+    ("कहती", "केहती"),
+    ("कहते", "केहते"),
+    ("शहर", "शेहर"),
+    ("जहर", "ज़ेहर"),
+]
+
+HINDI_PHONETIC_REPLACEMENTS = [
+    (_deva_word_regex(src), dst) for src, dst in HINDI_PHONETIC_PAIRS
+]
+
+# Common English loanwords frequently found in Hindi/Hinglish scripts that should be
+# written in Devanagari so Kokoro's Hindi G2P phonemises them with authentic native pronunciation.
+LATIN_LOANWORDS_TO_DEVA: dict[str, str] = {
+    "station": "स्टेशन",
+    "train": "ट्रेन",
+    "room": "रूम",
+    "hotel": "होटल",
+    "hospital": "हॉस्पिटल",
+    "doctor": "डॉक्टर",
+    "phone": "फ़ोन",
+    "call": "कॉल",
+    "video": "वीडियो",
+    "camera": "कैमरा",
+    "screen": "स्क्रीन",
+    "police": "पुलिस",
+    "secret": "सीक्रेट",
+    "forest": "फॉरेस्ट",
+    "mirror": "मिरर",
+    "shadow": "शैडो",
+    "tunnel": "टनल",
+    "track": "ट्रैक",
+    "light": "लाइट",
+    "sound": "साउंड",
+    "voice": "वॉइस",
+    "door": "डोर",
+    "signal": "सिग्नल",
+    "message": "मैसेज",
+    "story": "स्टोरी",
+    "scam": "स्कैम",
+    "hacker": "हैकर",
+    "hack": "हैक",
+    "password": "पासवर्ड",
+    "computer": "कंप्यूटर",
+    "laptop": "लैपटॉप",
+    "internet": "इंटरनेट",
+    "link": "लिंक",
+    "app": "ऐप",
+    "online": "ऑनलाइन",
+    "offline": "ऑफलाइन",
+    "game": "गेम",
+    "level": "लेवल",
+    "alert": "अलर्ट",
+    "viral": "वायरल",
+    "box": "बॉक्स",
+    "floor": "फ़्लोर",
+    "entry": "एंट्री",
+    "exit": "एग्जिट",
+    "radio": "रेडियो",
+    "car": "कार",
+    "bus": "बस",
+    "road": "रोड",
+    "drive": "ड्राइव",
+    "driver": "ड्राइवर",
+    "night": "नाईट",
+    "house": "हाउस",
+    "lock": "लॉक",
+}
+
+
+def normalize_hindi_phonetics(text: str) -> str:
+    """Pre-normalize Hindi literary spellings, digits, and English loanwords to authentic spoken Devanagari."""
+    has_deva = is_devanagari(text)
+    has_digits = any(d in text for d in "0123456789०१२३४५६७८९")
+    has_loanwords = any(re.search(rf"\b{re.escape(w)}\b", text, re.IGNORECASE) for w in LATIN_LOANWORDS_TO_DEVA)
+
+    if not (has_deva or has_digits or has_loanwords):
+        return text
+
+    normalized = expand_hindi_numbers(text)
+
+    # Convert Latin loanwords to Devanagari so Kokoro G2P produces native Hindi phonemes
+    for eng, deva in LATIN_LOANWORDS_TO_DEVA.items():
+        normalized = re.sub(rf"\b{re.escape(eng)}\b", deva, normalized, flags=re.IGNORECASE)
+
+    for pattern, replacement in HINDI_PHONETIC_REPLACEMENTS:
+        normalized = re.sub(pattern, replacement, normalized)
+    return normalized
+
 # Kokoro voice catalog across Hindi, English (US/UK), Japanese, Chinese, Spanish, French, Italian, Portuguese.
 VOICE_CATALOG: dict[str, dict] = {
     # Hindi (hi)
     "hm_omega": {
-        "id": "hm_omega", "name": "Aarav", "lang": "hi", "lang_name": "Hindi", "gender": "male",
-        "style": "Deep, resonant & authoritative (ideal for horror, mythology, epics)",
-        "aliases": ["hindi_male", "hindi_male_deep", "omega", "hindi_deep", "hindi_horror"],
+        "id": "hm_omega", "name": "Aarav", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "male",
+        "style": "Deep, resonant & authoritative (ideal for horror, mythology, epics, IndicF5 Hinglish style)",
+        "aliases": ["hindi_male", "hindi_male_deep", "omega", "hindi_deep", "hindi_horror", "indicf5_male", "indicf5", "indic_f5", "indic_male"],
     },
     "hm_psi": {
-        "id": "hm_psi", "name": "Kabir", "lang": "hi", "lang_name": "Hindi", "gender": "male",
-        "style": "Calm, natural & conversational (ideal for scifi, documentary, explainer)",
-        "aliases": ["hindi_male_calm", "psi", "hindi_calm", "hindi_doc"],
+        "id": "hm_psi", "name": "Kabir", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "male",
+        "style": "Calm, natural & conversational (ideal for scifi, documentary, explainer, IndicF5 Hinglish style)",
+        "aliases": ["hindi_male_calm", "psi", "hindi_calm", "hindi_doc", "indic_calm", "indic_explainer"],
     },
     "hf_alpha": {
-        "id": "hf_alpha", "name": "Priya", "lang": "hi", "lang_name": "Hindi", "gender": "female",
-        "style": "Warm, expressive & engaging (ideal for fantasy, drama, storytelling)",
-        "aliases": ["hindi_female", "hindi_female_warm", "alpha", "hindi_warm", "hindi_fantasy"],
+        "id": "hf_alpha", "name": "Priya", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "female",
+        "style": "Warm, expressive & engaging (ideal for fantasy, drama, storytelling, IndicF5 Hinglish female)",
+        "aliases": ["hindi_female", "hindi_female_warm", "alpha", "hindi_warm", "hindi_fantasy", "indicf5_female", "indic_female"],
     },
     "hf_beta": {
-        "id": "hf_beta", "name": "Ananya", "lang": "hi", "lang_name": "Hindi", "gender": "female",
-        "style": "Soft, cheerful & pleasant (ideal for comedy, slice of life, children)",
-        "aliases": ["hindi_female_soft", "beta", "hindi_soft", "hindi_comedy"],
+        "id": "hf_beta", "name": "Ananya", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "female",
+        "style": "Soft, cheerful & pleasant (ideal for comedy, slice of life, children, IndicF5 modern voice)",
+        "aliases": ["hindi_female_soft", "beta", "hindi_soft", "hindi_comedy", "indic_soft"],
     },
     # American English (en-us)
     "af_heart": {
@@ -398,11 +582,273 @@ VOICE_CATALOG: dict[str, dict] = {
     },
 }
 
+# --------------------------------------------------------------------------
+# Cartesia Sonic Multilingual Neural TTS Voices & Integration
+# --------------------------------------------------------------------------
+
+CARTESIA_VOICES: dict[str, dict] = {
+    "cartesia:hindi_male": {
+        "id": "20e68f5c-08e5-42d0-8e9b-6e716fd1ae66",
+        "name": "Vivek",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Deep, grounded & eerie (low-pitch horror / dark mystery narration)",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "cartesia_male",
+            "cartesia_hindi_male",
+            "cartesia:horror",
+            "cartesia_horror",
+            "cartesia:vivek",
+            "cartesia_vivek",
+            "cartesia",
+        ],
+    },
+    "cartesia:storyteller": {
+        "id": "7e8cb11d-37af-476b-ab8f-25da99b18644",
+        "name": "Anuj",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Engaging, emotional & suspenseful (storytelling / thrillers)",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "cartesia_storyteller",
+            "cartesia:anuj",
+            "cartesia_anuj",
+            "cartesia:expressive",
+            "cartesia_expressive",
+        ],
+    },
+    "cartesia:actor": {
+        "id": "bdab08ad-4137-4548-b9db-6142854c7525",
+        "name": "Imran",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Intense Bollywood actor style for dramatic, serious and shocking moments",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "cartesia_actor",
+            "cartesia_cinema",
+            "cartesia:imran",
+            "cartesia_imran",
+        ],
+    },
+    "cartesia:announcer": {
+        "id": "be79f378-47fe-4f9c-b92b-f02cefa62ccf",
+        "name": "Sunil",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Deep authoritative official announcer (crime / investigative)",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "cartesia_announcer",
+            "cartesia:sunil",
+            "cartesia_sunil",
+            "cartesia:deep",
+            "cartesia_deep",
+        ],
+    },
+    "cartesia:host": {
+        "id": "910fb75e-1d20-4840-ac63-ac6b26a71bdc",
+        "name": "Dev",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Warm, genuine conversational Hindi male (explainers / daily podcasts)",
+        "fallback_kokoro": "hm_psi",
+        "aliases": [
+            "cartesia_host",
+            "cartesia:dev",
+            "cartesia_dev",
+            "cartesia:karan",
+            "cartesia_karan",
+            "cartesia:calm",
+            "cartesia_calm",
+            "cartesia:hindi_calm",
+        ],
+    },
+    "cartesia:hindi_female": {
+        "id": "4459a9a5-69d6-4680-b970-e13dc51845b6",
+        "name": "Siya",
+        "lang": "hi",
+        "gender": "female",
+        "style": "Heartfelt, captivating & expressive female narrative voice",
+        "fallback_kokoro": "hf_alpha",
+        "aliases": [
+            "cartesia_female",
+            "cartesia_hindi_female",
+            "cartesia:siya",
+            "cartesia_siya",
+            "cartesia:pooja",
+            "cartesia_pooja",
+        ],
+    },
+    "cartesia:calm_female": {
+        "id": "209d9a43-03eb-40d8-a7b7-51a6d54c052f",
+        "name": "Anita",
+        "lang": "hi",
+        "gender": "female",
+        "style": "Soft-spoken, calming & gentle adult female (ghost whisper / meditation)",
+        "fallback_kokoro": "hf_beta",
+        "aliases": [
+            "cartesia_calm_female",
+            "cartesia:anita",
+            "cartesia_anita",
+            "cartesia:soft",
+            "cartesia_soft",
+            "cartesia:hindi_soft",
+        ],
+    },
+    "cartesia:hinglish": {
+        "id": "95d51f79-c397-46f9-b49a-23763d3eaa2d",
+        "name": "Arushi",
+        "lang": "hi",
+        "gender": "female",
+        "style": "Modern urban Hinglish female (viral reels / tech / youth content)",
+        "fallback_kokoro": "hf_beta",
+        "aliases": [
+            "cartesia_hinglish",
+            "cartesia:arushi",
+            "cartesia_arushi",
+            "cartesia:viral",
+            "cartesia_viral",
+            "cartesia:ananya",
+            "cartesia_ananya",
+        ],
+    },
+    "cartesia:horror_narrator": {
+        "id": "20e68f5c-08e5-42d0-8e9b-6e716fd1ae66",
+        "name": "Vivek",
+        "lang": "hi",
+        "gender": "male",
+        "style": "Eerie, dark & suspenseful (dark folklore / ghosts)",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "cartesia_horror_narrator",
+            "cartesia:whisper",
+            "cartesia_whisper",
+            "cartesia:eerie",
+            "cartesia_eerie",
+            "cartesia:shadow",
+            "cartesia_shadow",
+        ],
+    },
+}
+
+_CARTESIA_WARNED = False
+
+
+def synthesize_cartesia(
+    text: str,
+    voice_key_or_id: str,
+    speed: float = 1.0,
+    language: str = "hi",
+    fallback_voice: str = "hf_beta",
+) -> np.ndarray | None:
+    """Synthesise text via Cartesia Sonic REST API with automatic Kokoro fallback."""
+    global _CARTESIA_WARNED
+    import os
+    import json
+    import urllib.request
+    import urllib.error
+    import numpy as np
+
+    api_key = os.getenv("CARTESIA_API_KEY", "").strip()
+    if not api_key:
+        if not _CARTESIA_WARNED:
+            print(
+                f"[Cartesia TTS Notice] 'CARTESIA_API_KEY' not set in environment. "
+                f"Automatically using local Kokoro-82M ({fallback_voice}).",
+                file=sys.stderr,
+            )
+            _CARTESIA_WARNED = True
+        return None
+
+    # Resolve Cartesia voice ID
+    voice_id = voice_key_or_id
+    if voice_key_or_id in CARTESIA_VOICES:
+        voice_id = CARTESIA_VOICES[voice_key_or_id]["id"]
+    else:
+        for ckey, cinfo in CARTESIA_VOICES.items():
+            if voice_key_or_id.lower() == ckey.lower() or voice_key_or_id.lower() in [
+                a.lower() for a in cinfo.get("aliases", [])
+            ]:
+                voice_id = cinfo["id"]
+                break
+
+    url = "https://api.cartesia.ai/tts/bytes"
+    payload = {
+        "model_id": "sonic-preview",
+        "transcript": text,
+        "voice": {
+            "mode": "id",
+            "id": voice_id,
+        },
+        "output_format": {
+            "container": "raw",
+            "encoding": "pcm_s16le",
+            "sample_rate": 24000,
+        },
+        "language": language,
+    }
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Cartesia-Version": "2024-06-10",
+            "X-API-Key": api_key,
+            "Content-Type": "application/json",
+            "User-Agent": "Tube2DScript/1.0",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            raw_bytes = resp.read()
+            if not raw_bytes:
+                return None
+            pcm_int16 = np.frombuffer(raw_bytes, dtype=np.int16)
+            return (pcm_int16.astype(np.float32) / 32768.0)
+    except urllib.error.HTTPError as e:
+        if not _CARTESIA_WARNED:
+            reason = (
+                "Expired/Invalid API Token (401)"
+                if e.code == 401
+                else "Account Balance / Credits Depleted (402)"
+                if e.code == 402
+                else "Rate limit reached (429)"
+                if e.code == 429
+                else f"HTTP {e.code}"
+            )
+            print(
+                f"[Cartesia TTS Notice] Cartesia API unavailable ({reason}). "
+                f"Automatically falling back to local Kokoro-82M ({fallback_voice})...",
+                file=sys.stderr,
+            )
+            _CARTESIA_WARNED = True
+        return None
+    except Exception as e:
+        if not _CARTESIA_WARNED:
+            print(
+                f"[Cartesia TTS Notice] Cartesia request failed ({e}). "
+                f"Automatically falling back to local Kokoro-82M ({fallback_voice})...",
+                file=sys.stderr,
+            )
+            _CARTESIA_WARNED = True
+        return None
+
+
 VOICE_ALIASES: dict[str, str] = {}
 for vid, vinfo in VOICE_CATALOG.items():
     VOICE_ALIASES[vid.lower()] = vid
     for alias in vinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = vid
+
+for cvid, cvinfo in CARTESIA_VOICES.items():
+    VOICE_ALIASES[cvid.lower()] = cvid
+    for alias in cvinfo.get("aliases", []):
+        VOICE_ALIASES[alias.lower().replace("-", "_")] = cvid
 
 # Backwards compatibility map
 EN_VOICES = {
@@ -410,6 +856,58 @@ EN_VOICES = {
     for vid, vinfo in VOICE_CATALOG.items()
     if vinfo["lang"].startswith("en")
 }
+
+# Atmospheric & background character voice presets (blends of Kokoro neural embeddings)
+# Hindi presets use 100% pure native Hindi embeddings to eliminate American/English acoustic accent drift.
+BACKGROUND_VOICE_PRESETS: dict[str, str] = {
+    # Top Hindi Narration & Storytelling Presets (100% Native Accent)
+    "hindi_cinematic": "hm_omega",
+    "hindi_cinematic_male": "hm_omega",
+    "hindi_documentary": "hm_psi",
+    "hindi_doc_male": "hm_psi",
+    "hindi_dynamic": "hm_omega",
+    "hindi_motivational": "hm_omega",
+    "hindi_smooth": "hm_omega,hm_psi",
+    "hindi_story": "hm_omega,hm_psi",
+    "hindi_storyteller": "hf_alpha",
+    "hindi_female_story": "hf_alpha",
+    "hindi_viral": "hf_beta",
+    "hindi_female_bright": "hf_beta",
+    "hindi_female_doc": "hf_alpha,hf_beta",
+    "hindi_soft_whisper": "hf_beta",
+    # Horror / Paranormal / Spectral (Native Indian Textures)
+    "ghost_whisper": "hf_alpha,hf_beta",
+    "spectral_whisper": "hf_beta",
+    "demon_voice": "hm_omega",
+    "demon_bass": "hm_omega",
+    "asura_voice": "hm_omega",
+    "creepy_witch": "hf_alpha",
+    "witch_voice": "hf_alpha",
+    "chudail_voice": "hf_alpha",
+    "ancient_spirit": "hm_omega,hm_psi",
+    "aatma_voice": "hm_omega,hm_psi",
+    "spectral_child": "hf_beta",
+    "child_ghost": "hf_beta",
+    "bhootia_bachha": "hf_beta",
+    "eerie_narrator": "hm_omega",
+    "horror_narrator": "hm_omega",
+    "shadow_entity": "hm_omega,hm_psi",
+    "chhaya_voice": "hm_omega,hm_psi",
+    "mystic_oracle": "hm_omega",
+    "tantrik_voice": "hm_omega",
+    # Broadcast / Radio / Sci-Fi / Documentary
+    "radio_dispatch": "bm_george,am_echo",
+    "police_radio": "bm_george,am_echo",
+    "cctv_voice": "bm_george,am_echo",
+    "news_reporter": "hm_psi",
+    "anchor_voice": "hm_psi",
+    "ai_system": "af_alloy,af_sarah",
+    "cyber_voice": "af_alloy,am_echo",
+    "ancient_guru": "hm_omega",
+}
+
+for preset_name, preset_target in BACKGROUND_VOICE_PRESETS.items():
+    VOICE_ALIASES[preset_name.lower()] = preset_target
 
 
 def resolve_voice(
@@ -449,8 +947,9 @@ def resolve_voice(
     if voice_input.strip().lower() == "hm_beta":
         return "hf_beta"
 
-    # Replace '+' with ',' for blend syntax
-    normalized = voice_input.replace("+", ",")
+    # Normalize blend keywords like 'blend', '_blend_', '+', etc.
+    raw_clean = voice_input.replace("_blend_", "+").replace("blend", "+").replace("+", ",")
+    normalized = raw_clean.replace("hm_iomega", "hm_omega").replace("iomega", "omega")
     parts = [p.strip() for p in normalized.split(",") if p.strip()]
 
     resolved_parts = []
@@ -494,9 +993,20 @@ def format_voices_table() -> str:
 
     lines = [
         "=" * 74,
+        "CARTESIA SONIC HINDI VOICES (Ultra-Realistic Neural Cloud TTS)",
+        "=" * 74,
+        "  * Uses CARTESIA_API_KEY if present; auto falls back to local Kokoro if expired/unpaid.",
+    ]
+    for ckey, cinfo in CARTESIA_VOICES.items():
+        aliases_str = f" [Aliases: {', '.join(cinfo['aliases'])}]" if cinfo.get("aliases") else ""
+        lines.append(f"  {ckey:<24} : {cinfo['name']:<15} | {cinfo['gender']:<6} | {cinfo['style']}")
+        lines.append(f"                           Fallback: {cinfo['fallback_kokoro']}{aliases_str}")
+
+    lines.extend([
+        "\n" + "=" * 74,
         "KOKORO-82M VOICE CATALOG (Local Neural TTS, Zero API Cost)",
         "=" * 74,
-    ]
+    ])
     for grp_name, vlist in groups.items():
         lines.append(f"\n--- {grp_name} ---")
         for v in vlist:
@@ -529,6 +1039,37 @@ def format_voices_table() -> str:
     ])
     return "\n".join(lines)
 
+def generate_voice_samples() -> int:
+    """Synthesise and export short preview audio samples for all Hindi/Hinglish voices."""
+    import soundfile as sf
+
+    samples_dir = PUBLIC / "audio" / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+
+    engine = Voice()
+    sample_text = "नमस्ते, यह इंडिक एफ-फाइव और कोकोरो हिंदी हिंग्लिश आवाज़ का ऑडियो सैंपल है।"
+
+    hindi_voices = [
+        ("indicf5_male", "hm_omega", "Aarav (Deep / Horror / Epic)"),
+        ("indicf5_calm", "hm_psi", "Kabir (Calm / Documentary / Explainer)"),
+        ("indicf5_female", "hf_alpha", "Priya (Warm / Storytelling / Drama)"),
+        ("indicf5_soft", "hf_beta", "Ananya (Soft / Cheerful / Casual)"),
+    ]
+
+    print("=" * 70)
+    print("GENERATING HINDI / HINGLISH VOICE SAMPLES (IndicF5 Style)")
+    print("=" * 70)
+    for alias, vid, desc in hindi_voices:
+        out_file = samples_dir / f"{alias}.wav"
+        print(f"  Generating sample for {alias} ({desc})...")
+        audio, _words = synthesise_line(engine, sample_text, vid, speed=1.0, pause=0.28, master=DEFAULT_MASTER)
+        sf.write(str(out_file), audio, SAMPLE_RATE, subtype="PCM_16")
+        print(f"    -> Saved: {out_file.relative_to(ROOT)}")
+
+    print("\nAll audio samples generated successfully in 'public/audio/samples/'.")
+    return 0
+
+
 # Rhubarb's Hanna-Barbera mouth shape set.
 MOUTH_SHAPES = {"A", "B", "C", "D", "E", "F", "G", "H", "X"}
 
@@ -540,7 +1081,7 @@ DEFAULT_SCRIPT = {
     "width": 1920,
     "height": 1080,
     "tailPaddingSeconds": 1.2,
-    "sentencePauseSeconds": 0.28,
+    "sentencePauseSeconds": 0.12,
     "master": DEFAULT_MASTER,
     "captions": {
         "enabled": True,
@@ -579,7 +1120,7 @@ DEFAULT_SCENE = {
     # One-shot effects at story beats: {"at": 12.5, "sfx": "sfx_stinger"}.
     "soundCues": [],
     "padBefore": 0.0,
-    "padAfter": 0.55,
+    "padAfter": 0.15,
     "holdSeconds": 3.0,
 }
 
@@ -684,19 +1225,57 @@ class Voice:
         The Kokoro language code is the first letter of the primary voice id, so the
         same call handles English, Hindi, blends (e.g. 'af_heart,af_bella'), and aliases.
         Minor internal punctuation like commas, semicolons, and dashes is cleaned to prevent
-        unnatural mid-sentence audio pauses.
+        unnatural mid-sentence audio pauses. Hindi text is normalized for natural conversational pronunciation.
         """
         import numpy as np
 
-        # Strip internal pauses caused by minor punctuation (commas, colons, semicolons, em-dashes)
-        clean_text = re.sub(r"[,;:—–\-]+", " ", text)
+        # Strip internal pauses caused by minor punctuation (commas, colons, semicolons, em-dashes, quotes, ellipses)
+        clean_text = re.sub(r"[,;:—–\-\"'\(\)\[\]\{\}…]+", " ", text)
         clean_text = " ".join(clean_text.split())
         if not clean_text:
             clean_text = text
 
+        # Conversational Hindi phonetic normalization (e.g. 'वह' -> 'वो', 'यह' -> 'ये', numbers to Hindi)
+        clean_text = normalize_hindi_phonetics(clean_text)
+
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
+
+        # Check if voice is Cartesia Sonic (with zero-crash Kokoro fallback)
+        is_cartesia = primary.lower().startswith("cartesia")
+        cartesia_info = None
+        if is_cartesia:
+            cartesia_info = CARTESIA_VOICES.get(primary.lower())
+            if not cartesia_info:
+                for ckey, cinfo in CARTESIA_VOICES.items():
+                    if primary.lower() == ckey.lower() or primary.lower() in [
+                        a.lower() for a in cinfo.get("aliases", [])
+                    ]:
+                        cartesia_info = cinfo
+                        break
+
+            fallback = cartesia_info["fallback_kokoro"] if cartesia_info else "hf_beta"
+            lang = cartesia_info.get("lang", "hi") if cartesia_info else "hi"
+            cartesia_audio = synthesize_cartesia(
+                clean_text,
+                primary,
+                speed=speed,
+                language=lang,
+                fallback_voice=fallback,
+            )
+            if cartesia_audio is not None and len(cartesia_audio) > 0:
+                return cartesia_audio
+
+            # Fallback to local Kokoro neural voice
+            resolved_voice = fallback
+            primary = resolved_voice.split(",")[0].strip()
+
         lang_code = primary[:1].lower() or "a"
+
+        # If text is Devanagari Hindi, guarantee lang_code is 'h' for native Hindi phonemization
+        if is_devanagari(clean_text) or any(v.startswith("h") for v in resolved_voice.split(",")):
+            lang_code = "h"
+
         chunks = [
             np.asarray(audio, dtype=np.float32)
             for _g, _p, audio in self._pipeline(lang_code)(clean_text, voice=resolved_voice, speed=speed)
@@ -736,6 +1315,36 @@ def apply_fades(audio, seconds: float = 0.008):
     out[:length] *= ramp
     out[-length:] *= ramp[::-1]
     return out
+
+
+def trim_edge_silence(audio, threshold: float = 1e-4, padding: float = 0.01):
+    """Remove Kokoro vocoder boundary padding at a segment's edges, retaining a 10ms micro-breath.
+
+    Kokoro neural vocoder can emit boundary silence before and after a spoken segment.
+    Trimming it cleanly down to a 10ms boundary ensures pauses between sentences are
+    strictly governed by the narrative prosody parameters rather than accumulated vocoder padding.
+    """
+    import numpy as np
+
+    if len(audio) == 0:
+        return audio
+
+    frame = max(1, int(SAMPLE_RATE * 0.01))
+    frame_count = (len(audio) + frame - 1) // frame
+    padded = np.pad(audio, (0, frame_count * frame - len(audio)))
+    levels = np.sqrt(np.mean(padded.reshape(frame_count, frame) ** 2, axis=1))
+    active = np.flatnonzero(levels > threshold)
+    if not len(active):
+        return audio
+
+    padding_samples = int(padding * SAMPLE_RATE)
+    first, last = int(active[0]), int(active[-1])
+    start = max(0, first * frame - padding_samples)
+    end = min(len(audio), (last + 1) * frame + padding_samples)
+
+    if start >= end:
+        return audio
+    return np.ascontiguousarray(audio[start:end])
 
 
 def compress_segments(audio, threshold_dbfs: float, ratio: float):
@@ -800,6 +1409,42 @@ def limit_peaks(audio, ceiling: float, *, hold_seconds: float = 0.002,
     return audio * np.minimum(gain, required)
 
 
+def apply_whisper_dsp(audio, intensity: float = 0.85):
+    """Transform vocal speech into an eerie, breathy, close-mic whisper.
+
+    Acoustic whisper mechanics:
+      1. Strips the vocal cord harmonic fundamental (F0 < 420Hz).
+      2. Enhances the high-frequency air/sibilance band (3.2kHz - 7.5kHz).
+      3. Applies subtle intimate close-mic compression.
+    """
+    import numpy as np
+    from scipy import signal
+
+    if audio.size < 256:
+        return audio
+
+    x = np.asarray(audio, dtype=np.float64)
+    nyquist = SAMPLE_RATE / 2.0
+
+    # 1. High-pass filter above 420Hz to strip vocal cord fundamental vibrations
+    sos_hp = signal.butter(3, 420.0 / nyquist, btype="highpass", output="sos")
+    whispered = signal.sosfiltfilt(sos_hp, x)
+
+    # 2. Boost airy sibilance band (3200Hz - 7500Hz) for intimate breath texture
+    sos_air = signal.butter(2, [3200.0 / nyquist, min(7600.0, nyquist * 0.95) / nyquist], btype="bandpass", output="sos")
+    air = signal.sosfiltfilt(sos_air, x)
+    whispered = whispered + 1.25 * air
+
+    # 3. Blend filtered breath with original signal according to intensity
+    blended = (1.0 - intensity * 0.3) * whispered + (1.0 - intensity) * 0.2 * x
+
+    # 4. Normalize
+    max_val = np.max(np.abs(blended)) + 1e-12
+    if max_val > 0:
+        blended = (blended / max_val) * 0.88
+    return blended.astype(np.float32)
+
+
 def master_audio(audio, settings: dict | None = None):
     """Condition a raw Kokoro line into something that sounds like narration.
 
@@ -813,6 +1458,10 @@ def master_audio(audio, settings: dict | None = None):
     settings = {**DEFAULT_MASTER, **(settings or {})}
     if audio.size == 0 or not settings.get("enabled", True):
         return audio
+
+    # Apply acoustic whisper filter if configured
+    if settings.get("whisper"):
+        audio = apply_whisper_dsp(audio, intensity=float(settings.get("whisper_intensity", 0.85)))
 
     x = np.asarray(audio, dtype=np.float64)
     short = x.size < 256  # sosfiltfilt needs room for its padding
@@ -866,13 +1515,9 @@ def synthesise_line(
 ):
     """Synthesise a whole line, returning (audio, words).
 
-    Each sentence is rendered separately so its duration is exact from the
-    sample count, then that duration is spread across the sentence's words in
-    proportion to how long each pronunciation actually is.
-
-    Weighting is per spoken word and works for every language: English uses
-    misaki's tokens, other languages zip espeak's phoneme groups against the
-    words, and anything that fails falls back to syllable counts.
+    Each sentence is rendered as a single continuous vocal unit so that natural
+    prosody, pitch contours, and word transitions remain uninterrupted.
+    Duration is spread across the sentence's words in proportion to phonetic weights.
     """
     import numpy as np
 
@@ -885,15 +1530,14 @@ def synthesise_line(
     offset = 0.0
 
     for index, sentence in enumerate(sentences):
-        # Kokoro handles prosody inside a sentence (including commas), so it is
-        # left intact and only the silence between sentences is shaped here.
-        audio = apply_fades(engine.say(sentence, voice, speed))
+        # Synthesise complete sentence as an uninterrupted vocal unit
+        audio = apply_fades(trim_edge_silence(engine.say(sentence, voice, speed)))
         duration = len(audio) / SAMPLE_RATE
 
         spoken = [w for w in sentence.split() if w]
         weights = engine.phonemiser.weights(sentence, voice)
         if len(weights) != len(spoken):
-            # Should not happen, but even weighting beats dropping the caption.
+            # Fallback to even weights if alignment fails
             weights = [1.0] * len(spoken)
 
         total = sum(weights) or 1.0
@@ -1025,12 +1669,17 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("script", nargs="?", default=str(ROOT / "script.json"))
+    parser.add_argument("-t", "--text", type=str, default=None, help="synthesise a single test sentence directly and save to --out or out/test_audio.wav")
+    parser.add_argument("-v", "--voice", type=str, default=None, help="voice name for test synthesis (e.g. hf_beta, hm_omega, am_onyx)")
+    parser.add_argument("-o", "--out", type=str, default=None, help="output .wav file path for --text test")
     parser.add_argument("--dynamic-speed", dest="dynamic_speed", action="store_true", default=True, help="modulate speed dynamically based on scene emotion & beats for natural human tone")
     parser.add_argument("--flat-speed", dest="dynamic_speed", action="store_false", help="disable emotion-based speed modulation and use strictly flat speed")
     parser.add_argument("--speed", type=float, default=None, help="speech speed multiplier (e.g. 0.8 to 1.5, default from script.json or .env)")
+    parser.add_argument("--whisper", action="store_true", help="apply eerie breathy close-mic whisper acoustic filter")
     parser.add_argument("--force", action="store_true", help="re-synthesise cached audio")
     parser.add_argument("--no-lipsync", action="store_true", help="skip Rhubarb mouth shapes")
     parser.add_argument("--voices", action="store_true", help="list voices and exit")
+    parser.add_argument("--samples", action="store_true", help="generate short preview .wav samples for Hindi / Hinglish voices into public/audio/samples/")
     parser.add_argument("--hinglish", action="store_true", help="force Roman Hinglish on-screen captions & subtitles")
     parser.add_argument("--no-hinglish", action="store_true", help="disable Roman Hinglish transliteration (keep Devanagari subtitles)")
     args = parser.parse_args()
@@ -1043,6 +1692,25 @@ def main() -> int:
 
     if args.voices:
         print(format_voices_table())
+        return 0
+
+    if args.samples:
+        return generate_voice_samples()
+
+    if args.text:
+        import soundfile as sf
+        engine = Voice()
+        voice_name = args.voice or "hf_beta"
+        sp = float(args.speed) if args.speed is not None else 1.0
+        out_path = Path(args.out or ROOT / "out" / "test_audio.wav").resolve()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"Synthesising test line (Voice: {voice_name}, Speed: {sp:.2f}, Whisper: {args.whisper}):")
+        print(f"Text: {args.text}")
+        master_cfg = {**DEFAULT_MASTER, "whisper": args.whisper}
+        audio_data, words = synthesise_line(engine, args.text, voice_name, sp, 0.3, master=master_cfg)
+        sf.write(str(out_path), audio_data, SAMPLE_RATE, subtype="PCM_16")
+        dur = len(audio_data) / SAMPLE_RATE
+        print(f"[SUCCESS] Audio saved to: {out_path} ({dur:.2f}s, {len(words)} words)")
         return 0
 
     script_path = Path(args.script).resolve()
@@ -1154,6 +1822,10 @@ def main() -> int:
             suffix = f"-{line_index + 1}" if len(scene["lines"]) > 1 else ""
             audio_path = AUDIO_DIR / f"{scene['id']}{suffix}.wav"
 
+            line_master = dict(master)
+            if args.whisper or scene.get("whisper") or character.get("whisper") or "whisper" in str(voice).lower():
+                line_master["whisper"] = True
+
             meta = build_line(
                 engine,
                 audio_path=audio_path,
@@ -1161,7 +1833,7 @@ def main() -> int:
                 voice=voice,
                 speed=line_speed,
                 pause=pause,
-                master=master,
+                master=line_master,
                 rhubarb=rhubarb,
                 force=args.force,
                 label=f"[{scene_index + 1}.{line_index + 1}] {audio_path.name}",

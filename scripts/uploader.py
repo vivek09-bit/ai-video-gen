@@ -283,12 +283,12 @@ class YouTubeUploader:
     ) -> dict[str, Any]:
         """Upload a video file to YouTube with metadata using resumable upload protocol."""
         video_p = Path(video_path).resolve()
-        if not video_p.exists():
+        if not dry_run and not video_p.exists():
             return {"success": False, "error": f"Video file not found: {video_p}"}
 
         effective_privacy = privacy or privacy_status or "public"
         yt_meta = yt_metadata or meta or {}
-        file_size = video_p.stat().st_size
+        file_size = video_p.stat().st_size if video_p.exists() else 0
         title = yt_meta.get("title", "Untitled Video")
         description = yt_meta.get("description", "")
         tags = yt_meta.get("tags", [])
@@ -318,7 +318,7 @@ class YouTubeUploader:
                 continue
             if len(tag_s) > 80:
                 tag_s = tag_s[:80].strip()
-            if total_len + len(tag_s) + 1 > 400:
+            if total_len + len(tag_s) + 1 > 450:
                 break
             clean_tags.append(tag_s)
             total_len += len(tag_s) + 1
@@ -543,11 +543,11 @@ class FacebookUploader:
     ) -> dict[str, Any]:
         """Upload video/reel to Facebook Page using Meta Graph API."""
         video_p = Path(video_path).resolve()
-        if not video_p.exists():
+        if not dry_run and not video_p.exists():
             return {"success": False, "error": f"Video file not found: {video_p}"}
 
         fb_meta = fb_metadata or meta or {}
-        file_size = video_p.stat().st_size
+        file_size = video_p.stat().st_size if video_p.exists() else 0
         title = fb_meta.get("title", "Untitled Video")
         description = fb_meta.get("description", "")
 
@@ -725,7 +725,7 @@ class InstagramUploader:
     ) -> dict[str, Any]:
         """Create Instagram Reel media container, upload video, wait for ready, and publish."""
         video_p = Path(video_path).resolve()
-        if not video_p.exists() and not video_url:
+        if not dry_run and not video_p.exists() and not video_url:
             return {"success": False, "error": f"Video file not found: {video_p}"}
 
         ig_meta = ig_metadata or meta or {}
@@ -856,7 +856,7 @@ def upload_all(
 ) -> dict[str, Any]:
     """Upload a video across requested platforms (YouTube, Facebook, Instagram)."""
     video_p = Path(video_path).resolve()
-    if not video_p.exists():
+    if not dry_run and not video_p.exists():
         print(f"Error: Video file not found at {video_p}", file=sys.stderr)
         return {"success": False, "error": f"Video not found: {video_p}"}
 
@@ -903,7 +903,8 @@ def upload_all(
     print("MULTI-PLATFORM VIDEO AUTO-UPLOADER")
     print("=" * 74)
     print(f"Video File : {video_p}")
-    print(f"File Size  : {video_p.stat().st_size / (1024*1024):.2f} MB")
+    file_mb = (video_p.stat().st_size / (1024*1024)) if video_p.exists() else 0.0
+    print(f"File Size  : {file_mb:.2f} MB")
     print(f"Platforms  : {', '.join(target_platforms).upper()}")
     print(f"Privacy    : {privacy.upper()}")
     if dry_run:

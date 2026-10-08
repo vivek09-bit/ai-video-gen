@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import random
 import re
+import sys
 from dataclasses import dataclass, field
 
 
@@ -314,11 +315,15 @@ MOVEMENT_SETS: list[tuple[int, list[str]]] = [
     (9, ["hook", "setup", "inciting", "rising", "climax", "resolution", "button"]),
     (7, ["hook", "setup", "inciting", "rising", "climax", "resolution", "button"]),
     (5, ["hook", "inciting", "rising", "climax", "resolution"]),
-    (0, ["hook", "inciting", "climax", "resolution"]),
+    (4, ["hook", "inciting", "climax", "resolution"]),
+    (3, ["hook", "climax", "resolution"]),
+    (2, ["hook", "climax"]),
+    (1, ["hook"]),
+    (0, ["hook"]),
 ]
 
-# Below this, a story cannot be whole, so the planner refuses to go shorter.
-MIN_SCENES = 4
+# Absolute minimum scenes supported by the engine
+MIN_SCENES = 1
 
 # Rising action alternates beats so a long middle does not look like one shot
 # held for six scenes.
@@ -700,6 +705,14 @@ GENRE_THEME_POOLS: dict[str, list[str]] = {
         "toxic_lime",
         "synthwave",
     ],
+    "explainer": [
+        "cyber_neon",
+        "solar_flare",
+        "matrix_green",
+        "nordic_frost",
+        "midnight_blue",
+        "synthwave",
+    ],
     "horror": [
         "blood_red",
         "amber_ember",
@@ -902,49 +915,93 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_rising": ["amb_tension", "amb_drone", "amb_cyber"],
         "ambience_climax": ["amb_tension", "amb_heartbeat", "amb_cyber"],
         "ambience_resolution": ["amb_uplift", "amb_wind", "amb_warm"],
-        "sfx_setup": ["sfx_whoosh", "sfx_riser", "sfx_glitch"],
-        "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_cinematic_hit"],
-        "sfx_climax": ["sfx_boom", "sfx_cinematic_hit", "sfx_impact"],
-        "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_whoosh"],
+        "sfx_setup": ["sfx_whoosh", "sfx_dark_whoosh", "sfx_glitch", "sfx_sparkle"],
+        "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_cinematic_hit", "sfx_glitch"],
+        "sfx_climax": ["sfx_boom", "sfx_cinematic_hit", "sfx_impact", "sfx_stinger"],
+        "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_whoosh", "sfx_chime"],
     },
     "fantasy": {
         "ambience_setup": ["amb_ethereal", "amb_wind", "amb_warm"],
-        "ambience_rising": ["amb_ethereal", "amb_warm", "amb_wind"],
+        "ambience_rising": ["amb_ethereal", "amb_warm", "amb_wind", "amb_temple"],
         "ambience_climax": ["amb_ethereal", "amb_tension"],
         "ambience_resolution": ["amb_warm", "amb_wind", "amb_ethereal"],
-        "sfx_setup": ["sfx_sparkle", "sfx_chime", "sfx_bell"],
-        "sfx_rising": ["sfx_sparkle", "sfx_whoosh", "sfx_riser"],
+        "sfx_setup": ["sfx_sparkle", "sfx_chime", "sfx_bell", "sfx_swell"],
+        "sfx_rising": ["sfx_sparkle", "sfx_whoosh", "sfx_riser", "sfx_chime"],
         "sfx_climax": ["sfx_swell", "sfx_sparkle", "sfx_cinematic_hit", "sfx_boom"],
-        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle"],
+        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle", "sfx_swell"],
     },
     "scifi": {
-        "ambience_setup": ["amb_cyber", "amb_hum"],
-        "ambience_rising": ["amb_cyber", "amb_tension", "amb_drone"],
-        "ambience_climax": ["amb_cyber", "amb_tension"],
+        "ambience_setup": ["amb_cyber", "amb_hum", "amb_radio_voices"],
+        "ambience_rising": ["amb_cyber", "amb_tension", "amb_drone", "amb_radio_voices"],
+        "ambience_climax": ["amb_cyber", "amb_tension", "amb_heartbeat"],
         "ambience_resolution": ["amb_hum", "amb_cyber", "amb_wind"],
-        "sfx_setup": ["sfx_glitch", "sfx_whoosh", "sfx_clock_tick"],
-        "sfx_rising": ["sfx_glitch", "sfx_riser", "sfx_clock_tick"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_glitch"],
-        "sfx_resolution": ["sfx_chime", "sfx_glitch", "sfx_whoosh"],
+        "sfx_setup": ["sfx_glitch", "sfx_whoosh", "sfx_clock_tick", "sfx_dark_whoosh"],
+        "sfx_rising": ["sfx_glitch", "sfx_riser", "sfx_clock_tick", "sfx_whoosh"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_glitch", "sfx_impact"],
+        "sfx_resolution": ["sfx_chime", "sfx_glitch", "sfx_whoosh", "sfx_bell"],
     },
     "horror": {
-        "ambience_setup": ["amb_wind", "amb_drone"],
-        "ambience_rising": ["amb_drone", "amb_rain", "amb_tension"],
-        "ambience_climax": ["amb_heartbeat", "amb_drone"],
-        "ambience_resolution": ["amb_wind", "amb_drone", "amb_rain"],
-        "sfx_setup": ["sfx_whisper", "sfx_clock_tick"],
-        "sfx_rising": ["sfx_riser", "sfx_whisper", "sfx_clock_tick"],
-        "sfx_climax": ["sfx_stinger", "sfx_impact", "sfx_boom"],
-        "sfx_resolution": ["sfx_bell", "sfx_impact", "sfx_whisper"],
+        "ambience_setup": ["amb_wind", "amb_drone", "amb_whispers", "amb_rain"],
+        "ambience_rising": ["amb_drone", "amb_rain", "amb_tension", "amb_whispers", "amb_ghost_voices"],
+        "ambience_climax": ["amb_heartbeat", "amb_drone", "amb_ghost_voices", "amb_tension"],
+        "ambience_resolution": ["amb_wind", "amb_drone", "amb_rain", "amb_whispers"],
+        "sfx_setup": [
+            "sfx_eerie_drone_swell",
+            "sfx_creepy_music_box",
+            "sfx_haunted_breathing",
+            "sfx_whisper",
+            "sfx_clock_tick",
+            "sfx_demonic_whisper",
+            "sfx_creak",
+            "sfx_dark_whoosh",
+            "sfx_footstep_wood",
+        ],
+        "sfx_rising": [
+            "sfx_eerie_drone_swell",
+            "sfx_thunder_rumble",
+            "sfx_ghost_crying",
+            "sfx_haunted_breathing",
+            "sfx_scare_string",
+            "sfx_riser",
+            "sfx_whisper",
+            "sfx_clock_tick",
+            "sfx_demonic_whisper",
+            "sfx_ghost_laugh",
+            "sfx_ghostly_groan",
+            "sfx_heartbeat_single",
+            "sfx_monster_growl",
+        ],
+        "sfx_climax": [
+            "sfx_thunder_rumble",
+            "sfx_phantom_shriek",
+            "sfx_jumpscare",
+            "sfx_cinematic_hit",
+            "sfx_stinger",
+            "sfx_impact",
+            "sfx_boom",
+            "sfx_scare_string",
+        ],
+        "sfx_resolution": [
+            "sfx_eerie_drone_swell",
+            "sfx_ghost_crying",
+            "sfx_creepy_music_box",
+            "sfx_bell",
+            "sfx_impact",
+            "sfx_whisper",
+            "sfx_demonic_whisper",
+            "sfx_ghostly_groan",
+            "sfx_creak",
+            "sfx_swell",
+        ],
     },
     "mythology": {
         "ambience_setup": ["amb_temple", "amb_ethereal"],
         "ambience_rising": ["amb_temple", "amb_drone", "amb_wind"],
-        "ambience_climax": ["amb_temple", "amb_drone"],
+        "ambience_climax": ["amb_temple", "amb_drone", "amb_tension"],
         "ambience_resolution": ["amb_temple", "amb_warm", "amb_wind"],
-        "sfx_setup": ["sfx_bell", "sfx_horn", "sfx_swell"],
-        "sfx_rising": ["sfx_riser", "sfx_horn", "sfx_whoosh"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_horn", "sfx_boom"],
+        "sfx_setup": ["sfx_bell", "sfx_horn", "sfx_swell", "sfx_chime"],
+        "sfx_rising": ["sfx_riser", "sfx_horn", "sfx_whoosh", "sfx_bell"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_horn", "sfx_boom", "sfx_impact"],
         "sfx_resolution": ["sfx_bell", "sfx_swell", "sfx_chime"],
     },
     "motivational": {
@@ -952,7 +1009,7 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_rising": ["amb_tension", "amb_warm", "amb_drone"],
         "ambience_climax": ["amb_uplift", "amb_warm"],
         "ambience_resolution": ["amb_uplift", "amb_warm", "amb_wind"],
-        "sfx_setup": ["sfx_clock_tick", "sfx_swell"],
+        "sfx_setup": ["sfx_clock_tick", "sfx_swell", "sfx_whoosh"],
         "sfx_rising": ["sfx_riser", "sfx_whoosh", "sfx_clock_tick"],
         "sfx_climax": ["sfx_cinematic_hit", "sfx_swell", "sfx_boom"],
         "sfx_resolution": ["sfx_chime", "sfx_swell", "sfx_bell"],
@@ -962,7 +1019,7 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_rising": ["amb_tension", "amb_rain", "amb_drone"],
         "ambience_climax": ["amb_tension", "amb_drone"],
         "ambience_resolution": ["amb_warm", "amb_rain", "amb_wind"],
-        "sfx_setup": ["sfx_bell", "sfx_clock_tick"],
+        "sfx_setup": ["sfx_bell", "sfx_clock_tick", "sfx_whisper"],
         "sfx_rising": ["sfx_riser", "sfx_whisper", "sfx_clock_tick"],
         "sfx_climax": ["sfx_impact", "sfx_swell", "sfx_cinematic_hit"],
         "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_whisper"],
@@ -972,8 +1029,8 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_rising": ["amb_hum", "amb_uplift"],
         "ambience_climax": ["amb_uplift", "amb_warm"],
         "ambience_resolution": ["amb_uplift", "amb_warm"],
-        "sfx_setup": ["sfx_pop", "sfx_whoosh"],
-        "sfx_rising": ["sfx_pop", "sfx_whoosh", "sfx_chime"],
+        "sfx_setup": ["sfx_pop", "sfx_whoosh", "sfx_chime"],
+        "sfx_rising": ["sfx_pop", "sfx_whoosh", "sfx_chime", "sfx_sparkle"],
         "sfx_climax": ["sfx_pop", "sfx_sparkle", "sfx_cinematic_hit"],
         "sfx_resolution": ["sfx_pop", "sfx_chime", "sfx_sparkle"],
     },
@@ -982,10 +1039,20 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_rising": ["amb_tension", "amb_drone", "amb_wind"],
         "ambience_climax": ["amb_tension", "amb_drone"],
         "ambience_resolution": ["amb_wind", "amb_hum", "amb_warm"],
-        "sfx_setup": ["sfx_clock_tick", "sfx_whoosh"],
+        "sfx_setup": ["sfx_clock_tick", "sfx_whoosh", "sfx_bell"],
         "sfx_rising": ["sfx_riser", "sfx_clock_tick", "sfx_whoosh"],
         "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_impact"],
-        "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_clock_tick"],
+        "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_clock_tick", "sfx_swell"],
+    },
+    "explainer": {
+        "ambience_setup": ["amb_hum", "amb_cyber", "amb_warm"],
+        "ambience_rising": ["amb_drone", "amb_tension", "amb_cyber"],
+        "ambience_climax": ["amb_tension", "amb_uplift", "amb_cyber"],
+        "ambience_resolution": ["amb_uplift", "amb_warm", "amb_hum"],
+        "sfx_setup": ["sfx_whoosh", "sfx_glitch", "sfx_clock_tick", "sfx_pop"],
+        "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_chime", "sfx_pop"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_swell", "sfx_impact"],
+        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle", "sfx_pop"],
     },
 }
 
@@ -1004,55 +1071,104 @@ def resolve_dynamic_audio(
     pool = GENRE_AUDIO_POOLS.get(genre_key, GENRE_AUDIO_POOLS["horror"])
     rng = random.Random(seed + scene_index * 37)
 
-    # 1. Select dynamic Ambience
+    # 1. Subtle, non-intrusive Ambience volume (0.18 - 0.28)
     if movement_key in ("hook", "setup"):
         amb_options = pool.get("ambience_setup") or ["amb_wind", "amb_drone"]
-        default_vol = 0.36
+        default_vol = 0.20
     elif movement_key in ("inciting", "rising"):
         amb_options = pool.get("ambience_rising") or ["amb_drone", "amb_tension"]
-        default_vol = 0.44
+        default_vol = 0.24
     elif movement_key == "climax":
         amb_options = pool.get("ambience_climax") or ["amb_heartbeat", "amb_tension"]
-        default_vol = 0.52
+        default_vol = 0.28
     else:  # resolution, button
         amb_options = pool.get("ambience_resolution") or ["amb_wind", "amb_warm"]
-        default_vol = 0.35
+        default_vol = 0.20
 
     chosen_amb = rng.choice(amb_options) if amb_options else beat.ambience[0]
-    amb_volume = round(min(0.65, default_vol * (0.85 + tension * 0.3)), 2)
+    amb_volume = round(min(0.28, max(0.15, default_vol * (0.85 + tension * 0.2))), 2)
 
-    # 2. Select dynamic Sound Cues
-    cues_spec = beat.cues
-    if not cues_spec:
-        if movement_key == "climax":
-            cues_spec = [(0.05, "sfx_cinematic_hit", 0.9), (0.6, "sfx_boom", 0.75)]
-        elif movement_key in ("inciting", "rising"):
-            cues_spec = [(0.35, "sfx_riser", 0.45)]
-        elif movement_key in ("resolution", "button"):
-            cues_spec = [(0.65, "sfx_bell", 0.6)]
-        else:
-            cues_spec = [(0.2, "sfx_whoosh", 0.35)]
+    # 2. Rich Multi-Cue Sound Design (3 to 5 layered cues per scene, subtle volume 0.15 - 0.32 max)
+    # Ensure every scene receives 3 to 5 layered sound cues with long atmospheric sound textures
+    if movement_key == "climax":
+        cues_spec = [
+            (0.02, "sfx_cinematic_hit", 0.50),
+            (0.25, "sfx_thunder_rumble", 0.45),
+            (0.55, "sfx_phantom_shriek", 0.48),
+            (0.82, "sfx_boom", 0.50),
+        ]
+        if estimated_seconds >= 5.5:
+            cues_spec.insert(2, (0.40, "sfx_scare_string", 0.42))
+    elif movement_key == "hook" or scene_index == 0:
+        cues_spec = [
+            (0.0, "sfx_whoosh", 0.45),
+            (0.22, "sfx_eerie_drone_swell", 0.42),
+            (0.52, "sfx_whisper", 0.38),
+            (0.82, "sfx_riser", 0.45),
+        ]
+        if estimated_seconds >= 5.5:
+            cues_spec.insert(2, (0.38, "sfx_haunted_breathing", 0.40))
+    elif movement_key in ("inciting", "rising"):
+        cues_spec = [
+            (0.06, "sfx_whoosh", 0.40),
+            (0.28, "sfx_eerie_drone_swell", 0.42),
+            (0.58, "sfx_ghost_crying", 0.40),
+            (0.85, "sfx_riser", 0.44),
+        ]
+        if estimated_seconds >= 5.5:
+            cues_spec.insert(2, (0.42, "sfx_creepy_music_box", 0.38))
+    elif movement_key in ("resolution", "button"):
+        cues_spec = [
+            (0.08, "sfx_bell", 0.38),
+            (0.32, "sfx_eerie_drone_swell", 0.40),
+            (0.62, "sfx_creepy_music_box", 0.38),
+            (0.86, "sfx_swell", 0.42),
+        ]
+    else:  # setup / establish
+        cues_spec = [
+            (0.06, "sfx_whoosh", 0.40),
+            (0.30, "sfx_haunted_breathing", 0.40),
+            (0.58, "sfx_clock_tick", 0.38),
+            (0.84, "sfx_riser", 0.42),
+        ]
+        if estimated_seconds >= 5.5:
+            cues_spec.insert(2, (0.44, "sfx_eerie_drone_swell", 0.40))
 
     sound_cues: list[dict] = []
     for c_idx, (pos, default_sfx, base_vol) in enumerate(cues_spec):
+        # Dynamically assign genre-appropriate SFX pool based on position in scene and story tension
         if movement_key == "climax":
-            sfx_options = pool.get("sfx_climax") or ["sfx_cinematic_hit", "sfx_stinger", "sfx_boom"]
-        elif movement_key in ("inciting", "rising"):
-            sfx_options = pool.get("sfx_rising") or ["sfx_riser", "sfx_whoosh", "sfx_clock_tick"]
-        elif movement_key in ("resolution", "button"):
-            sfx_options = pool.get("sfx_resolution") or ["sfx_bell", "sfx_chime", "sfx_swell"]
+            sfx_options = pool.get("sfx_climax") or ["sfx_cinematic_hit", "sfx_stinger", "sfx_boom", "sfx_jumpscare"]
+        elif c_idx == 0:
+            # Transition / entry cue
+            sfx_options = pool.get("sfx_setup") or ["sfx_whoosh", "sfx_dark_whoosh", "sfx_chime", "sfx_bell"]
+        elif c_idx == 1 and any("swell" in s or "rumble" in s or "drone" in s or "breathing" in s for s in (pool.get("sfx_setup", []) + pool.get("sfx_rising", []))):
+            # Long sustained ambient texture swell
+            long_candidates = [s for s in (pool.get("sfx_setup", []) + pool.get("sfx_rising", [])) if any(k in s for k in ("swell", "rumble", "drone", "breathing", "crying", "box"))]
+            sfx_options = long_candidates if long_candidates else pool.get("sfx_setup")
+        elif c_idx == len(cues_spec) - 1:
+            # Closing / pre-transition cue
+            sfx_options = pool.get("sfx_rising") if movement_key in ("inciting", "rising", "setup", "hook") else pool.get("sfx_resolution")
+            if not sfx_options:
+                sfx_options = ["sfx_riser", "sfx_bell", "sfx_swell"]
         else:
-            sfx_options = pool.get("sfx_setup") or ["sfx_chime", "sfx_sparkle", "sfx_whisper"]
+            # Mid-scene suspense & ambient texture
+            sfx_options = pool.get("sfx_setup") or pool.get("sfx_rising") or ["sfx_whisper", "sfx_clock_tick", "sfx_creak"]
 
         chosen_sfx = rng.choice(sfx_options) if sfx_options else default_sfx
+
         # For the very first hook/opening cue of scene 1, hit instantaneously at 0.0s for viral audio retention
         if scene_index == 0 and c_idx == 0:
             at_sec = 0.0
         else:
-            at_sec = round(min(estimated_seconds * 0.92, max(0.2, estimated_seconds * pos)), 2)
-        final_vol = round(min(1.0, base_vol * (0.75 + tension * 0.4)), 2)
+            at_sec = round(min(estimated_seconds * 0.92, max(0.0, estimated_seconds * pos)), 2)
+
+        # Gain staging: Volume is clamped to 0.15 - 0.32 so voice-over intelligibility is always 100% pristine
+        final_vol = round(min(0.32, max(0.15, base_vol * (0.4 + tension * 0.2))), 2)
         sound_cues.append({"at": at_sec, "sfx": chosen_sfx, "volume": final_vol})
 
+    # Sort cues sequentially
+    sound_cues.sort(key=lambda c: c["at"])
     return {"src": chosen_amb, "volume": amb_volume}, sound_cues
 
 
@@ -1184,7 +1300,7 @@ def _make_anime_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for intense, epic, and cinematic anime/action stories. You deliver high-stakes battles, power awakenings, and legendary showdowns.",
         visual_style_prefix="Masterpiece dynamic anime illustration, intense high-budget anime action key visual, Studio Ufotable & Mappa style, sharp glowing energy auras, cinematic composition: ",
-        visual_style_suffix=", dynamic camera angle, vibrant celestial lighting, sharp cel-shaded outlines, 16:9 widescreen, 4k anime wallpaper.",
+        visual_style_suffix=", dynamic camera angle, vibrant celestial lighting, sharp cel-shaded outlines, 4k anime wallpaper.",
         search_keywords_map={
             "forest": "dense bamboo anime battle forest misty cherry blossoms swirling energy",
             "house": "traditional japanese dojo martial arts training hall destroyed roof",
@@ -1341,7 +1457,7 @@ def _make_fantasy_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for magical fantasy, fairy tale, and wondrous adventure videos. You craft vivid, uplifting, engaging stories with warmth and wonder.",
         visual_style_prefix="Enchanting 2D digital fairy tale concept art, vibrant magical colors, whimsical lighting, glowing particles, celestial wonder: ",
-        visual_style_suffix=", storybook illustration style, highly detailed fantasy background, 16:9 widescreen, cinematic composition, breathtaking color palette.",
+        visual_style_suffix=", storybook illustration style, highly detailed fantasy background, cinematic composition, breathtaking color palette.",
         search_keywords_map={
             "forest": "enchanted magical glowing forest fairy woods",
             "house": "magical fairy tale cottage fantasy castle",
@@ -1492,7 +1608,7 @@ def _make_scifi_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for sci-fi, cyberpunk, futuristic tech, and space exploration videos. You deliver thought-provoking, sleek, high-tech narratives.",
         visual_style_prefix="Futuristic cyberpunk and sci-fi digital concept art, glowing neon blue and cyan accents, sleek holographic interfaces, hyper-technological aesthetic: ",
-        visual_style_suffix=", cinematic sci-fi background, Unreal Engine 5 render style, 16:9 widescreen, dramatic volumetric lighting.",
+        visual_style_suffix=", cinematic sci-fi background, Unreal Engine 5 render style, dramatic volumetric lighting.",
         search_keywords_map={
             "forest": "bioluminescent alien cyber forest futuristic planet",
             "house": "cyberpunk futuristic megacity neon skyscraper lab",
@@ -1632,7 +1748,7 @@ def _make_documentary_genre() -> GenreProfile:
     return GenreProfile(
         key="documentary",
         name="Documentary & Educational",
-        aliases=["documentary", "docu", "history", "historic", "science", "facts", "educational", "explainer", "biography", "case_study", "nature", "curiosity"],
+        aliases=["documentary", "docu", "history", "historic", "science", "facts", "educational", "biography", "case_study", "nature", "curiosity"],
         tone="engaging, authoritative, captivating, informative, and insightful",
         writer_instructions=(
             "You are writing narration for an engaging documentary and educational video. "
@@ -1640,7 +1756,7 @@ def _make_documentary_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for educational, historical, scientific, and investigative documentary videos. You present rich facts and gripping insights.",
         visual_style_prefix="Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: ",
-        visual_style_suffix=", wide cinematic shot, museum quality lighting, 16:9 widescreen, rich natural colors, highly detailed.",
+        visual_style_suffix=", wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
         search_keywords_map={
             "forest": "pristine ancient wilderness nature landscape documentary",
             "house": "historical ancient monument archaeological landmark",
@@ -1789,7 +1905,7 @@ def _make_mythology_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for grand mythological epics, ancient legends, divine chronicles, and heroic folklore videos.",
         visual_style_prefix="Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: ",
-        visual_style_suffix=", masterpiece epic fantasy art, 16:9 widescreen, opulent divine lighting, sacred atmosphere.",
+        visual_style_suffix=", masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere.",
         search_keywords_map={
             "forest": "sacred ashram himalayan pine forest ancient rishi",
             "house": "grand ancient golden temple sanctum vedic kingdom",
@@ -1937,7 +2053,7 @@ def _make_motivational_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for inspiring motivational videos, life parables, and self-improvement stories that empower the listener.",
         visual_style_prefix="Inspirational cinematic photography, golden hour sunrise, breathtaking mountain landscape, epic dramatic lighting, triumph: ",
-        visual_style_suffix=", cinematic 8k quality, motivational masterpiece, 16:9 widescreen, warm radiant glow.",
+        visual_style_suffix=", cinematic 8k quality, motivational masterpiece, warm radiant glow.",
         search_keywords_map={
             "forest": "solitary trail sunrise through tall trees discipline",
             "house": "quiet study room morning sunlight workspace books",
@@ -2087,7 +2203,7 @@ def _make_drama_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for deeply emotional, heartwarming, and poignant human story videos.",
         visual_style_prefix="Cinematic emotional drama digital art, soft warm lighting, sentimental atmosphere, beautiful painterly realism: ",
-        visual_style_suffix=", cinematic 16:9 composition, touching depth of field, delicate pastel and warm tones.",
+        visual_style_suffix=", cinematic composition, touching depth of field, delicate pastel and warm tones.",
         search_keywords_map={
             "forest": "peaceful autumn woods golden leaves gentle sunlight",
             "house": "warm cozy vintage family home living room lamp",
@@ -2235,7 +2351,7 @@ def _make_comedy_genre() -> GenreProfile:
         ),
         system_prompt="You write narration for humorous, witty, and entertaining comedy videos.",
         visual_style_prefix="Vibrant and colorful 2D animated illustration style, expressive, bright sunny lighting, humorous cartoon realism: ",
-        visual_style_suffix=", clean vibrant aesthetic, 16:9 widescreen, cheerful energetic color palette.",
+        visual_style_suffix=", clean vibrant aesthetic, cheerful energetic color palette.",
         search_keywords_map={
             "forest": "sunny vibrant playful cartoon forest cheerful animals",
             "house": "quirky colorful messy cozy modern kitchen room",
@@ -2264,7 +2380,272 @@ def _make_comedy_genre() -> GenreProfile:
     )
 
 
+def _make_explainer_genre() -> GenreProfile:
+    beats = {
+        "establish": Beat(
+            name="establish",
+            role="Pose the compelling mystery, scientific phenomenon, or central question.",
+            visuals=[
+                {"type": "corridor", "flicker": 0.1, "depth": 0.6},
+                {"type": "figure", "distance": 0.5, "fog": 0.2, "glow": 0.75},
+            ],
+            ambience=("amb_hum", 0.32),
+            effects={"vignette": 0.55, "grain": 0.15, "dust": 0.18, "zoom": 0.025, "drift": "in"},
+            cues=[(0.15, "sfx_whoosh", 0.45)],
+            tension=0.15,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.45,
+            character=False,
+        ),
+        "dread": Beat(
+            name="dread",
+            role="The counter-intuitive anomaly: why standard intuition fails.",
+            visuals=[
+                {"type": "candle", "glow": 0.85},
+                {"type": "corridor", "flicker": 0.2, "depth": 0.5},
+            ],
+            ambience=("amb_drone", 0.35),
+            effects={"vignette": 0.6, "grain": 0.18, "dust": 0.2, "zoom": 0.03, "drift": "in"},
+            cues=[(0.3, "sfx_glitch", 0.4)],
+            tension=0.35,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.55,
+            character=True,
+        ),
+        "approach": Beat(
+            name="approach",
+            role="Step-by-step breakdown: presenting evidence, data layers, theories, and experiments.",
+            visuals=[
+                {"type": "figure", "distance": 0.4, "fog": 0.2, "glow": 0.65},
+                {"type": "corridor", "flicker": 0.25, "depth": 0.7},
+            ],
+            ambience=("amb_hum", 0.4),
+            effects={"vignette": 0.65, "grain": 0.2, "dust": 0.22, "zoom": 0.035, "drift": "in"},
+            cues=[(0.25, "sfx_riser", 0.4)],
+            tension=0.55,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.7,
+            character=True,
+        ),
+        "reveal": Beat(
+            name="reveal",
+            role="The breakthrough reveal: the underlying scientific truth or shocking realization.",
+            visuals=[
+                {"type": "candle", "glow": 1.0},
+                {"type": "figure", "distance": 0.3, "fog": 0.15, "glow": 0.85},
+            ],
+            ambience=("amb_hum", 0.45),
+            effects={"vignette": 0.7, "grain": 0.2, "dust": 0.2, "shake": 0.1, "zoom": 0.045, "drift": "in"},
+            cues=[(0.05, "sfx_cinematic_hit", 0.7), (0.55, "sfx_bell", 0.65)],
+            tension=0.8,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.85,
+            character=True,
+        ),
+        "react": Beat(
+            name="react",
+            role="Real-world implications: how this changes technology, understanding, and the future.",
+            visuals=[
+                {"type": "fog", "density": 0.3, "glow": 0.7},
+                {"type": "house", "fog": 0.2, "lit": True},
+            ],
+            ambience=("amb_wind", 0.32),
+            effects={"vignette": 0.58, "grain": 0.15, "dust": 0.15, "zoom": 0.02, "drift": "out"},
+            cues=[(0.35, "sfx_whoosh", 0.4)],
+            tension=0.25,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.5,
+            character=True,
+        ),
+        "resolve": Beat(
+            name="resolve",
+            role="The final memorable takeaway or mind-expanding insight.",
+            visuals=[
+                {"type": "forest", "fog": 0.2, "moonlight": 0.8},
+                {"type": "house", "fog": 0.15, "lit": True},
+            ],
+            ambience=("amb_warm", 0.28),
+            effects={"vignette": 0.55, "grain": 0.12, "dust": 0.12, "zoom": 0.02, "drift": "out"},
+            cues=[(0.65, "sfx_chime", 0.55)],
+            tension=0.05,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.35,
+            character=True,
+        ),
+    }
+    movements = {
+        "hook": Movement("hook", "Open with a shocking fact, counter-intuitive question, or mind-bending premise that immediately grips the audience.", "establish", 0.06),
+        "setup": Movement("setup", "Establish the core mechanism, background context, or foundational baseline.", "establish", 0.12),
+        "inciting": Movement("inciting", "The anomaly: why common explanations fail and what makes this phenomenon strange.", "dread", 0.12),
+        "rising": Movement("rising", "Step-by-step breakdown: presenting evidence, data layers, mechanics, and experiments.", "approach", 0.32),
+        "climax": Movement("climax", "The breakthrough reveal: the underlying scientific principle, mechanism, or hidden truth.", "reveal", 0.16),
+        "resolution": Movement("resolution", "Real-world impact: how this changes our understanding, daily life, or future technology.", "react", 0.14),
+        "button": Movement("button", "A thought-provoking concluding insight that leaves the audience pondering.", "resolve", 0.08),
+    }
+    return GenreProfile(
+        key="explainer",
+        name="Explainer & Deep Dive Breakdown",
+        aliases=["explainer", "educational", "science_breakdown", "tech_breakdown", "facts_explainer", "case_study", "how_it_works", "infotainment", "deep_dive", "analysis", "science_explainer", "guide"],
+        tone="clear, fascinating, authoritative, high-energy, intellectually engaging, and inquisitive",
+        writer_instructions=(
+            "You are writing narration for an engaging, high-retention educational and science explainer video. "
+            "Break down complex ideas into crisp, fascinating revelations. Use compelling hooks, clear cause-and-effect explanations, vivid analogies, and mind-expanding insights."
+        ),
+        system_prompt="You write narration for captivating science, technology, case-study, and educational explainer videos with crystal-clear logic and viral hooks.",
+        visual_style_prefix="Masterpiece 3D isometric infographic concept art, futuristic scientific visualization, clean high-tech lighting, detailed digital illustration: ",
+        visual_style_suffix=", 8k render, octane render aesthetic, sleek modern technical composition, volumetric glow, vibrant accents, cinematic depth of field.",
+        search_keywords_map={
+            "forest": "pristine futuristic biosphere ecosystem scientific visualization",
+            "house": "high-tech modern laboratory research facility architectural cutaway",
+            "grave": "ancient archaeological artifact deep scanning blueprint",
+            "corridor": "futuristic particle accelerator data server room holographic tunnel",
+            "candle": "glowing quantum energy core floating holographic diagram",
+            "figure": "visionary scientist engineer silhouette looking at holographic data",
+            "eyes": "futuristic neural network biometric eye scanning cosmic visualization",
+            "rain": "digital data stream matrix cybernetic weather simulation",
+            "fog": "volumetric luminous quantum particle cloud nebula",
+            "void": "deep space singularity event horizon astrophysics visualization",
+        },
+        default_keywords="futuristic 3D isometric scientific breakdown concept art high tech data visualization",
+        theme={
+            "accent": "#06b6d4",
+            "text": "#f8fafc",
+            "muted": "#94a3b8",
+            "panel": "rgba(8, 20, 32, 0.78)",
+            "headlineFont": "'Segoe UI', system-ui, sans-serif",
+            "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
+        },
+        movements=movements,
+        beats=beats,
+        rising_beats=["approach", "dread"],
+        default_voice="hindi_documentary",
+        default_wpm=125,
+        default_speed=1.05,
+        bg_color="#030712",
+    )
+
+
 def _make_horror_genre() -> GenreProfile:
+    beats = {
+        "establish": Beat(
+            name="establish",
+            role="Establish the ominous setting, eerie silence, or disturbing baseline normal before darkness descends.",
+            visuals=[
+                {"type": "forest", "fog": 0.8, "moonlight": 0.25},
+                {"type": "house", "fog": 0.7, "lit": False, "moonlight": 0.3},
+                {"type": "corridor", "flicker": 0.4, "depth": 0.6},
+            ],
+            ambience=("amb_drone", 0.42),
+            effects={"vignette": 0.88, "grain": 0.42, "dust": 0.28, "zoom": 0.025, "drift": "in", "exposureFlicker": 0.12},
+            cues=[(0.3, "sfx_whisper", 0.4), (0.75, "sfx_creak", 0.35)],
+            tension=0.25,
+            emotion="worried",
+            gesture="none",
+            acting_intensity=0.45,
+            character=True,
+        ),
+        "dread": Beat(
+            name="dread",
+            role="The chilling anomaly: a whispered voice, cold breath, a silhouette where nobody should be.",
+            visuals=[
+                {"type": "void", "creep": 0.65},
+                {"type": "corridor", "flicker": 0.75, "depth": 0.7},
+                {"type": "fog", "density": 0.85, "glow": 0.25},
+                {"type": "candle", "glow": 0.6},
+            ],
+            ambience=("amb_drone", 0.52),
+            effects={"vignette": 0.92, "grain": 0.48, "dust": 0.3, "zoom": 0.03, "drift": "in", "exposureFlicker": 0.2},
+            cues=[(0.25, "sfx_whisper", 0.55), (0.6, "sfx_heartbeat", 0.5)],
+            tension=0.55,
+            emotion="worried",
+            gesture="reach",
+            acting_intensity=0.65,
+            character=True,
+        ),
+        "approach": Beat(
+            name="approach",
+            role="Tightening psychological trap: closing in on the terrifying source, heart pounding, footsteps echoing.",
+            visuals=[
+                {"type": "corridor", "flicker": 0.85, "depth": 0.8},
+                {"type": "figure", "distance": 0.45, "fog": 0.65, "glow": 0.35},
+                {"type": "grave", "fog": 0.8, "moonlight": 0.2},
+            ],
+            ambience=("amb_heartbeat", 0.58),
+            effects={"vignette": 0.94, "grain": 0.52, "dust": 0.35, "zoom": 0.045, "drift": "in", "exposureFlicker": 0.25},
+            cues=[(0.2, "sfx_riser", 0.6), (0.7, "sfx_creak", 0.55)],
+            tension=0.75,
+            emotion="shock",
+            gesture="recoil",
+            acting_intensity=0.85,
+            character=True,
+        ),
+        "reveal": Beat(
+            name="reveal",
+            role="The horrific revelation / jumpscare: the demon unmasked, the sudden strike, bloodcurdling terror.",
+            visuals=[
+                {"type": "eyes", "pairs": 5, "spread": 0.85},
+                {"type": "figure", "distance": 0.15, "fog": 0.4, "glow": 0.5},
+                {"type": "void", "creep": 0.9},
+            ],
+            ambience=("amb_heartbeat", 0.65),
+            effects={"vignette": 0.96, "grain": 0.58, "dust": 0.15, "shake": 0.4, "zoom": 0.06, "drift": "in", "exposureFlicker": 0.35},
+            cues=[(0.05, "sfx_stinger", 1.0), (0.45, "sfx_impact", 0.75), (0.8, "sfx_screech", 0.65)],
+            tension=1.0,
+            emotion="shock",
+            gesture="recoil",
+            acting_intensity=1.0,
+            character=True,
+        ),
+        "react": Beat(
+            name="react",
+            role="Paralyzed aftermath: gasping for breath in dark shock, realizing the horrifying truth or permanent curse.",
+            visuals=[
+                {"type": "void", "creep": 0.85},
+                {"type": "candle", "glow": 0.45},
+                {"type": "rain", "intensity": 0.6, "lightning": True},
+            ],
+            ambience=("amb_drone", 0.46),
+            effects={"vignette": 0.94, "grain": 0.5, "dust": 0.2, "zoom": 0.02, "drift": "out", "exposureFlicker": 0.15},
+            cues=[(0.3, "sfx_impact", 0.45), (0.7, "sfx_whisper", 0.4)],
+            tension=0.35,
+            emotion="sad",
+            gesture="clutch",
+            acting_intensity=0.6,
+            character=True,
+        ),
+        "resolve": Beat(
+            name="resolve",
+            role="Chilling, unsettling lingering dread: the curse remains alive, the door slowly creaks open again.",
+            visuals=[
+                {"type": "grave", "fog": 0.85, "moonlight": 0.3},
+                {"type": "rain", "intensity": 0.8, "lightning": True},
+                {"type": "void", "creep": 0.95},
+            ],
+            ambience=("amb_wind", 0.42),
+            effects={"vignette": 0.92, "grain": 0.48, "dust": 0.22, "zoom": 0.025, "drift": "out"},
+            cues=[(0.4, "sfx_bell", 0.7), (0.8, "sfx_whisper", 0.5)],
+            tension=0.2,
+            emotion="worried",
+            gesture="none",
+            acting_intensity=0.45,
+            character=True,
+        ),
+    }
+    movements = {
+        "hook": Movement("hook", "Open with a bloodcurdling hook, terrifying warning, or mysterious forbidden rule that stops the scroll instantly.", "establish", 0.06),
+        "setup": Movement("setup", "Establish the isolated setting, eerie silence, and the protagonist stepping into forbidden territory.", "establish", 0.12),
+        "inciting": Movement("inciting", "The first supernatural disturbance: an unexplained sound, a shifting shadow, or a sealed door swinging open.", "dread", 0.12),
+        "rising": Movement("rising", "Rapidly escalating psychological terror: the entity closes in, escape routes vanish, and dread peaks.", "approach", 0.32),
+        "climax": Movement("climax", "The terrifying confrontation or bloodcurdling jumpscare revelation at maximum visceral shock.", "reveal", 0.16),
+        "resolution": Movement("resolution", "The horrifying aftermath: the grim fate realized, the sinister curse unleashed.", "react", 0.14),
+        "button": Movement("button", "A chilling parting warning or eerie twist that leaves the viewer unsettled in the dark.", "resolve", 0.08),
+    }
     return GenreProfile(
         key="horror",
         name="Horror & Suspense",
@@ -2275,34 +2656,35 @@ def _make_horror_genre() -> GenreProfile:
             "Build psychological dread, ominous mystery, eerie tension, and a spine-tingling resolution with restrained, detail-oriented terror."
         ),
         system_prompt="You write narration for chilling suspense and horror videos. You build dark atmosphere and gripping tension.",
-        visual_style_prefix="Cinematic horror atmosphere, eerie 2D digital painting, dark moody lighting, volumetric fog, deep shadows, ominous mystery: ",
-        visual_style_suffix=", highly detailed dark background, cinematic composition, widescreen 16:9, dramatic lighting.",
+        visual_style_prefix="Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ",
+        visual_style_suffix=", highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures.",
         search_keywords_map={
-            "forest": "dark mist forest haunted trees night",
-            "house": "haunted house eerie mansion dark night",
-            "grave": "cemetery graveyard tombstone foggy night",
-            "corridor": "creepy dark hallway corridor flickering light",
-            "candle": "single flickering candle dark gloomy room",
-            "figure": "mysterious shadow figure dark silhouette sinister",
-            "eyes": "glowing eerie eyes in pitch darkness",
-            "rain": "dark rain storm lightning haunted night",
-            "fog": "dense foggy mist ominous darkness",
-            "void": "deep pitch black creeping shadow darkness",
+            "forest": "haunted dense misty forest twisted black trees moonlight eerie",
+            "house": "abandoned creepy haunted mansion dark cracked windows flickering light",
+            "grave": "misty ancient cemetery graveyard crooked tombstones gothic horror night",
+            "corridor": "dark decaying asylum corridor flickering lights blood red glow shadows",
+            "candle": "single dying candle flickering in pitch black sinister room",
+            "figure": "tall shadowy paranormal entity demonic silhouette glowing eyes mist",
+            "eyes": "sinister glowing yellow red eyes staring from pitch black void",
+            "rain": "torrential thunder storm dark rain lightning striking abandoned haveli",
+            "fog": "dense swirling cold ground mist supernatural dark aura",
+            "void": "pitch black abyss creeping darkness eldritch horror shadow tendrils",
         },
-        default_keywords="haunted mansion dark mist graveyard horror landscape",
+        default_keywords="abandoned haunted mansion eerie mist dark cemetery horror atmosphere",
         theme={
-            "accent": "#c9524a",
-            "text": "#f2ece4",
-            "muted": "#a89f96",
-            "panel": "rgba(4, 4, 6, 0.65)",
+            "accent": "#dc2626",
+            "text": "#fef2f2",
+            "muted": "#fca5a5",
+            "panel": "rgba(8, 6, 10, 0.82)",
             "headlineFont": "Georgia, 'Times New Roman', serif",
             "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
         },
-        movements=MOVEMENTS,
-        beats=BEATS,
-        rising_beats=RISING_BEATS,
-        default_wpm=100,
-        default_speed=0.88,
+        movements=movements,
+        beats=beats,
+        rising_beats=["approach", "dread"],
+        default_voice="cinematic_horror",
+        default_wpm=110,
+        default_speed=1.0,
         bg_color="#04060a",
     )
 
@@ -2312,6 +2694,7 @@ GENRES: dict[str, GenreProfile] = {
     "fantasy": _make_fantasy_genre(),
     "scifi": _make_scifi_genre(),
     "documentary": _make_documentary_genre(),
+    "explainer": _make_explainer_genre(),
     "mythology": _make_mythology_genre(),
     "motivational": _make_motivational_genre(),
     "drama": _make_drama_genre(),
@@ -2437,7 +2820,19 @@ def detect_genre(topic: str = "", explicit_genre: str | None = None) -> GenrePro
         if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
             return GENRES["horror"]
 
-    # 9. Documentary & Educational (e.g. "documentary", "history", "facts", "mystery of", "discovery")
+    # 9. Explainer & Deep Dive Breakdown (e.g. "how it works", "explainer", "breakdown", "why does", "case study")
+    explainer_kw = [
+        "explainer", "how it works", "how do", "how does", "why does", "why do",
+        "breakdown", "deep dive", "mechanism", "science breakdown",
+        "tech breakdown", "infotainment", "psychology of", "economics of",
+        "analysis", "how to understand", "explained in hindi", "video explainer",
+        "एक्सप्लेनर", "कैसे काम करता है", "विश्लेषण", "कारण", "समझिए"
+    ]
+    for kw in explainer_kw:
+        if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
+            return GENRES["explainer"]
+
+    # 10. Documentary & Educational (e.g. "documentary", "history", "facts", "mystery of", "discovery")
     doc_kw = [
         "documentary", "docu", "fact", "facts", "history", "historic", "science",
         "discovery", "mystery of", "secret of", "explained", "case study", "biography",
@@ -2601,7 +2996,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=432,
         sd_height=768,
         caption_scale=1.15,
-        bottom_margin=0.18,  # Raised up to avoid TikTok/Instagram UI overlay controls
+        bottom_margin=0.28,  # Raised higher up to clear social overlays and sit in optimal viewing line
         prompt_suffix="cinematic vertical 9:16 composition, full vertical view",
     ),
     "landscape": VideoFormat(
@@ -2616,7 +3011,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=768,
         sd_height=432,
         caption_scale=1.0,
-        bottom_margin=0.08,
+        bottom_margin=0.14,
         prompt_suffix="cinematic widescreen 16:9 composition, wide landscape framing",
     ),
     "square": VideoFormat(
@@ -2631,7 +3026,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=512,
         sd_height=512,
         caption_scale=1.0,
-        bottom_margin=0.10,
+        bottom_margin=0.18,
         prompt_suffix="cinematic square 1:1 composition, balanced central framing",
     ),
     "portrait": VideoFormat(
@@ -2646,7 +3041,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=464,
         sd_height=576,
         caption_scale=1.05,
-        bottom_margin=0.12,
+        bottom_margin=0.22,
         prompt_suffix="cinematic portrait 4:5 composition, vertical framed shot",
     ),
     "cinema": VideoFormat(
@@ -2661,7 +3056,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=896,
         sd_height=384,
         caption_scale=0.95,
-        bottom_margin=0.06,
+        bottom_margin=0.12,
         prompt_suffix="cinematic ultrawide 21:9 anamorphic composition, panoramic scope",
     ),
     "classic": VideoFormat(
@@ -2676,7 +3071,7 @@ VIDEO_FORMATS: dict[str, VideoFormat] = {
         sd_width=640,
         sd_height=480,
         caption_scale=1.0,
-        bottom_margin=0.08,
+        bottom_margin=0.14,
         prompt_suffix="cinematic 4:3 vintage composition, retro broadcast frame",
     ),
 }
@@ -2750,7 +3145,7 @@ def resolve_dimensions(
             sd_width=sd_w,
             sd_height=sd_h,
             caption_scale=cap_scale,
-            bottom_margin=0.14 if resolved_h > resolved_w else 0.08,
+            bottom_margin=0.28 if resolved_h > resolved_w else 0.14,
             prompt_suffix=f"cinematic composition, {ratio_str} frame",
         )
 
@@ -2821,12 +3216,17 @@ def plan(
 
     # Allow explicit override of scene/image count via `scenes` parameter
     if scenes is not None and int(scenes) > 0:
-        scene_count = max(MIN_SCENES, int(scenes))
+        max_practical = max(1, int(total_seconds / 2.5))
+        if int(scenes) > max_practical:
+            print(f"note: {scenes} scenes for a {total_seconds:.0f}s video results in under 2.5s per scene; clamping to {max_practical} scenes.", file=sys.stderr)
+            scene_count = max_practical
+        else:
+            scene_count = max(MIN_SCENES, int(scenes))
     else:
         # Never drop below the scene count a whole story needs, even if that makes
         # scenes shorter than the target. A short video is a short story, not a
         # fragment of one.
-        scene_count = max(MIN_SCENES, int(round(total_seconds / scene_seconds)))
+        scene_count = max(MIN_SCENES, int(round(total_seconds / max(1.0, float(scene_seconds)))))
 
     words_per_scene = max(4, int(round(total_words / scene_count)))
 
@@ -2916,18 +3316,25 @@ def plan(
                     "gesture": beat.gesture,
                 },
                 "padBefore": 0.0,
-                "padAfter": 0.55,
+                "padAfter": 0.15,
                 "holdSeconds": 3.0,
                 "lines": [],
                 "_targetWords": words_per_scene,
             }
         )
 
+    # Master continuous baseline ambience across the entire video
+    global_amb_pool = GENRE_AUDIO_POOLS.get(genre_profile.key, GENRE_AUDIO_POOLS["horror"])
+    global_amb_options = global_amb_pool.get("ambience_setup") or ["amb_wind", "amb_drone"]
+    global_amb_src = rng.choice(global_amb_options)
+    global_ambience = {"src": global_amb_src, "volume": 0.20}
+
     return {
         "topic": topic,
         "language": language,
         "genre": genre_profile.key,
         "genreProfile": genre_profile,
+        "ambience": global_ambience,
         "theme": theme_profile.to_dict(),
         "themeProfile": theme_profile,
         "format": format_profile.key,

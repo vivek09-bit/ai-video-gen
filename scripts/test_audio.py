@@ -173,6 +173,25 @@ class FakeEngine:
         return (0.05 * rng.standard_normal(length)).astype(np.float32)
 
 
+def test_trim_kokoro_edge_padding():
+    rng = np.random.default_rng(7)
+    speech = (0.05 * rng.standard_normal(2 * tts.SAMPLE_RATE)).astype(np.float32)
+    padded = np.concatenate(
+        [
+            np.zeros(int(0.5 * tts.SAMPLE_RATE), dtype=np.float32),
+            speech,
+            np.zeros(int(0.4 * tts.SAMPLE_RATE), dtype=np.float32),
+        ]
+    )
+    trimmed = tts.trim_edge_silence(padded)
+    duration = len(trimmed) / tts.SAMPLE_RATE
+    assert 2.01 <= duration <= 2.03, f"edge padding not trimmed cleanly: {duration:.3f}s"
+    assert len(tts.trim_edge_silence(np.zeros(2400, dtype=np.float32))) == 2400
+
+
+test_trim_kokoro_edge_padding()
+
+
 TEXT = "\u092a\u0939\u0932\u093e \u0935\u093e\u0915\u094d\u092f \u092f\u0939\u093e\u0901 \u0939\u0948\u0964 \u0926\u0942\u0938\u0930\u093e \u0935\u093e\u0915\u094d\u092f \u092f\u0939\u093e\u0901 \u0939\u0948?"
 spoken = TEXT.split()
 audio, words = tts.synthesise_line(FakeEngine(), TEXT, "hm_omega", 1.0, 0.30)
@@ -194,6 +213,18 @@ print(f"word timings: {len(words)} words, no overlaps, danda pause of "
       f"{tts.pause_after('पहला वाक्य यहाँ है।', 0.30, 0):.2f}s inserted, "
       f"line {actual:.2f}s.")
 print("mastering can be disabled and returns the raw level.\n")
+
+# ---------------------------------------------------------------------------
+# Hindi Number Expansion & Phonetics Pre-normalization
+# ---------------------------------------------------------------------------
+assert tts.num_to_hindi(3) == "तीन"
+assert tts.num_to_hindi(50) == "पचास"
+assert tts.num_to_hindi(1990) == "एक हज़ार नौ सौ नब्बे"
+assert tts.expand_hindi_numbers("रात ३ बजे ५० साल पहले") == "रात तीन बजे पचास साल पहले"
+assert tts.expand_hindi_numbers("रात 3 बजे 50 साल पहले") == "रात तीन बजे पचास साल पहले"
+assert "पेहला" in tts.normalize_hindi_phonetics("पहला")
+assert "वो" in tts.normalize_hindi_phonetics("वह")
+print("Hindi numbers and phonetic normalization verified.")
 
 print("Audio chain verified: punctuation-aware pauses, fades, gentle compression,")
 print(f"loudness held to {TARGET_RMS:.0f} dBFS with peaks under {CEILING:.1f} dBFS.")

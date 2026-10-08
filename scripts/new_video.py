@@ -58,6 +58,7 @@ from generate_images import (  # noqa: E402
 )
 from make_assets import ensure_assets  # noqa: E402
 import metadata  # noqa: E402
+import research  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = ROOT / "script.json"
@@ -80,9 +81,9 @@ except (AttributeError, OSError):
 
 
 LANGUAGE_NAMES = {
-    "hi": "Hindi (Conversational spoken Hindi in Devanagari script with natural everyday English loanwords)",
-    "hindi": "Hindi (Conversational spoken Hindi in Devanagari script with natural everyday English loanwords)",
-    "hinglish": "Hindi (Conversational spoken Hindi in Devanagari script with natural everyday English loanwords for studio-quality Hindi voice synthesis; subtitles will be in Roman Hinglish)",
+    "hi": "Hindi (100% Conversational spoken Hindi in Devanagari script हिंदी लिपि)",
+    "hindi": "Hindi (100% Conversational spoken Hindi in Devanagari script हिंदी लिपि)",
+    "hinglish": "Hindi (100% Conversational spoken Hindi in Devanagari script हिंदी लिपि with natural modern loanwords)",
     "en": "English",
     "english": "English",
 }
@@ -114,7 +115,20 @@ def build_prompt(
         else f"{target['minutes']:g}-minute video (~{target_sec:.0f}s, ~{target['totalWords']} words target)"
     )
 
-    lines = [
+    lines: list[str] = []
+    if is_hindi_family:
+        lines += [
+            "==========================================================================",
+            "CRITICAL LANGUAGE MANDATE: 100% SPOKEN HINDI IN DEVANAGARI (हिंदी लिपि)",
+            "==========================================================================",
+            "- ALL narration sentences MUST be written in conversational spoken Hindi using Devanagari script (हिंदी लिपि).",
+            "- Even if the Topic, Genre, or Instructions above/below are in English, you MUST generate the story in Devanagari Hindi.",
+            "- NEVER write English sentences in the story lines. English loanwords must be written in Devanagari (e.g. 'फोन', 'हॉस्पिटल', 'स्टेशन', 'रेडियो').",
+            "==========================================================================",
+            "",
+        ]
+
+    lines += [
         gp.writer_instructions,
         "",
         f"Target Length : {length_str}",
@@ -127,26 +141,33 @@ def build_prompt(
     ]
 
     if is_short_form:
+        if gp.key in ("explainer", "documentary", "scifi"):
+            hook_example = "e.g., 'क्या आप जानते हैं कि अगर सूरज अचानक गायब हो जाए, तो हमें 8 मिनट तक पता भी नहीं चलेगा?'"
+        elif gp.key in ("motivational", "comedy", "drama"):
+            hook_example = "e.g., 'दुनिया के 99% लोग ये एक गलती रोज करते हैं, और उन्हें पता भी नहीं होता।'"
+        else:
+            hook_example = "e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।'"
+
         lines += [
-        "==========================================================================",
-        "ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
-        "==========================================================================",
-        "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
-        "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
-        "   - Start MID-CRISIS with a jarring, impossible fact, forbidden warning, or a chilling anomaly (e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।').",
-        "   - Zero greetings, zero slow intro, zero background exposition.",
-        "2. OPEN LOOPS & MICRO-CLIFFHANGERS (SCENES 2-5):",
-        "   - Plant a burning, unanswered question or mystery in Scene 1 and withhold the explanation until the climax.",
-        "   - Every sentence must deliver a new escalation, discovery, or shock that makes swiping away impossible.",
-        "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
-        "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
-        "   - Ground the setting in familiar, everyday situations (WhatsApp chats, late-night lifts, quiet flats, village roads, phone alerts) so the viewer feels immediate personal dread and intrigue.",
-        "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
-        "   - Deliver a mind-bending revelation or twist in the last sentence.",
-        "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop on short-form platforms.",
-        "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps, no 'to be continued'.",
-        "",
-    ]
+            "==========================================================================",
+            "ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
+            "==========================================================================",
+            "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
+            "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
+            f"   - Start MID-ACTION with a jarring, impossible fact, forbidden warning, or a mind-bending anomaly ({hook_example}).",
+            "   - Zero greetings, zero slow intro, zero background exposition.",
+            "2. OPEN LOOPS & MICRO-CLIFFHANGERS (SCENES 2-5):",
+            "   - Plant a burning, unanswered question or mystery in Scene 1 and withhold the explanation until the climax.",
+            "   - Every sentence must deliver a new escalation, discovery, or revelation that makes swiping away impossible.",
+            "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
+            "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
+            "   - Ground the setting in familiar, everyday situations or vivid analogies so the viewer feels immediate personal curiosity and intrigue.",
+            "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
+            "   - Deliver a mind-bending revelation or payoff in the last sentence.",
+            "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop on short-form platforms.",
+            "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps, no 'to be continued'.",
+            "",
+        ]
     else:
         lines += [
             "==========================================================================",
@@ -177,26 +198,32 @@ def build_prompt(
     if is_hindi_family:
         lines += [
             "",
-            "Conversational Spoken Hindi & Modern Loanword Rules (CRITICAL for TTS Voice Quality):",
-            "- Spoken Audio Script: Write the spoken narration in natural, contemporary conversational spoken Hindi in Devanagari script with everyday modern English loanwords (for authentic studio-quality neural TTS voice synthesis).",
-            "- English Loanwords: For everyday modern objects, technology, professions, places, and common concepts, ALWAYS use standard familiar English loanwords in Devanagari script (e.g. 'मोबाइल फोन', 'कंप्यूटर', 'ट्रेन', 'कैमरा', 'डॉक्टर', 'कार', 'पुलिस', 'इंटरनेट', 'पासवर्ड', 'अलर्ट', 'मैसेज', 'कॉल', 'स्क्रीन', 'स्कैम', 'सावधान') instead of archaic, textbook Sanskritized translations.",
-            "- Mandatory term choices (Strictly NEVER use archaic Sanskritized translations):",
-            "  * Use 'मोबाइल फोन' / 'फोन' (NEVER 'चल दूरभाष' or 'भ्रमणभाष')",
-            "  * Use 'कंप्यूटर' / 'लैपटॉप' (NEVER 'संगणक')",
-            "  * Use 'ट्रेन' / 'रेलगाड़ी' (NEVER 'लोहपथगामिनी')",
-            "  * Use 'कैमरा' (NEVER 'छायाचित्रक')",
-            "  * Use 'डॉक्टर' / 'हॉस्पिटल' (NEVER 'चिकित्सक' or 'चिकित्सालय')",
-            "  * Use 'कार' / 'गाड़ी' (NEVER 'मोटरगाड़ी')",
-            "  * Use 'पुलिस' (NEVER 'आरक्षी')",
-            "  * Use 'इंटरनेट' (NEVER 'अंतरजाल')",
-            "  * Use 'मैसेज', 'कॉल', 'स्क्रीन', 'ऑफिस', 'स्टेशन', 'पासवर्ड', 'लाइट', 'बैटरी', 'सिग्नल', 'वीडियो', 'स्कैम', 'सावधान', 'जिंदगी'",
-            "- Headlines & Subtitles: Scene headlines must be punchy, catchy, and modern in Devanagari (on-screen captions and .srt subtitles will automatically be transliterated to Roman Hinglish for viewer readability).",
+            "Conversational Spoken Hindi & Modern Loanword Rules (CRITICAL for Human-Like TTS Voice Quality):",
+            "- Spoken Audio Script: Write the spoken narration in natural, contemporary conversational spoken Hindi (Devanagari script) with everyday English loanwords and colloquial idioms (creating an authentic studio-recorded neural voice delivery).",
+            "- Human Cadence & Phrasing: Use short, punchy sentence structures. Vary rhythm with natural pauses and conversational connectors ('अचानक', 'लेकिन तभी', 'हैरानी की बात ये है', 'और फिर'). Avoid stiff, literary, or textbook Hindi phrasing.",
+            "- English Loanwords: For everyday modern objects, technology, locations, professions, and familiar concepts, ALWAYS write the standard English loanwords in Devanagari script:",
+            "  * Technology & Communication: 'मोबाइल फोन', 'फोन', 'मैसेज', 'कॉल', 'वीडियो कॉल', 'स्क्रीन', 'नोटिफिकेशन', 'इंटरनेट', 'पासवर्ड', 'कैमरा', 'लैपटॉप', 'कंप्यूटर', 'सिग्नल', 'बैटरी'",
+            "  * Places & Transit: 'हॉस्पिटल', 'लिफ्ट', 'कमरा / फ्लैट', 'हॉस्टल', 'ऑफिस', 'स्टेशन', 'रोड', 'ट्रेन', 'कार', 'बस'",
+            "  * People & Concepts: 'डॉक्टर', 'नर्स', 'पुलिस', 'अलर्ट', 'स्कैम', 'सावधान', 'वॉर्निंग', 'सिक्योरिटी', 'टाइम'",
+            "- Strictly FORBIDDEN Archaic Sanskrit Translations (NEVER use these robotic words):",
+            "  * Do NOT use 'चल दूरभाष' or 'भ्रमणभाष' -> Use 'फोन' / 'मोबाइल'",
+            "  * Do NOT use 'संगणक' -> Use 'कंप्यूटर' / 'लैपटॉप'",
+            "  * Do NOT use 'लोहपथगामिनी' -> Use 'ट्रेन' / 'रेलगाड़ी'",
+            "  * Do NOT use 'छायाचित्रक' -> Use 'कैमरा'",
+            "  * Do NOT use 'चिकित्सालय' / 'चिकित्सक' -> Use 'हॉस्पिटल' / 'डॉक्टर'",
+            "  * Do NOT use 'आरक्षी' -> Use 'पुलिस'",
+            "  * Do NOT use 'अंतरजाल' -> Use 'इंटरनेट'",
+            "- Headlines & Subtitles: Scene headlines must be punchy and modern in Devanagari (automatically transliterated to Roman Hinglish for viewer readability).",
         ]
 
     lines += [
         "",
         "Rules:",
-        f"- Write the spoken narration entirely in {language}.",
+        (
+            "- Write 100% of the spoken narration in natural spoken Hindi using Devanagari script (हिंदी लिपि). Do NOT write English story sentences."
+            if is_hindi_family
+            else f"- Write the spoken narration entirely in {language}."
+        ),
         "- Match each scene's word count within 15 percent; the audio length depends on it.",
         "- Plain spoken prose only. No markdown formatting, no emoji, no stage directions, no sound-effect labels.",
         "- Write numbers as words in the target language (e.g. 'दो' instead of '2'), because the narration is read aloud by TTS exactly as written.",
@@ -207,11 +234,11 @@ def build_prompt(
         "",
         "Output format, exactly this and nothing else:",
         "",
-        "TITLE: <a short viral compelling story title>",
-        "###1|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 1>",
-        "<spoken narration for scene 1>",
-        "###2|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 2>",
-        "<spoken narration for scene 2>",
+        "TITLE: <a short viral Hindi story title in Devanagari>" if is_hindi_family else "TITLE: <a short viral compelling story title>",
+        "###1|<short punchy Hindi scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 1>" if is_hindi_family else "###1|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 1>",
+        "<spoken narration for scene 1 in Devanagari Hindi>" if is_hindi_family else "<spoken narration for scene 1>",
+        "###2|<short punchy Hindi scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 2>" if is_hindi_family else "###2|<short punchy scene headline> | VISUAL: <3-5 concrete English visual keywords for scene 2>",
+        "<spoken narration for scene 2 in Devanagari Hindi>" if is_hindi_family else "<spoken narration for scene 2>",
         "...",
     ]
     return "\n".join(lines)
@@ -488,47 +515,50 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
 
 def caption_options(
     style: str,
-    enabled: bool,
+    enabled: bool = True,
     format_profile: beats.VideoFormat | None = None,
     hinglish: bool = False,
+    bottom_margin: float | None = None,
 ) -> dict:
     """On-screen text settings.
 
-    `statement` shows a few large words in the middle of frame, which is the
-    stronger look when the narration is the whole show and there are no
-    characters. `subtitle` is the conventional readable band at the bottom.
+    `statement` shows a few words in the middle of frame.
+    `subtitle` is the conventional readable band at the bottom (default).
     Scales font size and safe bottom margin adaptively to video format (e.g. reels).
     """
     scale = format_profile.caption_scale if format_profile else 1.0
-    bot_margin = format_profile.bottom_margin if format_profile else 0.08
+    if bottom_margin is not None:
+        bot_margin = float(bottom_margin)
+    else:
+        bot_margin = format_profile.bottom_margin if format_profile else 0.14
 
     if style == "statement":
         return {
             "enabled": enabled,
             "wordsPerCue": 3,
             "bottom": bot_margin,
-            "fontSize": int(round(86 * scale)),
+            "fontSize": int(round(68 * scale)),
             "uppercase": False,
             "highlight": True,
             "position": "center",
             "outline": 0,
             "panel": False,
             "maxWidth": 0.82,
-            "rise": 30,
+            "rise": 20,
             "hinglish": hinglish,
         }
     return {
         "enabled": enabled,
         "wordsPerCue": 5,
         "bottom": bot_margin,
-        "fontSize": int(round(62 * scale)),
+        "fontSize": int(round(48 * scale)),
         "uppercase": False,
         "highlight": True,
         "position": "bottom",
         "outline": 0,
         "panel": True,
         "maxWidth": 0.88 if (format_profile and format_profile.height > format_profile.width) else 0.92,
-        "rise": 16,
+        "rise": 14,
         "hinglish": hinglish,
     }
 
@@ -544,7 +574,7 @@ def build_script(
     genre_profile: beats.GenreProfile | None = None,
     visual_style: str | None = None,
     secondary_voice: str | None = None,
-    show_headline: bool = True,
+    show_headline: bool = False,
 ) -> tuple[dict, list[int]]:
     """Combine the planned structure with written narration into script.json."""
     gp = genre_profile or beats.get_genre(planned.get("genre"))
@@ -613,7 +643,8 @@ def build_script(
         "voice": voice,
         "secondaryVoice": secondary_voice,
         "speed": speed,
-        "sentencePauseSeconds": 0.32,
+        "sentencePauseSeconds": 0.12,
+        "ambience": planned.get("ambience"),
         "captions": captions,
         "theme": planned.get("theme") or gp.theme,
         "characters": characters,
@@ -655,6 +686,20 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--topic", help="what the video is about")
+    parser.add_argument(
+        "--auto-topic",
+        "--auto-trend",
+        "--trending",
+        dest="auto_topic",
+        nargs="?",
+        const="auto",
+        help="seed keyword or niche to research live trending topics & viral angles for (e.g. --auto-topic 'horror mystery')",
+    )
+    parser.add_argument(
+        "--research-only",
+        action="store_true",
+        help="display live search keywords and viral video concepts for the topic, then exit without generating",
+    )
     parser.add_argument("--minutes", type=float, default=1.0, help="target length in minutes (default 1.0)")
     parser.add_argument(
         "--seconds",
@@ -668,7 +713,20 @@ def main() -> int:
     parser.add_argument(
         "--voice",
         default=None,
-        help="Kokoro voice id, alias, or blend (e.g. hm_omega, hindi_female, bm_george, af_heart+af_bella, deep_male)",
+        help="Voice id, alias, or blend (e.g. indicf5, indicf5_female, hm_omega, hindi_female, bm_george, af_heart+af_bella, deep_male)",
+    )
+    parser.add_argument(
+        "--dynamic-speed",
+        dest="dynamic_speed",
+        action="store_true",
+        default=True,
+        help="(default) modulate speed dynamically based on scene emotion & beats for natural human tone",
+    )
+    parser.add_argument(
+        "--flat-speed",
+        dest="dynamic_speed",
+        action="store_false",
+        help="disable emotion-based speed modulation and use strictly flat speed",
     )
     parser.add_argument(
         "--voice-2",
@@ -701,22 +759,41 @@ def main() -> int:
     )
     parser.add_argument(
         "--scenes",
+        "--scene",
+        "--scean",
+        "--sceans",
+        "--sceen",
+        "--sceens",
         "--scene-count",
         "--images-count",
+        "--image-count",
         "--num-images",
         "--images-total",
+        "--num-scenes",
+        "--image",
+        "--images-cnt",
         dest="scenes",
         type=int,
         default=None,
-        help="explicit number of scenes / images in the video (e.g. --scenes 4, --scenes 6, min 4)",
+        help="explicit number of scenes / images in the video (e.g. --scenes 1, --scenes 6)",
     )
-    parser.add_argument("--scene-seconds", type=int, default=beats.DEFAULT_SCENE_SECONDS)
+    parser.add_argument(
+        "--scene-seconds",
+        "--scean-seconds",
+        "--sceen-seconds",
+        "--scene-sec",
+        "--scenes-seconds",
+        dest="scene_seconds",
+        type=int,
+        default=beats.DEFAULT_SCENE_SECONDS,
+        help="target duration in seconds per scene/image (e.g. --scene-seconds 30)",
+    )
     parser.add_argument("--shots", type=int, default=2, help="shots per scene")
     parser.add_argument(
         "--caption-style",
         choices=["statement", "subtitle"],
-        default="statement",
-        help="statement = large words in centre frame; subtitle = band at the bottom",
+        default="subtitle",
+        help="subtitle = band at the bottom (default); statement = large words in centre frame",
     )
     parser.add_argument(
         "--captions", dest="captions", action="store_true", default=True,
@@ -741,11 +818,20 @@ def main() -> int:
         help="keep Devanagari script for on-screen captions and subtitles instead of Roman Hinglish",
     )
     parser.add_argument(
+        "--caption-bottom",
+        "--caption-margin",
+        "--bottom",
+        dest="caption_bottom",
+        type=float,
+        default=None,
+        help="distance from bottom of screen for subtitles as fraction of height (e.g. 0.28 = 28%%)",
+    )
+    parser.add_argument(
         "--headline",
         dest="show_headline",
         action="store_true",
-        default=True,
-        help="(default) show scene headline / prompt text on screen",
+        default=False,
+        help="show scene headline / prompt text on screen (off by default)",
     )
     parser.add_argument(
         "--no-headline",
@@ -755,7 +841,7 @@ def main() -> int:
         "--hide-prompt",
         dest="show_headline",
         action="store_false",
-        help="hide scene headlines and image prompt text from the video (only background image + subtitles)",
+        help="(default) hide scene headlines and image prompt text from the video (only background image + subtitles)",
     )
     parser.add_argument(
         "--characters", action="store_true",
@@ -917,8 +1003,8 @@ def main() -> int:
         "--upload-platforms",
         "--platforms",
         dest="upload_platforms",
-        default="youtube,facebook,instagram",
-        help="comma-separated platforms to upload to (youtube, facebook, instagram, or all; default: all)",
+        default="youtube",
+        help="comma-separated platforms to upload to (youtube, facebook, instagram, or all; default: youtube)",
     )
     parser.add_argument(
         "--upload-dry-run",
@@ -981,8 +1067,36 @@ def main() -> int:
         print(format_voices_table())
         return 0
 
+    # Auto Keyword & Topic Discovery Flow
+    if args.auto_topic is not None or (args.topic and args.research_only):
+        raw_seed = args.topic if (args.topic and args.research_only) else (args.auto_topic if (args.auto_topic and args.auto_topic != "auto") else None)
+        res_genre = args.genre or (beats.detect_genre(raw_seed).key if raw_seed else "horror")
+        seed_query = raw_seed or f"viral {res_genre} stories"
+        print(f"\n[RESEARCH ENGINE] Gathering real-time search trends & high-retention angles for '{seed_query}'...")
+        res_report = research.research_viral_angles(
+            seed=seed_query,
+            genre=res_genre,
+            format_type=args.video_format or "reel",
+            lang=args.language or "hindi",
+            model=args.model or "omniroute",
+        )
+        print(research.format_research_report(res_report))
+
+        if args.research_only:
+            return 0
+
+        # Auto-select the top viral concept topic
+        concepts = res_report["ai_synthesis"].get("concepts") or []
+        if concepts:
+            top_concept = concepts[0]
+            args.topic = top_concept.get("recommended_topic_arg") or top_concept.get("title") or seed_query
+            print(f"\n[AUTO-PIPELINE] Automatically selected top viral topic: \"{args.topic}\"")
+            print(f"                Hook: \"{top_concept.get('hook')}\"\n")
+        else:
+            args.topic = seed_query
+
     if not args.topic:
-        parser.error("the following arguments are required: --topic")
+        parser.error("the following arguments are required: --topic or --auto-topic")
 
     # Ensure procedural audio assets (ambiences & sfx) exist
     try:
@@ -1116,13 +1230,24 @@ def main() -> int:
             print(f"  prompt: ~{len(prompt) // 4} tokens in, "
                   f"~{planned['target']['totalWords']} words out")
             started = time.time()
+            base_sys_prompt = args.system_prompt or gp.system_prompt
+            raw_lang = (planned.get("language") or "hi").lower().strip()
+            if raw_lang in ("hi", "hindi", "hinglish"):
+                effective_sys_prompt = (
+                    f"{base_sys_prompt} "
+                    "CRITICAL: You MUST write all spoken story lines in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
+                    "Do NOT write English narration sentences even if the topic is in English. Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल')."
+                )
+            else:
+                effective_sys_prompt = base_sys_prompt
+
             try:
                 response = ask_llm(
                     base_url,
                     api_key,
                     model_to_use,
                     prompt,
-                    system_prompt=args.system_prompt or gp.system_prompt,
+                    system_prompt=effective_sys_prompt,
                 )
                 title, blocks = parse_written(response, len(planned["scenes"]))
                 print(f"  wrote {len(blocks)} scenes in {time.time() - started:.0f}s")
@@ -1173,6 +1298,7 @@ def main() -> int:
             args.captions,
             format_profile=format_profile,
             hinglish=is_hinglish_subtitles,
+            bottom_margin=args.caption_bottom,
         ),
         genre_profile=gp,
         visual_style=args.visual_style,
@@ -1217,9 +1343,12 @@ def main() -> int:
         print(f"  WARNING: scenes {missing} came back empty and will hold as silent shots")
 
     # ---- audio and video -------------------------------------------------
+    tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
+    if not args.dynamic_speed:
+        tts_cmd.append("--flat-speed")
     if not run_step(
         "narration and lip sync (Kokoro + Rhubarb)",
-        [sys.executable, str(ROOT / "scripts" / "tts.py")],
+        tts_cmd,
     ):
         return 1
 

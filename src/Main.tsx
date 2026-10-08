@@ -8,37 +8,39 @@ import {
   useVideoConfig,
 } from 'remotion';
 import React from 'react';
-import {SceneView} from './components/SceneView';
-import {Project} from './types';
+import { SceneView } from './components/SceneView';
+import { Project } from './types';
 
-const ProgressBar: React.FC<{color: string}> = ({color}) => {
+const ProgressBar: React.FC<{ color: string }> = ({ color }) => {
   const frame = useCurrentFrame();
-  const {durationInFrames} = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   const progress = Math.min(1, (frame + 1) / durationInFrames);
 
   return (
     <div
       style={{
-        position: 'absolute',
-        left: 0,
-        bottom: 0,
-        height: 6,
-        width: `${progress * 100}%`,
-        backgroundColor: color,
-        opacity: 0.85,
+        position: "absolute",
+        left: "50%",
+        bottom: "32%", // Midway between bottom (15-18%) and vertical center (50%)
+        transform: "translateX(-50%)",
+        width: "88%",
+        textAlign: "center",
+        zIndex: 20,
       }}
-    />
+    >
+      {/* Caption Text Component */}
+    </div>
   );
 };
 
 const FrameFade: React.FC = () => {
   const frame = useCurrentFrame();
-  const {fps, durationInFrames} = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const fadeIn = Math.round(fps * 0.5);
   const fadeOut = Math.round(fps * 0.9);
 
   const opacity = Math.min(
-    interpolate(frame, [0, fadeIn], [1, 0], {extrapolateRight: 'clamp'}),
+    interpolate(frame, [0, fadeIn], [1, 0], { extrapolateRight: 'clamp' }),
     interpolate(frame, [durationInFrames - fadeOut, durationInFrames], [0, 1], {
       extrapolateLeft: 'clamp',
     }),
@@ -47,11 +49,11 @@ const FrameFade: React.FC = () => {
   if (opacity <= 0.001) {
     return null;
   }
-  return <AbsoluteFill style={{backgroundColor: '#000', opacity}} />;
+  return <AbsoluteFill style={{ backgroundColor: '#000', opacity }} />;
 };
 
-export const Main: React.FC<Project> = ({script, timings}) => {
-  const {fps, durationInFrames} = useVideoConfig();
+export const Main: React.FC<Project> = ({ script, timings }) => {
+  const { fps, durationInFrames } = useVideoConfig();
 
   const timingById = new Map(timings.scenes.map((t) => [t.id, t]));
   const sceneStarts = timings.scenes.map((t) => t.start);
@@ -62,18 +64,18 @@ export const Main: React.FC<Project> = ({script, timings}) => {
     }
     const fadeIn = Math.round(fps * 1.5);
     const fadeOut = Math.round(script.music.fadeOutSeconds * fps);
-    const rampIn = interpolate(frame, [0, fadeIn], [0, 1], {extrapolateRight: 'clamp'});
+    const rampIn = interpolate(frame, [0, fadeIn], [0, 1], { extrapolateRight: 'clamp' });
     const rampOut = interpolate(
       frame,
       [durationInFrames - fadeOut, durationInFrames],
       [1, 0],
-      {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
     );
     return script.music.volume * Math.min(rampIn, rampOut);
   };
 
   return (
-    <AbsoluteFill style={{backgroundColor: '#000'}}>
+    <AbsoluteFill style={{ backgroundColor: '#000' }}>
       {script.scenes.map((scene, i) => {
         const timing = timingById.get(scene.id);
         if (!timing) {
@@ -113,7 +115,7 @@ export const Main: React.FC<Project> = ({script, timings}) => {
           timing.lines && timing.lines.length > 0
             ? timing.lines
             : timing.audio
-              ? [{audio: timing.audio, start: timing.audioStart}]
+              ? [{ audio: timing.audio, start: timing.audioStart }]
               : [];
 
         return lines.map((line, i) =>
@@ -125,9 +127,19 @@ export const Main: React.FC<Project> = ({script, timings}) => {
         );
       })}
 
-      {/* Looping ambience bed per scene, mixed under the narration. */}
+      {/* Global continuous background ambience spanning the entire video timeline without cut */}
+      {script.ambience ? (
+        <Audio
+          src={staticFile(`audio/${script.ambience.src}.wav`)}
+          loop
+          loopVolumeCurveBehavior="extend"
+          volume={Math.min(0.28, script.ambience.volume ?? 0.22)}
+        />
+      ) : null}
+
+      {/* Per-scene ambience overlay when specified (or when no global ambience) */}
       {script.scenes.map((scene) => {
-        if (!scene.ambience) {
+        if (!scene.ambience || scene.ambience.src === script.ambience?.src) {
           return null;
         }
         const timing = timingById.get(scene.id);
@@ -144,7 +156,7 @@ export const Main: React.FC<Project> = ({script, timings}) => {
               src={staticFile(`audio/${scene.ambience.src}.wav`)}
               loop
               loopVolumeCurveBehavior="extend"
-              volume={scene.ambience.volume}
+              volume={Math.min(0.28, scene.ambience.volume ?? 0.22)}
             />
           </Sequence>
         );
@@ -161,7 +173,7 @@ export const Main: React.FC<Project> = ({script, timings}) => {
             key={`sfx-${scene.id}-${index}`}
             from={Math.round((timing.start + cue.at) * fps)}
           >
-            <Audio src={staticFile(`audio/${cue.sfx}.wav`)} volume={cue.volume ?? 1} />
+            <Audio src={staticFile(`audio/${cue.sfx}.wav`)} volume={Math.min(0.32, cue.volume ?? 0.25)} />
           </Sequence>
         ));
       })}

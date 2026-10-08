@@ -37,6 +37,7 @@ import transliterate  # noqa: E402
 
 YOUTUBE_CATEGORY_MAP: dict[str, str] = {
     "scifi": "28",        # Science & Technology
+    "explainer": "27",    # Education
     "documentary": "27",  # Education
     "motivational": "27", # Education
     "comedy": "23",       # Comedy
@@ -45,6 +46,105 @@ YOUTUBE_CATEGORY_MAP: dict[str, str] = {
     "mythology": "24",    # Entertainment
     "drama": "24",        # Entertainment
     "horror": "24",       # Entertainment
+}
+
+GENRE_SEO_SEARCH_QUERIES: dict[str, list[str]] = {
+    "horror": [
+        "hindi horror stories",
+        "real ghost stories in hindi",
+        "haunted places in india",
+        "scary animated story",
+        "bhoot ki kahani",
+        "horror kahani hindi",
+        "khaufnak sachi ghatna",
+        "true horror stories hindi",
+        "darr ki kahani",
+    ],
+    "scifi": [
+        "sci fi stories in hindi",
+        "future technology 2050",
+        "artificial intelligence future",
+        "space mysteries in hindi",
+        "cyberpunk animation hindi",
+        "time travel story hindi",
+        "alien mystery hindi",
+        "futuristic world",
+    ],
+    "explainer": [
+        "how it works in hindi",
+        "science explained in hindi",
+        "case study in hindi",
+        "technology breakdown hindi",
+        "deep dive documentary hindi",
+        "system explained hindi",
+        "educational breakdown",
+        "interesting facts explained",
+    ],
+    "documentary": [
+        "mysterious facts in hindi",
+        "unsolved mysteries in hindi",
+        "real documentary hindi",
+        "history facts in hindi",
+        "ancient secrets of india",
+        "bizarre incidents in world",
+        "historical documentary",
+        "discovery facts",
+    ],
+    "mythology": [
+        "sanatan dharma stories",
+        "ancient indian mythology",
+        "mahabharat mystery hindi",
+        "vedic history in hindi",
+        "divine legends of india",
+        "shri krishna leela",
+        "ancient temple mysteries",
+        "hindu mythology tales",
+    ],
+    "fantasy": [
+        "magical fantasy stories in hindi",
+        "fairy tale stories in hindi",
+        "jadui kahaniya hindi",
+        "animated fantasy world",
+        "magic powers story",
+        "enchanted realm",
+        "fairytale adventure",
+    ],
+    "motivational": [
+        "motivational story in hindi",
+        "success mindset hindi",
+        "inspirational life lessons",
+        "discipline motivation video",
+        "hard work speech hindi",
+        "never give up story",
+        "life changing video",
+    ],
+    "drama": [
+        "emotional story in hindi",
+        "heart touching story hindi",
+        "life lessons animated",
+        "cinematic short film hindi",
+        "family emotional drama",
+        "moral kahani",
+        "true life drama",
+    ],
+    "comedy": [
+        "funny animated story hindi",
+        "desi comedy video",
+        "hindi jokes animation",
+        "comedy reels hindi",
+        "hilarious desi animation",
+        "haste haste story",
+        "funny cartoon hindi",
+    ],
+    "anime": [
+        "hindi anime edit",
+        "action anime hindi",
+        "anime recap in hindi",
+        "best anime fight hindi",
+        "shonen animation hindi",
+        "anime story in hindi",
+        "anime in hindi",
+    ],
 }
 
 GENRE_HASHTAG_BANKS: dict[str, dict[str, list[str]]] = {
@@ -95,6 +195,18 @@ GENRE_HASHTAG_BANKS: dict[str, dict[str, list[str]]] = {
         ],
         "facebook": ["#Documentary", "#Facts", "#History", "#Knowledge", "#DidYouKnow"],
         "tiktok": ["#facts", "#history", "#didyouknow", "#documentary", "#learnontiktok", "#fyp", "#viral", "#foryou"],
+    },
+    "explainer": {
+        "youtube": ["#Explainer", "#HowItWorks", "#Science", "#CaseStudy", "#TechExplained", "#DeepDive", "#Knowledge", "#Shorts"],
+        "instagram": [
+            "#explainer", "#howitworks", "#scienceexplained", "#casestudy", "#deepdive",
+            "#techexplained", "#knowledge", "#educational", "#infotainment", "#learnsomethingnew",
+            "#curiosity", "#systemsexplained", "#amazingfacts", "#factsdaily", "#reelsindia",
+            "#trendingreels", "#viralreels", "#explorepage", "#mindblowingfacts", "#sciencefacts",
+            "#techreels", "#businesscasestudy", "#innovation", "#smartlearning", "#thinkdifferently"
+        ],
+        "facebook": ["#Explainer", "#HowItWorks", "#Science", "#Knowledge", "#CaseStudy"],
+        "tiktok": ["#explainer", "#howitworks", "#science", "#learnontiktok", "#techtok", "#fyp", "#viral", "#foryou"],
     },
     "mythology": {
         "youtube": ["#Mythology", "#AncientHistory", "#IndianMythology", "#SanatanDharma", "#HinduMythology", "#EpicStories", "#Shorts"],
@@ -159,8 +271,140 @@ GENRE_HASHTAG_BANKS: dict[str, dict[str, list[str]]] = {
 }
 
 # --------------------------------------------------------------------------
-# Helper Functions
+# Helper Functions & Chapter Generator
 # --------------------------------------------------------------------------
+
+BEAT_CHAPTER_NAMES: dict[str, dict[str, str]] = {
+    "horror": {
+        "hook": "The Ominous Warning",
+        "establish": "Entering the Darkness",
+        "introduce": "The Strange Sign",
+        "dread": "Creeping Dread",
+        "suspense": "Building Terror",
+        "approach": "The Dark Approach",
+        "escalate": "The Unseen Terror",
+        "danger": "Point of No Return",
+        "turning_point": "The Dark Shift",
+        "reveal": "The Terrifying Reveal",
+        "revelation": "The Horrific Truth",
+        "climax": "The Final Nightmare",
+        "react": "The Shocking Realization",
+        "resolve": "The Final Warning",
+        "twist": "The Shocking Reality",
+        "conclusion": "The Haunting Never Ends",
+    },
+    "scifi": {
+        "hook": "The Discovery",
+        "establish": "World of Tomorrow",
+        "introduce": "The Experiment",
+        "investigate": "Scanning the Anomaly",
+        "breakthrough": "The Quantum Breakthrough",
+        "suspense": "System Anomaly",
+        "escalate": "Threshold of Breach",
+        "danger": "Catastrophic Failure",
+        "turning_point": "The Quantum Shift",
+        "revelation": "The Grand Matrix",
+        "reveal": "The Alien Interface",
+        "climax": "The Convergence",
+        "react": "The Reality Shift",
+        "resolve": "The New Horizon",
+        "twist": "The Alternate Timeline",
+        "conclusion": "Final Transmission",
+    },
+    "explainer": {
+        "hook": "The Big Question",
+        "establish": "Core Concept Explained",
+        "introduce": "How It Actually Works",
+        "investigate": "The Investigation",
+        "breakthrough": "The Breakthrough",
+        "demonstration": "Case Study & Proof",
+        "theory": "The Hidden Science",
+        "suspense": "The Hidden Mechanism",
+        "escalate": "Real-World Impact",
+        "danger": "The Fatal Flaw",
+        "turning_point": "The Paradigm Shift",
+        "revelation": "Key Takeaways",
+        "reveal": "The Secret Formula",
+        "climax": "The Future Outlook",
+        "react": "Critical Takeaways",
+        "resolve": "Summary & Next Steps",
+        "twist": "The Surprising Truth",
+        "conclusion": "Summary & Action Step",
+    },
+    "documentary": {
+        "hook": "The Untold Mystery",
+        "establish": "Historical Context",
+        "introduce": "The Evidence",
+        "investigate": "Deep Investigation",
+        "evidence": "Uncovering the Clues",
+        "suspense": "Unexplained Anomalies",
+        "escalate": "The Investigation Deepens",
+        "danger": "The Vanishing Clues",
+        "turning_point": "A Critical Finding",
+        "revelation": "Uncovering the Truth",
+        "reveal": "The Secret Document",
+        "climax": "The Final Verdict",
+        "react": "The Historical Impact",
+        "resolve": "The Enduring Mystery",
+        "twist": "The Overlooked Secret",
+        "conclusion": "The Legacy Left Behind",
+    },
+    "mythology": {
+        "hook": "The Sacred Legend",
+        "establish": "The Ancient Era",
+        "introduce": "The Divine Avatar",
+        "suspense": "Cosmic Prophecy",
+        "escalate": "The Great Conflict",
+        "danger": "The Demon Rising",
+        "turning_point": "The Divine Intervention",
+        "revelation": "The Celestial Mystery",
+        "reveal": "The Divine Weapon",
+        "climax": "The Ultimate Battle",
+        "react": "The Cosmic Order",
+        "resolve": "Eternal Blessing",
+        "twist": "The Sacred Boon",
+        "conclusion": "Timeless Wisdom",
+    },
+}
+
+DEFAULT_BEAT_CHAPTERS: dict[str, str] = {
+    "hook": "The Beginning",
+    "establish": "Setting the Scene",
+    "introduce": "The Introduction",
+    "dread": "Creeping Suspense",
+    "approach": "Moving Forward",
+    "suspense": "Building Suspense",
+    "escalate": "Rising Action",
+    "danger": "Critical Moment",
+    "turning_point": "The Turning Point",
+    "reveal": "The Major Reveal",
+    "revelation": "The Revelation",
+    "climax": "The Climax",
+    "react": "The Aftermath",
+    "resolve": "The Conclusion",
+    "twist": "The Plot Twist",
+    "conclusion": "The Final Words",
+}
+
+
+def clean_keyword_subject(visual_keywords: str) -> str:
+    """Extract a concise 2-3 word subject title from visual keywords."""
+    if not visual_keywords:
+        return ""
+    stopwords = {
+        "dark", "misty", "night", "ancient", "scene", "view", "shot", "featuring",
+        "cinematic", "highly", "detailed", "eerie", "moody", "lighting", "extreme",
+        "closeup", "wide", "medium", "slow", "fast", "background", "photo"
+    }
+    words = [
+        w.capitalize()
+        for w in re.findall(r"[a-zA-Z]{3,}", visual_keywords)
+        if w.lower() not in stopwords
+    ]
+    if words:
+        return " ".join(words[:2])
+    return ""
+
 
 def format_timestamp(seconds: float) -> str:
     """Format seconds into MM:SS format (or HH:MM:SS for longer videos)."""
@@ -176,25 +420,43 @@ def format_timestamp(seconds: float) -> str:
 def extract_chapters_from_data(
     script_data: dict, timings_data: dict | None = None
 ) -> list[tuple[str, str]]:
-    """Extract chapter timestamps and titles [(00:00, Title), ...].
+    """Extract chapter timestamps and descriptive titles [(00:00, Title), ...].
 
-    Ensures 00:00 is always present for valid YouTube chapters.
+    Ensures 00:00 is always present for valid YouTube chapters and generates
+    SEO-rich beat & subject titles when headlines are blank.
     """
     scenes = script_data.get("scenes", [])
     if not scenes:
         return [("00:00", "Introduction")]
 
+    genre = str(script_data.get("genre", "horror")).lower()
+    genre_beats = BEAT_CHAPTER_NAMES.get(genre, DEFAULT_BEAT_CHAPTERS)
     timing_scenes = timings_data.get("scenes", []) if timings_data else []
     chapters = []
+    seen_titles: dict[str, int] = {}
 
     for i, scene in enumerate(scenes):
-        headline = scene.get("headline", f"Scene {i + 1}").strip()
+        headline = scene.get("headline", "").strip()
         # Clean headline from visual tags
         if " | VISUAL:" in headline or " | visual:" in headline.lower():
             headline = re.split(r"\s*\|\s*visual:\s*", headline, flags=re.IGNORECASE)[0].strip()
 
-        # If headline is in Devanagari, also create a clean readable version
-        clean_title = headline if headline else f"Scene {i + 1}"
+        if headline and not re.match(r"^scene\s*\d+$", headline, re.IGNORECASE):
+            clean_title = headline
+        else:
+            beat = scene.get("beat", "").lower()
+            beat_title = genre_beats.get(beat) or DEFAULT_BEAT_CHAPTERS.get(beat)
+            if not beat_title:
+                beat_title = f"Part {i + 1}" if i > 0 else "Introduction"
+
+            # Enhance with visual subject if available
+            subject = clean_keyword_subject(scene.get("visualKeywords", ""))
+            candidate = f"{beat_title}: {subject}" if subject else beat_title
+
+            # Disambiguate duplicate beat chapter names
+            count = seen_titles.get(candidate, 0) + 1
+            seen_titles[candidate] = count
+            clean_title = f"{candidate} (Part {count})" if count > 1 else candidate
 
         # Get timing
         if i == 0:
@@ -203,7 +465,6 @@ def extract_chapters_from_data(
             ts_sec = timing_scenes[i].get("start", 0.0)
             ts_str = format_timestamp(ts_sec)
         else:
-            # Estimate roughly based on scene index (e.g. 15s per scene)
             ts_str = format_timestamp(i * 15.0)
 
         chapters.append((ts_str, clean_title))
@@ -216,57 +477,53 @@ def extract_chapters_from_data(
 
 
 def build_seo_tags(topic: str, genre: str, language: str, headlines: list[str]) -> list[str]:
-    """Generate search keywords and tags for video SEO."""
+    """Generate search keywords and tags for video SEO (max ~450 chars total, <= 30 tags)."""
     tags = []
-    
-    # Topic keywords
     clean_topic = topic.lower().strip()
     tags.append(clean_topic)
     for word in re.findall(r"\w{3,}", clean_topic):
         if word not in tags:
             tags.append(word)
 
-    # Genre keywords
-    tags.append(genre.lower())
-    genre_keywords = {
-        "anime": ["anime", "anime edit", "anime video", "action anime", "manga", "anime fight"],
-        "scifi": ["sci fi", "science fiction", "ai technology", "cyberpunk", "futuristic", "tech"],
-        "fantasy": ["fantasy", "magic", "fairy tale", "magical story", "mythical"],
-        "documentary": ["documentary", "facts", "history", "educational video", "did you know"],
-        "mythology": ["mythology", "ancient history", "sanatan dharma", "indian mythology", "legends"],
-        "motivational": ["motivation", "motivational video", "success mindset", "inspiration", "hard work"],
-        "drama": ["drama story", "emotional video", "short story", "cinematic", "life lessons"],
-        "comedy": ["comedy video", "funny story", "jokes", "humor", "desi comedy"],
-        "horror": ["horror story", "scary video", "creepy mystery", "haunted", "suspense"],
-    }
-    for kw in genre_keywords.get(genre.lower(), [genre.lower()]):
+    genre_kws = GENRE_SEO_SEARCH_QUERIES.get(genre.lower(), [genre.lower()])
+    for kw in genre_kws:
         if kw not in tags:
             tags.append(kw)
 
-    # Headline keywords
+    if clean_topic:
+        tags.append(f"{clean_topic} {genre.lower()}")
+        if language in ("hi", "hindi", "hinglish"):
+            tags.append(f"{clean_topic} hindi")
+            tags.append(f"{clean_topic} kahani")
+
     for h in headlines[:5]:
         h_clean = transliterate.deva_to_hinglish(h).lower() if any("\u0900" <= c <= "\u097f" for c in h) else h.lower()
         h_clean = re.sub(r"[^\w\s]", "", h_clean).strip()
         if h_clean and len(h_clean) > 3 and h_clean not in tags:
             tags.append(h_clean)
 
-    # Language tags
     if language in ("hi", "hindi", "hinglish"):
-        tags.extend(["hindi", "hinglish", "hindi kahaniya", "hindi stories"])
+        tags.extend(["hindi", "hinglish", "hindi kahaniya", "hindi stories", "kahaniya", "sachi ghatna"])
     else:
-        tags.extend(["english", "story in english"])
+        tags.extend(["english", "story in english", "english stories"])
 
-    # Generic animation / creative tags
-    tags.extend(["short film", "2d animation", "storytelling", "viral video"])
+    tags.extend(["short film", "2d animation", "storytelling", "viral video", "shorts", "youtube shorts"])
 
-    # De-duplicate while preserving order
     seen = set()
     result = []
+    total_len = 0
     for t in tags:
-        if t and t not in seen:
-            seen.add(t)
-            result.append(t)
-    return result[:25]
+        clean_t = re.sub(r"[<>\r\n]+", "", str(t)).strip()
+        if not clean_t or clean_t in seen or len(clean_t) > 80:
+            continue
+        if total_len + len(clean_t) + 1 > 450:
+            break
+        seen.add(clean_t)
+        result.append(clean_t)
+        total_len += len(clean_t) + 1
+        if len(result) >= 30:
+            break
+    return result
 
 
 # --------------------------------------------------------------------------
@@ -307,9 +564,9 @@ def generate_metadata_procedural(
     
     # 1. YouTube Metadata
     yt_shorts_suffix = " #Shorts" if is_reel else ""
-    yt_title = f"{title} | {genre.capitalize()} Story{yt_shorts_suffix}"
+    yt_title = f"{title} | {genre.capitalize()}{yt_shorts_suffix}"
     if len(yt_title) > 100:
-        yt_title = f"{title[:90]}...{yt_shorts_suffix}"
+        yt_title = f"{title[:90 - len(yt_shorts_suffix)]}...{yt_shorts_suffix}"
 
     chapter_lines = [f"{ts} - {chap}" for ts, chap in chapters]
     chapters_block = "\n".join(chapter_lines)
@@ -318,16 +575,27 @@ def generate_metadata_procedural(
     if is_reel and "#Shorts" not in yt_hashtags:
         yt_hashtags = ["#Shorts"] + yt_hashtags
 
+    # Related search queries block
+    related_queries = GENRE_SEO_SEARCH_QUERIES.get(genre.lower(), [f"{genre} stories in hindi"])
+    queries_block = "\n".join([f"• {q.title() if language == 'en' else q}" for q in related_queries[:6]])
+
+    # Transcript snippet for YouTube NLP search indexing
+    transcript_snippet = full_narration if len(full_narration) <= 1200 else f"{full_narration[:1150]}..."
+
     yt_description = (
         f"🔥 {title}\n\n"
-        f"Dive into this thrilling {genre} story about {topic}! Watch till the very end to see the shocking twist!\n\n"
-        f"⏱️ CHAPTERS & TIMESTAMPS:\n"
+        f"Dive into this thrilling {genre} story about {topic}! Watch till the very end to experience the unexpected twist.\n\n"
+        f"⏱️ CHAPTERS & KEY MOMENTS:\n"
         f"{chapters_block}\n\n"
-        f"✨ SUMMARY & KEY HIGHLIGHTS:\n"
-        f"• Story Topic: {topic.title()}\n"
+        f"🎙️ SPOKEN NARRATION TRANSCRIPT:\n"
+        f"{transcript_snippet}\n\n"
+        f"🔍 QUERIES SOLVED & RELATED SEARCHES:\n"
+        f"{queries_block}\n\n"
+        f"✨ VIDEO DETAILS:\n"
+        f"• Topic: {topic.title()}\n"
         f"• Genre: {genre.title()}\n"
-        f"• Experience immersive storytelling with rich visuals and atmospheric sound.\n\n"
-        f"🔔 SUBSCRIBE for more daily animated stories and exciting videos!\n"
+        f"• Language: {language.upper()}\n\n"
+        f"🔔 SUBSCRIBE for daily animated stories and viral reels!\n"
         f"👍 LIKE, COMMENT & SHARE if you enjoyed this video!\n\n"
         f"{' '.join(yt_hashtags[:8])}\n"
     )
@@ -459,9 +727,16 @@ Format: {'Vertical 9:16 Reel/Short' if is_reel else 'Landscape 16:9'}
 --- INSTRUCTIONS FOR EACH PLATFORM ---
 
 1. YOUTUBE (Data API v3 & YouTube Studio):
-   - title: High CTR, viral SEO title (<90 chars). Include #Shorts if vertical reel.
-   - description: Engaging hook in lines 1-2, YouTube chapter timestamps starting from 00:00, 3-4 bullet takeaways, CTA to subscribe/like/share, and 5-8 relevant hashtags at bottom.
-   - tags: Array of 20-25 high-search-volume keywords (topic, genre, language, themes).
+   - title: High CTR, viral SEO title (<90 chars). Must start with strong emotional/curiosity hook. Include #Shorts if vertical reel.
+   - description: 7-part viral YouTube description:
+       1) Hook line with emoji
+       2) Above-the-fold snippet summary (<150 chars) answering search intent
+       3) Strict Chapters & Key Moments timestamps starting at 00:00 (e.g. 00:00 - Intro, 00:15 - The Encounter)
+       4) Spoken Narration Transcript snippet for YouTube NLP search indexing
+       5) "Queries Solved & Related Searches" section listing 4-6 high-ranking long-tail keywords
+       6) Video details (Topic, Genre, Language)
+       7) CTA (Subscribe/Like) and 5-8 relevant hashtags (#Shorts first if vertical).
+   - tags: Array of 25-30 curated search keywords (topic, broad genre, long-tail phrases, Hinglish transliterations, <450 total characters).
    - category_id: Choose appropriate YouTube category ("28" for Science/Tech, "27" for Education, "24" for Entertainment, "1" for Animation, "23" for Comedy).
 
 2. INSTAGRAM (Reels & Feed):

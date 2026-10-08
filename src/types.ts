@@ -222,6 +222,8 @@ export interface ScriptFile {
   tailPaddingSeconds: number;
   /** Silence inserted between sentences, in seconds. */
   sentencePauseSeconds: number;
+  /** Global continuous background ambience spanning the full video duration without interruption. */
+  ambience?: {src: string; volume: number} | null;
   captions: CaptionOptions;
   music: {src: string; volume: number; fadeOutSeconds: number} | null;
   theme: Theme;

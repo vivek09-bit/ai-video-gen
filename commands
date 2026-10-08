@@ -1,4 +1,245 @@
-video gen=.\.venv\Scripts\python.exe scripts\new_video.py --topic "laal ujale wali raat" --voice hf_beta --genre horror --model omniroute --minutes 1 --format reel --speed 1.2 --out out/horror_new1.mp4 --no-title
+# --------------------------------------------------------------------------
+# BEST 100% NATIVE HINDI NARRATION VOICES (0% American Tone / Accent Contamination)
+# --------------------------------------------------------------------------
+# 1. Cinematic Deep Male (Horror / Crime / Dark Mystery / Thriller):
+#    --voice "hm_omega" --speed 1.0
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "सदियों पुरानी इस किताब में एक खौफनाक रहस्य छिपा था।" --voice "hm_omega" --out out/test_hindi_cinematic.wav
+#
+# 2. Natural Documentary Male (Real Life Stories / History / Explainer / Podcast):
+#    --voice "hm_psi" --speed 1.05
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "भारत के इस प्राचीन किले का इतिहास आज भी वैज्ञानिकों को हैरान करता है।" --voice "hm_psi" --out out/test_hindi_doc.wav
+#
+# 3. Rich Dual-Hindi Male (Classic Kahaniyan / Folk Tales / Balanced Deep Tone):
+#    --voice "hm_omega,hm_psi" --speed 1.0
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "गंगा किनारे बसे उस छोटे से गांव में एक अजीब घटना घटी।" --voice "hm_omega,hm_psi" --out out/test_hindi_smooth.wav
+#
+# 4. Warm Expressive Female (Emotional Storytelling / Drama / Suspense):
+#    --voice "hf_alpha" --speed 1.0
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "उस रात की खामोशी में एक ऐसी आवाज सुनाई दी जिसने सबको डरा दिया।" --voice "hf_alpha" --out out/test_hindi_storyteller.wav
+#
+# 5. Bright & Engaging Female (Viral Shorts / Facts / Trending News / Upbeat):
+#    --voice "hf_beta" --speed 1.1
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "क्या आपको पता है दुनिया का सबसे खतरनाक रहस्य क्या है? चलिए जानते हैं।" --voice "hf_beta" --out out/test_hindi_bright.wav
+#
+# 6. Professional Documentary Female (Informative / Case Studies / True Crime):
+#    --voice "hf_alpha,hf_beta" --speed 1.02
+#    Test: .\.venv\Scripts\python.exe scripts\tts.py --text "1975 में हुई यह अनसुलझी गुत्थी आज भी एक बहुत बड़ा सवाल है।" --voice "hf_alpha,hf_beta" --out out/test_hindi_fem_doc.wav
+#
+# --------------------------------------------------------------------------
+# IMAGES / SCENES PER VIDEO & SUBTITLE POSITION CONTROL
+# --------------------------------------------------------------------------
+# Set exact number of images/scenes (e.g. 6 images for 30s video):
+# .\.venv\Scripts\python.exe scripts\new_video.py --topic "khooni rasta" --scenes 6 --seconds 30 --genre horror --out out/custom_scenes.mp4
+#
+# Control image transition pace (e.g. change image every 5 seconds):
+# .\.venv\Scripts\python.exe scripts\new_video.py --topic "khooni rasta" --scene-seconds 5 --seconds 30 --genre horror --out out/fast_pace.mp4
+#
+# Subtitle vertical position (default is 0.28 / 28% from bottom, raised clear of UI overlays):
+# .\.venv\Scripts\python.exe scripts\new_video.py --topic "khooni haveli" --caption-bottom 0.30 --genre horror --out out/sub_raised.mp4
+
+# --------------------------------------------------------------------------
+# HORROR WHISPER COMBOS & ACOUSTIC DSP (Options to add Whisper)
+# --------------------------------------------------------------------------
+# Option 1: Acoustic DSP Whisper Filter (--whisper flag)
+# Strips vocal cord pitch (F0 < 420Hz) and boosts 3.5kHz-7.5kHz airy breath sibilance:
+# .\.venv\Scripts\python.exe scripts\tts.py --text "अंधेरे में मत देखना, वो तुम्हारे पीछे खड़ा है।" --voice hf_beta --whisper --speed 0.95 --out out/test_whisper_dsp.wav
+# .\.venv\Scripts\python.exe scripts\tts.py --text "दरवाजा बंद मत करना, वो आ चुका है।" --voice hm_omega --whisper --speed 0.95 --out out/test_whisper_male.wav
+#
+# Option 2: Pure Native Neural Whisper Presets (Without American Accent):
+# 1. Classic Eerie Ghost Whisper:   --voice "ghost_whisper"   (hf_alpha,hf_beta)
+# 2. Ultra-Soft Close-Mic Whisper:  --voice "spectral_child"  (hf_beta)
+# 3. Disembodied Dark Whisper:      --voice "ancient_spirit"  (hm_omega,hm_psi)
+#
+# Option 3: Atmospheric English/Multilingual Whisper Blends:
+# 1. Airy Female Whisper:           --voice "hf_alpha,af_nicole"
+# 2. Cold Hypnotic Ghost:           --voice "hf_alpha,af_river"
+# 3. Creepy Stalker Shadow Whisper: --voice "hm_psi,af_nicole"
+#
+# Option 4: In script.json per scene / character:
+# Set `"whisper": true` or `"voice": "ghost_whisper"` on specific scenes for sudden jump-whispers!
+
+# --------------------------------------------------------------------------
+# CHARACTER & BACKGROUND VOICE PRESETS (TTS)
+# --------------------------------------------------------------------------
+# Voices: ghost_whisper, demon_voice, creepy_witch, ancient_spirit, spectral_child,
+#         eerie_narrator, shadow_entity, tantrik_voice, radio_dispatch, news_reporter, ai_system
+# Test any character voice:
+# .\.venv\Scripts\python.exe scripts\tts.py --text "तुम यहाँ से कभी वापस नहीं जा सकते" --voice demon_voice --out out/test_demon.wav
+# .\.venv\Scripts\python.exe scripts\tts.py --text "अंधेरे में मत देखना" --voice ghost_whisper --out out/test_ghost.wav
+# .\.venv\Scripts\python.exe scripts\tts.py --text "Emergency alert broadcast: Stay indoors." --voice radio_dispatch --out out/test_radio.wav
+
+# --------------------------------------------------------------------------
+# ALL-IN-ONE AUTOMATED VIRAL PIPELINE (Research + SEO + Video + YouTube Upload)
+# --------------------------------------------------------------------------
+# 1-Command Automated Video Creation & YouTube Upload:
+# (Does live trend research, script writing, TTS audio, visuals, video render, 7-tier SEO metadata, and YouTube upload)
+.\.venv\Scripts\python.exe scripts\research.py --genre horror --minutes 5 --voice spectral_child --caption-bottom 0.40 --format landscape --model omniroute --upload
+
+# All-in-One for 1-Minute Vertical Shorts / Reels:
+.\.venv\Scripts\python.exe scripts\research.py --genre horror --minutes 1 --voice spectral_child --caption-bottom 0.35 --format reel --model omniroute --upload
+
+# All-in-One with Custom Seed Keyword:
+.\.venv\Scripts\python.exe scripts\research.py "khooni train" --genre horror --minutes 3 --voice ghost_whisper --caption-bottom 0.40 --format landscape --model omniroute --upload
+
+# --------------------------------------------------------------------------
+# INDIVIDUAL COMMANDS
+# --------------------------------------------------------------------------
+video gen=.\.venv\Scripts\python.exe scripts\new_video.py --topic "laal ujale wali raat" --voice hf_beta --genre horror --model omniroute --minutes 1 --format reel --speed 1.2 --out out/horror_new1.mp4
+
+audio only from script = .\.venv\Scripts\python.exe scripts\tts.py --force
+audio test single line = .\.venv\Scripts\python.exe scripts\tts.py --text "रात 3 बजे 50 साल पहले गायब हुई ट्रेन आई" --voice hf_beta --out out/test_audio.wav
+audio only from topic = .\.venv\Scripts\python.exe scripts\new_video.py --topic "ghost train" --genre horror --voice hf_beta --model omniroute --no-images --no-render --no-metadata
+
+final=.\.venv\Scripts\python.exe scripts\new_video.py --topic "laal ujale wali raat" --voice hm_omega,af_nicole --genre horror --model omniroute --minutes 1 --format reel --speed 1.2 --out out/horror_new1.mp4 --no-title; .\.venv\Scripts\python.exe scripts\uploader.py out\horror_new1.mp4 --platforms youtube
+
+.\.venv\Scripts\python.exe scripts\new_video.py `
+  --topic "aakhri cheekh" `
+  --genre horror `
+  --format reel `
+  --seconds 30 `
+  --theme blood_red `
+  --voice "hm_omega+am_onyx" `
+  --speed 1.05 `
+  --dynamic-speed `
+  --subtitles hinglish `
+  --model omniroute `
+  --out out/intense_horror.mp4 `
+  --no-title
+
 video upload=.\.venv\Scripts\python.exe scripts\uploader.py out\horror_new1.mp4 --platforms youtube
 
-final=.\.venv\Scripts\python.exe scripts\new_video.py --topic "laal ujale wali raat" --voice hf_beta --genre horror --model omniroute --minutes 1 --format reel --speed 1.2 --out out/horror_new1.mp4 --no-title; .\.venv\Scripts\python.exe scripts\uploader.py out\horror_new1.mp4 --platforms youtube
+
+keywork_research and upload = .\.venv\Scripts\python.exe scripts\research.py "ghost train" --genre horror; `
+  .\.venv\Scripts\python.exe scripts\new_video.py `
+  --auto-topic "ghost train" `
+  --genre horror `
+  --format reel `
+  --minutes 1 `
+  --voice hm_omega_blend_hm_psi `
+  --model omniroute `
+  --out out/new_horror.mp4;  .\.venv\Scripts\python.exe scripts\uploader.py out\new_horror.mp4 --platforms youtube
+
+# --------------------------------------------------------------------------
+# EXPLAINER & DEEP DIVE BREAKDOWN EXAMPLES
+# --------------------------------------------------------------------------
+# High-retention science, technology, or case study explainer:
+# .\.venv\Scripts\python.exe scripts\new_video.py --topic "quantum computing kaise kaam karta hai" --genre explainer --format reel --seconds 30 --voice "hm_psi,am_michael" --model omniroute --out out/explainer_quantum.mp4
+
+
+
+1. Pure Native Hindi Voices (100% Native Indian Accent & Tone)
+
+┌─────────────────────┬─────────────┬──────────────────────┬─────────────────────────┐
+│  Voice ID / Blend   │ Character   │     Tone & Style     │        Best For         │
+│                     │    Name     │                      │                         │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│                     │ Aarav (Deep │ Heavy, dark,         │ Horror, Dark Mysteries, │
+│ --voice hm_omega    │  Male)      │ cinematic,           │  Thrillers, True Crime  │
+│                     │             │ authoritative        │                         │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│                     │ Kabir       │ Calm, natural,       │ Documentaries, Case     │
+│ --voice hm_psi      │ (Clear      │ engaging documentary │ Studies, Science        │
+│                     │ Male)       │                      │ Explainers, Podcasts    │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│ --voice             │ Aarav +     │ Rich, balanced,      │ Kahaniyan, Folklore,    │
+│ "hm_omega,hm_psi"   │ Kabir Blend │ resonant Indian male │ Viral Story Shorts      │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│                     │ Priya (Warm │ Expressive,          │ Emotional Stories,      │
+│ --voice hf_alpha    │  Female)    │ suspenseful, clear   │ Drama, Suspense,        │
+│                     │             │ storytelling         │ Paranormal              │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│                     │ Ananya      │ Energetic, crisp,    │ Viral Shorts/Reels,     │
+│ --voice hf_beta     │ (Bright     │ high-retention       │ Facts, Trending News    │
+│                     │ Female)     │                      │                         │
+├─────────────────────┼─────────────┼──────────────────────┼─────────────────────────┤
+│ --voice             │ Priya +     │ Balanced, smooth,    │ Audiobooks, Case        │
+│ "hf_alpha,hf_beta"  │ Ananya      │ professional Indian  │ Studies, Explainer      │
+│                     │ Blend       │ female               │ Videos                  │
+└─────────────────────┴─────────────┴──────────────────────┴─────────────────────────┘
+
+---
+
+2. Horror & Paranormal Character Presets
+
+┌───────────────────────┬──────────────────┬───────────────────────────────────────────┐
+│      Preset Name      │   Target Blend   │             Character Texture             │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice ghost_whisper │ hf_alpha,hf_beta │ Airy, close-mic eerie female spirit       │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice demon_voice   │ hm_omega         │ Ultra-deep sinister entity / Asura bass   │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice creepy_witch  │ hf_alpha         │ Sharp, cold, supernatural female /        │
+│                       │                  │ Chudail                                   │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice               │ hm_omega,hm_psi  │ Resonant disembodied mystic spirit        │
+│ ancient_spirit        │                  │                                           │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice               │ hf_beta          │ Eerie, soft innocent child apparition     │
+│ spectral_child        │    (good)        │                                           │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice tantrik_voice │ hm_omega         │ Dark occult ritual chant narrator         │
+└───────────────────────┴──────────────────┴───────────────────────────────────────────┘
+hf-beta,ghost_whiser | creepy_witch | spectral_child
+---
+
+3. Top English / Global Voices
+
+┌───────────────┬─────────────┬─────────────────────────────┬─────────────────────────┐
+│   Voice ID    │   Accent    │            Style            │        Best For         │
+├───────────────┼─────────────┼─────────────────────────────┼─────────────────────────┤
+│ --voice       │ American    │ Ultra-deep cinematic movie  │ English Horror & Movie  │
+│ am_onyx       │ Male        │ trailer bass                │ Recaps                  │
+├───────────────┼─────────────┼─────────────────────────────┼─────────────────────────┤
+│ --voice       │ American    │ Ultra-deep cinematic movie  │ English Horror & Movie  │
+│ am_onyx       │ Male        │ trailer bass                │ Recaps                  │
+├───────────────┼─────────────┼─────────────────────────────┼─────────────────────────┤
+│ --voice       │ British     │ Authoritative BBC narrator  │ Historical & Nature     │
+│ bm_george     │ Male        │ tone                        │ Documentaries           │
+├───────────────┼─────────────┼─────────────────────────────┼─────────────────────────┤
+│ --voice       │ American    │ Ultra-deep cinematic movie  │ English Horror & Movie  │
+│ am_onyx       │ Male        │ trailer bass                │ Recaps                  │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice ghost_whisper │ hf_alpha,hf_beta │ Airy, close-mic eerie female spirit       │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice demon_voice   │ hm_omega         │ Ultra-deep sinister entity / Asura bass   │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice creepy_witch  │ hf_alpha         │ Sharp, cold, supernatural female /        │
+│                       │                  │ Chudail                                   │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice               │ hm_omega,hm_psi  │ Resonant disembodied mystic spirit        │
+│ ancient_spirit        │                  │                                           │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice               │ hf_beta          │ Eerie, soft innocent child apparition     │
+│ spectral_child        │                  │                                           │
+├───────────────────────┼──────────────────┼───────────────────────────────────────────┤
+│ --voice tantrik_voice │ hm_omega         │ Dark occult ritual chant narrator         │
+└───────────────────────┴──────────────────┴───────────────────────────────────────────┘
+
+---
+
+4. Multi-Platform Video SEO & Metadata Commands
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1-Click Viral Research, Render & Upload:                                    │
+│ .\.venv\Scripts\python.exe scripts\research.py --genre horror --upload      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Generate Metadata from Existing Script (Fast Rule-Based / No AI):           │
+│ .\.venv\Scripts\python.exe scripts\metadata.py --script script.json --no-ai │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Generate Metadata via DeepSeek / Gemini LLM:                                │
+│ .\.venv\Scripts\python.exe scripts\metadata.py --script script.json         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+.\.venv\Scripts\python.exe scripts\new_video.py `
+  --topic "Real incident of Kuldhara ghost village overnight disappearance curse in Rajasthan Hindi horror" `
+  --genre horror `
+  --format reel `
+  --voice "hf_beta" `
+  --model omniroute `
+  --out "out/horror_landscape_1m.mp4" `
+  --minutes 1.0 `
+  --caption-bottom 0.4 `
+  --no-title `
+  --dynamic-speed `
+  --subtitles hinglish
