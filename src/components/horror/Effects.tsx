@@ -1,6 +1,6 @@
 import {AbsoluteFill, interpolate, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import React from 'react';
-import {flicker, hash, noise1, steppedNoise} from './noise';
+import {flicker, hash, hashString, noise1, steppedNoise} from './noise';
 
 /**
  * Visual effects layered over every horror shot.
@@ -322,9 +322,156 @@ export const HookIntroEffect: React.FC = () => {
   return null;
 };
 
-/**
- * Pattern Interrupts
- */
 export const PatternInterruptEffect: React.FC = () => {
   return null;
 };
+
+/**
+ * Randomized, cinematic micro-transition effects triggered when an image or shot changes.
+ *
+ * Deterministically selects from 6 subtle micro-effects (Light Leak Flash,
+ * Chromatic Aberration RGB Split, Impact Punch Zoom, Film Exposure Bloom,
+ * Motion Whip Slip, Glitch Shutter Slice) over 5-8 frames, ensuring frame-accurate
+ * and reproducible renders without Math.random().
+ */
+export const ImageChangeTransition: React.FC<{
+  seed: number;
+  children: React.ReactNode;
+  durationFrames?: number;
+}> = ({seed, children, durationFrames = 7}) => {
+  const frame = useCurrentFrame();
+
+  if (frame >= durationFrames) {
+    return <>{children}</>;
+  }
+
+  const progress = frame / durationFrames;
+  const decay = 1 - progress;
+  const smoothDecay = decay * decay; // Quadratic ease-out
+
+  const effectType = Math.floor(hash(seed * 73.19 + 13.7) * 6);
+  const isCool = hash(seed * 51.7) > 0.5;
+  const dir = hash(seed * 17.9) > 0.5 ? 1 : -1;
+
+  let transformStyle = '';
+  let filterStyle = '';
+  let overlay: React.ReactNode = null;
+
+  switch (effectType) {
+    case 0: {
+      // 1. Anamorphic Light Leak / Lens Flare Flash
+      const flareColor = isCool ? '180, 220, 255' : '255, 175, 75';
+      const flareOpacity = smoothDecay * 0.55;
+      const posX = isCool ? '80%' : '20%';
+      const posY = isCool ? '20%' : '80%';
+      overlay = (
+        <AbsoluteFill
+          style={{
+            background: `radial-gradient(ellipse at ${posX} ${posY}, rgba(${flareColor}, ${flareOpacity.toFixed(3)}) 0%, rgba(${flareColor}, ${(flareOpacity * 0.4).toFixed(3)}) 40%, rgba(0,0,0,0) 75%)`,
+            mixBlendMode: 'screen',
+            pointerEvents: 'none',
+          }}
+        />
+      );
+      break;
+    }
+
+    case 1: {
+      // 2. Chromatic Aberration / RGB Channel Split
+      const shift = Math.round(smoothDecay * 8 * dir);
+      if (Math.abs(shift) > 0) {
+        overlay = (
+          <>
+            <AbsoluteFill
+              style={{
+                mixBlendMode: 'screen',
+                opacity: smoothDecay * 0.4,
+                transform: `translateX(${shift}px)`,
+                backgroundColor: 'rgba(255, 0, 50, 0.22)',
+                pointerEvents: 'none',
+              }}
+            />
+            <AbsoluteFill
+              style={{
+                mixBlendMode: 'screen',
+                opacity: smoothDecay * 0.4,
+                transform: `translateX(${-shift}px)`,
+                backgroundColor: 'rgba(0, 200, 255, 0.22)',
+                pointerEvents: 'none',
+              }}
+            />
+          </>
+        );
+      }
+      break;
+    }
+
+    case 2: {
+      // 3. Impact Punch Zoom Kick
+      const punchScale = 1 + 0.05 * smoothDecay;
+      const punchY = dir * 4 * smoothDecay;
+      transformStyle = `scale(${punchScale.toFixed(4)}) translateY(${punchY.toFixed(2)}px)`;
+      break;
+    }
+
+    case 3: {
+      // 4. Film Exposure Bloom / Shutter Flash
+      const brightness = 1 + 0.35 * smoothDecay;
+      const contrast = 1 + 0.15 * smoothDecay;
+      filterStyle = `brightness(${brightness.toFixed(3)}) contrast(${contrast.toFixed(3)})`;
+      const flashAlpha = smoothDecay * 0.28;
+      overlay = (
+        <AbsoluteFill
+          style={{
+            backgroundColor: `rgba(255, 250, 240, ${flashAlpha.toFixed(3)})`,
+            mixBlendMode: 'screen',
+            pointerEvents: 'none',
+          }}
+        />
+      );
+      break;
+    }
+
+    case 4: {
+      // 5. Directional Motion Whip Slip Kick
+      const slipX = dir * 22 * smoothDecay;
+      const blurPx = Math.max(0, smoothDecay * 3);
+      transformStyle = `translateX(${slipX.toFixed(2)}px)`;
+      if (blurPx > 0.5) {
+        filterStyle = `blur(${blurPx.toFixed(1)}px)`;
+      }
+      break;
+    }
+
+    case 5: {
+      // 6. Glitch Shutter Slice / Scanline Slip
+      const sliceOffset = Math.round(smoothDecay * 12 * dir);
+      const scanlineAlpha = smoothDecay * 0.32;
+      overlay = (
+        <AbsoluteFill
+          style={{
+            backgroundImage: `repeating-linear-gradient(0deg, rgba(0,0,0,${scanlineAlpha.toFixed(2)}) 0px, rgba(0,0,0,${scanlineAlpha.toFixed(2)}) 2px, transparent 2px, transparent 6px)`,
+            transform: `translateX(${sliceOffset}px)`,
+            pointerEvents: 'none',
+          }}
+        />
+      );
+      break;
+    }
+  }
+
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          transform: transformStyle || undefined,
+          filter: filterStyle || undefined,
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+      {overlay}
+    </AbsoluteFill>
+  );
+};
+

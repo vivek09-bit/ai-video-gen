@@ -1,6 +1,8 @@
 import {AbsoluteFill, Img, Video, staticFile, useCurrentFrame} from 'remotion';
 import React from 'react';
 import {BackgroundSpec} from '../types';
+import {ImageChangeTransition} from './horror/Effects';
+import {hashString} from './horror/noise';
 
 const fill: React.CSSProperties = {width: '100%', height: '100%', objectFit: 'cover'};
 
@@ -16,6 +18,7 @@ const KenBurnsImage: React.FC<{
   const p = Math.sin((rawP * Math.PI) / 2);
   // Gentle entrance crossfade to prevent visual jar on scene cuts
   const sceneFadeIn = Math.min(1, frame / 7);
+  const seed = (src ? hashString(src) * 1000 : 0) + (isFirstScene ? 17 : 89);
 
   let scale = 1;
   let x = 0;
@@ -43,15 +46,17 @@ const KenBurnsImage: React.FC<{
   }
 
   return (
-    <AbsoluteFill style={{overflow: 'hidden', opacity: isFirstScene ? 1 : sceneFadeIn}}>
-      <Img
-        src={staticFile(src)}
-        style={{
-          ...fill,
-          transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,
-        }}
-      />
-    </AbsoluteFill>
+    <ImageChangeTransition seed={seed}>
+      <AbsoluteFill style={{overflow: 'hidden', opacity: isFirstScene ? 1 : sceneFadeIn}}>
+        <Img
+          src={staticFile(src)}
+          style={{
+            ...fill,
+            transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,
+          }}
+        />
+      </AbsoluteFill>
+    </ImageChangeTransition>
   );
 };
 

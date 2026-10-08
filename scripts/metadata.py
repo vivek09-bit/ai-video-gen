@@ -39,6 +39,7 @@ YOUTUBE_CATEGORY_MAP: dict[str, str] = {
     "scifi": "28",        # Science & Technology
     "explainer": "27",    # Education
     "documentary": "27",  # Education
+    "ancient_history": "27", # Education
     "motivational": "27", # Education
     "comedy": "23",       # Comedy
     "anime": "1",         # Film & Animation
@@ -89,6 +90,16 @@ GENRE_SEO_SEARCH_QUERIES: dict[str, list[str]] = {
         "bizarre incidents in world",
         "historical documentary",
         "discovery facts",
+    ],
+    "ancient_history": [
+        "kailash temple mystery in hindi",
+        "ancient indian temple engineering",
+        "unsolved ancient mysteries hindi",
+        "ancient civilization technology",
+        "megalithic architecture hindi",
+        "ancient india archaeological facts",
+        "ellora caves architectural secret",
+        "ancient temple carving mysteries",
     ],
     "mythology": [
         "sanatan dharma stories",
@@ -195,6 +206,18 @@ GENRE_HASHTAG_BANKS: dict[str, dict[str, list[str]]] = {
         ],
         "facebook": ["#Documentary", "#Facts", "#History", "#Knowledge", "#DidYouKnow"],
         "tiktok": ["#facts", "#history", "#didyouknow", "#documentary", "#learnontiktok", "#fyp", "#viral", "#foryou"],
+    },
+    "ancient_history": {
+        "youtube": ["#AncientHistory", "#TempleEngineering", "#AncientIndia", "#Archaeology", "#UnsolvedMysteries", "#KailashTemple", "#IndianHistory", "#Shorts"],
+        "instagram": [
+            "#ancienthistory", "#templeengineering", "#ancientindia", "#archaeology", "#ancienttechnology",
+            "#kailashtemple", "#elloracaves", "#indianheritage", "#ancientsecrets", "#monolith",
+            "#historicalplaces", "#incredibleindia", "#historybuff", "#ancientmonuments", "#indianarchitecture",
+            "#reelsindia", "#trendingreels", "#viralreels", "#explorepage", "#historyfacts",
+            "#unsolvedmystery", "#mysteryfacts", "#sanatandharma", "#ancientwisdom", "#stonecarving"
+        ],
+        "facebook": ["#AncientHistory", "#TempleEngineering", "#AncientIndia", "#Archaeology", "#IncredibleIndia"],
+        "tiktok": ["#ancienthistory", "#history", "#archaeology", "#ancientmystery", "#learnontiktok", "#fyp", "#viral", "#foryou"],
     },
     "explainer": {
         "youtube": ["#Explainer", "#HowItWorks", "#Science", "#CaseStudy", "#TechExplained", "#DeepDive", "#Knowledge", "#Shorts"],
@@ -348,6 +371,24 @@ BEAT_CHAPTER_NAMES: dict[str, dict[str, str]] = {
         "resolve": "The Enduring Mystery",
         "twist": "The Overlooked Secret",
         "conclusion": "The Legacy Left Behind",
+    },
+    "ancient_history": {
+        "hook": "The Ancient Enigma",
+        "establish": "Lost Civilizations",
+        "introduce": "The Architectural Wonder",
+        "investigate": "Engineering Analysis",
+        "evidence": "Unsolved Anomalies",
+        "suspense": "The Sacred Geometry",
+        "escalate": "Impossible Feats",
+        "danger": "Lost Ancient Knowledge",
+        "turning_point": "The Secret Discovery",
+        "revelation": "The Divine Blueprints",
+        "reveal": "The Master Craftsmanship",
+        "climax": "The Architectural Miracle",
+        "react": "Modern Science Baffled",
+        "resolve": "The Timeless Heritage",
+        "twist": "The Uncharted Chamber",
+        "conclusion": "The Eternal Legacy",
     },
     "mythology": {
         "hook": "The Sacred Legend",

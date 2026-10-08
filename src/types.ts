@@ -213,6 +213,11 @@ export interface CaptionOptions {
 
 export interface ScriptFile {
   title: string;
+  topic?: string;
+  language?: string;
+  genre?: string;
+  format?: string;
+  aspectRatio?: string;
   /** Default Kokoro voice id for narration. */
   voice: string;
   speed: number;

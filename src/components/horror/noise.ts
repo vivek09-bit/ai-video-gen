@@ -54,3 +54,13 @@ export const flicker = (time: number, floor = 0.55): number => {
 /** Stepped noise that changes every `interval` seconds. Used for film grain. */
 export const steppedNoise = (time: number, interval: number, channel = 0): number =>
   hash(Math.floor(time / interval) * 31.7 + channel * 71.3) * 2 - 1;
+
+/** Fast string hash into [0, 1). Stable across runs and platforms. */
+export const hashString = (str: string): number => {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return ((h >>> 0) % 65536) / 65536;
+};
+

@@ -1,7 +1,16 @@
 import {AbsoluteFill, Sequence, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
 import React from 'react';
-import {Dust, ExposureFlicker, FilmGrain, LivingFrame, Shake, Vignette} from './Effects';
+import {
+  Dust,
+  ExposureFlicker,
+  FilmGrain,
+  ImageChangeTransition,
+  LivingFrame,
+  Shake,
+  Vignette,
+} from './Effects';
 import {Stage} from './Stage';
+import {hashString} from './noise';
 import {ShotEffects, ShotSpec} from '../../types';
 
 /**
@@ -79,10 +88,17 @@ const extendForCrossfade = (shots: ShotSpec[], index: number, fps: number): numb
   return Math.round(seconds * fps);
 };
 
-const ShotContent: React.FC<{shot: ShotSpec; fadeIn: number}> = ({shot, fadeIn}) => {
+const ShotContent: React.FC<{shot: ShotSpec; fadeIn: number; shotIndex?: number}> = ({
+  shot,
+  fadeIn,
+  shotIndex = 0,
+}) => {
   const frame = useCurrentFrame();
   const {durationInFrames} = useVideoConfig();
   const effects = {...DEFAULT_EFFECTS, ...(shot.effects ?? {})};
+
+  const visualSrc = shot.visual.type === 'image' && 'src' in shot.visual ? shot.visual.src : '';
+  const seed = (visualSrc ? hashString(visualSrc) * 1000 : 0) + shotIndex * 37 + 19;
 
   const opacity =
     fadeIn > 0
@@ -91,11 +107,13 @@ const ShotContent: React.FC<{shot: ShotSpec; fadeIn: number}> = ({shot, fadeIn})
 
   return (
     <AbsoluteFill style={{opacity, backgroundColor: '#000'}}>
-      <Shake amount={Math.max(0, effects.shake)}>
-        <LivingFrame drift={effects.drift} zoom={Math.max(0, effects.zoom)}>
-          <Stage spec={shot.visual} />
-        </LivingFrame>
-      </Shake>
+      <ImageChangeTransition seed={seed}>
+        <Shake amount={Math.max(0, effects.shake)}>
+          <LivingFrame drift={effects.drift} zoom={Math.max(0, effects.zoom)}>
+            <Stage spec={shot.visual} />
+          </LivingFrame>
+        </Shake>
+      </ImageChangeTransition>
 
       <ExposureFlicker amount={Math.max(0, effects.exposureFlicker)} />
       <Dust density={Math.max(0, effects.dust)} />
@@ -114,7 +132,7 @@ export const ShotSequence: React.FC<{shots: ShotSpec[]}> = ({shots}) => {
   }
 
   if (shots.length === 1) {
-    return <ShotContent shot={shots[0]} fadeIn={0} />;
+    return <ShotContent shot={shots[0]} fadeIn={0} shotIndex={0} />;
   }
 
   const slots = buildSlots(shots, durationInFrames, fps);
@@ -129,7 +147,7 @@ export const ShotSequence: React.FC<{shots: ShotSpec[]}> = ({shots}) => {
 
         return (
           <Sequence key={i} from={from} durationInFrames={length} name={slot.shot.visual.type}>
-            <ShotContent shot={slot.shot} fadeIn={slot.fadeIn} />
+            <ShotContent shot={slot.shot} fadeIn={slot.fadeIn} shotIndex={i} />
           </Sequence>
         );
       })}

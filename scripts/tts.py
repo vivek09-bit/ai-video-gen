@@ -52,7 +52,7 @@ from transliterate import deva_word_to_hinglish, deva_to_hinglish, is_devanagari
 
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
-AUDIO_DIR = PUBLIC / "audio"
+AUDIO_DIR = PUBLIC / "audio" / "voice"
 GENERATED = ROOT / "src" / "generated"
 
 # Load .env configuration if present
@@ -93,7 +93,7 @@ EMOTION_SPEED_MULTIPLIERS = {
 # pause. Gaps and pauses are restricted strictly to full stops and terminal marks
 # (dandas, periods, exclamation, questions) to prevent unnatural pauses on minor punctuation.
 PAUSE_SCALE = {
-    ",": 0.0,
+    ",": 0.2,
     ";": 0.0,
     ":": 0.0,
     "\u2014": 0.0,
@@ -1782,6 +1782,7 @@ def main() -> int:
     print(f"Rhubarb  : {rhubarb_name}")
     print("Synthesising...")
 
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     engine = Voice()
     timeline_scenes: list[dict] = []
     cursor = 0.0
@@ -1844,7 +1845,7 @@ def main() -> int:
             built.append(
                 {
                     "characterId": character_id,
-                    "audio": f"audio/{audio_path.name}",
+                    "audio": f"audio/voice/{audio_path.name}",
                     "_abs": line_cursor,
                     "duration": meta["duration"],
                     "words": meta["words"],

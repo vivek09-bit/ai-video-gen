@@ -76,7 +76,7 @@ def normalize_provider_name(name: str | None) -> str:
         return "local"
     if n in ("pollination", "pollinations", "pollinationsai", "freeai"):
         return "pollinations"
-    if n in ("hf", "huggingface", "huggingfaceai"):
+    if n in ("hf", "huggingface", "huggingfaceai", "gradio", "gradioclient", "hfspaces"):
         return "huggingface"
     if n in ("firework", "fireworks", "fireworksai"):
         return "fireworks"
@@ -148,6 +148,28 @@ HINDI_VISUAL_MAP: dict[str, str] = {
     "ज़ंजीर": "iron chains shackles dark stone",
     "dhokha": "dramatic confrontation shadows betrayal",
     "धोखा": "shadowy mystery dramatic confrontation",
+    "train": "vintage steam locomotive train railway tracks eerie darkness",
+    "station": "abandoned misty railway platform station vintage lamps",
+    "ट्रेन": "vintage train railway tracks eerie misty night",
+    "स्टेशन": "abandoned railway platform station vintage lamps misty",
+    "kuldhara": "abandoned ruined cursed stone village of Kuldhara Rajasthan desert twilight",
+    "कुलधरा": "abandoned ruined cursed stone village Kuldhara Rajasthan desert",
+    "bhangarh": "cursed ancient Bhangarh fort ruins haunted ramparts dark eerie twilight",
+    "भानगढ़": "cursed ancient Bhangarh fort ruins haunted ramparts dark twilight",
+    "kankal": "ancient skeletal remains skull bones dark chamber",
+    "कंकाल": "ancient human skeleton bones skull dark shadows",
+    "khaufnak": "chilling horrifying eerie atmospheric darkness dread",
+    "खौफनाक": "chilling horrifying eerie atmospheric shadows dread",
+    "chhaya": "ominous dark shadow silhouette lurking misty corridor",
+    "छाया": "ominous dark shadow silhouette lurking misty corridor",
+    "saya": "eerie shadowy silhouette looming mysterious presence",
+    "साया": "eerie shadowy phantom silhouette looming presence",
+    "khooni": "blood-stained ominous cursed dark horror atmosphere",
+    "खूनी": "blood-stained cursed dark horror ominous atmosphere",
+    "shrap": "ancient mythical curse dark supernatural energy vortex",
+    "श्राप": "ancient supernatural curse dark mystical vortex",
+    "rahasya": "unsolved ancient mystery enigmatic relics glowing darkness",
+    "रहस्य": "unsolved ancient mystery enigmatic relics glowing shadows",
 
     # Architecture, Structures & Interiors
     "mahal": "majestic royal palace castle architecture grand",
@@ -156,8 +178,22 @@ HINDI_VISUAL_MAP: dict[str, str] = {
     "हवेली": "ancient heritage mansion architecture courtyard",
     "qila": "ancient stone fortress citadel castle ramparts",
     "किला": "ancient fortress stone citadel ramparts",
-    "mandir": "ancient sacred temple shrine stone carvings",
-    "मंदिर": "ancient sacred temple shrine architecture",
+    "mandir": "ancient sacred monolithic temple stone carvings architecture",
+    "मंदिर": "ancient sacred monolithic temple stone carvings architecture",
+    "kailasa": "ancient monolithic Kailasa rock-cut temple carved from single cliff mountain",
+    "कैलाश": "sacred Kailasa monolithic rock-cut temple carved stone architecture",
+    "stambh": "ancient carved stone pillar monolithic column intricate relief",
+    "स्तंभ": "ancient carved stone monolithic pillar column relief",
+    "khambha": "monolithic carved stone pillar ancient architecture",
+    "खंभा": "monolithic carved stone pillar ancient architecture",
+    "shila": "massive monolithic granite stone rock block ancient carving",
+    "शिला": "massive monolithic granite stone block ancient carving",
+    "pathar": "ancient carved granite stone architecture archaeological relic",
+    "पत्थर": "ancient carved granite stone architecture archaeological relic",
+    "nakshi": "intricate ancient stone relief carvings sacred sacred geometry",
+    "नक्काशी": "intricate ancient stone relief carvings sacred geometry",
+    "shilpkar": "ancient master architect sculptor carving stone monument",
+    "शिल्पकार": "ancient master sculptor architect carving stone monument",
     "ashram": "peaceful sacred sanctuary temple nature",
     "आश्रम": "serene sacred hermitage sanctuary nature",
     "darwaza": "mysterious ancient doorway carved gate entrance",
@@ -687,7 +723,7 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     if provider == "pollinations":
         key = os.environ.get("POLLINATIONS_API_KEY", "")
         return "pollinations", key or "free", model or "default"
-    if provider == "huggingface":
+    if provider in ("huggingface", "hf", "gradio"):
         key = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY", "")
         return "huggingface", key, model or "black-forest-labs/FLUX.1-schnell"
     if provider == "fireworks":
@@ -706,7 +742,11 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
         key = os.environ.get("OPENAI_API_KEY", "")
         return "openai", key, model or "dall-e-3"
 
-    # If no provider was explicitly chosen, check if valid API keys exist for paid providers
+    # If no provider was explicitly chosen, check if valid API keys exist for providers
+    hf_key = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
+    if hf_key and hf_key.strip() and not hf_key.strip().startswith("..."):
+        return "huggingface", hf_key.strip(), model or "black-forest-labs/FLUX.1-schnell"
+
     fw_key = os.environ.get("FIREWORKS_API_KEY") or os.environ.get("FIREWORK_API_KEY")
     if fw_key and fw_key.strip() and not fw_key.strip().startswith("..."):
         return "fireworks", fw_key.strip(), model or "flux-1-schnell-fp8"
@@ -871,6 +911,7 @@ def fetch_free_related_image(scene: dict, topic: str = "", index: int = 0, genre
 
 
 _LOCAL_DIFFUSION_PIPELINE = None
+_LOCAL_DIFFUSION_MODEL_NAME = None
 
 
 def is_turbo_model(model_name: str | None) -> bool:
@@ -899,9 +940,13 @@ def is_flux_model(model_name: str | None) -> bool:
 
 def get_local_diffusion_pipeline(model_name: str = ""):
     """Lazily load and cache local diffusion pipeline (SD 1.5 LCM, SSD-1B + LCM-LoRA, SDXL-Turbo) on CPU."""
-    global _LOCAL_DIFFUSION_PIPELINE
-    if _LOCAL_DIFFUSION_PIPELINE is not None:
+    global _LOCAL_DIFFUSION_PIPELINE, _LOCAL_DIFFUSION_MODEL_NAME
+    target = (model_name or "").strip()
+    if _LOCAL_DIFFUSION_PIPELINE is not None and _LOCAL_DIFFUSION_MODEL_NAME == target:
         return _LOCAL_DIFFUSION_PIPELINE
+
+    if _LOCAL_DIFFUSION_PIPELINE is not None:
+        cleanup_local_pipeline()
 
     import torch
     from diffusers import (
@@ -936,11 +981,12 @@ def get_local_diffusion_pipeline(model_name: str = ""):
             pipe = StableDiffusionXLPipeline.from_pretrained(
                 ssd_id,
                 torch_dtype=torch.float32,
-                safety_checker=None,
             )
             pipe.scheduler = LCMScheduler.from_config(pipe.scheduler.config)
-            pipe.load_lora_weights("latent-consistency/lcm-lora-sdxl")
-            pipe.fuse_lora()
+            try:
+                pipe.load_lora_weights("latent-consistency/lcm-lora-sdxl", weight_name="pytorch_lora_weights.safetensors")
+            except Exception:
+                pipe.load_lora_weights("latent-consistency/lcm-lora-sdxl")
             _LOCAL_DIFFUSION_PIPELINE = pipe
         except Exception as e:
             print(f"  [Local SSD-1B Notice] Failed to load SSD-1B ({e}). Falling back to LCM DreamShaper...")
@@ -1010,6 +1056,7 @@ def get_local_diffusion_pipeline(model_name: str = ""):
 
         _LOCAL_DIFFUSION_PIPELINE = pipe
 
+    _LOCAL_DIFFUSION_MODEL_NAME = target
     _LOCAL_DIFFUSION_PIPELINE.to("cpu")
     if hasattr(_LOCAL_DIFFUSION_PIPELINE, "enable_attention_slicing"):
         _LOCAL_DIFFUSION_PIPELINE.enable_attention_slicing()
@@ -1024,18 +1071,20 @@ def get_local_lcm_pipeline(model_name: str = ""):
 
 def cleanup_local_pipeline() -> None:
     """Release local diffusion pipeline and free CPU/GPU RAM."""
-    global _LOCAL_DIFFUSION_PIPELINE
+    global _LOCAL_DIFFUSION_PIPELINE, _LOCAL_DIFFUSION_MODEL_NAME
     if _LOCAL_DIFFUSION_PIPELINE is not None:
         try:
             import gc
             import torch
             del _LOCAL_DIFFUSION_PIPELINE
             _LOCAL_DIFFUSION_PIPELINE = None
+            _LOCAL_DIFFUSION_MODEL_NAME = None
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
         except Exception:
             _LOCAL_DIFFUSION_PIPELINE = None
+            _LOCAL_DIFFUSION_MODEL_NAME = None
 
 
 def calculate_sd_dimensions(width: int, height: int, is_flux: bool = False) -> tuple[int, int]:
@@ -1249,39 +1298,84 @@ def generate_pollinations(
     raise last_err or RuntimeError("Failed to generate image via Pollinations")
 
 
-def generate_huggingface(prompt: str, key: str, model: str = "") -> bytes:
-    """Generate free image via Hugging Face Serverless Inference API."""
-    target_model = model or "black-forest-labs/FLUX.1-schnell"
-    if target_model in ("flux", "flux-schnell", "default"):
-        target_model = "black-forest-labs/FLUX.1-schnell"
-    elif target_model in ("flux-dev", "dev"):
-        target_model = "black-forest-labs/FLUX.1-dev"
-    elif target_model in ("sdxl", "sdxl-turbo"):
-        target_model = "stabilityai/sdxl-turbo"
+def generate_gradio_hf(
+    prompt: str,
+    token: str = "",
+    model: str = "black-forest-labs/FLUX.1-schnell",
+    width: int = 1024,
+    height: int = 576,
+) -> bytes:
+    """Generate image via Hugging Face Spaces using Gradio Client with multi-space failover."""
+    from gradio_client import Client
 
-    payload = json.dumps({"inputs": prompt}).encode("utf-8")
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "tube2dscript/1.0",
-    }
-    if key and key != "free":
-        headers["Authorization"] = f"Bearer {key}"
+    # HF Spaces strictly enforce max dimensions of 1024x1024
+    hf_w = width
+    hf_h = height
+    if hf_w > 1024 or hf_h > 1024:
+        if width > height:
+            hf_w, hf_h = 1024, 576
+        elif height > width:
+            hf_w, hf_h = 576, 1024
+        else:
+            hf_w, hf_h = 1024, 1024
 
-    endpoints = [
-        f"https://router.huggingface.co/hf-inference/models/{target_model}",
-        f"https://api-inference.huggingface.co/models/{target_model}",
+    spaces = [
+        (
+            "black-forest-labs/FLUX.1-schnell",
+            "/infer",
+            {
+                "prompt": prompt,
+                "seed": 0,
+                "randomize_seed": True,
+                "width": hf_w,
+                "height": hf_h,
+                "num_inference_steps": 4,
+            },
+        ),
+        (
+            "stabilityai/stable-diffusion-3.5-large-turbo",
+            "/infer",
+            {
+                "prompt": prompt,
+                "negative_prompt": "blurry, distorted, low quality, cartoon, artifacts",
+                "seed": 0,
+                "randomize_seed": True,
+                "width": hf_w,
+                "height": hf_h,
+                "guidance_scale": 0.0,
+                "num_inference_steps": 4,
+            },
+        ),
     ]
+    if model and any(k in model.lower() for k in ("sd3", "turbo", "stability")):
+        spaces.reverse()
 
-    for ep in endpoints:
+    last_error = None
+    clean_token = token.strip() if token and token != "free" and not token.startswith("...") else None
+    for space_id, endpoint, kwargs in spaces:
         try:
-            req = urllib.request.Request(ep, data=payload, headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                raw = resp.read()
-                if raw.startswith(b"\x89PNG") or raw.startswith(b"\xff\xd8\xff") or raw.startswith(b"RIFF"):
-                    return raw
-        except Exception:
+            client = Client(space_id, token=clean_token)
+            result = client.predict(**kwargs, api_name=endpoint)
+            img_val = result[0] if isinstance(result, (tuple, list)) else result
+            if isinstance(img_val, dict):
+                img_val = img_val.get("path") or img_val.get("url")
+            if img_val and os.path.isfile(str(img_val)):
+                return Path(img_val).read_bytes()
+            if isinstance(img_val, str) and (img_val.startswith("http://") or img_val.startswith("https://")):
+                req = urllib.request.Request(img_val, headers={"User-Agent": "tube2dscript/1.0"})
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    return resp.read()
+        except Exception as e:
+            last_error = e
+            print(f"  [Gradio HF Notice] Space '{space_id}' failed ({e}). Trying next space...")
             continue
-    raise RuntimeError(f"Hugging Face generation failed for model {target_model}")
+
+    raise RuntimeError(f"All Hugging Face Gradio Spaces failed. Last error: {last_error}")
+
+
+def generate_huggingface(prompt: str, key: str, model: str = "", width: int = 1024, height: int = 576) -> bytes:
+    """Generate free image via Hugging Face Gradio Client / Spaces."""
+    return generate_gradio_hf(prompt, token=key, model=model, width=width, height=height)
 
 
 def generate_fireworks(prompt: str, key: str, model: str) -> str | bytes:
@@ -1641,8 +1735,37 @@ def generate_images_for_script(
                         width=width,
                         height=height,
                     )
-                elif resolved_provider == "huggingface":
-                    img_data = generate_huggingface(prompt, api_key, model)
+                elif resolved_provider in ("huggingface", "hf", "gradio"):
+                    try:
+                        img_data = generate_gradio_hf(prompt, api_key, model=model, width=width, height=height)
+                    except Exception as hf_err:
+                        print(f"  [HF Gradio Failover] Hugging Face Space generation failed ({hf_err}). Switching automatically to local SSD-1B / SDXL-Turbo on CPU...")
+                        scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
+                        try:
+                            img_data = generate_local_lcm(
+                                prompt,
+                                model="segmind/SSD-1B",
+                                seed=scene_seed,
+                                width=width,
+                                height=height,
+                                sd_width=sd_latent_width,
+                                sd_height=sd_latent_height,
+                            )
+                        except Exception as local_err:
+                            print(f"  [Local SSD-1B Failover] Local SSD-1B failed ({local_err}). Trying local SDXL-Turbo...")
+                            try:
+                                img_data = generate_local_lcm(
+                                    prompt,
+                                    model="stabilityai/sdxl-turbo",
+                                    seed=scene_seed,
+                                    width=width,
+                                    height=height,
+                                    sd_width=sd_latent_width,
+                                    sd_height=sd_latent_height,
+                                )
+                            except Exception as turbo_err:
+                                print(f"  [Failover to Stock Search] Local generation failed ({turbo_err}). Using free related image search...")
+                                img_data = fetch_free_related_image(scene, topic, index=i, genre=genre)
                 elif resolved_provider == "fireworks":
                     img_data = generate_fireworks(prompt, api_key, model)
                 elif resolved_provider == "together":
@@ -1673,7 +1796,7 @@ def generate_images_for_script(
                 "prompt": prompt,
             }
 
-    if resolved_provider == "local":
+    if resolved_provider == "local" or ("_LOCAL_PIPE" in globals() and _LOCAL_PIPE is not None):
         cleanup_local_pipeline()
 
     return script_data

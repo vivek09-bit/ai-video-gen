@@ -118,13 +118,10 @@ def build_prompt(
     lines: list[str] = []
     if is_hindi_family:
         lines += [
-            "==========================================================================",
-            "CRITICAL LANGUAGE MANDATE: 100% SPOKEN HINDI IN DEVANAGARI (हिंदी लिपि)",
-            "==========================================================================",
+            "### CRITICAL LANGUAGE MANDATE: 100% SPOKEN HINDI IN DEVANAGARI (हिंदी लिपि)",
             "- ALL narration sentences MUST be written in conversational spoken Hindi using Devanagari script (हिंदी लिपि).",
             "- Even if the Topic, Genre, or Instructions above/below are in English, you MUST generate the story in Devanagari Hindi.",
             "- NEVER write English sentences in the story lines. English loanwords must be written in Devanagari (e.g. 'फोन', 'हॉस्पिटल', 'स्टेशन', 'रेडियो').",
-            "==========================================================================",
             "",
         ]
 
@@ -141,7 +138,9 @@ def build_prompt(
     ]
 
     if is_short_form:
-        if gp.key in ("explainer", "documentary", "scifi"):
+        if gp.key in ("ancient_history", "ancient_engineering"):
+            hook_example = "e.g., '200,000 टन का यह प्राचीन मंदिर ईंटों से नहीं, बल्कि एक ही विशाल पहाड़ को ऊपर से नीचे काटकर बनाया गया था!'"
+        elif gp.key in ("explainer", "documentary", "scifi"):
             hook_example = "e.g., 'क्या आप जानते हैं कि अगर सूरज अचानक गायब हो जाए, तो हमें 8 मिनट तक पता भी नहीं चलेगा?'"
         elif gp.key in ("motivational", "comedy", "drama"):
             hook_example = "e.g., 'दुनिया के 99% लोग ये एक गलती रोज करते हैं, और उन्हें पता भी नहीं होता।'"
@@ -149,9 +148,7 @@ def build_prompt(
             hook_example = "e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।'"
 
         lines += [
-            "==========================================================================",
-            "ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
-            "==========================================================================",
+            "### ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
             "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
             "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
             f"   - Start MID-ACTION with a jarring, impossible fact, forbidden warning, or a mind-bending anomaly ({hook_example}).",
@@ -170,9 +167,7 @@ def build_prompt(
         ]
     else:
         lines += [
-            "==========================================================================",
-            "LONG-FORM CINEMATIC STORYTELLING & ENGAGEMENT FRAMEWORK:",
-            "==========================================================================",
+            "### LONG-FORM CINEMATIC STORYTELLING & ENGAGEMENT FRAMEWORK:",
             "1. IMMERSIVE WORLD-BUILDING & ATMOSPHERE:",
             "   - Rich sensory details, deep character motivations, environmental textures, and grounded realism.",
             "2. MULTI-LAYERED RISING TENSION & STAKES:",
@@ -426,8 +421,37 @@ def ask_llm(
         raise RuntimeError(f"HTTP {err.code} {err.reason} from {base_url}: {err_msg}") from err
 
 
+def is_conversational_chatter(text: str) -> bool:
+    """Detect if LLM output is an error/chatter refusal rather than story narration."""
+    lowered = text.lower().strip()
+    chatter_patterns = [
+        "looks like your message came through blank",
+        "how can i help you today",
+        "i am an ai language model",
+        "as an ai language model",
+        "i cannot fulfill this request",
+        "is there anything else i can help you with",
+        "it appears your message is empty",
+        "it seems your prompt is empty",
+        "your message was blank",
+        "सहायता कर सकता हूँ",
+        "किस प्रकार सहायता",
+        "कैसे मदद कर सकता हूँ",
+        "नमस्ते! आज मैं",
+        "कृपया अपने प्रश्न या विषय",
+        "आपकी क्या सहायता",
+        "मैं एक एआई",
+        "मैं एक ai",
+        "मैं आपकी क्या मदद",
+    ]
+    return any(p in lowered for p in chatter_patterns)
+
+
 def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[str, str, str]]]:
     """Parse `TITLE:` plus `###N|headline | VISUAL: visual_tags` blocks into (title, [(headline, visual_keywords, body)])."""
+    if is_conversational_chatter(text):
+        return "", []
+
     title = ""
     for line in text.splitlines():
         stripped = line.strip()
@@ -444,7 +468,6 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
             raw_blocks.append((current_headline, list(buffer)))
 
     for line in text.splitlines():
-        match = re.match(r"^\s*(?:#{1,4}\s*)?(?:scene\s*)?(\d+)\s*[|:\.\-]\s*(.*)$", line, flags=re.IGNORECASE)
         # Only treat as a scene divider if it starts with # or "scene 1:" or "1|" or "1."
         if (
             re.match(r"^\s*#{1,4}\s*(\d+)", line)
@@ -464,7 +487,9 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
         # The model ignored the format. Fall back to splitting on blank lines so
         # a usable result still comes out of a sloppy response.
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-        raw_blocks = [("", [p]) for p in paragraphs]
+        # Filter out obvious conversational noise or pure delimiter paragraphs
+        filtered_paras = [p for p in paragraphs if not is_conversational_chatter(p) and len(p.split()) > 3]
+        raw_blocks = [("", [p]) for p in filtered_paras]
 
     blocks: list[tuple[str, str, str]] = []
     for raw_headline, lines in raw_blocks:
@@ -503,7 +528,8 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
             clean_lines.append(cleaned)
 
         body = " ".join(" ".join(clean_lines).split())
-        blocks.append((headline, visual_keywords, body))
+        if body and not is_conversational_chatter(body):
+            blocks.append((headline, visual_keywords, body))
 
     return title, blocks[:scene_count]
 
@@ -1234,25 +1260,35 @@ def main() -> int:
             raw_lang = (planned.get("language") or "hi").lower().strip()
             if raw_lang in ("hi", "hindi", "hinglish"):
                 effective_sys_prompt = (
+                    "You are an expert documentary and video scriptwriter. "
                     f"{base_sys_prompt} "
                     "CRITICAL: You MUST write all spoken story lines in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
-                    "Do NOT write English narration sentences even if the topic is in English. Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल')."
+                    "Do NOT write English narration sentences even if the topic is in English. Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल'). "
+                    "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
                 )
             else:
-                effective_sys_prompt = base_sys_prompt
-
-            try:
-                response = ask_llm(
-                    base_url,
-                    api_key,
-                    model_to_use,
-                    prompt,
-                    system_prompt=effective_sys_prompt,
+                effective_sys_prompt = (
+                    "You are an expert documentary and video scriptwriter. "
+                    f"{base_sys_prompt} "
+                    "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
                 )
-                title, blocks = parse_written(response, len(planned["scenes"]))
-                print(f"  wrote {len(blocks)} scenes in {time.time() - started:.0f}s")
-            except Exception as exc:  # noqa: BLE001 - report and fall through
-                print(f"  writer failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+
+            for attempt in range(1, 4):
+                try:
+                    response = ask_llm(
+                        base_url,
+                        api_key,
+                        model_to_use,
+                        prompt,
+                        system_prompt=effective_sys_prompt if attempt == 1 else None,
+                    )
+                    title, blocks = parse_written(response, len(planned["scenes"]))
+                    if blocks:
+                        print(f"  wrote {len(blocks)} scenes in {time.time() - started:.0f}s")
+                        break
+                    print(f"  [Attempt {attempt}] Output rejected (empty or refusal). Retrying writer...")
+                except Exception as exc:  # noqa: BLE001 - report and fall through
+                    print(f"  [Attempt {attempt}] writer failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         else:
             print("  no writer available (no LLM reachable, no --narration)")
 

@@ -11,6 +11,44 @@ import React from 'react';
 import { SceneView } from './components/SceneView';
 import { Project } from './types';
 
+const resolveAudioPath = (
+  src: string | undefined | null,
+  defaultFolder: 'voice' | 'ambience' | 'sfx' | 'music',
+  genre?: string,
+): string => {
+  if (!src) return '';
+  const trimmed = src.trim();
+  const withExt = trimmed.endsWith('.wav') || trimmed.endsWith('.mp3') ? trimmed : `${trimmed}.wav`;
+
+  if (withExt.startsWith('audio/')) {
+    const after = withExt.slice('audio/'.length);
+    if (after.includes('/')) {
+      return withExt;
+    }
+    if (genre) {
+      if (after.startsWith('amb_')) return `audio/genres/${genre}/ambience/${after}`;
+      if (after.startsWith('sfx_')) return `audio/genres/${genre}/sfx/${after}`;
+      if (defaultFolder) return `audio/genres/${genre}/${defaultFolder}/${after}`;
+    }
+    if (after.startsWith('amb_')) return `audio/ambience/${after}`;
+    if (after.startsWith('sfx_')) return `audio/sfx/${after}`;
+    if (defaultFolder) return `audio/${defaultFolder}/${after}`;
+    return withExt;
+  }
+
+  if (genre) {
+    if (withExt.startsWith('amb_')) return `audio/genres/${genre}/ambience/${withExt}`;
+    if (withExt.startsWith('sfx_')) return `audio/genres/${genre}/sfx/${withExt}`;
+    if (defaultFolder === 'music') return `audio/genres/${genre}/music/${withExt}`;
+    if (defaultFolder === 'ambience') return `audio/genres/${genre}/ambience/${withExt}`;
+    if (defaultFolder === 'sfx') return `audio/genres/${genre}/sfx/${withExt}`;
+  }
+
+  if (withExt.startsWith('amb_')) return `audio/ambience/${withExt}`;
+  if (withExt.startsWith('sfx_')) return `audio/sfx/${withExt}`;
+  return `audio/${defaultFolder}/${withExt}`;
+};
+
 const ProgressBar: React.FC<{ color: string }> = ({ color }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -121,7 +159,7 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
         return lines.map((line, i) =>
           line.audio ? (
             <Sequence key={`voice-${timing.id}-${i}`} from={Math.round(line.start * fps)}>
-              <Audio src={staticFile(line.audio)} />
+              <Audio src={staticFile(resolveAudioPath(line.audio, 'voice'))} />
             </Sequence>
           ) : null,
         );
@@ -130,7 +168,7 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
       {/* Global continuous background ambience spanning the entire video timeline without cut */}
       {script.ambience ? (
         <Audio
-          src={staticFile(`audio/${script.ambience.src}.wav`)}
+          src={staticFile(resolveAudioPath(script.ambience.src, 'ambience', script.genre))}
           loop
           loopVolumeCurveBehavior="extend"
           volume={Math.min(0.28, script.ambience.volume ?? 0.22)}
@@ -153,7 +191,7 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
             durationInFrames={Math.max(1, Math.round(timing.duration * fps))}
           >
             <Audio
-              src={staticFile(`audio/${scene.ambience.src}.wav`)}
+              src={staticFile(resolveAudioPath(scene.ambience.src, 'ambience', script.genre))}
               loop
               loopVolumeCurveBehavior="extend"
               volume={Math.min(0.28, scene.ambience.volume ?? 0.22)}
@@ -173,14 +211,17 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
             key={`sfx-${scene.id}-${index}`}
             from={Math.round((timing.start + cue.at) * fps)}
           >
-            <Audio src={staticFile(`audio/${cue.sfx}.wav`)} volume={Math.min(0.32, cue.volume ?? 0.25)} />
+            <Audio
+              src={staticFile(resolveAudioPath(cue.sfx, 'sfx', script.genre))}
+              volume={Math.min(0.32, cue.volume ?? 0.25)}
+            />
           </Sequence>
         ));
       })}
 
       {script.music ? (
         <Audio
-          src={staticFile(script.music.src)}
+          src={staticFile(resolveAudioPath(script.music.src, 'music', script.genre))}
           loop
           // Without 'extend' the volume curve restarts on every loop iteration,
           // which would replay the fade-in in the middle of the video.

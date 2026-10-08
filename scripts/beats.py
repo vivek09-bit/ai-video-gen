@@ -1044,6 +1044,16 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_impact"],
         "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_clock_tick", "sfx_swell"],
     },
+    "ancient_history": {
+        "ambience_setup": ["amb_ancient_sanctum", "amb_vedic_resonance", "amb_temple", "amb_quarry_echo"],
+        "ambience_rising": ["amb_subterranean_chamber", "amb_ancient_sanctum", "amb_quarry_echo", "amb_drone", "amb_tension"],
+        "ambience_climax": ["amb_vedic_resonance", "amb_subterranean_chamber", "amb_ancient_sanctum", "amb_drone", "amb_tension"],
+        "ambience_resolution": ["amb_vedic_resonance", "amb_ancient_sanctum", "amb_temple", "amb_warm"],
+        "sfx_setup": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_chisel_tap", "sfx_chisel_echo", "sfx_conch_call", "sfx_bell"],
+        "sfx_rising": ["sfx_stone_grind", "sfx_monolith_shift", "sfx_ancient_mechanism", "sfx_hydraulic_stone_gate", "sfx_chisel_echo", "sfx_riser"],
+        "sfx_climax": ["sfx_stone_impact", "sfx_monolith_shift", "sfx_mystic_reveal", "sfx_ancient_horn_blast", "sfx_temple_gong", "sfx_cinematic_hit"],
+        "sfx_resolution": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_conch_call", "sfx_ancient_horn_blast", "sfx_mystic_reveal", "sfx_bell"],
+    },
     "explainer": {
         "ambience_setup": ["amb_hum", "amb_cyber", "amb_warm"],
         "ambience_rising": ["amb_drone", "amb_tension", "amb_cyber"],
@@ -1782,6 +1792,173 @@ def _make_documentary_genre() -> GenreProfile:
         beats=beats,
         rising_beats=["approach", "dread"],
         bg_color="#080c14",
+    )
+
+
+def _make_ancient_history_genre() -> GenreProfile:
+    beats = {
+        "establish": Beat(
+            name="establish",
+            role="Set the ancient grandeur, monolithic scale, and historical enigma.",
+            visuals=[
+                {"type": "house", "fog": 0.25, "lit": True, "glow": 0.8},
+                {"type": "corridor", "flicker": 0.2, "depth": 0.6},
+            ],
+            ambience=("amb_ancient_sanctum", 0.38),
+            effects={"vignette": 0.72, "grain": 0.22, "dust": 0.3, "zoom": 0.025, "drift": "in"},
+            cues=[(0.2, "sfx_temple_gong", 0.55), (0.7, "sfx_chisel_tap", 0.35)],
+            tension=0.0,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.35,
+            character=False,
+        ),
+        "dread": Beat(
+            name="dread",
+            role="The architectural impossibility, lost tool, or mathematical paradox.",
+            visuals=[
+                {"type": "corridor", "flicker": 0.35, "depth": 0.7},
+                {"type": "candle", "glow": 0.95},
+            ],
+            ambience=("amb_quarry_echo", 0.40),
+            effects={"vignette": 0.78, "grain": 0.28, "dust": 0.32, "zoom": 0.03, "drift": "in"},
+            cues=[(0.35, "sfx_stone_grind", 0.55), (0.8, "sfx_conch_call", 0.45)],
+            tension=0.25,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.5,
+            character=True,
+        ),
+        "approach": Beat(
+            name="approach",
+            role="Deep architectural analysis, toolmarks, monolithic carving, and spatial mechanics.",
+            visuals=[
+                {"type": "figure", "distance": 0.45, "fog": 0.3, "glow": 0.6},
+                {"type": "corridor", "flicker": 0.3, "depth": 0.8},
+            ],
+            ambience=("amb_ancient_sanctum", 0.42),
+            effects={"vignette": 0.75, "grain": 0.25, "dust": 0.28, "zoom": 0.035, "drift": "in"},
+            cues=[(0.3, "sfx_ancient_mechanism", 0.5), (0.7, "sfx_chisel_tap", 0.4)],
+            tension=0.45,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.65,
+            character=True,
+        ),
+        "reveal": Beat(
+            name="reveal",
+            role="The profound structural, astronomical, or metallurgical breakthrough of the monument.",
+            visuals=[
+                {"type": "house", "fog": 0.2, "lit": True, "glow": 1.0},
+                {"type": "candle", "glow": 1.0},
+            ],
+            ambience=("amb_ancient_sanctum", 0.45),
+            effects={"vignette": 0.8, "grain": 0.3, "dust": 0.25, "shake": 0.12, "zoom": 0.04, "drift": "in"},
+            cues=[(0.05, "sfx_stone_impact", 0.7), (0.6, "sfx_mystic_reveal", 0.75)],
+            tension=0.75,
+            emotion="calm",
+            gesture="explain",
+            acting_intensity=0.85,
+            character=True,
+        ),
+        "react": Beat(
+            name="react",
+            role="Contemplating the astonishing intellect, precision, and legacy of ancient master builders.",
+            visuals=[
+                {"type": "fog", "density": 0.35, "glow": 0.7},
+                {"type": "house", "fog": 0.25, "lit": True},
+            ],
+            ambience=("amb_quarry_echo", 0.35),
+            effects={"vignette": 0.7, "grain": 0.22, "dust": 0.2, "zoom": 0.02, "drift": "out"},
+            cues=[(0.4, "sfx_conch_call", 0.5), (0.8, "sfx_temple_gong", 0.45)],
+            tension=0.2,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.45,
+            character=True,
+        ),
+        "resolve": Beat(
+            name="resolve",
+            role="The timeless stone testament standing tall across millennia as an immortal wonder.",
+            visuals=[
+                {"type": "forest", "fog": 0.25, "moonlight": 0.8},
+                {"type": "house", "fog": 0.2, "lit": True},
+            ],
+            ambience=("amb_ancient_sanctum", 0.32),
+            effects={"vignette": 0.68, "grain": 0.2, "dust": 0.18, "zoom": 0.02, "drift": "out"},
+            cues=[(0.6, "sfx_temple_gong", 0.6)],
+            tension=0.05,
+            emotion="calm",
+            gesture="none",
+            acting_intensity=0.35,
+            character=True,
+        ),
+    }
+    movements = {
+        "hook": Movement("hook", "Open with an astonishing architectural or mathematical anomaly that defies modern construction.", "establish", 0.06),
+        "setup": Movement("setup", "Establish the historical dynasty, geographic majesty, and sacred timeline.", "establish", 0.12),
+        "inciting": Movement("inciting", "The precise structural mystery, lost tool, or quarrying impossibility that baffled historians.", "dread", 0.12),
+        "rising": Movement("rising", "Anatomy of the Wonder: deep breakdown of acoustic perfection, astronomical alignments, and monolithic precision.", "approach", 0.32),
+        "climax": Movement("climax", "The peak revelation of how ancient master builders achieved what modern technology struggles to replicate.", "reveal", 0.18),
+        "resolution": Movement("resolution", "The living monument: enduring spiritual, scientific, and cultural legacy standing tall through centuries.", "react", 0.12),
+        "button": Movement("button", "A closing philosophical revelation connecting ancient engineering mastery to timeless human wonder.", "resolve", 0.08),
+    }
+    return GenreProfile(
+        key="ancient_history",
+        name="Ancient Civilizations & Temple Engineering",
+        aliases=[
+            "ancient_history",
+            "temple_engineering",
+            "ancient_civilizations",
+            "ancient_temples",
+            "indian_history",
+            "temple_architecture",
+            "ancient_monuments",
+            "ancient_india",
+            "kailasa",
+            "ancient_engineering",
+            "archaeology",
+            "vedic_architecture",
+        ],
+        tone="authoritative, captivating, awe-inspiring, historically precise, and enigmatic",
+        writer_instructions=(
+            "You are writing narration for a high-end Discovery/History Channel documentary on ancient civilizations, lost engineering, and magnificent temple architecture. "
+            "Deliver authoritative, evocative storytelling in pure formal Hindi (हिंदी). "
+            "Explore monolithic construction feats, astronomical alignments, metallurgical anomalies, and unsolved historical enigmas. "
+            "Maintain an authoritative, awe-inspiring tone without modern slang. "
+            "Punctuate with precision (use ',' for micro-breath, '।' for firm pauses, '...' for atmospheric suspense) to pace the neural narration."
+        ),
+        system_prompt="You write authoritative, cinematic documentary scripts on ancient civilizations, megalithic architecture, and temple engineering in formal Shuddh Hindi. You explore astronomical precision, architectural impossibilities, and historical enigmas.",
+        visual_style_prefix="Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ",
+        visual_style_suffix=", monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting.",
+        search_keywords_map={
+            "forest": "ancient sacred grove dense jungle overgrown ancient ruins",
+            "house": "monolithic ancient temple carved granite architectural wonder",
+            "grave": "ancient subterranean archaeological excavation crypt stone vault",
+            "corridor": "ancient carved stone temple corridor granite pillars bas-reliefs",
+            "candle": "sacred brass oil lamp flickering illumination ancient sanctum sanctorum",
+            "figure": "ancient master architect visionary sculptor silhouette stone carving",
+            "eyes": "ancient stone deity face intricate carving mystical gaze",
+            "rain": "monsoon rain cascading down ancient temple stone spires dramatic",
+            "fog": "mystical morning mist rising over ancient temple complex sacred valley",
+            "void": "deep subterranean cavern beneath ancient stone temple secrets",
+        },
+        default_keywords="ancient indian temple monolithic architecture granite carving archaeological mystery",
+        theme={
+            "accent": "#d97706",
+            "text": "#fef3c7",
+            "muted": "#fbbf24",
+            "panel": "rgba(24, 16, 7, 0.78)",
+            "headlineFont": "Georgia, 'Times New Roman', serif",
+            "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
+        },
+        movements=movements,
+        beats=beats,
+        rising_beats=["approach", "dread"],
+        default_voice="hm_omega",
+        default_wpm=112,
+        default_speed=0.94,
+        bg_color="#0c0906",
     )
 
 
@@ -2700,6 +2877,7 @@ GENRES: dict[str, GenreProfile] = {
     "drama": _make_drama_genre(),
     "comedy": _make_comedy_genre(),
     "horror": _make_horror_genre(),
+    "ancient_history": _make_ancient_history_genre(),
 }
 
 
@@ -2751,7 +2929,21 @@ def detect_genre(topic: str = "", explicit_genre: str | None = None) -> GenrePro
         if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
             return GENRES["fantasy"]
 
-    # 3. Mythology & Epics (e.g. "shiv", "krishna", "ram", "mahabharat", "temple", "vedic")
+    # 3. Ancient Civilizations & Temple Engineering
+    ancient_kw = [
+        "ancient civilization", "ancient civilizations", "temple engineering", "ancient temple",
+        "ancient temples", "ancient history", "kailasa", "kailash temple", "ellora", "ajanta",
+        "konark", "brihadeeswara", "hampi", "harappa", "mohenjo daro", "indus valley",
+        "monolithic", "megalithic", "rock cut", "granite carving", "lost technology",
+        "ancient architecture", "ancient engineering", "ancient india", "ancient egypt",
+        "pyramid", "pyramids", "archaeological mystery", "archaeology", "ancient monument",
+        "प्राचीन मंदिर", "मंदिर वास्तुकला", "कैलाश मंदिर", "एलोरा", "हम्पी", "सिंधु घाटी", "प्राचीन सभ्यता"
+    ]
+    for kw in ancient_kw:
+        if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
+            return GENRES["ancient_history"]
+
+    # 4. Mythology & Epics (e.g. "shiv", "krishna", "ram", "mahabharat", "vedic")
     myth_kw = [
         "shiv", "shiva", "ram", "rama", "krishna", "hanuman", "mahabharat", "ramayan",
         "puran", "vedic", "deva", "asura", "avatar", "bhagwan", "goddess", "mandir",

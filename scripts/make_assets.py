@@ -18,6 +18,7 @@ Re-running is cheap and safe; pass --force to regenerate existing files.
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,9 @@ from scipy import signal
 ROOT = Path(__file__).resolve().parent.parent
 TEXTURES = ROOT / "public" / "textures"
 AUDIO = ROOT / "public" / "audio"
+AMBIENCE_DIR = AUDIO / "ambience"
+SFX_DIR = AUDIO / "sfx"
+GENRES_DIR = AUDIO / "genres"
 
 SR = 24000
 LOOP_SECONDS = 30.0
@@ -465,6 +469,143 @@ def bed_radio_voices() -> np.ndarray:
     left = mixed
     right = np.roll(mixed, 95) * 0.94
     return stereo(normalise(left, 0.5), normalise(right, 0.5))
+
+
+def bed_ancient_sanctum() -> np.ndarray:
+    """Sacred ancient sanctum sanctorum acoustic drone. Tanpura 108Hz drone + 432Hz/528Hz singing bowl resonance + subterranean cave air."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(541)
+
+    # 108 Hz fundamental sacred drone with rich harmonics
+    f0 = 108.0
+    drone = np.zeros(n)
+    for harm, weight in ((1, 0.45), (2, 0.30), (3, 0.20), (4, 0.12), (5, 0.08)):
+        wobble = 1.0 + 0.0018 * np.sin(2 * np.pi * (0.15 + harm * 0.03) * t)
+        drone += weight * np.sin(2 * np.pi * f0 * harm * wobble * t)
+
+    # 432Hz & 528Hz Solfeggio singing bowl swells
+    bowl = np.zeros(n)
+    for f_bowl, interval_sec, start_offset in ((432.0, 7.5, 0.0), (528.0, 10.0, 3.5)):
+        interval = int(interval_sec * SR)
+        b_len = int(6.0 * SR)
+        for start in range(int(start_offset * SR), n, interval):
+            end = min(n, start + b_len)
+            seg_len = end - start
+            if seg_len <= 0:
+                continue
+            bt = np.arange(seg_len) / SR
+            env = np.exp(-bt * 0.65) * np.minimum(1.0, bt / 0.15)
+            tone = (
+                np.sin(2 * np.pi * f_bowl * bt) * 0.5
+                + np.sin(2 * np.pi * f_bowl * 2.76 * bt) * 0.25
+                + np.sin(2 * np.pi * f_bowl * 5.4 * bt) * 0.12
+            )
+            bowl[start:end] += tone * env * 0.32
+
+    # Deep subterranean cave reverberation (35-70 Hz)
+    sub = np.sin(2 * np.pi * 42.0 * t) * 0.3 * slow_lfo(n, 14.0, depth=0.35)
+    cave_air = lowpass(gen.normal(0, 1, n), 220, order=2) * 0.18
+
+    mixed = drone * 0.42 + bowl * 0.38 + sub + cave_air
+    left = mixed
+    right = np.roll(mixed, 220) * 0.97
+    return stereo(normalise(left, 0.54), normalise(right, 0.54))
+
+
+def bed_quarry_echo() -> np.ndarray:
+    """Monolithic granite quarry wind echo and subterranean cave resonance."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(547)
+
+    raw_noise = gen.normal(0, 1, n)
+    wind = bandpass(raw_noise, 80, 850, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 0.08 * t))
+
+    # Resonant cavity whistle frequencies simulating wind blowing across carved stone crevices
+    whistle = np.zeros(n)
+    for freq in (216.0, 324.0, 486.0):
+        mod = 1.0 + 0.005 * np.sin(2 * np.pi * 0.25 * t)
+        cavity = np.sin(2 * np.pi * freq * mod * t) * (0.5 + 0.5 * np.sin(2 * np.pi * 0.12 * t))
+        whistle += cavity * 0.12
+
+    sub_depth = np.sin(2 * np.pi * 36.0 * t) * 0.25 * slow_lfo(n, 20.0, depth=0.4)
+    mixed = wind * 0.55 + whistle * 0.3 + sub_depth
+    left = mixed
+    right = np.roll(mixed, 190) * 0.95
+    return stereo(normalise(left, 0.52), normalise(right, 0.52))
+
+
+def bed_vedic_resonance() -> np.ndarray:
+    """Sacred Vedic resonance drone based on 136.1 Hz Cosmic Om fundamental with 432 Hz Solfeggio fifths and singing bowl overtone sweeps."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(601)
+
+    f0 = 136.1
+    drone = np.zeros(n)
+    for harm, weight in ((1, 0.42), (1.5, 0.28), (2, 0.22), (3, 0.14), (4, 0.08)):
+        wobble = 1.0 + 0.0015 * np.sin(2 * np.pi * (0.12 + harm * 0.02) * t)
+        drone += weight * np.sin(2 * np.pi * f0 * harm * wobble * t)
+
+    bowl = np.zeros(n)
+    for f_bowl, interval_sec, start_offset in ((432.0, 8.0, 0.0), (528.0, 11.0, 4.0)):
+        interval = int(interval_sec * SR)
+        b_len = int(6.5 * SR)
+        for start in range(int(start_offset * SR), n, interval):
+            end = min(n, start + b_len)
+            seg_len = end - start
+            if seg_len <= 0:
+                continue
+            bt = np.arange(seg_len) / SR
+            env = np.exp(-bt * 0.55) * np.minimum(1.0, bt / 0.2)
+            tone = (
+                np.sin(2 * np.pi * f_bowl * bt) * 0.55
+                + np.sin(2 * np.pi * f_bowl * 2.76 * bt) * 0.28
+                + np.sin(2 * np.pi * f_bowl * 5.4 * bt) * 0.14
+            )
+            bowl[start:end] += tone * env * 0.35
+
+    sub = np.sin(2 * np.pi * 45.36 * t) * 0.28 * slow_lfo(n, 16.0, depth=0.3)
+    cavern_air = lowpass(gen.normal(0, 1, n), 260, order=2) * 0.16
+    mixed = drone * 0.44 + bowl * 0.36 + sub + cavern_air
+    left = mixed
+    right = np.roll(mixed, 240) * 0.96
+    return stereo(normalise(left, 0.54), normalise(right, 0.54))
+
+
+def bed_subterranean_chamber() -> np.ndarray:
+    """Subterranean rock-cut chamber acoustics with deep room modes and echoing mineral water drops."""
+    n = int(LOOP_SECONDS * SR)
+    t = np.arange(n) / SR
+    gen = rng(613)
+
+    sub_mode = (
+        np.sin(2 * np.pi * 54.0 * t) * 0.4
+        + np.sin(2 * np.pi * 81.0 * t) * 0.25
+        + np.sin(2 * np.pi * 108.0 * t) * 0.2
+    ) * slow_lfo(n, 18.0, depth=0.35)
+
+    air_draft = bandpass(gen.normal(0, 1, n), 60, 450, order=2) * (0.5 + 0.5 * np.sin(2 * np.pi * 0.06 * t))
+
+    drips = np.zeros(n)
+    drop_times = [2.2, 5.8, 9.4, 14.1, 18.7, 22.3, 26.9]
+    drop_freqs = [2150.0, 1980.0, 2350.0, 1820.0, 2480.0, 2050.0, 2220.0]
+    for dt_s, df in zip(drop_times, drop_freqs):
+        d_idx = int(dt_s * SR)
+        d_len = int(1.4 * SR)
+        if d_idx + d_len > n:
+            d_len = n - d_idx
+        dt_arr = np.arange(d_len) / SR
+        ping = np.sin(2 * np.pi * (df + 400.0 * np.exp(-dt_arr * 80.0)) * dt_arr) * np.exp(-dt_arr * 35.0)
+        echo1 = np.roll(ping, int(0.08 * SR)) * 0.45
+        echo2 = np.roll(ping, int(0.19 * SR)) * 0.25
+        drips[d_idx : d_idx + d_len] += (ping + echo1 + echo2) * 0.38
+
+    mixed = sub_mode * 0.35 + air_draft * 0.45 + drips * 0.4
+    left = mixed
+    right = np.roll(mixed, 210) * 0.95
+    return stereo(normalise(left, 0.52), normalise(right, 0.52))
 
 
 # --------------------------------------------------------------------------
@@ -1153,6 +1294,315 @@ def sfx_haunted_breathing() -> np.ndarray:
     return stereo(normalise(left, 0.88), normalise(right, 0.88))
 
 
+def sfx_temple_gong() -> np.ndarray:
+    """Resonant bronze temple gong strike with deep sub foundation and rich shimmering partials (5.0s)."""
+    duration = 5.0
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(557)
+
+    partials = [
+        (86.0, 1.0, 0.45),
+        (215.0, 0.65, 0.75),
+        (344.0, 0.45, 1.1),
+        (516.0, 0.30, 1.6),
+        (860.0, 0.18, 2.4),
+        (1376.0, 0.10, 3.2),
+    ]
+    body = np.zeros(n)
+    for freq, amp, decay_rate in partials:
+        detune = 1.0 + 0.002 * np.sin(2 * np.pi * 4.5 * t)
+        tone = np.sin(2 * np.pi * freq * detune * t) * np.exp(-t * decay_rate)
+        body += tone * amp
+
+    strike = lowpass(gen.normal(0, 1, n), 450, order=2) * np.exp(-t * 35.0) * 0.6
+    mixed = body + strike
+    left = mixed
+    right = np.roll(mixed, 75) * 0.96
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_stone_grind() -> np.ndarray:
+    """Heavy monolithic granite block sliding / grinding with grit friction and heavy acoustic weight (3.5s)."""
+    duration = 3.5
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(563)
+
+    raw_noise = gen.normal(0, 1, n)
+    sweep = 250.0 + 450.0 * np.sin(np.pi * (t / duration)) ** 1.2
+    grit = bandpass(raw_noise, 180, 1600, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 12.0 * t))
+    sub_friction = np.sin(2 * np.pi * (52.0 + 15.0 * np.sin(2 * np.pi * 3.2 * t)) * t) * 0.4
+
+    env = (np.sin(np.pi * (t / duration) ** 0.8) ** 1.5) * np.minimum(1.0, t / 0.2)
+    mixed = (grit * 0.7 + sub_friction) * env
+    left = mixed
+    right = np.roll(mixed, 110) * 0.95
+    return stereo(normalise(left, 0.90), normalise(right, 0.90))
+
+
+def sfx_chisel_tap() -> np.ndarray:
+    """Rhythmic artisan iron chisel striking carved granite with ringing high-frequency ping (2.4s)."""
+    duration = 2.4
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(569)
+
+    track = np.zeros(n)
+    taps = [0.15, 0.65, 1.20, 1.75]
+    freqs = [1420.0, 1480.0, 1440.0, 1510.0]
+
+    for tap_t, f0 in zip(taps, freqs):
+        idx = int(tap_t * SR)
+        tap_len = int(0.35 * SR)
+        if idx + tap_len > n:
+            tap_len = n - idx
+        tt = np.arange(tap_len) / SR
+        ping = (
+            np.sin(2 * np.pi * f0 * tt) * 0.6
+            + np.sin(2 * np.pi * f0 * 2.14 * tt) * 0.3
+            + np.sin(2 * np.pi * f0 * 3.82 * tt) * 0.15
+        ) * np.exp(-tt * 24.0)
+        chip = bandpass(gen.normal(0, 1, tap_len), 1800, 6000, order=2) * np.exp(-tt * 45.0) * 0.4
+        track[idx : idx + tap_len] += ping + chip
+
+    left = track
+    right = np.roll(track, 30) * 0.96
+    return stereo(normalise(left, 0.88), normalise(right, 0.88))
+
+
+def sfx_conch_call() -> np.ndarray:
+    """Sacred Shankha conch shell acoustic horn blow with natural harmonic overtone glissando (4.5s)."""
+    duration = 4.5
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(577)
+
+    f_base = 220.0 + 35.0 * np.sin(np.pi * (t / duration) ** 0.6) + 4.0 * np.sin(2 * np.pi * 5.5 * t)
+    carrier1 = signal.sawtooth(2 * np.pi * np.cumsum(f_base) / SR)
+    carrier2 = np.sin(2 * np.pi * np.cumsum(f_base * 2.0) / SR) * 0.45
+    carrier3 = np.sin(2 * np.pi * np.cumsum(f_base * 3.0) / SR) * 0.25
+
+    horn = bandpass(carrier1 * 0.5 + carrier2 + carrier3, 180, 2200, order=2)
+    breath = bandpass(gen.normal(0, 1, n), 600, 3000, order=2) * 0.15
+
+    env = (np.sin(np.pi * (t / duration) ** 0.7) ** 1.8) * np.minimum(1.0, t / 0.3)
+    mixed = (horn + breath) * env
+    left = mixed
+    right = np.roll(mixed, 85) * 0.95
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_ancient_mechanism() -> np.ndarray:
+    """Heavy stone gear rotation, wooden latch clicks, and locking stone slab thump (3.8s)."""
+    duration = 3.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(587)
+
+    # Gear rotation rumbles
+    f_gear = 65.0 + 20.0 * np.sin(2 * np.pi * 2.0 * t)
+    gear = np.sin(2 * np.pi * np.cumsum(f_gear) / SR) * (0.6 + 0.4 * np.sin(2 * np.pi * 8.0 * t))
+    gear_f = lowpass(gear, 300, order=2)
+
+    # Latch clicks
+    clicks = np.zeros(n)
+    for c_time in [0.4, 0.9, 1.4, 1.9, 2.5]:
+        c_idx = int(c_time * SR)
+        c_len = int(0.08 * SR)
+        if c_idx + c_len > n:
+            continue
+        ct = np.arange(c_len) / SR
+        clicks[c_idx : c_idx + c_len] += np.sin(2 * np.pi * 880 * ct) * np.exp(-ct * 120.0)
+
+    # Final locking impact thump at 3.0s
+    thump = np.zeros(n)
+    t_idx = int(3.0 * SR)
+    t_len = min(n - t_idx, int(0.7 * SR))
+    if t_len > 0:
+        tt = np.arange(t_len) / SR
+        thump[t_idx : t_idx + t_len] = (
+            np.sin(2 * np.pi * (50.0 * np.exp(-tt * 15.0) + 28.0) * tt)
+            + gen.normal(0, 1, t_len) * 0.35
+        ) * np.exp(-tt * 8.0)
+
+    env = np.minimum(1.0, t / 0.15) * np.minimum(1.0, (duration - t) / 0.3)
+    mixed = (gear_f * 0.55 + clicks * 0.35 + thump * 0.8) * env
+    left = mixed
+    right = np.roll(mixed, 60) * 0.96
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_mystic_reveal() -> np.ndarray:
+    """Sub swell rising into shimmering singing bowl chord overtones (4.2s)."""
+    duration = 4.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+
+    # Solfeggio 528Hz & 432Hz harmonic chord
+    chord = [216.0, 432.0, 528.0, 648.0]
+    swell = np.zeros(n)
+    for i, freq in enumerate(chord):
+        detune = 1.0 + 0.002 * np.sin(2 * np.pi * (0.2 + 0.05 * i) * t)
+        wave = np.sin(2 * np.pi * freq * detune * t) + 0.2 * np.sin(2 * np.pi * freq * 2.0 * detune * t)
+        swell += wave * (0.4 / (1.0 + 0.2 * i))
+
+    sub_swell = np.sin(2 * np.pi * (40.0 + 20.0 * (t / duration) ** 2) * t) * 0.4
+    env = (np.sin(np.pi * (t / duration) ** 1.1) ** 1.6) * np.minimum(1.0, t / 0.4)
+    mixed = (swell * 0.65 + sub_swell) * env
+    left = mixed
+    right = np.roll(mixed, 100) * 0.95
+    return stereo(normalise(left, 0.90), normalise(right, 0.90))
+
+
+def sfx_stone_impact() -> np.ndarray:
+    """Megalithic foundation stone placement impact with massive low-frequency ground tremor (2.8s)."""
+    duration = 2.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(593)
+
+    f_sub = 75.0 * np.exp(-t * 11.0) + 24.0
+    sub = np.sin(2 * np.pi * f_sub * t) * np.exp(-t * 2.8) * 0.85
+    stone_crack = bandpass(gen.normal(0, 1, n), 300, 2400, order=2) * np.exp(-t * 28.0) * 0.6
+    rumble = lowpass(gen.normal(0, 1, n), 65, order=2) * np.exp(-t * 1.8) * 0.4
+
+    mixed = sub + stone_crack + rumble
+    left = mixed
+    right = np.roll(mixed, 45) * 0.96
+    return stereo(normalise(left, 0.96), normalise(right, 0.96))
+
+
+def sfx_monolith_shift() -> np.ndarray:
+    """Massive megalithic granite block sliding with deep sub-bass tremor and stone friction (3.6s)."""
+    duration = 3.6
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(631)
+
+    raw_noise = gen.normal(0, 1, n)
+    friction = bandpass(raw_noise, 120, 1400, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 9.0 * t))
+    f_sub = 48.0 + 12.0 * np.sin(2 * np.pi * 2.5 * t)
+    sub_tremor = np.sin(2 * np.pi * f_sub * t) * 0.65
+
+    settle_idx = int(2.8 * SR)
+    settle_len = min(n - settle_idx, int(0.7 * SR))
+    settle = np.zeros(n)
+    if settle_len > 0:
+        st = np.arange(settle_len) / SR
+        settle[settle_idx : settle_idx + settle_len] = (
+            np.sin(2 * np.pi * 55.0 * np.exp(-st * 12.0) * st) + lowpass(gen.normal(0, 1, settle_len), 200, order=2) * 0.5
+        ) * np.exp(-st * 6.0)
+
+    env = (np.sin(np.pi * (t / duration) ** 0.85) ** 1.4) * np.minimum(1.0, t / 0.18)
+    mixed = (friction * 0.65 + sub_tremor * 0.75) * env + settle * 0.8
+    left = mixed
+    right = np.roll(mixed, 90) * 0.95
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_bronze_bell_ring() -> np.ndarray:
+    """Authentic Indian temple Ghanta bronze bell strike with rich overtone spectrum and long shimmer (4.5s)."""
+    duration = 4.5
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(641)
+
+    partials = [
+        (580.0, 1.0, 0.65),
+        (1162.0, 0.65, 0.95),
+        (1744.0, 0.45, 1.35),
+        (2615.0, 0.30, 1.9),
+        (3485.0, 0.18, 2.7),
+    ]
+    body = np.zeros(n)
+    for freq, amp, decay_rate in partials:
+        shimmer = 1.0 + 0.003 * np.sin(2 * np.pi * 3.8 * t)
+        body += np.sin(2 * np.pi * freq * shimmer * t) * np.exp(-t * decay_rate) * amp
+
+    clapper_strike = bandpass(gen.normal(0, 1, n), 1200, 5000, order=2) * np.exp(-t * 45.0) * 0.55
+    mixed = body + clapper_strike
+    left = mixed
+    right = np.roll(mixed, 65) * 0.96
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_hydraulic_stone_gate() -> np.ndarray:
+    """Ancient subterranean hydraulic stone sluice gate gliding with water rush and locking thud (4.2s)."""
+    duration = 4.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(653)
+
+    raw_noise = gen.normal(0, 1, n)
+    water_rush = bandpass(raw_noise, 400, 3200, order=2) * (0.5 + 0.5 * (t / duration))
+    stone_glide = bandpass(raw_noise, 150, 900, order=2) * (0.6 + 0.4 * np.sin(2 * np.pi * 6.0 * t))
+    sub = np.sin(2 * np.pi * 42.0 * t) * 0.4
+
+    slam_idx = int(3.3 * SR)
+    slam_len = min(n - slam_idx, int(0.8 * SR))
+    slam = np.zeros(n)
+    if slam_len > 0:
+        st = np.arange(slam_len) / SR
+        slam[slam_idx : slam_idx + slam_len] = (
+            np.sin(2 * np.pi * 60.0 * np.exp(-st * 10.0) * st) * 0.8
+            + bandpass(gen.normal(0, 1, slam_len), 200, 1800, order=2) * np.exp(-st * 30.0) * 0.6
+        ) * np.exp(-st * 5.0)
+
+    env = np.minimum(1.0, t / 0.25) * np.minimum(1.0, (duration - t) / 0.4)
+    mixed = (water_rush * 0.45 + stone_glide * 0.55 + sub) * env + slam * 0.85
+    left = mixed
+    right = np.roll(mixed, 75) * 0.95
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_ancient_horn_blast() -> np.ndarray:
+    """Ceremonial ancient curved brass horn / trumpet blast echoing through stone caverns (4.2s)."""
+    duration = 4.2
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(661)
+
+    f_base = 180.0 + 25.0 * np.sin(np.pi * (t / duration) ** 0.7) + 3.0 * np.sin(2 * np.pi * 4.8 * t)
+    carrier1 = signal.sawtooth(2 * np.pi * np.cumsum(f_base) / SR) * 0.5
+    carrier2 = np.sin(2 * np.pi * np.cumsum(f_base * 2.0) / SR) * 0.35
+    carrier3 = np.sin(2 * np.pi * np.cumsum(f_base * 3.0) / SR) * 0.2
+    horn = bandpass(carrier1 + carrier2 + carrier3, 150, 2000, order=2)
+    air_breath = bandpass(gen.normal(0, 1, n), 500, 2800, order=2) * 0.14
+
+    env = (np.sin(np.pi * (t / duration) ** 0.75) ** 1.7) * np.minimum(1.0, t / 0.25)
+    mixed = (horn + air_breath) * env
+    left = mixed
+    right = np.roll(mixed, 95) * 0.95
+    return stereo(normalise(left, 0.92), normalise(right, 0.92))
+
+
+def sfx_chisel_echo() -> np.ndarray:
+    """Solitary artisan iron chisel ping striking granite with spatial reverberation slapback across subterranean cave chambers (2.8s)."""
+    duration = 2.8
+    n = int(duration * SR)
+    t = np.arange(n) / SR
+    gen = rng(673)
+
+    f_ping = 1580.0
+    tt = t
+    ping = (
+        np.sin(2 * np.pi * f_ping * tt) * 0.65
+        + np.sin(2 * np.pi * (f_ping * 2.18) * tt) * 0.3
+        + np.sin(2 * np.pi * (f_ping * 3.75) * tt) * 0.15
+    ) * np.exp(-tt * 22.0)
+    chip = bandpass(gen.normal(0, 1, n), 2000, 7000, order=2) * np.exp(-tt * 40.0) * 0.45
+
+    echo1 = np.roll(ping + chip, int(0.12 * SR)) * 0.42
+    echo2 = np.roll(ping + chip, int(0.28 * SR)) * 0.22
+    echo3 = np.roll(ping + chip, int(0.48 * SR)) * 0.12
+
+    mixed = ping + chip + echo1 + echo2 + echo3
+    left = mixed
+    right = np.roll(mixed, 40) * 0.96
+    return stereo(normalise(left, 0.90), normalise(right, 0.90))
+
+
 # --------------------------------------------------------------------------
 # Textures
 # --------------------------------------------------------------------------
@@ -1194,6 +1644,10 @@ BEDS = {
     "amb_whispers": bed_whispers,
     "amb_ghost_voices": bed_ghost_voices,
     "amb_radio_voices": bed_radio_voices,
+    "amb_ancient_sanctum": bed_ancient_sanctum,
+    "amb_quarry_echo": bed_quarry_echo,
+    "amb_vedic_resonance": bed_vedic_resonance,
+    "amb_subterranean_chamber": bed_subterranean_chamber,
 }
 
 EFFECTS = {
@@ -1228,19 +1682,293 @@ EFFECTS = {
     "sfx_creepy_music_box": sfx_creepy_music_box,
     "sfx_thunder_rumble": sfx_thunder_rumble,
     "sfx_haunted_breathing": sfx_haunted_breathing,
+    "sfx_temple_gong": sfx_temple_gong,
+    "sfx_stone_grind": sfx_stone_grind,
+    "sfx_chisel_tap": sfx_chisel_tap,
+    "sfx_conch_call": sfx_conch_call,
+    "sfx_ancient_mechanism": sfx_ancient_mechanism,
+    "sfx_mystic_reveal": sfx_mystic_reveal,
+    "sfx_stone_impact": sfx_stone_impact,
+    "sfx_monolith_shift": sfx_monolith_shift,
+    "sfx_bronze_bell_ring": sfx_bronze_bell_ring,
+    "sfx_hydraulic_stone_gate": sfx_hydraulic_stone_gate,
+    "sfx_ancient_horn_blast": sfx_ancient_horn_blast,
+    "sfx_chisel_echo": sfx_chisel_echo,
+}
+
+
+GENRE_AUDIO_MAP: dict[str, dict[str, list[str]]] = {
+    "horror": {
+        "ambience": [
+            "amb_wind",
+            "amb_drone",
+            "amb_whispers",
+            "amb_rain",
+            "amb_heartbeat",
+            "amb_ghost_voices",
+            "amb_tension",
+        ],
+        "sfx": [
+            "sfx_eerie_drone_swell",
+            "sfx_creepy_music_box",
+            "sfx_haunted_breathing",
+            "sfx_whisper",
+            "sfx_clock_tick",
+            "sfx_demonic_whisper",
+            "sfx_creak",
+            "sfx_dark_whoosh",
+            "sfx_footstep_wood",
+            "sfx_thunder_rumble",
+            "sfx_ghost_crying",
+            "sfx_scare_string",
+            "sfx_riser",
+            "sfx_ghost_laugh",
+            "sfx_ghostly_groan",
+            "sfx_heartbeat_single",
+            "sfx_monster_growl",
+            "sfx_phantom_shriek",
+            "sfx_jumpscare",
+            "sfx_cinematic_hit",
+            "sfx_stinger",
+            "sfx_impact",
+            "sfx_boom",
+            "sfx_bell",
+            "sfx_swell",
+        ],
+    },
+    "ancient_history": {
+        "ambience": [
+            "amb_ancient_sanctum",
+            "amb_vedic_resonance",
+            "amb_subterranean_chamber",
+            "amb_temple",
+            "amb_quarry_echo",
+            "amb_drone",
+            "amb_tension",
+            "amb_warm",
+        ],
+        "sfx": [
+            "sfx_temple_gong",
+            "sfx_bronze_bell_ring",
+            "sfx_chisel_tap",
+            "sfx_chisel_echo",
+            "sfx_conch_call",
+            "sfx_ancient_horn_blast",
+            "sfx_stone_grind",
+            "sfx_monolith_shift",
+            "sfx_ancient_mechanism",
+            "sfx_hydraulic_stone_gate",
+            "sfx_stone_impact",
+            "sfx_mystic_reveal",
+            "sfx_cinematic_hit",
+            "sfx_bell",
+            "sfx_boom",
+            "sfx_impact",
+            "sfx_riser",
+        ],
+    },
+    "mythology": {
+        "ambience": [
+            "amb_temple",
+            "amb_ethereal",
+            "amb_drone",
+            "amb_wind",
+            "amb_tension",
+            "amb_warm",
+        ],
+        "sfx": [
+            "sfx_bell",
+            "sfx_horn",
+            "sfx_swell",
+            "sfx_chime",
+            "sfx_riser",
+            "sfx_whoosh",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_impact",
+            "sfx_conch_call",
+            "sfx_mystic_reveal",
+        ],
+    },
+    "motivational": {
+        "ambience": [
+            "amb_warm",
+            "amb_wind",
+            "amb_tension",
+            "amb_drone",
+            "amb_uplift",
+        ],
+        "sfx": [
+            "sfx_clock_tick",
+            "sfx_swell",
+            "sfx_whoosh",
+            "sfx_riser",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_chime",
+            "sfx_bell",
+        ],
+    },
+    "drama": {
+        "ambience": [
+            "amb_warm",
+            "amb_rain",
+            "amb_tension",
+            "amb_drone",
+            "amb_wind",
+        ],
+        "sfx": [
+            "sfx_bell",
+            "sfx_clock_tick",
+            "sfx_whisper",
+            "sfx_riser",
+            "sfx_impact",
+            "sfx_swell",
+            "sfx_cinematic_hit",
+        ],
+    },
+    "comedy": {
+        "ambience": [
+            "amb_uplift",
+            "amb_warm",
+            "amb_hum",
+        ],
+        "sfx": [
+            "sfx_pop",
+            "sfx_whoosh",
+            "sfx_chime",
+            "sfx_sparkle",
+            "sfx_cinematic_hit",
+        ],
+    },
+    "documentary": {
+        "ambience": [
+            "amb_wind",
+            "amb_hum",
+            "amb_tension",
+            "amb_drone",
+            "amb_warm",
+        ],
+        "sfx": [
+            "sfx_clock_tick",
+            "sfx_whoosh",
+            "sfx_bell",
+            "sfx_riser",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_impact",
+            "sfx_chime",
+            "sfx_swell",
+        ],
+    },
+    "explainer": {
+        "ambience": [
+            "amb_hum",
+            "amb_cyber",
+            "amb_warm",
+            "amb_drone",
+            "amb_tension",
+            "amb_uplift",
+        ],
+        "sfx": [
+            "sfx_whoosh",
+            "sfx_glitch",
+            "sfx_clock_tick",
+            "sfx_pop",
+            "sfx_riser",
+            "sfx_chime",
+            "sfx_cinematic_hit",
+            "sfx_swell",
+            "sfx_impact",
+            "sfx_bell",
+            "sfx_sparkle",
+        ],
+    },
+    "anime": {
+        "ambience": [
+            "amb_tension",
+            "amb_wind",
+            "amb_cyber",
+            "amb_drone",
+            "amb_heartbeat",
+            "amb_uplift",
+            "amb_warm",
+        ],
+        "sfx": [
+            "sfx_whoosh",
+            "sfx_dark_whoosh",
+            "sfx_glitch",
+            "sfx_sparkle",
+            "sfx_riser",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_impact",
+            "sfx_stinger",
+            "sfx_swell",
+            "sfx_bell",
+            "sfx_chime",
+        ],
+    },
+    "fantasy": {
+        "ambience": [
+            "amb_ethereal",
+            "amb_wind",
+            "amb_warm",
+            "amb_temple",
+            "amb_tension",
+        ],
+        "sfx": [
+            "sfx_sparkle",
+            "sfx_chime",
+            "sfx_bell",
+            "sfx_swell",
+            "sfx_whoosh",
+            "sfx_riser",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_mystic_reveal",
+        ],
+    },
+    "scifi": {
+        "ambience": [
+            "amb_cyber",
+            "amb_hum",
+            "amb_radio_voices",
+            "amb_tension",
+            "amb_drone",
+            "amb_heartbeat",
+            "amb_wind",
+        ],
+        "sfx": [
+            "sfx_glitch",
+            "sfx_whoosh",
+            "sfx_clock_tick",
+            "sfx_dark_whoosh",
+            "sfx_riser",
+            "sfx_cinematic_hit",
+            "sfx_boom",
+            "sfx_impact",
+            "sfx_chime",
+            "sfx_bell",
+        ],
+    },
 }
 
 
 def ensure_assets(force: bool = False, verbose: bool = False) -> None:
-    """Ensure all required textures, ambience beds, and SFX files exist in public/."""
+    """Ensure all required textures, ambience beds, and SFX files exist in public/ and genre folders."""
     grain = TEXTURES / "grain.png"
     if not grain.exists() or force:
         grain_texture()
     elif verbose:
         print(f"  {grain.name} exists")
 
+    AMBIENCE_DIR.mkdir(parents=True, exist_ok=True)
+    SFX_DIR.mkdir(parents=True, exist_ok=True)
+    GENRES_DIR.mkdir(parents=True, exist_ok=True)
+
     for name, builder in BEDS.items():
-        path = AUDIO / f"{name}.wav"
+        path = AMBIENCE_DIR / f"{name}.wav"
         if not path.exists() or force:
             write(path, builder(), loop=True)
             if verbose:
@@ -1249,13 +1977,34 @@ def ensure_assets(force: bool = False, verbose: bool = False) -> None:
             print(f"  {path.name} exists")
 
     for name, builder in EFFECTS.items():
-        path = AUDIO / f"{name}.wav"
+        path = SFX_DIR / f"{name}.wav"
         if not path.exists() or force:
             write(path, builder(), loop=False)
             if verbose:
                 print(f"  generated {path.name}")
         elif verbose:
             print(f"  {path.name} exists")
+
+    # Populate genre-specific folders
+    for genre, pool in GENRE_AUDIO_MAP.items():
+        genre_amb_dir = GENRES_DIR / genre / "ambience"
+        genre_sfx_dir = GENRES_DIR / genre / "sfx"
+        genre_music_dir = GENRES_DIR / genre / "music"
+        genre_amb_dir.mkdir(parents=True, exist_ok=True)
+        genre_sfx_dir.mkdir(parents=True, exist_ok=True)
+        genre_music_dir.mkdir(parents=True, exist_ok=True)
+
+        for amb_name in pool.get("ambience", []):
+            src = AMBIENCE_DIR / f"{amb_name}.wav"
+            dst = genre_amb_dir / f"{amb_name}.wav"
+            if src.exists() and (not dst.exists() or force):
+                shutil.copyfile(src, dst)
+
+        for sfx_name in pool.get("sfx", []):
+            src = SFX_DIR / f"{sfx_name}.wav"
+            dst = genre_sfx_dir / f"{sfx_name}.wav"
+            if src.exists() and (not dst.exists() or force):
+                shutil.copyfile(src, dst)
 
 
 def main() -> int:
@@ -1270,10 +2019,14 @@ def main() -> int:
     else:
         grain_texture()
 
+    AMBIENCE_DIR.mkdir(parents=True, exist_ok=True)
+    SFX_DIR.mkdir(parents=True, exist_ok=True)
+    GENRES_DIR.mkdir(parents=True, exist_ok=True)
+
     print()
     print(f"Ambience beds ({len(BEDS)} 30 s seamless loops)")
     for name, builder in BEDS.items():
-        path = AUDIO / f"{name}.wav"
+        path = AMBIENCE_DIR / f"{name}.wav"
         if path.exists() and not args.force:
             print(f"  {path.name:<22} exists")
             continue
@@ -1282,14 +2035,42 @@ def main() -> int:
     print()
     print(f"One-shot effects ({len(EFFECTS)} procedural sfx)")
     for name, builder in EFFECTS.items():
-        path = AUDIO / f"{name}.wav"
+        path = SFX_DIR / f"{name}.wav"
         if path.exists() and not args.force:
             print(f"  {path.name:<22} exists")
             continue
         write(path, builder(), loop=False)
 
     print()
-    print("Done. These are generated, so the project ships no third-party audio.")
+    print(f"Distributing audio across {len(GENRE_AUDIO_MAP)} genre directories...")
+    for genre, pool in GENRE_AUDIO_MAP.items():
+        genre_amb_dir = GENRES_DIR / genre / "ambience"
+        genre_sfx_dir = GENRES_DIR / genre / "sfx"
+        genre_music_dir = GENRES_DIR / genre / "music"
+        genre_amb_dir.mkdir(parents=True, exist_ok=True)
+        genre_sfx_dir.mkdir(parents=True, exist_ok=True)
+        genre_music_dir.mkdir(parents=True, exist_ok=True)
+
+        copied_amb = 0
+        for amb_name in pool.get("ambience", []):
+            src = AMBIENCE_DIR / f"{amb_name}.wav"
+            dst = genre_amb_dir / f"{amb_name}.wav"
+            if src.exists() and (not dst.exists() or args.force):
+                shutil.copyfile(src, dst)
+                copied_amb += 1
+
+        copied_sfx = 0
+        for sfx_name in pool.get("sfx", []):
+            src = SFX_DIR / f"{sfx_name}.wav"
+            dst = genre_sfx_dir / f"{sfx_name}.wav"
+            if src.exists() and (not dst.exists() or args.force):
+                shutil.copyfile(src, dst)
+                copied_sfx += 1
+
+        print(f"  [{genre:<15}] {len(pool.get('ambience', []))} ambience, {len(pool.get('sfx', []))} sfx, music folder created")
+
+    print()
+    print("Done. All audio assets partitioned by genre and accessible via Remotion.")
     return 0
 
 

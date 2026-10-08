@@ -110,7 +110,7 @@ export const SceneView: React.FC<{
       {usingShots ? (
         <ShotSequence shots={scene.shots} />
       ) : (
-        <Background spec={scene.background} durationInFrames={durationInFrames} />
+        <Background spec={scene.background} durationInFrames={durationInFrames} isFirstScene={isFirstScene} />
       )}
 
       {/* Scrim: keeps text legible over photos and video without washing them out.

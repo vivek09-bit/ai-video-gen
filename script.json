@@ -1,26 +1,26 @@
 {
-  "title": "सवा तीन बजे का टोल प्लाजा",
-  "topic": "The 3:15 AM Toll Plaza Mystery",
+  "title": "एलोरा के कैलाश मंदिर का अनसुलझा रहस्य",
+  "topic": "Kailash temple king's history",
   "language": "hi",
-  "genre": "horror",
+  "genre": "ancient_history",
   "visualStyle": null,
   "format": "reel",
   "aspectRatio": "9:16",
   "width": 1080,
   "height": 1920,
   "fps": 30,
-  "voice": "hf_beta,am_onyx",
+  "voice": "hf_beta",
   "secondaryVoice": null,
-  "speed": 0.95,
+  "speed": 0.94,
   "sentencePauseSeconds": 0.12,
   "ambience": {
-    "src": "amb_wind",
+    "src": "amb_quarry_echo",
     "volume": 0.2
   },
   "captions": {
     "enabled": true,
     "wordsPerCue": 5,
-    "bottom": 0.4,
+    "bottom": 0.28,
     "fontSize": 55,
     "uppercase": false,
     "highlight": true,
@@ -32,15 +32,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "blood_red",
-    "name": "Blood Red",
-    "accent": "#ef4444",
-    "text": "#fef2f2",
-    "muted": "#fca5a5",
-    "panel": "rgba(45, 10, 10, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0c0404"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -58,16 +58,15 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: foggy toll booth, headlights, CCTV camera illuminated, featuring forest, house, establish scene, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: monolithic rock-cut temple, basalt cliff, ancient chisel, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.88,
-            "grain": 0.42,
-            "dust": 0.28,
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
             "zoom": 0.025,
-            "drift": "in",
-            "exposureFlicker": 0.12
+            "drift": "in"
           },
           "transition": {
             "type": "cut"
@@ -79,16 +78,15 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: foggy toll booth, headlights, CCTV camera illuminated, featuring forest, house, establish scene, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: monolithic rock-cut temple, basalt cliff, ancient chisel, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.88,
-            "grain": 0.42,
-            "dust": 0.28,
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
             "zoom": 0.025,
-            "drift": "in",
-            "exposureFlicker": 0.12
+            "drift": "in"
           },
           "transition": {
             "type": "crossfade",
@@ -97,44 +95,44 @@
         }
       ],
       "ambience": {
-        "src": "amb_wind",
-        "volume": 0.18
+        "src": "amb_quarry_echo",
+        "volume": 0.17
       },
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_demonic_whisper",
-          "volume": 0.2
-        },
-        {
-          "at": 13.32,
-          "sfx": "sfx_haunted_breathing",
+          "sfx": "sfx_chisel_tap",
           "volume": 0.18
         },
         {
-          "at": 23.01,
-          "sfx": "sfx_creepy_music_box",
+          "at": 15.56,
+          "sfx": "sfx_temple_gong",
           "volume": 0.17
         },
         {
-          "at": 31.49,
-          "sfx": "sfx_whisper",
-          "volume": 0.17
+          "at": 26.88,
+          "sfx": "sfx_chisel_tap",
+          "volume": 0.16
         },
         {
-          "at": 49.65,
-          "sfx": "sfx_clock_tick",
-          "volume": 0.2
+          "at": 36.78,
+          "sfx": "sfx_bell",
+          "volume": 0.15
+        },
+        {
+          "at": 58.0,
+          "sfx": "sfx_hydraulic_stone_gate",
+          "volume": 0.18
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
-        "emotion": "worried",
-        "intensity": 0.34,
+        "emotion": "calm",
+        "intensity": 0.26,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -145,10 +143,10 @@
       "lines": [
         {
           "character": null,
-          "text": "हाईवे के टोल बूथ पर हर रात ठीक सवा तीन बजे एक पुरानी काली कार आकर रुकती है। बूथ में बैठा ऑपरेटर जैसे ही हाथ बढ़ाकर पैसे मांगता है, कार की ड्राइवर सीट खाली मिलती है। सीसीटीवी स्क्रीन पर सिर्फ एक खून से लथपथ पर्ची दिखती है, जिस पर लिखा होता है 'अगली बारी तुम्हारी है'। कल रात वो पर्ची मेरे नाम से निकली, क्योंकि टोल की उस खिड़की पर मैं बैठा था। कांपते हाथों से मैंने बाहर देखा, तो सड़क पर सन्नाटा था। लेकिन तभी, मेरे फोन पर मैसेज का नोटिफिकेशन बजा। कार के डैशकैम से लाइव वीडियो चल रहा था, जिसमें ठीक सवा तीन बजे..."
+          "text": "दो लाख टन का यह विशाल कैलाश मंदिर, ईंट या पत्थरों को जोड़कर नहीं, बल्कि एक ही खड़े पहाड़ को ऊपर से नीचे काटकर बनाया गया था। आठवीं सदी में राष्ट्रकूट राजा कृष्ण प्रथम ने इसे शुरू कराया था। जब उनकी रानी ने भगवान शिव से राजा के ठीक होने की मन्नत मांगी, तब उन्होंने मंदिर का शिखर देखने तक उपवास रखने की कसम खाई। निर्माण को तेजी से पूरा करने के लिए, कारीगरों ने ऊपर से नीचे की तरफ खुदाई शुरू की। बिना किसी आधुनिक क्रेन, कंप्यूटर या लेजर तकनीक के, केवल हथौड़े और छेनी से इतना सटीक अलाइनमेंट आज भी नामुमकिन लगता है। हैरान करने वाली बात यह है कि यहां से निकला दो लाख टन मलबा आसपास कहीं मिला ही नहीं। वैज्ञानिक आज भी हैरान हैं कि यह सब कैसे मुमकिन हुआ।"
         }
       ],
-      "visualKeywords": "foggy toll booth, headlights, CCTV camera"
+      "visualKeywords": "monolithic rock-cut temple, basalt cliff, ancient chisel marks, cinematic golden hour lighting"
     }
   ]
 }

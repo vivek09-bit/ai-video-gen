@@ -341,6 +341,7 @@ def format_research_report(report: dict) -> str:
 
 DEFAULT_GENRE_SEEDS: dict[str, str] = {
     "horror": "hindi horror stories real incident",
+    "ancient_history": "ancient temple engineering mystery kailasa temple kashi rahasya in hindi",
     "scifi": "future science technology ai mystery",
     "documentary": "unsolved ancient mystery case study in hindi",
     "mythology": "ancient indian mythology secret rahasya",
