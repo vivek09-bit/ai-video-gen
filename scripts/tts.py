@@ -41,9 +41,26 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import numpy as np
 
 # Allow importing the sibling phonemise module when this file is run directly.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# Ensure UTF-8 console output for Devanagari and Unicode text on Windows
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 from phonemise import Phonemiser  # noqa: E402
 from make_assets import ensure_assets  # noqa: E402
@@ -62,7 +79,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 10
+AUDIO_PIPELINE_VERSION = 11
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -90,19 +107,18 @@ EMOTION_SPEED_MULTIPLIERS = {
 }
 
 # How long to hold silence after a sentence, relative to the configured base
-# pause. Gaps and pauses are restricted strictly to full stops and terminal marks
-# (dandas, periods, exclamation, questions) to prevent unnatural pauses on minor punctuation.
+# pause. Tightened for natural flowing speech without awkward silent gaps.
 PAUSE_SCALE = {
-    ",": 0.2,
+    ",": 0.0,
     ";": 0.0,
     ":": 0.0,
     "\u2014": 0.0,
     "-": 0.0,
-    ".": 0.85,
-    "\u0964": 0.85,  # Devanagari danda
-    "\u0965": 1.00,  # Devanagari double danda
-    "!": 0.65, # Urgent breathless continuation after exclamations
-    "?": 0.90, # Reflective pause after questions
+    ".": 0.50,
+    "\u0964": 0.50,  # Devanagari danda
+    "\u0965": 0.70,  # Devanagari double danda
+    "!": 0.35,  # Urgent breathless continuation after exclamations
+    "?": 0.60,  # Reflective pause after questions
 }
 
 # Quotes and brackets that can follow the mark which actually ends a sentence.
@@ -196,6 +212,49 @@ def _deva_word_regex(word: str) -> str:
     return rf"(?<![ऀ-ॿ]){re.escape(word)}(?![ऀ-ॿ])"
 
 
+# Common English acronyms & alphanumeric abbreviations frequently found in Hindi scripts
+# that should be expanded into natural spoken Hindi phonemes before digit-to-number expansion.
+ACRONYM_TO_SPOKEN_HINDI: list[tuple[str, str]] = [
+    (r"\b3[dD]\b", "थ्री-डी"),
+    (r"\b3-[dD]\b", "थ्री-डी"),
+    (r"(?<![ऀ-ॿ])3डी(?![ऀ-ॿ])", "थ्री-डी"),
+    (r"(?<![ऀ-ॿ])3-डी(?![ऀ-ॿ])", "थ्री-डी"),
+    (r"\b2[dD]\b", "टू-डी"),
+    (r"\b2-[dD]\b", "टू-डी"),
+    (r"(?<![ऀ-ॿ])2डी(?![ऀ-ॿ])", "टू-डी"),
+    (r"(?<![ऀ-ॿ])2-डी(?![ऀ-ॿ])", "टू-डी"),
+    (r"\b4[kK]\b", "फोर-के"),
+    (r"\b4-[kK]\b", "फोर-के"),
+    (r"(?<![ऀ-ॿ])4के(?![ऀ-ॿ])", "फोर-के"),
+    (r"(?<![ऀ-ॿ])4-के(?![ऀ-ॿ])", "फोर-के"),
+    (r"\b8[kK]\b", "एट-के"),
+    (r"\b8-[kK]\b", "एट-के"),
+    (r"(?<![ऀ-ॿ])8के(?![ऀ-ॿ])", "एट-के"),
+    (r"(?<![ऀ-ॿ])8-के(?![ऀ-ॿ])", "एट-के"),
+    (r"\b[hH][dD]\b", "एच-डी"),
+    (r"(?<![ऀ-ॿ])एचडी(?![ऀ-ॿ])", "एच-डी"),
+    (r"\b[aA][iI]\b", "ए-आई"),
+    (r"\b[aA]\.[iI]\.\b", "ए-आई"),
+    (r"(?<![ऀ-ॿ])एआई(?![ऀ-ॿ])", "ए-आई"),
+    (r"\b[cC][cC][tT][vV]\b", "सीसीटीवी"),
+    (r"\b[dD][nN][aA]\b", "डीएनए"),
+    (r"\b[gG][pP][sS]\b", "जीपीएस"),
+    (r"\b[uU][sS][bB]\b", "यूएसबी"),
+    (r"\b[sS][iI][mM]\b", "सिम"),
+    (r"\b[rR][aA][mM]\b", "रैम"),
+    (r"\b[cC][pP][uU]\b", "सीपीयू"),
+    (r"\b[pP][dD][fF]\b", "पीडीएफ"),
+    (r"\b[wW][iI]-?[fF][iI]\b", "वाइ-फ़ाई"),
+    (r"\b[lL][iI][dD][aA][rR]\b", "लिडार"),
+    (r"\bLiDAR\b", "लिडार"),
+    (r"\b[bB]\.?[cC]\.?\b", "बी-सी"),
+    (r"\b[aA]\.?[dD]\.?\b", "ए-डी"),
+    (r"\b[bB][cC][eE]\b", "बी-सी-ई"),
+    (r"\b[cC][eE]\b", "सी-ई"),
+    (r"\b[uU][fF][oO]\b", "यूएफओ"),
+    (r"\b[uU][fF][oO]s\b", "यूएफओ"),
+]
+
 HINDI_PHONETIC_PAIRS = [
     ("वह", "वो"),
     ("यह", "ये"),
@@ -220,6 +279,14 @@ HINDI_PHONETIC_PAIRS = [
     ("कहते", "केहते"),
     ("शहर", "शेहर"),
     ("जहर", "ज़ेहर"),
+    # Spoken loanword pronunciation improvements (e.g. /z/ nukta for 'laser', proper vowels)
+    ("लेजर", "लेज़र"),
+    ("लेजरों", "लेज़रों"),
+    ("लेजरस", "लेज़र्स"),
+    ("इंजिनियरिंग", "इंजीनियरिंग"),
+    ("इंजिनियर", "इंजीनियर"),
+    ("टेक्नॉलॉजी", "टेक्नोलॉजी"),
+    ("एकॉस्टिक", "अकॉस्टिक"),
 ]
 
 HINDI_PHONETIC_REPLACEMENTS = [
@@ -229,6 +296,80 @@ HINDI_PHONETIC_REPLACEMENTS = [
 # Common English loanwords frequently found in Hindi/Hinglish scripts that should be
 # written in Devanagari so Kokoro's Hindi G2P phonemises them with authentic native pronunciation.
 LATIN_LOANWORDS_TO_DEVA: dict[str, str] = {
+    "laser": "लेज़र",
+    "lazer": "लेज़र",
+    "lasers": "लेज़र्स",
+    "lazers": "लेज़र्स",
+    "engineering": "इंजीनियरिंग",
+    "injiniyaring": "इंजीनियरिंग",
+    "engineer": "इंजीनियर",
+    "engineers": "इंजीनियर्स",
+    "architecture": "आर्किटेक्चर",
+    "architect": "आर्किटेक्ट",
+    "architects": "आर्किटेक्ट्स",
+    "scanner": "स्कैनर",
+    "scanners": "स्कैनर्स",
+    "scanning": "स्कैनिंग",
+    "scan": "स्कैन",
+    "scans": "स्कैन",
+    "acoustic": "अकॉस्टिक",
+    "acoustics": "अकॉस्टिक्स",
+    "frequency": "फ्रीक्वेंसी",
+    "frequencies": "फ्रीक्वेंसीज",
+    "vibration": "वाइब्रेशन",
+    "vibrations": "वाइब्रेशन्स",
+    "pyramid": "पिरामिड",
+    "pyramids": "पिरामिड्स",
+    "megalith": "मेगालिथ",
+    "megalithic": "मेगालिथिक",
+    "underground": "अंडरग्राउंड",
+    "chamber": "चैंबर",
+    "chambers": "चैंबर्स",
+    "dimension": "डायमेंशन",
+    "dimensions": "डायमेंशन्स",
+    "structure": "स्ट्रक्चर",
+    "structures": "स्ट्रक्चर्स",
+    "technology": "टेक्नोलॉजी",
+    "technologies": "टेक्नोलॉजीज",
+    "civilization": "सिविलाइजेशन",
+    "civilizations": "सिविलाइजेशन्स",
+    "energy": "एनर्जी",
+    "magnetic": "मैग्नेटिक",
+    "radiation": "रेडिएशन",
+    "satellite": "सैटेलाइट",
+    "satellites": "सैटेलाइट्स",
+    "radar": "रडार",
+    "sonar": "सोनार",
+    "machine": "मशीन",
+    "machines": "मशीनें",
+    "machinery": "मशीनरी",
+    "drill": "ड्रिल",
+    "drilling": "ड्रिलिंग",
+    "cutting": "कटिंग",
+    "cut": "कट",
+    "cuts": "कट",
+    "block": "ब्लॉक",
+    "blocks": "ब्लॉक्स",
+    "stone": "स्टोन",
+    "stones": "स्टोन्स",
+    "granite": "ग्रेनाइट",
+    "marble": "मार्बल",
+    "metal": "मेटल",
+    "metals": "मेटल्स",
+    "mystery": "मिस्ट्री",
+    "mysteries": "मिस्ट्रीज",
+    "mysterious": "मिस्टीरियस",
+    "theory": "थ्योरी",
+    "theories": "थ्योरीज",
+    "evidence": "एविडेंस",
+    "scientist": "साइंटिस्ट",
+    "scientists": "साइंटिस्ट्स",
+    "research": "रिसर्च",
+    "researcher": "रिसर्चर",
+    "researchers": "रिसर्चर्स",
+    "microscope": "माइक्रोस्कोप",
+    "telescope": "टेलिस्कोप",
+    "discovery": "डिस्कवरी",
     "station": "स्टेशन",
     "train": "ट्रेन",
     "room": "रूम",
@@ -242,10 +383,17 @@ LATIN_LOANWORDS_TO_DEVA: dict[str, str] = {
     "screen": "स्क्रीन",
     "police": "पुलिस",
     "secret": "सीक्रेट",
+    "secrets": "सीक्रेट्स",
+    "horror": "हॉरर",
+    "ghost": "घोस्ट",
+    "ghosts": "घोस्ट्स",
+    "alien": "एलियन",
+    "aliens": "एलियन्स",
     "forest": "फॉरेस्ट",
     "mirror": "मिरर",
     "shadow": "शैडो",
     "tunnel": "टनल",
+    "tunnels": "टनल्स",
     "track": "ट्रैक",
     "light": "लाइट",
     "sound": "साउंड",
@@ -286,22 +434,25 @@ LATIN_LOANWORDS_TO_DEVA: dict[str, str] = {
 
 
 def normalize_hindi_phonetics(text: str) -> str:
-    """Pre-normalize Hindi literary spellings, digits, and English loanwords to authentic spoken Devanagari."""
-    has_deva = is_devanagari(text)
-    has_digits = any(d in text for d in "0123456789०१२३४५६७८९")
-    has_loanwords = any(re.search(rf"\b{re.escape(w)}\b", text, re.IGNORECASE) for w in LATIN_LOANWORDS_TO_DEVA)
+    """Pre-normalize Hindi literary spellings, acronyms, loanwords, and digits to authentic spoken Devanagari."""
+    normalized = text
 
-    if not (has_deva or has_digits or has_loanwords):
-        return text
+    # Step 1: Pre-process acronyms & alphanumeric combos (e.g. 3D -> थ्री-डी, 4K -> फोर-के, AI -> ए-आई)
+    # This MUST run before digit expansion so '3D' isn't broken into 'तीन' + 'D'.
+    for pattern, replacement in ACRONYM_TO_SPOKEN_HINDI:
+        normalized = re.sub(pattern, replacement, normalized, flags=re.IGNORECASE)
 
-    normalized = expand_hindi_numbers(text)
-
-    # Convert Latin loanwords to Devanagari so Kokoro G2P produces native Hindi phonemes
+    # Step 2: Convert Latin loanwords to Devanagari (e.g. 'laser' -> 'लेज़र', 'engineering' -> 'इंजीनियरिंग')
     for eng, deva in LATIN_LOANWORDS_TO_DEVA.items():
         normalized = re.sub(rf"\b{re.escape(eng)}\b", deva, normalized, flags=re.IGNORECASE)
 
+    # Step 3: Expand standalone digits and numbers to spoken Hindi words (e.g. 5000 -> पांच हज़ार)
+    normalized = expand_hindi_numbers(normalized)
+
+    # Step 4: Apply Devanagari phonetic replacements (e.g. 'वह' -> 'वो', 'यह' -> 'ये', 'लेजर' -> 'लेज़र')
     for pattern, replacement in HINDI_PHONETIC_REPLACEMENTS:
         normalized = re.sub(pattern, replacement, normalized)
+
     return normalized
 
 # Kokoro voice catalog across Hindi, English (US/UK), Japanese, Chinese, Spanish, French, Italian, Portuguese.
@@ -309,23 +460,23 @@ VOICE_CATALOG: dict[str, dict] = {
     # Hindi (hi)
     "hm_omega": {
         "id": "hm_omega", "name": "Aarav", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "male",
-        "style": "Deep, resonant & authoritative (ideal for horror, mythology, epics, IndicF5 Hinglish style)",
-        "aliases": ["hindi_male", "hindi_male_deep", "omega", "hindi_deep", "hindi_horror", "indicf5_male", "indicf5", "indic_f5", "indic_male"],
+        "style": "Deep, resonant & authoritative (ideal for horror, mythology, epics)",
+        "aliases": ["hindi_male", "hindi_male_deep", "omega", "hindi_deep", "hindi_horror"],
     },
     "hm_psi": {
         "id": "hm_psi", "name": "Kabir", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "male",
-        "style": "Calm, natural & conversational (ideal for scifi, documentary, explainer, IndicF5 Hinglish style)",
-        "aliases": ["hindi_male_calm", "psi", "hindi_calm", "hindi_doc", "indic_calm", "indic_explainer"],
+        "style": "Calm, natural & conversational (ideal for scifi, documentary, explainer)",
+        "aliases": ["hindi_male_calm", "psi", "hindi_calm", "hindi_doc"],
     },
     "hf_alpha": {
         "id": "hf_alpha", "name": "Priya", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "female",
-        "style": "Warm, expressive & engaging (ideal for fantasy, drama, storytelling, IndicF5 Hinglish female)",
-        "aliases": ["hindi_female", "hindi_female_warm", "alpha", "hindi_warm", "hindi_fantasy", "indicf5_female", "indic_female"],
+        "style": "Warm, expressive & engaging (ideal for fantasy, drama, storytelling)",
+        "aliases": ["hindi_female", "hindi_female_warm", "alpha", "hindi_warm", "hindi_fantasy"],
     },
     "hf_beta": {
         "id": "hf_beta", "name": "Ananya", "lang": "hi", "lang_name": "Hindi / Hinglish", "gender": "female",
-        "style": "Soft, cheerful & pleasant (ideal for comedy, slice of life, children, IndicF5 modern voice)",
-        "aliases": ["hindi_female_soft", "beta", "hindi_soft", "hindi_comedy", "indic_soft"],
+        "style": "Soft, cheerful & pleasant (ideal for comedy, slice of life, children)",
+        "aliases": ["hindi_female_soft", "beta", "hindi_soft", "hindi_comedy"],
     },
     # American English (en-us)
     "af_heart": {
@@ -839,6 +990,292 @@ def synthesize_cartesia(
         return None
 
 
+# --------------------------------------------------------------------------
+# AI4Bharat IndicF5 Multilingual Zero-Shot Neural TTS Voices & Integration
+# --------------------------------------------------------------------------
+
+INDICF5_VOICES: dict[str, dict] = {
+    "indicf5_aarav": {
+        "id": "indicf5_aarav",
+        "name": "Aarav",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Deep, resonant & authoritative (zero-shot DiT, ideal for horror, mythology, epics)",
+        "prompt_wav": "public/audio/prompts/indicf5/aarav.wav",
+        "prompt_text": "public/audio/prompts/indicf5/aarav.txt",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "indicf5",
+            "indicf5_male",
+            "indicf5_deep",
+            "indicf5_horror",
+            "indic_f5",
+            "indic_male",
+            "indic_aarav",
+        ],
+    },
+    "indicf5_kabir": {
+        "id": "indicf5_kabir",
+        "name": "Kabir",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Calm, natural & conversational (zero-shot DiT, ideal for documentary, explainer, scifi)",
+        "prompt_wav": "public/audio/prompts/indicf5/kabir.wav",
+        "prompt_text": "public/audio/prompts/indicf5/kabir.txt",
+        "fallback_kokoro": "hm_psi",
+        "aliases": [
+            "indicf5_calm",
+            "indicf5_doc",
+            "indicf5_explainer",
+            "indic_calm",
+            "indic_explainer",
+            "indic_kabir",
+        ],
+    },
+    "indicf5_priya": {
+        "id": "indicf5_priya",
+        "name": "Priya",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "female",
+        "style": "Warm, expressive & engaging (zero-shot DiT, ideal for fantasy, drama, storytelling)",
+        "prompt_wav": "public/audio/prompts/indicf5/priya.wav",
+        "prompt_text": "public/audio/prompts/indicf5/priya.txt",
+        "fallback_kokoro": "hf_alpha",
+        "aliases": [
+            "indicf5_female",
+            "indicf5_warm",
+            "indicf5_story",
+            "indic_female",
+            "indic_warm",
+            "indic_priya",
+        ],
+    },
+    "indicf5_ananya": {
+        "id": "indicf5_ananya",
+        "name": "Ananya",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "female",
+        "style": "Soft, cheerful & pleasant (zero-shot DiT, ideal for comedy, casual lifestyle)",
+        "prompt_wav": "public/audio/prompts/indicf5/ananya.wav",
+        "prompt_text": "public/audio/prompts/indicf5/ananya.txt",
+        "fallback_kokoro": "hf_beta",
+        "aliases": [
+            "indicf5_soft",
+            "indicf5_casual",
+            "indicf5_comedy",
+            "indicf5_cheerful",
+            "indic_soft",
+            "indic_ananya",
+        ],
+    },
+    "indicf5_rohan": {
+        "id": "indicf5_rohan",
+        "name": "Rohan",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Eerie, ominous & gritty (zero-shot DiT, ideal for supernatural thrillers & mystery)",
+        "prompt_wav": "public/audio/prompts/indicf5/rohan.wav",
+        "prompt_text": "public/audio/prompts/indicf5/rohan.txt",
+        "fallback_kokoro": "hm_omega",
+        "aliases": [
+            "indicf5_eerie",
+            "indicf5_mystery",
+            "indicf5_supernatural",
+            "indic_rohan",
+        ],
+    },
+}
+
+_INDICF5_WARNED = False
+_INDICF5_ENGINE = None
+
+
+class IndicF5Engine:
+    """Singleton wrapper around AI4Bharat's IndicF5 DiT model + Vocos vocoder."""
+
+    def __init__(self) -> None:
+        import os
+        import sys
+        import torch
+        import torchaudio
+        import soundfile as sf
+        from cached_path import cached_path
+        from f5_tts.model import CFM, DiT
+        from f5_tts.model.utils import get_tokenizer
+        from vocos import Vocos
+
+        # Patch torchaudio.load on Windows to avoid libtorchcodec DLL loading issues
+        def _soundfile_load(filepath, *args, **kwargs):
+            wav_np, sr = sf.read(str(filepath), dtype="float32")
+            if wav_np.ndim == 1:
+                t = torch.from_numpy(wav_np).unsqueeze(0)
+            else:
+                t = torch.from_numpy(wav_np.T)
+            return t, sr
+
+        torchaudio.load = _soundfile_load
+
+        # Ensure UTF-8 console output for Devanagari logging
+        if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+            try:
+                sys.stdout.reconfigure(encoding="utf-8")
+            except Exception:
+                pass
+
+        # Disable torch.compile to prevent Triton/CUDA errors on Windows CPU
+        torch._dynamo.config.suppress_errors = True
+        torch.compiler.disable()
+
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.dtype = torch.float32 if self.device == "cpu" else torch.float16
+
+        print(f"[IndicF5 TTS] Initializing AI4Bharat IndicF5 zero-shot engine on {self.device}...", file=sys.stderr)
+        vocab_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt"))
+        model_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/model.safetensors"))
+
+        vocab_char_map, vocab_size = get_tokenizer(vocab_path, tokenizer="custom")
+        transformer = DiT(
+            dim=1024,
+            depth=22,
+            heads=16,
+            ff_mult=2,
+            text_dim=512,
+            conv_layers=4,
+            text_num_embeds=vocab_size,
+            mel_dim=100,
+        )
+
+        from safetensors.torch import load_file
+        state_dict = load_file(model_path, device="cpu")
+        clean_sd = {}
+        for k, v in state_dict.items():
+            clean_k = k.replace("ema_model._orig_mod.", "").replace("ema_model.", "")
+            clean_sd[clean_k] = v
+
+        self.model = CFM(
+            transformer=transformer,
+            mel_spec_kwargs=dict(
+                target_sample_rate=24000,
+                n_mel_channels=100,
+                hop_length=256,
+                win_length=1024,
+                n_fft=1024,
+                mel_spec_type="vocos",
+            ),
+            odeint_kwargs=dict(method="euler"),
+            vocab_char_map=vocab_char_map,
+        )
+        self.model.load_state_dict(clean_sd, strict=False)
+        self.model.to(device=self.device, dtype=self.dtype)
+        self.model.eval()
+
+        self.vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
+        self.vocos.to(device=self.device)
+        print("[IndicF5 TTS] IndicF5 model & Vocos vocoder loaded successfully.", file=sys.stderr)
+
+    def synthesize(
+        self,
+        text: str,
+        ref_audio_path: Path | str,
+        ref_text: str,
+        speed: float = 1.0,
+        nfe_step: int | None = None,
+    ) -> np.ndarray:
+        import torch
+        import numpy as np
+        from f5_tts.infer.utils_infer import infer_process
+
+        if nfe_step is None:
+            nfe_step = int(os.environ.get("INDICF5_NFE_STEPS", 16 if self.device == "cpu" else 32))
+
+        with torch.no_grad():
+            wav, sr, _ = infer_process(
+                ref_audio=str(ref_audio_path),
+                ref_text=ref_text,
+                gen_text=text,
+                model_obj=self.model,
+                vocoder=self.vocos,
+                mel_spec_type="vocos",
+                target_rms=0.1,
+                cross_fade_duration=0.15,
+                nfe_step=nfe_step,
+                cfg_strength=2.0,
+                speed=speed,
+                device=self.device,
+            )
+
+        if isinstance(wav, torch.Tensor):
+            wav = wav.squeeze().cpu().numpy()
+        wav = np.asarray(wav, dtype=np.float32)
+        if wav.ndim > 1:
+            wav = wav.squeeze()
+        return wav
+
+
+def get_indicf5_engine() -> IndicF5Engine:
+    global _INDICF5_ENGINE
+    if _INDICF5_ENGINE is None:
+        _INDICF5_ENGINE = IndicF5Engine()
+    return _INDICF5_ENGINE
+
+
+def synthesize_indicf5(
+    text: str,
+    voice_key_or_id: str,
+    speed: float = 1.0,
+    fallback_voice: str = "hm_omega",
+    nfe_step: int | None = None,
+) -> np.ndarray | None:
+    """Synthesise text via AI4Bharat IndicF5 zero-shot TTS model with automatic Kokoro fallback."""
+    global _INDICF5_WARNED
+    import numpy as np
+
+    # Find matching voice entry
+    vinfo = INDICF5_VOICES.get(voice_key_or_id.lower())
+    if not vinfo:
+        for vkey, info in INDICF5_VOICES.items():
+            if voice_key_or_id.lower() == vkey.lower() or voice_key_or_id.lower() in [
+                a.lower() for a in info.get("aliases", [])
+            ]:
+                vinfo = info
+                break
+
+    if not vinfo:
+        vinfo = INDICF5_VOICES["indicf5_aarav"]
+
+    ref_wav_path = ROOT / vinfo["prompt_wav"]
+    ref_txt_path = ROOT / vinfo["prompt_text"]
+
+    if not ref_wav_path.exists() or not ref_txt_path.exists():
+        if not _INDICF5_WARNED:
+            print(
+                f"[IndicF5 TTS Notice] Reference prompt for '{vinfo['name']}' not found at {ref_wav_path}. "
+                f"Falling back to local Kokoro ({fallback_voice})...",
+                file=sys.stderr,
+            )
+            _INDICF5_WARNED = True
+        return None
+
+    try:
+        ref_text = ref_txt_path.read_text(encoding="utf-8").strip()
+        engine = get_indicf5_engine()
+        return engine.synthesize(text=text, ref_audio_path=ref_wav_path, ref_text=ref_text, speed=speed, nfe_step=nfe_step)
+    except Exception as e:
+        if not _INDICF5_WARNED:
+            print(
+                f"[IndicF5 TTS Notice] IndicF5 synthesis failed ({e}). "
+                f"Automatically falling back to Kokoro-82M ({fallback_voice})...",
+                file=sys.stderr,
+            )
+            _INDICF5_WARNED = True
+        return None
+
+
 VOICE_ALIASES: dict[str, str] = {}
 for vid, vinfo in VOICE_CATALOG.items():
     VOICE_ALIASES[vid.lower()] = vid
@@ -849,6 +1286,11 @@ for cvid, cvinfo in CARTESIA_VOICES.items():
     VOICE_ALIASES[cvid.lower()] = cvid
     for alias in cvinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = cvid
+
+for ivid, ivinfo in INDICF5_VOICES.items():
+    VOICE_ALIASES[ivid.lower()] = ivid
+    for alias in ivinfo.get("aliases", []):
+        VOICE_ALIASES[alias.lower().replace("-", "_")] = ivid
 
 # Backwards compatibility map
 EN_VOICES = {
@@ -993,10 +1435,21 @@ def format_voices_table() -> str:
 
     lines = [
         "=" * 74,
+        "INDICF5 HINDI VOICES (AI4Bharat Zero-Shot Neural Flow Matching TTS)",
+        "=" * 74,
+        "  * Zero-shot reference voice cloning via AI4Bharat IndicF5 22-layer DiT + Vocos 24kHz.",
+    ]
+    for ikey, iinfo in INDICF5_VOICES.items():
+        aliases_str = f" [Aliases: {', '.join(iinfo['aliases'])}]" if iinfo.get("aliases") else ""
+        lines.append(f"  {ikey:<24} : {iinfo['name']:<15} | {iinfo['gender']:<6} | {iinfo['style']}")
+        lines.append(f"                           Fallback: {iinfo['fallback_kokoro']}{aliases_str}")
+
+    lines.extend([
+        "\n" + "=" * 74,
         "CARTESIA SONIC HINDI VOICES (Ultra-Realistic Neural Cloud TTS)",
         "=" * 74,
         "  * Uses CARTESIA_API_KEY if present; auto falls back to local Kokoro if expired/unpaid.",
-    ]
+    ])
     for ckey, cinfo in CARTESIA_VOICES.items():
         aliases_str = f" [Aliases: {', '.join(cinfo['aliases'])}]" if cinfo.get("aliases") else ""
         lines.append(f"  {ckey:<24} : {cinfo['name']:<15} | {cinfo['gender']:<6} | {cinfo['style']}")
@@ -1025,6 +1478,9 @@ def format_voices_table() -> str:
         "     --voice \"hindi_male,hindi_female\"    (blend by alias)",
         "",
         "2. Aliases:",
+        "     --voice indicf5_male                (maps to indicf5_aarav)",
+        "     --voice indicf5_female              (maps to indicf5_priya)",
+        "     --voice indicf5_calm                (maps to indicf5_kabir)",
         "     --voice hindi_female                (maps to hf_alpha)",
         "     --voice documentary                 (maps to bm_george - BBC documentary style)",
         "     --voice deep_male                   (maps to am_onyx - deep bass trailer voice)",
@@ -1033,14 +1489,14 @@ def format_voices_table() -> str:
         "3. Multi-Character Dialogue:",
         "     In script.json, assign voices per-character or per-scene lines:",
         "       \"characters\": {",
-        "           \"hero\": {\"name\": \"Goku\", \"voice\": \"am_adam\"},",
-        "           \"villain\": {\"name\": \"Shadow\", \"voice\": \"am_onyx\"}",
+        "           \"hero\": {\"name\": \"Goku\", \"voice\": \"indicf5_aarav\"},",
+        "           \"villain\": {\"name\": \"Shadow\", \"voice\": \"indicf5_rohan\"}",
         "       }",
     ])
     return "\n".join(lines)
 
 def generate_voice_samples() -> int:
-    """Synthesise and export short preview audio samples for all Hindi/Hinglish voices."""
+    """Synthesise and export short preview audio samples for IndicF5 and Kokoro Hindi voices."""
     import soundfile as sf
 
     samples_dir = PUBLIC / "audio" / "samples"
@@ -1049,19 +1505,24 @@ def generate_voice_samples() -> int:
     engine = Voice()
     sample_text = "नमस्ते, यह इंडिक एफ-फाइव और कोकोरो हिंदी हिंग्लिश आवाज़ का ऑडियो सैंपल है।"
 
-    hindi_voices = [
-        ("indicf5_male", "hm_omega", "Aarav (Deep / Horror / Epic)"),
-        ("indicf5_calm", "hm_psi", "Kabir (Calm / Documentary / Explainer)"),
-        ("indicf5_female", "hf_alpha", "Priya (Warm / Storytelling / Drama)"),
-        ("indicf5_soft", "hf_beta", "Ananya (Soft / Cheerful / Casual)"),
+    sample_voices = [
+        ("indicf5_aarav", "indicf5_aarav", "IndicF5 Aarav (Deep / Horror / Epic)"),
+        ("indicf5_kabir", "indicf5_kabir", "IndicF5 Kabir (Calm / Documentary / Explainer)"),
+        ("indicf5_priya", "indicf5_priya", "IndicF5 Priya (Warm / Storytelling / Drama)"),
+        ("indicf5_ananya", "indicf5_ananya", "IndicF5 Ananya (Soft / Cheerful / Casual)"),
+        ("indicf5_rohan", "indicf5_rohan", "IndicF5 Rohan (Eerie / Supernatural / Mystery)"),
+        ("kokoro_aarav", "hm_omega", "Kokoro Aarav (Deep / Resonant)"),
+        ("kokoro_kabir", "hm_psi", "Kokoro Kabir (Calm / Documentary)"),
+        ("kokoro_priya", "hf_alpha", "Kokoro Priya (Warm / Expressive)"),
+        ("kokoro_ananya", "hf_beta", "Kokoro Ananya (Soft / Cheerful)"),
     ]
 
     print("=" * 70)
-    print("GENERATING HINDI / HINGLISH VOICE SAMPLES (IndicF5 Style)")
+    print("GENERATING HINDI / HINGLISH VOICE SAMPLES (IndicF5 + Kokoro)")
     print("=" * 70)
-    for alias, vid, desc in hindi_voices:
-        out_file = samples_dir / f"{alias}.wav"
-        print(f"  Generating sample for {alias} ({desc})...")
+    for sample_name, vid, desc in sample_voices:
+        out_file = samples_dir / f"{sample_name}.wav"
+        print(f"  Generating sample for {sample_name} ({desc})...")
         audio, _words = synthesise_line(engine, sample_text, vid, speed=1.0, pause=0.28, master=DEFAULT_MASTER)
         sf.write(str(out_file), audio, SAMPLE_RATE, subtype="PCM_16")
         print(f"    -> Saved: {out_file.relative_to(ROOT)}")
@@ -1081,7 +1542,7 @@ DEFAULT_SCRIPT = {
     "width": 1920,
     "height": 1080,
     "tailPaddingSeconds": 1.2,
-    "sentencePauseSeconds": 0.12,
+    "sentencePauseSeconds": 0.06,
     "master": DEFAULT_MASTER,
     "captions": {
         "enabled": True,
@@ -1120,7 +1581,7 @@ DEFAULT_SCENE = {
     # One-shot effects at story beats: {"at": 12.5, "sfx": "sfx_stinger"}.
     "soundCues": [],
     "padBefore": 0.0,
-    "padAfter": 0.15,
+    "padAfter": 0.04,
     "holdSeconds": 3.0,
 }
 
@@ -1241,6 +1702,43 @@ class Voice:
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
 
+        # Check if voice is IndicF5 (with zero-crash Kokoro fallback)
+        is_indicf5 = (
+            primary.lower().startswith("indicf5")
+            or primary.lower().startswith("indic_")
+            or primary.lower() in INDICF5_VOICES
+        )
+        if not is_indicf5:
+            for ikey, iinfo in INDICF5_VOICES.items():
+                if primary.lower() == ikey.lower() or primary.lower() in [
+                    a.lower() for a in iinfo.get("aliases", [])
+                ]:
+                    is_indicf5 = True
+                    break
+
+        if is_indicf5:
+            iinfo = INDICF5_VOICES.get(primary.lower())
+            if not iinfo:
+                for ikey, candidate in INDICF5_VOICES.items():
+                    if primary.lower() == ikey.lower() or primary.lower() in [
+                        a.lower() for a in candidate.get("aliases", [])
+                    ]:
+                        iinfo = candidate
+                        break
+            fallback = iinfo["fallback_kokoro"] if iinfo else "hm_omega"
+            indic_audio = synthesize_indicf5(
+                clean_text,
+                primary,
+                speed=speed,
+                fallback_voice=fallback,
+            )
+            if indic_audio is not None and len(indic_audio) > 0:
+                return apply_fades(trim_edge_silence(indic_audio, threshold=0.005, padding=0.005))
+
+            # Fallback to local Kokoro neural voice
+            resolved_voice = fallback
+            primary = resolved_voice.split(",")[0].strip()
+
         # Check if voice is Cartesia Sonic (with zero-crash Kokoro fallback)
         is_cartesia = primary.lower().startswith("cartesia")
         cartesia_info = None
@@ -1277,7 +1775,7 @@ class Voice:
             lang_code = "h"
 
         chunks = [
-            np.asarray(audio, dtype=np.float32)
+            apply_fades(trim_edge_silence(np.asarray(audio, dtype=np.float32), threshold=0.005, padding=0.005))
             for _g, _p, audio in self._pipeline(lang_code)(clean_text, voice=resolved_voice, speed=speed)
         ]
         if not chunks:
@@ -1317,11 +1815,11 @@ def apply_fades(audio, seconds: float = 0.008):
     return out
 
 
-def trim_edge_silence(audio, threshold: float = 1e-4, padding: float = 0.01):
-    """Remove Kokoro vocoder boundary padding at a segment's edges, retaining a 10ms micro-breath.
+def trim_edge_silence(audio, threshold: float = 0.005, padding: float = 0.005):
+    """Remove Kokoro vocoder boundary padding at a segment's edges, retaining a 5ms micro-breath.
 
-    Kokoro neural vocoder can emit boundary silence before and after a spoken segment.
-    Trimming it cleanly down to a 10ms boundary ensures pauses between sentences are
+    Kokoro neural vocoder emits boundary silence (~ -50 dBFS) before and after a spoken segment.
+    Trimming it cleanly down to a 5ms boundary ensures pauses between sentences are
     strictly governed by the narrative prosody parameters rather than accumulated vocoder padding.
     """
     import numpy as np

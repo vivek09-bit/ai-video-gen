@@ -88,9 +88,15 @@ def call_llm(prompt: str, model: str | None = None) -> str | None:
     except Exception:
         return None
 
+def normalize_search_query(q: str) -> str:
+    """Clean common user typos in seed queries for accurate search engine suggestions."""
+    cleaned = re.sub(r"\b(frictianl|frictional|frictional)\b", "fictional", q, flags=re.IGNORECASE)
+    return cleaned.strip()
+
+
 def fetch_youtube_suggestions(query: str, lang: str = "en", country: str = "IN") -> list[str]:
     """Fetch live real-time autocomplete suggestions from YouTube search engine."""
-    clean_q = query.strip()
+    clean_q = normalize_search_query(query)
     if not clean_q:
         return []
 
@@ -108,7 +114,7 @@ def fetch_youtube_suggestions(query: str, lang: str = "en", country: str = "IN")
 
 def fetch_google_suggestions(query: str, lang: str = "en", country: str = "IN") -> list[str]:
     """Fetch live search queries from Google Search Autocomplete."""
-    clean_q = query.strip()
+    clean_q = normalize_search_query(query)
     if not clean_q:
         return []
 
@@ -180,17 +186,19 @@ def generate_keyword_clusters(seed_query: str, genre: str | None = None, lang: s
 # AI-Powered High-CTR Viral Angle & Topic Synthesizer
 # --------------------------------------------------------------------------
 
-VIRAL_PROMPT_TEMPLATE = """You are a master YouTube & TikTok algorithmic growth strategist who crafts viral, high-retention video ideas.
+VIRAL_PROMPT_TEMPLATE = """You are a content strategist for a faceless YouTube channel: AI-narrated, still images with slow pan/zoom, Hindi voiceover.
+
 
 Given the Seed Topic: "{seed}"
 Genre: "{genre}"
 Target Format: "{format}" (Shorts/Reel or Long-form)
 Language: "{language}"
 
-Live Real-Time Autocomplete Keywords from YouTube & Google:
+Real videos on this topic that recently over-performed (outlier = views relative to channel size):
 {keyword_context}
+Step 1 - Analyze the reference videos. Identify repeated title patterns, hook types, and emotions. Then identify gaps: angles, questions, or story types that the references do NOT cover.
+Step 2 - Write 5 video concepts. Borrow the structural patterns that work, never the wording. Do not copy or lightly rephrase any reference title or hook. Prefer the gaps you found.
 
-Generate 5 distinct high-CTR, viral video concepts. Each concept must maximize watch time, curiosity gaps, and retention.
 
 Return ONLY a valid JSON object formatted exactly as:
 {{
@@ -200,8 +208,7 @@ Return ONLY a valid JSON object formatted exactly as:
       "hook": "Opening 0-3s attention-grabbing audio line that stops scrolling",
       "core_angle": "The psychological twist / story tension in 1 sentence",
       "recommended_topic_arg": "Concise topic prompt ready for scripts/new_video.py",
-      "target_emotion": "shock | curiosity | dread | excitement | wonder",
-      "estimated_retention_score": "95%"
+      "target_emotion": "shock | curiosity | dread | excitement | wonder"
     }}
   ],
   "seo_tags": ["top 10 trending search tags for metadata"],
@@ -219,14 +226,20 @@ def research_viral_angles(
 ) -> dict:
     """Run real-time keyword discovery and synthesize high-CTR video angles."""
     # 1. Fetch live keywords
-    clusters = generate_keyword_clusters(seed, genre=genre, lang="hi" if "hi" in lang.lower() else "en")
+    LANG_CODES = {"hindi": "hi", "hinglish": "hi", "english": "en"}
     
-    keyword_summary = (
-        f"- Top YouTube Searches: {', '.join(clusters['youtube_trending'][:6])}\n"
-        f"- Top Google Searches: {', '.join(clusters['google_search'][:5])}\n"
-        f"- Audience Questions: {', '.join(clusters['questions_and_curiosity'][:5])}\n"
-        f"- Long-Tail Searches: {', '.join(clusters['long_tail_keywords'][:6])}"
-    )
+    clusters = generate_keyword_clusters(seed, genre=genre, lang = LANG_CODES.get(lang.lower().strip(), "en"))
+    
+    def fmt(label, items, n):
+        items = list(dict.fromkeys(items or []))[:n]
+        return f"- {label}: {', '.join(items)}" if items else ""
+
+    keyword_summary = "\n".join(filter(None, [
+        fmt("Top YouTube Searches", clusters.get("youtube_trending"), 6),
+        fmt("Top Google Searches", clusters.get("google_search"), 5),
+        fmt("Audience Questions", clusters.get("questions_and_curiosity"), 5),
+        fmt("Long-Tail Searches", clusters.get("long_tail_keywords"), 6),
+    ])) or "- (no live keywords available)"
 
     prompt = VIRAL_PROMPT_TEMPLATE.format(
         seed=seed,
@@ -367,20 +380,165 @@ def main() -> int:
         "query",
         nargs="?",
         default=None,
-        help="Seed topic, keyword, or niche (e.g. 'horror story', 'ancient mystery'). If omitted, automatically uses top trending seeds for the genre.",
+        help="Seed topic, keyword, or niche (e.g. 'fictional Ancient Horror Story in Hindi', 'Kailash temple mystery'). If omitted, uses top seeds for the genre.",
     )
-    parser.add_argument("--genre", default="horror", choices=list(beats.GENRES.keys()), help="Video genre niche")
-    parser.add_argument("--format", default="landscape", choices=["reel", "portrait", "landscape", "square"], help="Target video format")
-    parser.add_argument("--lang", default="hindi", help="Language for search suggestions and viral hooks (hindi, hinglish, en)")
-    parser.add_argument("--model", default="omniroute", help="LLM for viral angle synthesis (omniroute, deepseek, ollama)")
-    parser.add_argument("--minutes", type=float, default=None, help="Target duration in minutes (e.g. --minutes 5, --minutes 1)")
-    parser.add_argument("--seconds", type=float, default=None, help="Target duration in seconds (overrides --minutes)")
-    parser.add_argument("--voice", default="spectral_child", help="Narration voice preset or blend (e.g. spectral_child, ghost_whisper, hm_omega)")
-    parser.add_argument("--caption-bottom", type=float, default=0.40, help="Distance from bottom of screen for subtitles (e.g. 0.40 = 40%%)")
-    parser.add_argument("--upload", "--publish", dest="upload", action="store_true", help="Automatically upload rendered video to YouTube with 7-tier SEO")
-    parser.add_argument("--upload-platforms", default="youtube", help="Platforms to upload to (default: youtube)")
-    parser.add_argument("--privacy", default="public", choices=["public", "unlisted", "private"], help="YouTube privacy status")
-    parser.add_argument("--out", default=None, help="Output video file path")
+    parser.add_argument(
+        "--genre",
+        default="ancient_history",
+        choices=list(beats.GENRES.keys()),
+        help="Video genre niche (default: ancient_history)",
+    )
+    parser.add_argument(
+        "--format",
+        "--preset",
+        "--aspect-ratio",
+        dest="format",
+        default="landscape",
+        choices=["reel", "portrait", "landscape", "square", "cinema", "classic"],
+        help="Target video format (default: landscape, 16:9)",
+    )
+    parser.add_argument(
+        "--lang",
+        default="hindi",
+        help="Language for search suggestions and viral hooks (default: hindi)",
+    )
+    parser.add_argument(
+        "--model",
+        default="omniroute",
+        help="LLM for viral angle & script synthesis (default: omniroute)",
+    )
+    parser.add_argument(
+        "--minutes",
+        type=float,
+        default=10.0,
+        help="Target duration in minutes (default: 10.0 for optimal mid-roll monetization & retention)",
+    )
+    parser.add_argument(
+        "--seconds",
+        "--sec",
+        "--second",
+        dest="seconds",
+        type=float,
+        default=None,
+        help="Target duration in seconds (overrides --minutes)",
+    )
+    parser.add_argument(
+        "--voice",
+        default="hm_omega",
+        help="Narration voice preset or blend (default: hm_omega Devanagari Hindi narrator)",
+    )
+    parser.add_argument(
+        "--caption-bottom",
+        "--caption-margin",
+        "--bottom",
+        dest="caption_bottom",
+        type=float,
+        default=0.45,
+        help="Distance from bottom of screen for subtitles as fraction of height (default: 0.40)",
+    )
+    parser.add_argument(
+        "--scene-seconds",
+        "--scene-second",
+        "--scene-sec",
+        "--scenes-seconds",
+        dest="scene_seconds",
+        type=int,
+        default=5,
+        help="Target duration in seconds per scene/image cut (default: 5)",
+    )
+    parser.add_argument(
+        "--no-title",
+        "--hide-headline",
+        "--no-headline",
+        "--no-title-cards",
+        dest="show_headline",
+        action="store_false",
+        default=False,
+        help="(default) Hide title/headline overlay on video screen (clean image background + captions only)",
+    )
+    parser.add_argument(
+        "--on-title",
+        "--title-cards",
+        "--headline",
+        "--show-title",
+        dest="show_headline",
+        action="store_true",
+        help="Show headline/title overlay on video screen",
+    )
+    parser.add_argument(
+        "--title",
+        dest="video_title",
+        default=None,
+        help="Override video title",
+    )
+    parser.add_argument(
+        "--dynamic-speed",
+        dest="dynamic_speed",
+        action="store_true",
+        default=True,
+        help="(default) Modulate narration speed dynamically for dramatic tension",
+    )
+    parser.add_argument(
+        "--flat-speed",
+        "--no-dynamic-speed",
+        dest="dynamic_speed",
+        action="store_false",
+        help="Disable speed modulation and use strictly flat speed",
+    )
+    parser.add_argument(
+        "--subtitles",
+        "--subtitles-script",
+        dest="subtitles",
+        choices=["hinglish", "devanagari", "hindi", "english", "auto"],
+        default="hinglish",
+        help="Subtitles script/language (default: hinglish for maximum readability)",
+    )
+    parser.add_argument(
+        "--image-provider",
+        "--imageprovider",
+        dest="image_provider",
+        default="local",
+        help="Image generation engine (default: local segmind/SSD-1B via diffusers)",
+    )
+    parser.add_argument(
+        "--image-model",
+        "--imagemodel",
+        dest="image_model",
+        default="segmind/SSD-1B",
+        help="Image model (default: segmind/SSD-1B)",
+    )
+    parser.add_argument(
+        "--concurrency",
+        dest="concurrency",
+        type=int,
+        default=1 if sys.platform == "win32" else 2,
+        help="Remotion render concurrency (default: 1 on Windows, 2 on Linux/macOS)",
+    )
+    parser.add_argument(
+        "--upload",
+        "--publish",
+        dest="upload",
+        action="store_true",
+        help="Automatically upload rendered video to YouTube with 7-tier SEO metadata",
+    )
+    parser.add_argument(
+        "--upload-platforms",
+        "--platforms",
+        dest="upload_platforms",
+        default="youtube",
+        help="Platforms to upload to (default: youtube)",
+    )
+    parser.add_argument(
+        "--privacy",
+        default="public",
+        choices=["public", "unlisted", "private"],
+        help="YouTube privacy status (default: public)",
+    )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Output video file path (default: out/<genre>_<format>_<duration>.mp4)",
+    )
     parser.add_argument(
         "--auto-generate",
         "--auto",
@@ -395,12 +553,15 @@ def main() -> int:
         action="store_true",
         help="Only perform research and display findings without generating video",
     )
-    parser.add_argument("--json", action="store_true", help="Output raw JSON data")
-    parser.add_argument("--no-title", dest="show_headline", action="store_false", default=False, help="Hide title overlays on video screen")
-    parser.add_argument("--dynamic-speed", action="store_true", default=True, help="Dynamically modulate narration speed for dramatic tension")
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output raw JSON data",
+    )
 
     args = parser.parse_args()
 
+# _______________________________start generating prompt
     seed_query = args.query or DEFAULT_GENRE_SEEDS.get(args.genre, f"{args.genre} stories in hindi")
     print(f"\nGathering live search intelligence for: '{seed_query}' ({args.genre})...")
     report = research_viral_angles(
@@ -429,11 +590,13 @@ def main() -> int:
         print(f"  Topic: {selected_topic}")
         print(f"  Hook: {top_concept.get('hook')}\n")
 
-        duration_tag = f"{int(args.minutes)}m" if args.minutes else (f"{int(args.seconds)}s" if args.seconds else "1m")
+        duration_tag = f"{int(args.minutes)}m" if args.minutes else (f"{int(args.seconds)}s" if args.seconds else "10m")
         out_path = args.out or f"out/{args.genre}_{args.format}_{duration_tag}.mp4"
 
+        python_bin = sys.executable or str(ROOT / ".venv" / "Scripts" / "python.exe")
+
         cmd = [
-            str(ROOT / ".venv" / "Scripts" / "python.exe"),
+            python_bin,
             str(ROOT / "scripts" / "new_video.py"),
             "--topic", selected_topic,
             "--genre", args.genre,
@@ -448,20 +611,40 @@ def main() -> int:
         elif args.minutes is not None:
             cmd.extend(["--minutes", str(args.minutes)])
         else:
-            cmd.extend(["--minutes", "1.0"])
+            cmd.extend(["--minutes", "10.0"])
+
+        if args.scene_seconds is not None:
+            cmd.extend(["--scene-seconds", str(int(args.scene_seconds))])
 
         if args.caption_bottom is not None:
             cmd.extend(["--caption-bottom", str(args.caption_bottom)])
 
         if not args.show_headline:
             cmd.append("--no-title")
+        else:
+            cmd.append("--headline")
 
         if args.dynamic_speed:
             cmd.append("--dynamic-speed")
+        else:
+            cmd.append("--flat-speed")
+
+        if args.subtitles:
+            cmd.extend(["--subtitles", args.subtitles])
 
         if "hi" in args.lang.lower() or "hinglish" in args.lang.lower():
-            cmd.extend(["--subtitles", "hinglish"])
             cmd.extend(["--language", "hi"])
+
+        if args.image_provider:
+            cmd.extend(["--image-provider", args.image_provider])
+        if args.image_model:
+            cmd.extend(["--image-model", args.image_model])
+
+        if getattr(args, "concurrency", None):
+            cmd.extend(["--concurrency", str(args.concurrency)])
+
+        if getattr(args, "video_title", None):
+            cmd.extend(["--title", args.video_title])
 
         if args.upload:
             cmd.append("--upload")

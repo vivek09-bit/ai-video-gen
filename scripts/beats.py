@@ -910,152 +910,58 @@ class GenreProfile:
 
 
 GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
+    "ancient_history": {
+        "ambience_setup": ["amb_ancient_sanctum", "amb_temple", "amb_vedic_resonance", "amb_quarry_echo"],
+        "ambience_rising": ["amb_subterranean_chamber", "amb_ancient_sanctum", "amb_drone", "amb_tension"],
+        "ambience_climax": ["amb_vedic_resonance", "amb_subterranean_chamber", "amb_tension", "amb_drone"],
+        "ambience_resolution": ["amb_vedic_resonance", "amb_ancient_sanctum", "amb_temple", "amb_warm"],
+        "sfx_setup": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_chisel_tap", "sfx_bell", "sfx_chisel_echo"],
+        "sfx_rising": ["sfx_stone_grind", "sfx_monolith_shift", "sfx_ancient_mechanism", "sfx_hydraulic_stone_gate", "sfx_riser"],
+        "sfx_climax": ["sfx_stone_impact", "sfx_cinematic_hit", "sfx_ancient_horn_blast", "sfx_mystic_reveal", "sfx_boom", "sfx_impact"],
+        "sfx_resolution": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_conch_call", "sfx_bell", "sfx_mystic_reveal"],
+    },
     "anime": {
-        "ambience_setup": ["amb_tension", "amb_wind", "amb_cyber"],
+        "ambience_setup": ["amb_cyber", "amb_wind", "amb_warm"],
         "ambience_rising": ["amb_tension", "amb_drone", "amb_cyber"],
         "ambience_climax": ["amb_tension", "amb_heartbeat", "amb_cyber"],
-        "ambience_resolution": ["amb_uplift", "amb_wind", "amb_warm"],
-        "sfx_setup": ["sfx_whoosh", "sfx_dark_whoosh", "sfx_glitch", "sfx_sparkle"],
-        "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_cinematic_hit", "sfx_glitch"],
-        "sfx_climax": ["sfx_boom", "sfx_cinematic_hit", "sfx_impact", "sfx_stinger"],
-        "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_whoosh", "sfx_chime"],
-    },
-    "fantasy": {
-        "ambience_setup": ["amb_ethereal", "amb_wind", "amb_warm"],
-        "ambience_rising": ["amb_ethereal", "amb_warm", "amb_wind", "amb_temple"],
-        "ambience_climax": ["amb_ethereal", "amb_tension"],
-        "ambience_resolution": ["amb_warm", "amb_wind", "amb_ethereal"],
-        "sfx_setup": ["sfx_sparkle", "sfx_chime", "sfx_bell", "sfx_swell"],
-        "sfx_rising": ["sfx_sparkle", "sfx_whoosh", "sfx_riser", "sfx_chime"],
-        "sfx_climax": ["sfx_swell", "sfx_sparkle", "sfx_cinematic_hit", "sfx_boom"],
-        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle", "sfx_swell"],
-    },
-    "scifi": {
-        "ambience_setup": ["amb_cyber", "amb_hum", "amb_radio_voices"],
-        "ambience_rising": ["amb_cyber", "amb_tension", "amb_drone", "amb_radio_voices"],
-        "ambience_climax": ["amb_cyber", "amb_tension", "amb_heartbeat"],
-        "ambience_resolution": ["amb_hum", "amb_cyber", "amb_wind"],
-        "sfx_setup": ["sfx_glitch", "sfx_whoosh", "sfx_clock_tick", "sfx_dark_whoosh"],
-        "sfx_rising": ["sfx_glitch", "sfx_riser", "sfx_clock_tick", "sfx_whoosh"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_glitch", "sfx_impact"],
-        "sfx_resolution": ["sfx_chime", "sfx_glitch", "sfx_whoosh", "sfx_bell"],
-    },
-    "horror": {
-        "ambience_setup": ["amb_wind", "amb_drone", "amb_whispers", "amb_rain"],
-        "ambience_rising": ["amb_drone", "amb_rain", "amb_tension", "amb_whispers", "amb_ghost_voices"],
-        "ambience_climax": ["amb_heartbeat", "amb_drone", "amb_ghost_voices", "amb_tension"],
-        "ambience_resolution": ["amb_wind", "amb_drone", "amb_rain", "amb_whispers"],
-        "sfx_setup": [
-            "sfx_eerie_drone_swell",
-            "sfx_creepy_music_box",
-            "sfx_haunted_breathing",
-            "sfx_whisper",
-            "sfx_clock_tick",
-            "sfx_demonic_whisper",
-            "sfx_creak",
-            "sfx_dark_whoosh",
-            "sfx_footstep_wood",
-        ],
-        "sfx_rising": [
-            "sfx_eerie_drone_swell",
-            "sfx_thunder_rumble",
-            "sfx_ghost_crying",
-            "sfx_haunted_breathing",
-            "sfx_scare_string",
-            "sfx_riser",
-            "sfx_whisper",
-            "sfx_clock_tick",
-            "sfx_demonic_whisper",
-            "sfx_ghost_laugh",
-            "sfx_ghostly_groan",
-            "sfx_heartbeat_single",
-            "sfx_monster_growl",
-        ],
-        "sfx_climax": [
-            "sfx_thunder_rumble",
-            "sfx_phantom_shriek",
-            "sfx_jumpscare",
-            "sfx_cinematic_hit",
-            "sfx_stinger",
-            "sfx_impact",
-            "sfx_boom",
-            "sfx_scare_string",
-        ],
-        "sfx_resolution": [
-            "sfx_eerie_drone_swell",
-            "sfx_ghost_crying",
-            "sfx_creepy_music_box",
-            "sfx_bell",
-            "sfx_impact",
-            "sfx_whisper",
-            "sfx_demonic_whisper",
-            "sfx_ghostly_groan",
-            "sfx_creak",
-            "sfx_swell",
-        ],
-    },
-    "mythology": {
-        "ambience_setup": ["amb_temple", "amb_ethereal"],
-        "ambience_rising": ["amb_temple", "amb_drone", "amb_wind"],
-        "ambience_climax": ["amb_temple", "amb_drone", "amb_tension"],
-        "ambience_resolution": ["amb_temple", "amb_warm", "amb_wind"],
-        "sfx_setup": ["sfx_bell", "sfx_horn", "sfx_swell", "sfx_chime"],
-        "sfx_rising": ["sfx_riser", "sfx_horn", "sfx_whoosh", "sfx_bell"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_horn", "sfx_boom", "sfx_impact"],
-        "sfx_resolution": ["sfx_bell", "sfx_swell", "sfx_chime"],
-    },
-    "motivational": {
-        "ambience_setup": ["amb_warm", "amb_wind"],
-        "ambience_rising": ["amb_tension", "amb_warm", "amb_drone"],
-        "ambience_climax": ["amb_uplift", "amb_warm"],
         "ambience_resolution": ["amb_uplift", "amb_warm", "amb_wind"],
-        "sfx_setup": ["sfx_clock_tick", "sfx_swell", "sfx_whoosh"],
-        "sfx_rising": ["sfx_riser", "sfx_whoosh", "sfx_clock_tick"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_swell", "sfx_boom"],
-        "sfx_resolution": ["sfx_chime", "sfx_swell", "sfx_bell"],
+        "sfx_setup": ["sfx_whoosh", "sfx_dark_whoosh", "sfx_glitch", "sfx_sparkle"],
+        "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_glitch", "sfx_swell"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_impact", "sfx_stinger"],
+        "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_chime", "sfx_sparkle"],
+    },
+    "comedy": {
+        "ambience_setup": ["amb_uplift", "amb_warm", "amb_hum"],
+        "ambience_rising": ["amb_hum", "amb_uplift"],
+        "ambience_climax": ["amb_uplift", "amb_warm"],
+        "ambience_resolution": ["amb_uplift", "amb_warm"],
+        "sfx_setup": ["sfx_pop", "sfx_whoosh", "sfx_chime"],
+        "sfx_rising": ["sfx_pop", "sfx_whoosh", "sfx_sparkle"],
+        "sfx_climax": ["sfx_pop", "sfx_cinematic_hit", "sfx_sparkle"],
+        "sfx_resolution": ["sfx_pop", "sfx_chime", "sfx_sparkle"],
+    },
+    "documentary": {
+        "ambience_setup": ["amb_wind", "amb_hum", "amb_warm"],
+        "ambience_rising": ["amb_tension", "amb_drone", "amb_wind"],
+        "ambience_climax": ["amb_tension", "amb_drone"],
+        "ambience_resolution": ["amb_warm", "amb_wind", "amb_hum"],
+        "sfx_setup": ["sfx_clock_tick", "sfx_whoosh", "sfx_bell"],
+        "sfx_rising": ["sfx_riser", "sfx_clock_tick", "sfx_whoosh"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_impact"],
+        "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_swell"],
     },
     "drama": {
-        "ambience_setup": ["amb_warm", "amb_rain"],
+        "ambience_setup": ["amb_warm", "amb_rain", "amb_wind"],
         "ambience_rising": ["amb_tension", "amb_rain", "amb_drone"],
         "ambience_climax": ["amb_tension", "amb_drone"],
-        "ambience_resolution": ["amb_warm", "amb_rain", "amb_wind"],
+        "ambience_resolution": ["amb_warm", "amb_wind", "amb_rain"],
         "sfx_setup": ["sfx_bell", "sfx_clock_tick", "sfx_whisper"],
         "sfx_rising": ["sfx_riser", "sfx_whisper", "sfx_clock_tick"],
         "sfx_climax": ["sfx_impact", "sfx_swell", "sfx_cinematic_hit"],
         "sfx_resolution": ["sfx_swell", "sfx_bell", "sfx_whisper"],
     },
-    "comedy": {
-        "ambience_setup": ["amb_uplift", "amb_warm"],
-        "ambience_rising": ["amb_hum", "amb_uplift"],
-        "ambience_climax": ["amb_uplift", "amb_warm"],
-        "ambience_resolution": ["amb_uplift", "amb_warm"],
-        "sfx_setup": ["sfx_pop", "sfx_whoosh", "sfx_chime"],
-        "sfx_rising": ["sfx_pop", "sfx_whoosh", "sfx_chime", "sfx_sparkle"],
-        "sfx_climax": ["sfx_pop", "sfx_sparkle", "sfx_cinematic_hit"],
-        "sfx_resolution": ["sfx_pop", "sfx_chime", "sfx_sparkle"],
-    },
-    "documentary": {
-        "ambience_setup": ["amb_wind", "amb_hum"],
-        "ambience_rising": ["amb_tension", "amb_drone", "amb_wind"],
-        "ambience_climax": ["amb_tension", "amb_drone"],
-        "ambience_resolution": ["amb_wind", "amb_hum", "amb_warm"],
-        "sfx_setup": ["sfx_clock_tick", "sfx_whoosh", "sfx_bell"],
-        "sfx_rising": ["sfx_riser", "sfx_clock_tick", "sfx_whoosh"],
-        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_impact"],
-        "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_clock_tick", "sfx_swell"],
-    },
-    "ancient_history": {
-        "ambience_setup": ["amb_ancient_sanctum", "amb_vedic_resonance", "amb_temple", "amb_quarry_echo"],
-        "ambience_rising": ["amb_subterranean_chamber", "amb_ancient_sanctum", "amb_quarry_echo", "amb_drone", "amb_tension"],
-        "ambience_climax": ["amb_vedic_resonance", "amb_subterranean_chamber", "amb_ancient_sanctum", "amb_drone", "amb_tension"],
-        "ambience_resolution": ["amb_vedic_resonance", "amb_ancient_sanctum", "amb_temple", "amb_warm"],
-        "sfx_setup": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_chisel_tap", "sfx_chisel_echo", "sfx_conch_call", "sfx_bell"],
-        "sfx_rising": ["sfx_stone_grind", "sfx_monolith_shift", "sfx_ancient_mechanism", "sfx_hydraulic_stone_gate", "sfx_chisel_echo", "sfx_riser"],
-        "sfx_climax": ["sfx_stone_impact", "sfx_monolith_shift", "sfx_mystic_reveal", "sfx_ancient_horn_blast", "sfx_temple_gong", "sfx_cinematic_hit"],
-        "sfx_resolution": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_conch_call", "sfx_ancient_horn_blast", "sfx_mystic_reveal", "sfx_bell"],
-    },
     "explainer": {
-        "ambience_setup": ["amb_hum", "amb_cyber", "amb_warm"],
+        "ambience_setup": ["amb_hum", "amb_warm", "amb_cyber"],
         "ambience_rising": ["amb_drone", "amb_tension", "amb_cyber"],
         "ambience_climax": ["amb_tension", "amb_uplift", "amb_cyber"],
         "ambience_resolution": ["amb_uplift", "amb_warm", "amb_hum"],
@@ -1063,6 +969,86 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "sfx_rising": ["sfx_whoosh", "sfx_riser", "sfx_chime", "sfx_pop"],
         "sfx_climax": ["sfx_cinematic_hit", "sfx_swell", "sfx_impact"],
         "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle", "sfx_pop"],
+    },
+    "fantasy": {
+        "ambience_setup": ["amb_ethereal", "amb_warm", "amb_wind"],
+        "ambience_rising": ["amb_ethereal", "amb_temple", "amb_tension"],
+        "ambience_climax": ["amb_ethereal", "amb_tension"],
+        "ambience_resolution": ["amb_warm", "amb_wind", "amb_ethereal"],
+        "sfx_setup": ["sfx_sparkle", "sfx_chime", "sfx_bell", "sfx_swell"],
+        "sfx_rising": ["sfx_sparkle", "sfx_whoosh", "sfx_riser", "sfx_chime"],
+        "sfx_climax": ["sfx_mystic_reveal", "sfx_cinematic_hit", "sfx_boom", "sfx_swell"],
+        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_sparkle", "sfx_swell"],
+    },
+    "horror": {
+        "ambience_setup": ["amb_wind", "amb_drone", "amb_whispers", "amb_rain"],
+        "ambience_rising": ["amb_drone", "amb_rain", "amb_tension", "amb_whispers", "amb_ghost_voices"],
+        "ambience_climax": ["amb_heartbeat", "amb_drone", "amb_ghost_voices", "amb_tension"],
+        "ambience_resolution": ["amb_wind", "amb_drone", "amb_rain", "amb_whispers"],
+        "sfx_setup": [
+            "sfx_dark_whoosh",
+            "sfx_whisper",
+            "sfx_creak",
+            "sfx_eerie_drone_swell",
+            "sfx_creepy_music_box",
+            "sfx_haunted_breathing",
+            "sfx_footstep_wood",
+        ],
+        "sfx_rising": [
+            "sfx_scare_string",
+            "sfx_riser",
+            "sfx_demonic_whisper",
+            "sfx_ghost_crying",
+            "sfx_ghostly_groan",
+            "sfx_thunder_rumble",
+            "sfx_heartbeat_single",
+        ],
+        "sfx_climax": [
+            "sfx_jumpscare",
+            "sfx_phantom_shriek",
+            "sfx_cinematic_hit",
+            "sfx_monster_growl",
+            "sfx_boom",
+            "sfx_stinger",
+            "sfx_impact",
+        ],
+        "sfx_resolution": [
+            "sfx_bell",
+            "sfx_swell",
+            "sfx_whisper",
+            "sfx_creepy_music_box",
+            "sfx_eerie_drone_swell",
+        ],
+    },
+    "motivational": {
+        "ambience_setup": ["amb_warm", "amb_wind"],
+        "ambience_rising": ["amb_tension", "amb_drone", "amb_warm"],
+        "ambience_climax": ["amb_uplift", "amb_warm"],
+        "ambience_resolution": ["amb_uplift", "amb_warm", "amb_wind"],
+        "sfx_setup": ["sfx_whoosh", "sfx_clock_tick", "sfx_swell"],
+        "sfx_rising": ["sfx_riser", "sfx_whoosh", "sfx_clock_tick"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_swell", "sfx_boom"],
+        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_swell"],
+    },
+    "mythology": {
+        "ambience_setup": ["amb_temple", "amb_ethereal", "amb_warm"],
+        "ambience_rising": ["amb_temple", "amb_drone", "amb_tension"],
+        "ambience_climax": ["amb_temple", "amb_drone", "amb_tension"],
+        "ambience_resolution": ["amb_temple", "amb_warm", "amb_wind", "amb_ethereal"],
+        "sfx_setup": ["sfx_bell", "sfx_horn", "sfx_conch_call", "sfx_whoosh"],
+        "sfx_rising": ["sfx_riser", "sfx_swell", "sfx_horn", "sfx_conch_call"],
+        "sfx_climax": ["sfx_mystic_reveal", "sfx_cinematic_hit", "sfx_boom", "sfx_impact"],
+        "sfx_resolution": ["sfx_bell", "sfx_chime", "sfx_swell", "sfx_conch_call"],
+    },
+    "scifi": {
+        "ambience_setup": ["amb_cyber", "amb_hum", "amb_wind"],
+        "ambience_rising": ["amb_cyber", "amb_tension", "amb_drone", "amb_radio_voices"],
+        "ambience_climax": ["amb_cyber", "amb_tension", "amb_heartbeat"],
+        "ambience_resolution": ["amb_hum", "amb_cyber", "amb_wind"],
+        "sfx_setup": ["sfx_dark_whoosh", "sfx_whoosh", "sfx_glitch", "sfx_clock_tick"],
+        "sfx_rising": ["sfx_glitch", "sfx_riser", "sfx_whoosh"],
+        "sfx_climax": ["sfx_cinematic_hit", "sfx_boom", "sfx_glitch", "sfx_impact"],
+        "sfx_resolution": ["sfx_chime", "sfx_bell", "sfx_glitch"],
     },
 }
 
@@ -1077,107 +1063,73 @@ def resolve_dynamic_audio(
     estimated_seconds: float,
     tension: float,
 ) -> tuple[dict, list[dict]]:
-    """Determine dynamic ambience bed and sound cues tailored to genre, movement, and video seed."""
+    """Determine dynamic ambience bed and optimal, tasteful sound cues strictly from the genre audio pool."""
     pool = GENRE_AUDIO_POOLS.get(genre_key, GENRE_AUDIO_POOLS["horror"])
     rng = random.Random(seed + scene_index * 37)
 
-    # 1. Subtle, non-intrusive Ambience volume (0.18 - 0.28)
+    # 1. Subtle, non-intrusive Ambience volume (0.16 - 0.24)
     if movement_key in ("hook", "setup"):
-        amb_options = pool.get("ambience_setup") or ["amb_wind", "amb_drone"]
-        default_vol = 0.20
+        amb_options = pool.get("ambience_setup") or pool.get("ambience_resolution", ["amb_wind"])
+        default_vol = 0.18
     elif movement_key in ("inciting", "rising"):
-        amb_options = pool.get("ambience_rising") or ["amb_drone", "amb_tension"]
-        default_vol = 0.24
+        amb_options = pool.get("ambience_rising") or pool.get("ambience_setup", ["amb_drone"])
+        default_vol = 0.20
     elif movement_key == "climax":
-        amb_options = pool.get("ambience_climax") or ["amb_heartbeat", "amb_tension"]
-        default_vol = 0.28
+        amb_options = pool.get("ambience_climax") or pool.get("ambience_rising", ["amb_tension"])
+        default_vol = 0.24
     else:  # resolution, button
-        amb_options = pool.get("ambience_resolution") or ["amb_wind", "amb_warm"]
-        default_vol = 0.20
+        amb_options = pool.get("ambience_resolution") or pool.get("ambience_setup", ["amb_warm"])
+        default_vol = 0.18
 
-    chosen_amb = rng.choice(amb_options) if amb_options else beat.ambience[0]
-    amb_volume = round(min(0.28, max(0.15, default_vol * (0.85 + tension * 0.2))), 2)
+    chosen_amb = rng.choice(amb_options) if amb_options else "amb_drone"
+    amb_volume = round(min(0.25, max(0.14, default_vol * (0.85 + tension * 0.2))), 2)
 
-    # 2. Rich Multi-Cue Sound Design (3 to 5 layered cues per scene, subtle volume 0.15 - 0.32 max)
-    # Ensure every scene receives 3 to 5 layered sound cues with long atmospheric sound textures
-    if movement_key == "climax":
-        cues_spec = [
-            (0.02, "sfx_cinematic_hit", 0.50),
-            (0.25, "sfx_thunder_rumble", 0.45),
-            (0.55, "sfx_phantom_shriek", 0.48),
-            (0.82, "sfx_boom", 0.50),
-        ]
-        if estimated_seconds >= 5.5:
-            cues_spec.insert(2, (0.40, "sfx_scare_string", 0.42))
-    elif movement_key == "hook" or scene_index == 0:
-        cues_spec = [
-            (0.0, "sfx_whoosh", 0.45),
-            (0.22, "sfx_eerie_drone_swell", 0.42),
-            (0.52, "sfx_whisper", 0.38),
-            (0.82, "sfx_riser", 0.45),
-        ]
-        if estimated_seconds >= 5.5:
-            cues_spec.insert(2, (0.38, "sfx_haunted_breathing", 0.40))
-    elif movement_key in ("inciting", "rising"):
-        cues_spec = [
-            (0.06, "sfx_whoosh", 0.40),
-            (0.28, "sfx_eerie_drone_swell", 0.42),
-            (0.58, "sfx_ghost_crying", 0.40),
-            (0.85, "sfx_riser", 0.44),
-        ]
-        if estimated_seconds >= 5.5:
-            cues_spec.insert(2, (0.42, "sfx_creepy_music_box", 0.38))
-    elif movement_key in ("resolution", "button"):
-        cues_spec = [
-            (0.08, "sfx_bell", 0.38),
-            (0.32, "sfx_eerie_drone_swell", 0.40),
-            (0.62, "sfx_creepy_music_box", 0.38),
-            (0.86, "sfx_swell", 0.42),
-        ]
-    else:  # setup / establish
-        cues_spec = [
-            (0.06, "sfx_whoosh", 0.40),
-            (0.30, "sfx_haunted_breathing", 0.40),
-            (0.58, "sfx_clock_tick", 0.38),
-            (0.84, "sfx_riser", 0.42),
-        ]
-        if estimated_seconds >= 5.5:
-            cues_spec.insert(2, (0.44, "sfx_eerie_drone_swell", 0.40))
-
+    # 2. Optimal, tasteful sound cues (sparse & high-impact: only at key dramatic moments)
     sound_cues: list[dict] = []
-    for c_idx, (pos, default_sfx, base_vol) in enumerate(cues_spec):
-        # Dynamically assign genre-appropriate SFX pool based on position in scene and story tension
+
+    # Only place SFX at significant story beats, not after every single audio track:
+    # - Opening hook (scene 0)
+    # - Inciting incident / disturbance
+    # - Climax / peak confrontation
+    # - Final closing scene / button
+    # - High tension peaks in rising action (every 3rd rising scene or tension >= 0.8)
+    should_have_sfx = (
+        scene_index == 0
+        or movement_key in ("hook", "inciting", "climax", "button")
+        or (movement_key == "resolution" and scene_index == scene_count - 1)
+        or (movement_key == "rising" and (scene_index % 3 == 0 or tension >= 0.8))
+    )
+
+    if should_have_sfx:
+        # Choose primary scene entry cue from genre pool
         if movement_key == "climax":
-            sfx_options = pool.get("sfx_climax") or ["sfx_cinematic_hit", "sfx_stinger", "sfx_boom", "sfx_jumpscare"]
-        elif c_idx == 0:
-            # Transition / entry cue
-            sfx_options = pool.get("sfx_setup") or ["sfx_whoosh", "sfx_dark_whoosh", "sfx_chime", "sfx_bell"]
-        elif c_idx == 1 and any("swell" in s or "rumble" in s or "drone" in s or "breathing" in s for s in (pool.get("sfx_setup", []) + pool.get("sfx_rising", []))):
-            # Long sustained ambient texture swell
-            long_candidates = [s for s in (pool.get("sfx_setup", []) + pool.get("sfx_rising", [])) if any(k in s for k in ("swell", "rumble", "drone", "breathing", "crying", "box"))]
-            sfx_options = long_candidates if long_candidates else pool.get("sfx_setup")
-        elif c_idx == len(cues_spec) - 1:
-            # Closing / pre-transition cue
-            sfx_options = pool.get("sfx_rising") if movement_key in ("inciting", "rising", "setup", "hook") else pool.get("sfx_resolution")
-            if not sfx_options:
-                sfx_options = ["sfx_riser", "sfx_bell", "sfx_swell"]
-        else:
-            # Mid-scene suspense & ambient texture
-            sfx_options = pool.get("sfx_setup") or pool.get("sfx_rising") or ["sfx_whisper", "sfx_clock_tick", "sfx_creak"]
+            primary_pool = pool.get("sfx_climax") or pool.get("sfx_rising", ["sfx_cinematic_hit"])
+            primary_vol = 0.24
+        elif movement_key in ("hook", "setup") or scene_index == 0:
+            primary_pool = pool.get("sfx_setup") or pool.get("sfx_rising", ["sfx_whoosh"])
+            primary_vol = 0.20
+        elif movement_key in ("inciting", "rising"):
+            primary_pool = pool.get("sfx_rising") or pool.get("sfx_setup", ["sfx_whoosh"])
+            primary_vol = 0.22
+        else:  # resolution, button
+            primary_pool = pool.get("sfx_resolution") or pool.get("sfx_setup", ["sfx_bell"])
+            primary_vol = 0.18
 
-        chosen_sfx = rng.choice(sfx_options) if sfx_options else default_sfx
+        cue1_sfx = rng.choice(primary_pool)
+        cue1_at = 0.0 if scene_index == 0 else round(min(0.15, max(0.02, estimated_seconds * 0.02)), 2)
+        cue1_vol = round(min(0.26, max(0.14, primary_vol * (0.8 + tension * 0.25))), 2)
+        sound_cues.append({"at": cue1_at, "sfx": cue1_sfx, "volume": cue1_vol})
 
-        # For the very first hook/opening cue of scene 1, hit instantaneously at 0.0s for viral audio retention
-        if scene_index == 0 and c_idx == 0:
-            at_sec = 0.0
-        else:
-            at_sec = round(min(estimated_seconds * 0.92, max(0.0, estimated_seconds * pos)), 2)
+        # Optional 2nd accent cue ONLY on climax scenes with sufficient duration (>= 4.0s)
+        if estimated_seconds >= 4.0 and movement_key == "climax":
+            accent_pool = pool.get("sfx_climax") or pool.get("sfx_rising", ["sfx_boom"])
+            accent_vol = 0.24
+            accent_candidates = [s for s in accent_pool if s != cue1_sfx]
+            cue2_sfx = rng.choice(accent_candidates) if accent_candidates else rng.choice(accent_pool)
+            cue2_at = round(min(estimated_seconds - 0.5, max(1.0, estimated_seconds * 0.55)), 2)
+            cue2_vol = round(min(0.25, max(0.14, accent_vol * (0.8 + tension * 0.25))), 2)
+            sound_cues.append({"at": cue2_at, "sfx": cue2_sfx, "volume": cue2_vol})
 
-        # Gain staging: Volume is clamped to 0.15 - 0.32 so voice-over intelligibility is always 100% pristine
-        final_vol = round(min(0.32, max(0.15, base_vol * (0.4 + tension * 0.2))), 2)
-        sound_cues.append({"at": at_sec, "sfx": chosen_sfx, "volume": final_vol})
-
-    # Sort cues sequentially
     sound_cues.sort(key=lambda c: c["at"])
     return {"src": chosen_amb, "volume": amb_volume}, sound_cues
 
@@ -1804,9 +1756,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "house", "fog": 0.25, "lit": True, "glow": 0.8},
                 {"type": "corridor", "flicker": 0.2, "depth": 0.6},
             ],
-            ambience=("amb_ancient_sanctum", 0.38),
+            ambience=("amb_ancient_sanctum", 0.35),
             effects={"vignette": 0.72, "grain": 0.22, "dust": 0.3, "zoom": 0.025, "drift": "in"},
-            cues=[(0.2, "sfx_temple_gong", 0.55), (0.7, "sfx_chisel_tap", 0.35)],
+            cues=[(0.1, "sfx_temple_gong", 0.55), (0.6, "sfx_bronze_bell_ring", 0.45)],
             tension=0.0,
             emotion="calm",
             gesture="none",
@@ -1820,9 +1772,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "corridor", "flicker": 0.35, "depth": 0.7},
                 {"type": "candle", "glow": 0.95},
             ],
-            ambience=("amb_quarry_echo", 0.40),
+            ambience=("amb_quarry_echo", 0.38),
             effects={"vignette": 0.78, "grain": 0.28, "dust": 0.32, "zoom": 0.03, "drift": "in"},
-            cues=[(0.35, "sfx_stone_grind", 0.55), (0.8, "sfx_conch_call", 0.45)],
+            cues=[(0.2, "sfx_monolith_shift", 0.55), (0.75, "sfx_chisel_echo", 0.45)],
             tension=0.25,
             emotion="calm",
             gesture="none",
@@ -1836,9 +1788,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "figure", "distance": 0.45, "fog": 0.3, "glow": 0.6},
                 {"type": "corridor", "flicker": 0.3, "depth": 0.8},
             ],
-            ambience=("amb_ancient_sanctum", 0.42),
+            ambience=("amb_subterranean_chamber", 0.40),
             effects={"vignette": 0.75, "grain": 0.25, "dust": 0.28, "zoom": 0.035, "drift": "in"},
-            cues=[(0.3, "sfx_ancient_mechanism", 0.5), (0.7, "sfx_chisel_tap", 0.4)],
+            cues=[(0.25, "sfx_hydraulic_stone_gate", 0.5), (0.7, "sfx_ancient_mechanism", 0.45)],
             tension=0.45,
             emotion="calm",
             gesture="explain",
@@ -1852,9 +1804,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "house", "fog": 0.2, "lit": True, "glow": 1.0},
                 {"type": "candle", "glow": 1.0},
             ],
-            ambience=("amb_ancient_sanctum", 0.45),
+            ambience=("amb_vedic_resonance", 0.42),
             effects={"vignette": 0.8, "grain": 0.3, "dust": 0.25, "shake": 0.12, "zoom": 0.04, "drift": "in"},
-            cues=[(0.05, "sfx_stone_impact", 0.7), (0.6, "sfx_mystic_reveal", 0.75)],
+            cues=[(0.05, "sfx_stone_impact", 0.65), (0.55, "sfx_mystic_reveal", 0.7)],
             tension=0.75,
             emotion="calm",
             gesture="explain",
@@ -1868,9 +1820,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "fog", "density": 0.35, "glow": 0.7},
                 {"type": "house", "fog": 0.25, "lit": True},
             ],
-            ambience=("amb_quarry_echo", 0.35),
+            ambience=("amb_ancient_sanctum", 0.35),
             effects={"vignette": 0.7, "grain": 0.22, "dust": 0.2, "zoom": 0.02, "drift": "out"},
-            cues=[(0.4, "sfx_conch_call", 0.5), (0.8, "sfx_temple_gong", 0.45)],
+            cues=[(0.3, "sfx_conch_call", 0.5), (0.8, "sfx_temple_gong", 0.45)],
             tension=0.2,
             emotion="calm",
             gesture="none",
@@ -1884,9 +1836,9 @@ def _make_ancient_history_genre() -> GenreProfile:
                 {"type": "forest", "fog": 0.25, "moonlight": 0.8},
                 {"type": "house", "fog": 0.2, "lit": True},
             ],
-            ambience=("amb_ancient_sanctum", 0.32),
+            ambience=("amb_vedic_resonance", 0.30),
             effects={"vignette": 0.68, "grain": 0.2, "dust": 0.18, "zoom": 0.02, "drift": "out"},
-            cues=[(0.6, "sfx_temple_gong", 0.6)],
+            cues=[(0.5, "sfx_bronze_bell_ring", 0.55), (0.9, "sfx_temple_gong", 0.5)],
             tension=0.05,
             emotion="calm",
             gesture="none",
@@ -1895,13 +1847,13 @@ def _make_ancient_history_genre() -> GenreProfile:
         ),
     }
     movements = {
-        "hook": Movement("hook", "Open with an astonishing architectural or mathematical anomaly that defies modern construction.", "establish", 0.06),
-        "setup": Movement("setup", "Establish the historical dynasty, geographic majesty, and sacred timeline.", "establish", 0.12),
-        "inciting": Movement("inciting", "The precise structural mystery, lost tool, or quarrying impossibility that baffled historians.", "dread", 0.12),
-        "rising": Movement("rising", "Anatomy of the Wonder: deep breakdown of acoustic perfection, astronomical alignments, and monolithic precision.", "approach", 0.32),
-        "climax": Movement("climax", "The peak revelation of how ancient master builders achieved what modern technology struggles to replicate.", "reveal", 0.18),
-        "resolution": Movement("resolution", "The living monument: enduring spiritual, scientific, and cultural legacy standing tall through centuries.", "react", 0.12),
-        "button": Movement("button", "A closing philosophical revelation connecting ancient engineering mastery to timeless human wonder.", "resolve", 0.08),
+        "hook": Movement("hook", "Open with a shocking physical impossibility, massive tonnage anomaly, or lost sound code that shatters modern construction logic.", "establish", 0.06),
+        "setup": Movement("setup", "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty.", "establish", 0.12),
+        "inciting": Movement("inciting", "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance.", "dread", 0.12),
+        "rising": Movement("rising", "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts.", "approach", 0.32),
+        "climax": Movement("climax", "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone.", "reveal", 0.18),
+        "resolution": Movement("resolution", "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization.", "react", 0.12),
+        "button": Movement("button", "An infinite-loop closing revelation that circles back directly to the opening hook question.", "resolve", 0.08),
     }
     return GenreProfile(
         key="ancient_history",
@@ -1919,16 +1871,26 @@ def _make_ancient_history_genre() -> GenreProfile:
             "ancient_engineering",
             "archaeology",
             "vedic_architecture",
+            "fictional_ancient",
+            "regional_story",
+            "regional_folklore",
+            "ancient_lore",
+            "cursed_village",
+            "regional_accent_story",
+            "temple_lore",
         ],
-        tone="authoritative, captivating, awe-inspiring, historically precise, and enigmatic",
+        tone="authoritative, mesmerizing, awe-inspiring, historically precise, and enigmatic",
         writer_instructions=(
-            "You are writing narration for a high-end Discovery/History Channel documentary on ancient civilizations, lost engineering, and magnificent temple architecture. "
-            "Deliver authoritative, evocative storytelling in pure formal Hindi (हिंदी). "
-            "Explore monolithic construction feats, astronomical alignments, metallurgical anomalies, and unsolved historical enigmas. "
-            "Maintain an authoritative, awe-inspiring tone without modern slang. "
-            "Punctuate with precision (use ',' for micro-breath, '।' for firm pauses, '...' for atmospheric suspense) to pace the neural narration."
+            "You are writing narration for a viral, high-retention documentary video on ancient civilizations, megalithic engineering, and mysterious temple architecture. "
+            "Deliver authoritative, evocative, and high-velocity storytelling in natural spoken Hindi (हिंदी लिपि). "
+            "Master the 'Impossible Engineering' storytelling framework: "
+            "1. Start MID-ACTION with a mind-boggling physical contradiction or mathematical impossibility (e.g. 400,000 tons of rock excavated top-down, zero mortar, acoustic resonance at 136.1 Hz). "
+            "2. Reveal concrete archaeological enigmas (missing quarry waste, sub-millimeter precision cuts in granite, seismic interlocking joints, subterranean acoustic chambers). "
+            "3. Disclose the failure of modern technology or brute force to replicate or destroy the monument. "
+            "4. Conclude with a mind-bending cognitive paradox and an infinite replay loop connecting the closing sentence directly back into the opening hook. "
+            "Punctuate with precision (use ',' for micro-breath, '।' for firm pauses, '...' for atmospheric suspense) to pace neural TTS delivery."
         ),
-        system_prompt="You write authoritative, cinematic documentary scripts on ancient civilizations, megalithic architecture, and temple engineering in formal Shuddh Hindi. You explore astronomical precision, architectural impossibilities, and historical enigmas.",
+        system_prompt="You write authoritative, viral documentary scripts on ancient civilizations, megalithic architecture, and temple engineering in conversational Hindi. You turn mathematical anomalies, acoustic resonance, and impossible stone construction into high-retention viral stories.",
         visual_style_prefix="Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ",
         visual_style_suffix=", monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting.",
         search_keywords_map={
@@ -2929,7 +2891,7 @@ def detect_genre(topic: str = "", explicit_genre: str | None = None) -> GenrePro
         if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
             return GENRES["fantasy"]
 
-    # 3. Ancient Civilizations & Temple Engineering
+    # 3. Ancient Civilizations & Temple Engineering / Regional Folklore
     ancient_kw = [
         "ancient civilization", "ancient civilizations", "temple engineering", "ancient temple",
         "ancient temples", "ancient history", "kailasa", "kailash temple", "ellora", "ajanta",
@@ -2937,7 +2899,10 @@ def detect_genre(topic: str = "", explicit_genre: str | None = None) -> GenrePro
         "monolithic", "megalithic", "rock cut", "granite carving", "lost technology",
         "ancient architecture", "ancient engineering", "ancient india", "ancient egypt",
         "pyramid", "pyramids", "archaeological mystery", "archaeology", "ancient monument",
-        "प्राचीन मंदिर", "मंदिर वास्तुकला", "कैलाश मंदिर", "एलोरा", "हम्पी", "सिंधु घाटी", "प्राचीन सभ्यता"
+        "fictional ancient", "regional story", "regional folklore", "ancient lore", "cursed village",
+        "kuldhara", "shrapit gaon", "lok katha", "lokkatha", "regional accent",
+        "प्राचीन मंदिर", "मंदिर वास्तुकला", "कैलाश मंदिर", "एलोरा", "हम्पी", "सिंधु घाटी", "प्राचीन सभ्यता",
+        "शापित गांव", "प्राचीन रहस्य", "कुलधरा", "लोककथा"
     ]
     for kw in ancient_kw:
         if re.search(r"\b" + re.escape(kw) + r"\b", t) or kw in t:
@@ -3508,7 +3473,7 @@ def plan(
                     "gesture": beat.gesture,
                 },
                 "padBefore": 0.0,
-                "padAfter": 0.15,
+                "padAfter": 0.04,
                 "holdSeconds": 3.0,
                 "lines": [],
                 "_targetWords": words_per_scene,

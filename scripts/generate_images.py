@@ -709,7 +709,7 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     """Detect available image provider, key, and default model.
 
     Returns (provider_name, api_key, default_model).
-    Defaults to free related image search ('fetch') if none is chosen.
+    Defaults to local Diffusers generation ('local', 'segmind/SSD-1B').
     """
     raw_env_provider = os.environ.get("IMAGE_PROVIDER", "").strip()
     provider = normalize_provider_name(requested_provider or raw_env_provider)
@@ -742,33 +742,8 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
         key = os.environ.get("OPENAI_API_KEY", "")
         return "openai", key, model or "dall-e-3"
 
-    # If no provider was explicitly chosen, check if valid API keys exist for providers
-    hf_key = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
-    if hf_key and hf_key.strip() and not hf_key.strip().startswith("..."):
-        return "huggingface", hf_key.strip(), model or "black-forest-labs/FLUX.1-schnell"
-
-    fw_key = os.environ.get("FIREWORKS_API_KEY") or os.environ.get("FIREWORK_API_KEY")
-    if fw_key and fw_key.strip() and not fw_key.strip().startswith("..."):
-        return "fireworks", fw_key.strip(), model or "flux-1-schnell-fp8"
-
-    tog_key = os.environ.get("TOGETHER_API_KEY") or os.environ.get("TOGETHERAI_API_KEY")
-    if tog_key and tog_key.strip() and not tog_key.strip().startswith("..."):
-        return "together", tog_key.strip(), model or "black-forest-labs/FLUX.1-schnell"
-
-    fal_key = os.environ.get("FAL_KEY") or os.environ.get("FAL_API_KEY")
-    if fal_key and fal_key.strip() and not fal_key.strip().startswith("..."):
-        return "fal", fal_key.strip(), model or "fal-ai/flux/schnell"
-
-    rep_token = os.environ.get("REPLICATE_API_TOKEN") or os.environ.get("REPLICATE_API_KEY")
-    if rep_token and rep_token.strip() and not rep_token.strip().startswith("..."):
-        return "replicate", rep_token.strip(), model or "black-forest-labs/flux-schnell"
-
-    oai_key = os.environ.get("OPENAI_API_KEY")
-    if oai_key and oai_key.strip() and not oai_key.strip().startswith("..."):
-        return "openai", oai_key.strip(), model or "dall-e-3"
-
-    # Default fallback: Free related image search API call
-    return "fetch", "free", model or "free-search"
+    # Default to local SSD-1B generation
+    return "local", "local", model or "segmind/SSD-1B"
 
 
 def save_image_data(result: str | bytes, dest: Path) -> None:
@@ -923,11 +898,11 @@ def is_turbo_model(model_name: str | None) -> bool:
 
 
 def is_ssd_model(model_name: str | None) -> bool:
-    """Check if model name refers to Segmind SSD-1B."""
+    """Check if model name refers to Segmind SSD-1B or default local pipeline."""
     if not model_name:
-        return False
+        return True
     m = model_name.lower().strip()
-    return "ssd" in m or "ssd-1b" in m or "segmind" in m
+    return "ssd" in m or "ssd-1b" in m or "segmind" in m or m in ("default", "local", "")
 
 
 def is_flux_model(model_name: str | None) -> bool:

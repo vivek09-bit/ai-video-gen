@@ -1,107 +1,51 @@
 1
-00:00:00,000 --> 00:00:01,224
-do lakh tan ka ye
+00:00:00,000 --> 00:00:02,464
+mahabharat ka woh yoddha jise
 
 2
-00:00:01,224 --> 00:00:03,120
-vishal kailash mndir, eent ya
+00:00:02,464 --> 00:00:04,447
+maut ne bhi thukara diya,
 
 3
-00:00:03,120 --> 00:00:05,402
-pattharon ko jorakar nahi, balki
+00:00:04,447 --> 00:00:06,351
+aaj bhi panch hajar salon
 
 4
-00:00:05,402 --> 00:00:06,965
-ek hi khare pahar ko
+00:00:06,351 --> 00:00:08,272
+se ek risate hue jakhm
 
 5
-00:00:06,965 --> 00:00:09,066
-upar se neeche katakar banaya
+00:00:08,272 --> 00:00:10,395
+ke saath hamare bich bhatak
 
 6
-00:00:09,066 --> 00:00:10,853
-gaya tha. aathavin sadi mein
+00:00:10,395 --> 00:00:12,651
+raha hai. asiragarh ke kile
 
 7
-00:00:10,853 --> 00:00:13,151
-rashtrakut raja krishn pratham ne
+00:00:12,651 --> 00:00:14,269
+mein log aaj bhi dava
 
 8
-00:00:13,151 --> 00:00:14,957
-ise shuru karaya tha. jab
+00:00:14,269 --> 00:00:16,014
+karte hain ki har subah
 
 9
-00:00:14,957 --> 00:00:16,824
-unaki rani ne bhagavan shiv
+00:00:16,014 --> 00:00:18,082
+mndir ke kapat khulane se
 
 10
-00:00:16,824 --> 00:00:18,411
-se raja ke thik hone
+00:00:18,082 --> 00:00:20,272
+pehle vahan taje phul aur
 
 11
-00:00:18,411 --> 00:00:20,383
-ki mannat mangi, tab unhonne
+00:00:20,272 --> 00:00:22,285
+chndan milate hain. aakhir woh
 
 12
-00:00:20,383 --> 00:00:22,360
-mndir ka shikhar dekhane tak
+00:00:22,285 --> 00:00:24,460
+khauphanak saja kya thi jisane
 
 13
-00:00:22,360 --> 00:00:24,352
-upavas rakhane ki kasam khaee.
-
-14
-00:00:24,449 --> 00:00:26,059
-nirman ko teji se pura
-
-15
-00:00:26,059 --> 00:00:27,974
-karane ke lie, karigaron ne
-
-16
-00:00:27,974 --> 00:00:29,486
-upar se neeche ki taraph
-
-17
-00:00:29,486 --> 00:00:31,358
-khudaee shuru ki. bina kisi
-
-18
-00:00:31,358 --> 00:00:33,849
-aadhunik kren, computer ya lejar
-
-19
-00:00:33,849 --> 00:00:35,991
-takanik ke, kewal hathaure aur
-
-20
-00:00:35,991 --> 00:00:38,377
-chheni se itana satik alainament
-
-21
-00:00:38,377 --> 00:00:40,206
-aaj bhi namumakin lagata hai.
-
-22
-00:00:40,303 --> 00:00:42,078
-hairan karane vali baat ye
-
-23
-00:00:42,078 --> 00:00:43,461
-hai ki yahan se nikala
-
-24
-00:00:43,461 --> 00:00:45,175
-do lakh tan malaba aasapas
-
-25
-00:00:45,175 --> 00:00:47,295
-kahin mila hi nahi. vaigyaanik
-
-26
-00:00:47,295 --> 00:00:48,612
-aaj bhi hairan hain ki
-
-27
-00:00:48,612 --> 00:00:50,301
-ye sab kaise mumakin huaa.
+00:00:24,460 --> 00:00:26,172
+use majabur kiya ki...

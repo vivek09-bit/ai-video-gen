@@ -107,7 +107,17 @@ def build_prompt(
     is_hindi_family = raw_lang in ("hi", "hindi", "hinglish")
     minutes = float(target.get("minutes", 1.0))
     target_sec = float(target.get("seconds", round(minutes * 60.0, 1)))
-    is_short_form = minutes <= 1.5 or target_sec <= 90.0
+
+    is_shorts = target_sec <= 90.0 or minutes <= 1.5
+    is_compilation = minutes >= 18.0 or target_sec >= 1080.0
+    is_single_story = not is_shorts and not is_compilation
+
+    if is_shorts:
+        format_title = "YOUTUBE SHORTS / REEL (Optimal: 35 to 50 Seconds)"
+    elif is_compilation:
+        format_title = "STORY COMPILATIONS & ANTHOLOGY TRILOGY (Optimal: 20 to 35 Minutes)"
+    else:
+        format_title = "SINGLE FICTIONAL STORY / DOCUMENTARY (Recommended: 8 to 12 Minutes)"
 
     length_str = (
         f"{target_sec:.0f}-second short video (~{target['totalWords']} words target)"
@@ -133,53 +143,123 @@ def build_prompt(
         f"Topic         : {planned['topic']}",
         f"Genre         : {gp.name}",
         f"Tone          : {tone}",
-        f"Format Type   : {'SHORT-FORM (Reel / YouTube Short / TikTok)' if is_short_form else 'LONG-FORM STORY / DOCUMENTARY'}",
+        f"Format Type   : {format_title}",
         "",
     ]
 
-    if is_short_form:
+    if is_shorts:
+        # ----------------------------------------------------------------------
+        # TIER 1: YouTube Shorts (35 to 50 Seconds)
+        # ----------------------------------------------------------------------
         if gp.key in ("ancient_history", "ancient_engineering"):
-            hook_example = "e.g., '200,000 टन का यह प्राचीन मंदिर ईंटों से नहीं, बल्कि एक ही विशाल पहाड़ को ऊपर से नीचे काटकर बनाया गया था!'"
-        elif gp.key in ("explainer", "documentary", "scifi"):
-            hook_example = "e.g., 'क्या आप जानते हैं कि अगर सूरज अचानक गायब हो जाए, तो हमें 8 मिनट तक पता भी नहीं चलेगा?'"
-        elif gp.key in ("motivational", "comedy", "drama"):
-            hook_example = "e.g., 'दुनिया के 99% लोग ये एक गलती रोज करते हैं, और उन्हें पता भी नहीं होता।'"
+            lines += [
+                "### FICTIONAL ANCIENT / IMPOSSIBLE ENGINEERING VIRAL FRAMEWORK (YouTube Shorts 35-50s):",
+                "• CORE OBJECTIVE: Take the most chilling 30-second climax/hook from a 10-minute story to drive viewers to the main video.",
+                "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
+                "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
+                "   - Start MID-ACTION with a jarring physical contradiction, forbidden relic, or impossible sound code (e.g., '4 लाख टन का यह ठोस पहाड़ बिना किसी जोड़ के ऊपर से नीचे तराशा गया था!').",
+                "   - Zero greetings, zero slow intro, zero background exposition.",
+                "2. RAPID MICRO-CLIFFHANGERS (SCENES 2-5):",
+                "   - Disclose concrete physical enigmas: missing 400,000 tons of excavated stone debris, sub-millimeter precision cuts in granite, zero-mortar seismic interlocking joints, or subterranean 136.1 Hz Om acoustic resonance.",
+                "   - Pacing: Crisp, punchy, 6-10 words per sentence for high-velocity spoken delivery.",
+                "3. OPEN-LOOP CLIMAX & INFINITE REPLAY LOOP (FINAL SCENE):",
+                "   - Deliver the most chilling ancient breakthrough/reveal.",
+                "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back into the opening hook question, creating an addictive infinite replay loop that drives viewers to watch the full video.",
+                "4. ZERO FLUFF: Every single word must heighten curiosity, awe, and mathematical impossibility.",
+                "",
+            ]
         else:
-            hook_example = "e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।'"
+            if gp.key in ("explainer", "documentary", "scifi"):
+                hook_example = "e.g., 'क्या आप जानते हैं कि अगर सूरज अचानक गायब हो जाए, तो हमें 8 मिनट तक पता भी नहीं चलेगा?'"
+            elif gp.key in ("motivational", "comedy", "drama"):
+                hook_example = "e.g., 'दुनिया के 99% लोग ये एक गलती रोज करते हैं, और उन्हें पता भी नहीं होता।'"
+            else:
+                hook_example = "e.g., 'मेरी माँ की मौत के तीन साल बाद, कल रात उनके नंबर से वीडियो कॉल आया।'"
 
+            lines += [
+                "### ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (YouTube Shorts 35-50s):",
+                "• CORE OBJECTIVE: Deliver the most chilling 30-second climax/hook to drive viewers to the main long-form video.",
+                "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
+                "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
+                f"   - Start MID-ACTION with a jarring, impossible fact, forbidden warning, or a mind-bending anomaly ({hook_example}).",
+                "   - Zero greetings, zero slow intro, zero background exposition.",
+                "2. OPEN LOOPS & MICRO-CLIFFHANGERS (SCENES 2-5):",
+                "   - Plant a burning, unanswered question or mystery in Scene 1 and withhold the explanation until the climax.",
+                "   - Every sentence must deliver a new escalation, discovery, or revelation that makes swiping away impossible.",
+                "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
+                "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
+                "   - Ground the setting in familiar, everyday situations or vivid analogies so the viewer feels immediate personal curiosity.",
+                "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
+                "   - Deliver a mind-bending revelation or payoff in the last sentence.",
+                "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop.",
+                "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps.",
+                "",
+            ]
+    elif is_compilation:
+        # ----------------------------------------------------------------------
+        # TIER 2: Story Compilations (20 to 35 Minutes)
+        # ----------------------------------------------------------------------
         lines += [
-            "### ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (Viral Shorts/Reels/TikTok):",
-            "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
-            "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
-            f"   - Start MID-ACTION with a jarring, impossible fact, forbidden warning, or a mind-bending anomaly ({hook_example}).",
-            "   - Zero greetings, zero slow intro, zero background exposition.",
-            "2. OPEN LOOPS & MICRO-CLIFFHANGERS (SCENES 2-5):",
-            "   - Plant a burning, unanswered question or mystery in Scene 1 and withhold the explanation until the climax.",
-            "   - Every sentence must deliver a new escalation, discovery, or revelation that makes swiping away impossible.",
-            "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
-            "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
-            "   - Ground the setting in familiar, everyday situations or vivid analogies so the viewer feels immediate personal curiosity and intrigue.",
-            "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
-            "   - Deliver a mind-bending revelation or payoff in the last sentence.",
-            "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop on short-form platforms.",
-            "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps, no 'to be continued'.",
+            "### STORY COMPILATIONS & ANTHOLOGY TRILOGY FRAMEWORK (20 to 35 Minutes):",
+            "• WHY IT WORKS: Combines 3 related stories into one binge-worthy episode (e.g., '3 Ancient Cursed Village Stories', '3 Impossible Monolithic Temple Mysteries').",
+            "• LISTENING EXPERIENCE: Great for background and sleep listening, driving massive session watch time and cumulative ad revenue.",
+            "1. THREE-CHAPTER EPISODIC TRILOGY STRUCTURE:",
+            "   - Chapter 1 (Scenes 1 - 33%): The First Legend — complete standalone story arc with atmospheric regional setup, rising mystery, and terrifying climax.",
+            "   - Atmospheric Narrator Bridge 1: Hypnotic transition by narrator leading to the next chapter (e.g., 'पहली दास्तान के खौफ के बाद, अब रुख करते हैं उस दूसरे प्राचीन गांव का, जहां सदियों से कोई जिंदा नहीं लौटा...').",
+            "   - Chapter 2 (Scenes 34% - 66%): The Second Enigma — deeper dive into forgotten lore and forbidden architectural secrets with its own climax.",
+            "   - Atmospheric Narrator Bridge 2: Hypnotic transition preparing the listener for the grand finale.",
+            "   - Chapter 3 (Scenes 67% - 100%): The Ultimate Ancient Horror / Revelation — the most intense, grandest legend with epic resolution.",
+            "2. HYPNOTIC AMBIENT FLOW FOR EXTENDED SESSIONS:",
+            "   - Steady, mesmerizing narrator pacing ideal for deep immersion and sleep listening.",
+            "   - Rich atmospheric descriptions with layered soundstage cues and regional folklore cadence.",
             "",
         ]
     else:
-        lines += [
-            "### LONG-FORM CINEMATIC STORYTELLING & ENGAGEMENT FRAMEWORK:",
-            "1. IMMERSIVE WORLD-BUILDING & ATMOSPHERE:",
-            "   - Rich sensory details, deep character motivations, environmental textures, and grounded realism.",
-            "2. MULTI-LAYERED RISING TENSION & STAKES:",
-            "   - Build escalating layers of mystery, evidence, escalating peril, and emotional depth.",
-            "3. EPIC CLIMAX & PROFOUND RESOLUTION:",
-            "   - Deliver a cathartic, fully-developed climax followed by a lasting emotional insight or takeaway.",
-            "",
-        ]
+        # ----------------------------------------------------------------------
+        # TIER 3: Single Fictional Story (Recommended: 8 to 12 Minutes)
+        # ----------------------------------------------------------------------
+        if gp.key in ("ancient_history", "ancient_engineering"):
+            lines += [
+                "### SINGLE FICTIONAL ANCIENT / REGIONAL ACCENT STORY FRAMEWORK (Recommended: 8 to 12 Minutes):",
+                "• MONETIZATION SWEET SPOT: Enables 8+ minute mid-roll ad placement on YouTube.",
+                "• RETENTION TARGET: Long enough to build deep regional lore and folklore atmosphere without pacing fatigue (Target AVD: 45–50% / ~4.5–6 minutes of watch time).",
+                "1. ACT 1 - REGIONAL FOLKLORE LORE & ATMOSPHERE (0:00 - 2:30 / Scenes 1 - 25%):",
+                "   - Authentic regional dialect flavor and cadence in Devanagari Hindi (e.g. Awadhi, Rajasthani, Bundelkhandi, Pahadi, or South Indian temple lore flavor).",
+                "   - Establish the ancestral village, forbidden topography, generational curse, astronomical alignments, or 136.1 Hz acoustic temple anomalies.",
+                "   - Use evocative conversational connectors ('लेकिन तभी', 'हैरानी की बात ये है कि', 'गांव के बड़े-बुजुर्ग कहते हैं कि').",
+                "2. ACT 2 - RELIC DISCOVERY & THE 5-MINUTE MID-ROLL CLIFFHANGER (2:30 - 5:30 / Scenes 25% - 50%):",
+                "   - Tangible evidence, sub-surface granite chambers, seismic interlocking joints, and escalating peril.",
+                "   - **CRITICAL MID-POINT CLIFFHANGER (at ~5:00 mark / 50% milestone)**: A high-stakes shocking discovery, impossible physical anomaly, or sudden mortal escalation that locks viewer retention past the 5-minute mark (50% AVD) and creates the perfect natural suspense beat for an 8+ minute mid-roll ad placement.",
+                "3. ACT 3 - TABOO VIOLATION & ANCIENT TERROR / REVELATION (5:30 - 8:30 / Scenes 50% - 75%):",
+                "   - The taboo is broken; the subterranean stone gates trigger; the ancient force or mechanism awakens. Stakes reach maximum intensity.",
+                "4. ACT 4 - CATHARTIC CLIMAX & LINGERING FOLKLORE KARMA (8:30 - Climax / Final Scenes):",
+                "   - Mind-bending conclusion, cosmic/philosophical aftermath, and a chilling final reflection on lost ancient wisdom and timeless folklore.",
+                "",
+            ]
+        else:
+            lines += [
+                "### SINGLE FICTIONAL STORY FRAMEWORK (Recommended: 8 to 12 Minutes):",
+                "• MONETIZATION SWEET SPOT: Enables 8+ minute mid-roll ad placement on YouTube.",
+                "• RETENTION TARGET: Long enough to build deep lore, character stakes, and psychological immersion without pacing fatigue (Target AVD: 45–50% / ~4.5–6 minutes of watch time).",
+                "1. ACT 1 - WORLD-BUILDING & ATMOSPHERIC HOOK (0:00 - 2:30 / Scenes 1 - 25%):",
+                "   - Deep atmospheric setup, authentic regional flavor, and an escalating anomaly that creates immediate viewer investment.",
+                "2. ACT 2 - INVESTIGATION & 5-MINUTE MID-ROLL CLIFFHANGER (2:30 - 5:30 / Scenes 25% - 50%):",
+                "   - Tangible evidence, rising tension, and escalating personal peril.",
+                "   - **CRITICAL MID-POINT CLIFFHANGER (at ~5:00 mark / 50% milestone)**: A major shocking reveal or life-or-death crisis designed to lock retention through the 5-minute mark (50% AVD) and provide the natural suspense beat for an 8+ min mid-roll ad.",
+                "3. ACT 3 - POINT OF NO RETURN & CONFRONTATION (5:30 - 8:30 / Scenes 50% - 75%):",
+                "   - The confrontation escalates to peak danger; all escape routes close; maximum emotional and dramatic intensity.",
+                "4. ACT 4 - CATHARTIC CLIMAX & LASTING TWIST (8:30 - Climax / Final Scenes):",
+                "   - High-payoff climax followed by a lingering psychological or emotional takeaway.",
+                "",
+            ]
 
     lines += [
-        "What you are writing is ONE COMPLETE STORY, not a fragment or a mood piece.",
-        "Use the same protagonist/central subject and continuous context from the first scene to the last.",
+        "MANDATORY NARRATIVE CONTINUITY & STORYTELLING RULES:",
+        "1. ONE UNIFIED, CONTINUOUS STORY: You are writing ONE unbroken, interconnected story from start to finish. Scene 1 hooks the listener, scene 2 introduces the setup/context, scene 3 triggers the inciting conflict, middle scenes escalate the mystery and tension, and final scenes deliver the climax and resolution.",
+        "2. NO ISOLATED FACTS OR RAW FRAGMENTS: NEVER write random trivia, disjointed bullet points, or isolated sentences. Every single scene must directly continue the narrative thread from the previous scene.",
+        "3. STORY BRIDGES & CONNECTORS: Use natural storytelling transitions at the start of scenes (e.g. 'इसकी शुरुआत तब हुई जब...', 'लेकिन जैसे ही...', 'हैरानी की बात ये थी कि...', 'तभी अचानक...', 'और अंत में...'). When listening, it must sound like a gripping, continuous audio documentary.",
+        "4. COMPLETE SENTENCES PER SCENE: Every scene must contain grammatically complete sentences ending in proper terminal punctuation ('।' in Hindi or '.' in English). NEVER split a sentence in half across scene boundaries or leave trailing commas.",
+        "5. CONSISTENT SUBJECT & CHARACTERS: Maintain the same protagonist, setting, and timeline throughout all scenes.",
         "",
         "Scene list. Each scene has a specific story duty to advance the narrative:",
     ]
@@ -529,6 +609,10 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
 
         body = " ".join(" ".join(clean_lines).split())
         if body and not is_conversational_chatter(body):
+            # Clean trailing commas, colons, hyphens, or broken punctuation at the end of scene body
+            body = body.rstrip(" ,-–—;:")
+            if body and not body.endswith(("।", ".", "!", "?", '"', '”', "'")):
+                body += "।" if re.search(r"[ऀ-ॿ]", body) else "."
             blocks.append((headline, visual_keywords, body))
 
     return title, blocks[:scene_count]
@@ -669,7 +753,7 @@ def build_script(
         "voice": voice,
         "secondaryVoice": secondary_voice,
         "speed": speed,
-        "sentencePauseSeconds": 0.12,
+        "sentencePauseSeconds": 0.06,
         "ambience": planned.get("ambience"),
         "captions": captions,
         "theme": planned.get("theme") or gp.theme,
@@ -1051,6 +1135,13 @@ def main() -> int:
         help="scheduled publish time in ISO 8601 format (e.g. 2026-10-04T12:00:00Z)",
     )
     parser.add_argument(
+        "--concurrency",
+        dest="concurrency",
+        type=int,
+        default=1 if sys.platform == "win32" else 2,
+        help="Remotion render concurrency (default: 1 on Windows, 2 on Linux/macOS)",
+    )
+    parser.add_argument(
         "--no-render",
         action="store_true",
         help="write script.json and synthesise the narration, but skip the render",
@@ -1262,7 +1353,10 @@ def main() -> int:
                 effective_sys_prompt = (
                     "You are an expert documentary and video scriptwriter. "
                     f"{base_sys_prompt} "
-                    "CRITICAL: You MUST write all spoken story lines in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
+                    "CRITICAL STORY CONTINUITY: You MUST write ONE UNIFIED, CONTINUOUS, AND CONNECTED STORY ARC from scene 1 to the final scene. "
+                    "The narration must flow seamlessly like an engaging documentary/thriller without disconnected sentences or raw isolated bullet points. "
+                    "Every scene must logically connect to the previous one using natural narrative transitions. "
+                    "Write all spoken story lines in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
                     "Do NOT write English narration sentences even if the topic is in English. Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल'). "
                     "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
                 )
@@ -1270,6 +1364,9 @@ def main() -> int:
                 effective_sys_prompt = (
                     "You are an expert documentary and video scriptwriter. "
                     f"{base_sys_prompt} "
+                    "CRITICAL STORY CONTINUITY: You MUST write ONE UNIFIED, CONTINUOUS, AND CONNECTED STORY ARC from scene 1 to the final scene. "
+                    "The narration must flow seamlessly without disconnected sentences or raw isolated bullet points. "
+                    "Every scene must logically connect to the previous one using natural narrative transitions. "
                     "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
                 )
 
@@ -1431,7 +1528,7 @@ def main() -> int:
 
     if not run_step(
         "render (Remotion)",
-        f'npx remotion render Main "{args.out}"',
+        f'npx remotion render Main "{args.out}" --concurrency={args.concurrency}',
         shell=True,
     ):
         return 1

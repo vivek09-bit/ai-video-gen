@@ -7,9 +7,10 @@ Config.setOverwriteOutput(true);
 Config.setCodec('h264');
 Config.setCrf(18);
 
-// 2x concurrency is stable across high-res portrait (9:16) & landscape renders
-// on Windows, preventing browser process stack buffer overruns / OOM crashes.
+// 1x concurrency is safest on Windows to prevent Chromium stack buffer overruns
+// (0xC0000409 / exit 3221226505) when loading multi-track audio and high-res canvas.
+const defaultConcurrency = process.platform === 'win32' ? 1 : 2;
 const concurrency = Number(
-  process.env.REMOTION_CONCURRENCY || process.env.CONCURRENCY || 2
+  process.env.REMOTION_CONCURRENCY || process.env.CONCURRENCY || defaultConcurrency
 );
 Config.setConcurrency(concurrency);

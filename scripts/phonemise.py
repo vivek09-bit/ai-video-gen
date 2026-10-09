@@ -83,7 +83,7 @@ def resolve_language(voice: str, override: str | None = None) -> str:
     except Exception:
         pass
 
-    if primary.lower().startswith("cartesia") or "hindi" in primary.lower():
+    if primary.lower().startswith("cartesia") or primary.lower().startswith("indicf5") or "hindi" in primary.lower():
         return "hi"
 
     letter = primary[:1].lower()
