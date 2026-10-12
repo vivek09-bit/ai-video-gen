@@ -120,6 +120,7 @@ def load_flux_pipeline(model_id: str = "black-forest-labs/FLUX.1-schnell"):
             token=_hub_token(),
         )
         if DEVICE == "cuda":
+            # Increase timeout for first load
             pipe.enable_model_cpu_offload() if os.environ.get("OFFLOAD_FLUX", "1") == "1" else pipe.to("cuda")
         _FLUX_PIPE = pipe
         print("[Vast Server] FLUX model loaded successfully.")

@@ -93,13 +93,7 @@ class VastManager:
             "python -m pip install --upgrade 'diffusers>=0.33' accelerate transformers "
             "sentencepiece protobuf imageio imageio-ffmpeg soundfile f5-tts cached-path "
             "vocos safetensors huggingface_hub; "
-            "python -c \"from huggingface_hub import snapshot_download as s; "
-            "s('black-forest-labs/FLUX.1-schnell', "
-            "ignore_patterns=['flux1-schnell.safetensors','ae.safetensors'])\"; "
-            "python -c \"from cached_path import cached_path as c; "
-            "c('hf://rsolanki1822/IndicF5-mirror/model.safetensors'); "
-            "c('hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt')\"; "
-            "exec python scripts/vast_server.py"
+            "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 &"
         )
     
 
@@ -111,7 +105,7 @@ class VastManager:
     ) -> list[dict]:
         """Search for a single GPU of the requested model."""
         gpu_filter = gpu_name.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "_")
-        query = f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{max_dph} disk_space>={min_disk} inet_down>100"
+        query = f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{max_dph} disk_space>={min_disk} inet_down>100 cpu_ram>=32"
         try:
             raw = self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"])
             offers = json.loads(raw)
@@ -135,7 +129,7 @@ class VastManager:
     def create_instance(
         self,
         offer_id: int | None = None,
-        disk_gb: int = 60,
+        disk_gb: int = 100,
         image: str = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime",
         onstart_cmd: str | None = None,
         gpu_name: str = "RTX 4090",
@@ -161,11 +155,11 @@ class VastManager:
             str(disk_gb),
             "--env",
             "-p 8000:8000",
-        "--ssh",
-        "--direct",
-        "--onstart-cmd",
-        onstart_cmd or self.server_onstart_command(),
-        "--raw",
+            "--ssh",
+            "--direct",
+            "--onstart-cmd",
+            onstart_cmd or self.server_onstart_command(),
+            "--raw",
         ]
 
         raw = self.run_cli(args)
@@ -280,7 +274,7 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=600) as resp:
             res = json.loads(resp.read().decode("utf-8"))
             if res.get("status") != "success":
                 raise RuntimeError(f"Remote FLUX generation failed: {res.get('error')}")
@@ -342,7 +336,7 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=600) as resp:
             res = json.loads(resp.read().decode("utf-8"))
             if res.get("status") != "success":
                 raise RuntimeError(f"Remote IndicF5 TTS failed: {res.get('error')}")

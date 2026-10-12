@@ -799,7 +799,7 @@ def main() -> int:
     visual_mode_group.add_argument(
         "--visual-mode",
         "--generation-mode",
-        choices=("image", "video"),
+        choices=("image", "video", "none"),
         default="image",
         help="generate still images, LTX-Video clips, or none for audio-only (default: image; modes are exclusive)",
     )
@@ -1552,14 +1552,20 @@ def main() -> int:
     vast_mgr = None
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
+    
+    # Only use Vast if explicitly requested, or if video mode requires it,
+    # or if IndicF5 is requested AND we are not forcing local-only audio.
+    # The user can now opt-out of Vast for images by setting IMAGE_PROVIDER=local
+    # and NOT passing --vast.
     needs_vast = (
         args.visual_mode == "video"
         or args.vast
         or args.vast_instance is not None
         or args.vast_url is not None
-        or audio_model == "indicf5"
+        or (audio_model == "indicf5" and (args.vast or args.vast_instance or args.vast_url))
         or (not args.no_images and detected_image_provider == "vast")
     )
+    
     if args.visual_mode == "video":
         expected_gpu = "RTX 4090"
     else:
