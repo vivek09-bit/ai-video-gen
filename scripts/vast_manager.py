@@ -78,27 +78,30 @@ class VastManager:
 
     @staticmethod
     def server_onstart_command() -> str:
-        """Build a startup command that installs and launches this project's GPU API."""
-        custom_command = os.environ.get("VAST_SERVER_ONSTART_CMD", "").strip()
-        if custom_command:
-            return custom_command
-
-        repository = os.environ.get(
-            "VAST_SERVER_REPO_URL",
-            "https://github.com/vivek09-bit/ai-video-gen.git",
-        )
+        custom = os.environ.get("VAST_SERVER_ONSTART_CMD", "").strip()
+        if custom:
+            return custom
+        repository = os.environ.get("VAST_SERVER_REPO_URL", "https://github.com/vivek09-bit/ai-video-gen.git")
         branch = os.environ.get("VAST_SERVER_GIT_REF", "main")
         return (
-            "set -e; "
-            "mkdir -p /workspace; cd /workspace; "
-            f"git clone --depth 1 --branch {shlex.quote(branch)} "
+            "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; "
+            "cd /workspace; "
+            "apt-get update && apt-get install -y git ffmpeg libsndfile1; "
+            f"[ -d tube2dscript ] || git clone --depth 1 --branch {shlex.quote(branch)} "
             f"{shlex.quote(repository)} tube2dscript; "
             "cd /workspace/tube2dscript; "
-            "python -m pip install --upgrade "
-            "'diffusers>=0.33' accelerate transformers sentencepiece "
-            "imageio imageio-ffmpeg soundfile f5-tts cached-path vocos safetensors; "
-            "python scripts/vast_server.py"
+            "python -m pip install --upgrade 'diffusers>=0.33' accelerate transformers "
+            "sentencepiece protobuf imageio imageio-ffmpeg soundfile f5-tts cached-path "
+            "vocos safetensors huggingface_hub; "
+            "python -c \"from huggingface_hub import snapshot_download as s; "
+            "s('black-forest-labs/FLUX.1-schnell', "
+            "ignore_patterns=['flux1-schnell.safetensors','ae.safetensors'])\"; "
+            "python -c \"from cached_path import cached_path as c; "
+            "c('hf://rsolanki1822/IndicF5-mirror/model.safetensors'); "
+            "c('hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt')\"; "
+            "exec python scripts/vast_server.py"
         )
+    
 
     def search_gpu(
         self,
@@ -132,7 +135,7 @@ class VastManager:
     def create_instance(
         self,
         offer_id: int | None = None,
-        disk_gb: int = 50,
+        disk_gb: int = 60,
         image: str = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime",
         onstart_cmd: str | None = None,
         gpu_name: str = "RTX 4090",
@@ -201,35 +204,37 @@ class VastManager:
             print(f"[Vast Manager Warning] Failed to get instance status: {e}", file=sys.stderr)
         return {}
 
-    def wait_until_ready(self, instance_id: int, timeout_sec: int = 300) -> str:
-        """Wait for the provisioned inference HTTP service to pass its health check."""
+    def _resolve_server_url(self, info: dict) -> str:
+        """Build the public URL from the host port Vast mapped to container port 8000."""
+        ip = (info.get("public_ipaddr") or "").strip()
+        mapping = (info.get("ports") or {}).get("8000/tcp") or []
+        if ip and mapping:
+            return f"http://{ip}:{mapping[0]['HostPort']}"
+        return ""
+
+    def wait_until_ready(self, instance_id: int, timeout_sec: int = 1800) -> str:
+        """Wait until the inference server answers /health (setup takes 10-20 min)."""
         print(f"[Vast Manager] Waiting for instance {instance_id} and its inference server...")
-        start_t = time.time()
-        candidate_url = ""
+        start_t, last_msg = time.time(), ""
         while time.time() - start_t < timeout_sec:
             info = self.get_instance_info(instance_id)
-            status = info.get("actual_status") or info.get("status_msg") or ""
-            if status == "running" and not candidate_url:
-                public_ip = info.get("public_ipaddr") or info.get("ssh_host")
-                direct_port = info.get("direct_port_start")
-                ssh_port = info.get("ssh_port")
-                print(f"[Vast Manager] Instance {instance_id} is running at {public_ip} (SSH: {ssh_port})")
-                if direct_port:
-                    candidate_url = f"http://{public_ip}:{direct_port}"
-                else:
-                    candidate_url = f"http://{public_ip}:8000"
-            if status == "running" and candidate_url:
+            status = info.get("actual_status") or ""
+            url = self._resolve_server_url(info) if status == "running" else ""
+            msg = f"status={status!r} url={url or 'port 8000 not mapped yet'}"
+            if msg != last_msg:
+                print(f"[Vast Manager] {msg}")
+                last_msg = msg
+            if url:
                 try:
-                    health = self.check_health(candidate_url)
-                    if health.get("status") == "healthy":
-                        self.server_url = candidate_url
-                        return self.server_url
-                except (urllib.error.URLError, TimeoutError, OSError, ValueError):
-                    pass
-            time.sleep(5)
+                    if self.check_health(url).get("status") == "healthy":
+                        self.server_url = url
+                        return url
+                except Exception as e:
+                    print(f"[Vast Manager]   server not up yet: {type(e).__name__}")
+            time.sleep(10)
         raise TimeoutError(
-            f"Vast.ai inference server for instance {instance_id} did not become healthy "
-            f"within {timeout_sec}s."
+            f"Instance {instance_id} not healthy after {timeout_sec}s. "
+            "SSH in and run: tail -50 /workspace/onstart.log"
         )
 
     def check_health(self, url: str | None = None) -> dict[str, Any]:
@@ -275,7 +280,7 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=300) as resp:
             res = json.loads(resp.read().decode("utf-8"))
             if res.get("status") != "success":
                 raise RuntimeError(f"Remote FLUX generation failed: {res.get('error')}")
@@ -337,7 +342,7 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=300) as resp:
             res = json.loads(resp.read().decode("utf-8"))
             if res.get("status") != "success":
                 raise RuntimeError(f"Remote IndicF5 TTS failed: {res.get('error')}")
@@ -360,7 +365,7 @@ def main() -> int:
     p_create = subparsers.add_parser("create", help="Create a one-GPU Vast.ai instance")
     p_create.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
     p_create.add_argument("--offer", type=int, default=None, help="Specific offer ID")
-    p_create.add_argument("--disk", type=int, default=50, help="Disk space in GB")
+    p_create.add_argument("--disk", type=int, default=60, help="Disk space in GB")
 
     # Start
     p_start = subparsers.add_parser("start", help="Start existing instance")

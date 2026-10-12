@@ -801,7 +801,7 @@ def main() -> int:
         "--generation-mode",
         choices=("image", "video"),
         default="image",
-        help="generate still images or LTX-Video clips for visuals (default: image; modes are exclusive)",
+        help="generate still images, LTX-Video clips, or none for audio-only (default: image; modes are exclusive)",
     )
     visual_mode_group.add_argument(
         "--video-gen",
@@ -1560,7 +1560,11 @@ def main() -> int:
         or audio_model == "indicf5"
         or (not args.no_images and detected_image_provider == "vast")
     )
-    expected_gpu = "RTX 4090" if args.visual_mode == "video" else "RTX 3090"
+    if args.visual_mode == "video":
+        expected_gpu = "RTX 4090"
+    else:
+        # "image" or "none"
+        expected_gpu = "RTX 3090"
 
     def stop_vast_instance() -> None:
         if needs_vast and vast_mgr and vast_instance_id and args.vast_autostop:
