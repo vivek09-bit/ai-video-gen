@@ -8,12 +8,14 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import beats
 import generate_images
+import generate_videos
 import make_assets
 import metadata
 import new_video
@@ -548,6 +550,97 @@ def test_video_formats() -> None:
     print("  ✓ All Video Framing Presets and Aspect Ratio checks passed.")
 
 
+def test_video_generation_mode() -> None:
+    print("Testing exclusive LTX video-mode asset generation...")
+
+    class FakeVastManager:
+        def __init__(self) -> None:
+            self.requests: list[dict] = []
+
+        def generate_video(self, prompt: str, **kwargs) -> bytes:
+            self.requests.append({"prompt": prompt, **kwargs})
+            return b"test-mp4-data"
+
+    manager = FakeVastManager()
+    script = {
+        "title": "Test",
+        "topic": "A moonlit castle",
+        "genre": "fantasy",
+        "width": 1920,
+        "height": 1080,
+        "scenes": [{
+            "id": "scene-001",
+            "beat": "reveal",
+            "headline": "The castle appears",
+            "shots": [{"visual": {"type": "image", "src": "images/scene-001.png"}}],
+            "background": {"type": "color", "color": "#000000"},
+        }],
+    }
+    with tempfile.TemporaryDirectory() as temp_dir:
+        generated = generate_videos.generate_videos_for_script(
+            script,
+            out_dir=temp_dir,
+            manager=manager,
+        )
+        assert (Path(temp_dir) / "scene-001.mp4").read_bytes() == b"test-mp4-data"
+
+    assert generated["visualMode"] == "video"
+    assert generated["videoModel"] == generate_videos.DEFAULT_MODEL
+    assert generated["scenes"][0]["background"] == {
+        "type": "video",
+        "src": "videos/scene-001.mp4",
+        "dim": 0.08,
+    }
+    assert generated["scenes"][0]["shots"] == []
+    assert len(manager.requests) == 1
+    request = manager.requests[0]
+    assert request["width"] % 32 == 0 and request["height"] % 32 == 0
+    assert request["num_frames"] >= 9 and (request["num_frames"] - 1) % 8 == 0
+    assert generate_videos._video_dimensions(1920, 1080) == (768, 448)
+
+    print("  ✓ Video mode replaces generated-image shots with video-only backgrounds.")
+
+
+def test_vast_gpu_routing() -> None:
+    print("Testing Vast.ai GPU selection and server startup configuration...")
+
+    from vast_manager import VastManager
+
+    manager = VastManager(api_key="test-key")
+    commands: list[list[str]] = []
+
+    def fake_run_cli(args: list[str]) -> str:
+        commands.append(args)
+        if args[0] == "search":
+            return json.dumps([{"id": 123}])
+        return json.dumps({"new_contract": 456})
+
+    manager.run_cli = fake_run_cli  # type: ignore[method-assign]
+    assert manager.search_gpu("RTX 3090")[0]["id"] == 123
+    assert "gpu_name=RTX_3090" in commands[-1][2]
+    assert "num_gpus=1" in commands[-1][2]
+
+    assert manager.create_instance(offer_id=123, gpu_name="RTX 4090") == 456
+    create_args = commands[-1]
+    assert "--ports" in create_args and create_args[create_args.index("--ports") + 1] == "8000/http"
+    assert "--onstart-cmd" in create_args
+    assert "vast_server.py" in create_args[create_args.index("--onstart-cmd") + 1]
+
+    manager.check_health = lambda url=None: {  # type: ignore[method-assign]
+        "status": "healthy",
+        "vram": {"device_name": "NVIDIA GeForce RTX 4090"},
+    }
+    assert manager.require_gpu("RTX 4090")["status"] == "healthy"
+    try:
+        manager.require_gpu("RTX 3090")
+    except RuntimeError as err:
+        assert "GPU mismatch" in str(err)
+    else:
+        raise AssertionError("GPU mismatch must stop the run")
+
+    print("  ✓ Vast creation requests one selected GPU and verifies the running server GPU.")
+
+
 def test_voices() -> None:
     print("Testing Multi-Voice catalog, alias resolution, blending, and language detection...")
 
@@ -840,6 +933,8 @@ if __name__ == "__main__":
     test_genres()
     test_themes()
     test_video_formats()
+    test_video_generation_mode()
+    test_vast_gpu_routing()
     test_voices()
     test_dynamic_prompting()
     test_llm_routing()

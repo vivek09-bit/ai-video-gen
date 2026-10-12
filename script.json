@@ -1,46 +1,46 @@
 {
-  "title": "अश्वत्थामा का अंतहीन श्राप",
-  "topic": "Write a 60-second Hindi script about Ashwatthama's immortality curse, focusing on unanswered questions and mystery. Visuals: Ancient temples, shadowy warrior figure, old manuscripts.",
+  "title": "कालका-शिमला टनल तैंतीस का खौफनाक रहस्य",
+  "topic": "The Ghost Tunnel Of Kalka Shimla Railway Mystery And True Legend. This story blends historical intrigue with chilling paranormal folklore, perfectly matching your channel's eerie late-night atmosphere.",
   "language": "hi",
-  "genre": "ancient_history",
+  "genre": "mythology",
   "visualStyle": null,
-  "format": "reel",
-  "aspectRatio": "9:16",
-  "width": 1080,
-  "height": 1920,
+  "format": "landscape",
+  "aspectRatio": "16:9",
+  "width": 1920,
+  "height": 1080,
   "fps": 30,
   "voice": "hm_omega",
   "secondaryVoice": null,
   "speed": 0.94,
   "sentencePauseSeconds": 0.06,
   "ambience": {
-    "src": "amb_ancient_sanctum",
+    "src": "amb_warm",
     "volume": 0.2
   },
   "captions": {
     "enabled": true,
     "wordsPerCue": 5,
-    "bottom": 0.45,
-    "fontSize": 55,
+    "bottom": 0.14,
+    "fontSize": 48,
     "uppercase": false,
     "highlight": true,
     "position": "bottom",
     "outline": 0,
     "panel": true,
-    "maxWidth": 0.88,
+    "maxWidth": 0.92,
     "rise": 14,
     "hinglish": true
   },
   "theme": {
-    "key": "amber_ember",
-    "name": "Amber Ember",
+    "key": "desert_dusk",
+    "name": "Desert Dusk",
     "accent": "#f97316",
     "text": "#fff7ed",
-    "muted": "#fdba74",
-    "panel": "rgba(35, 18, 10, 0.75)",
+    "muted": "#ffedd5",
+    "panel": "rgba(40, 22, 10, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0a0502"
+    "bg_color": "#0e0602"
   },
   "characters": {},
   "scenes": [
@@ -58,14 +58,14 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient dark stone temple, shadowy tall warrior,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring house, lit window warm illumination, forest, establish scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.72,
-            "grain": 0.22,
-            "dust": 0.3,
-            "zoom": 0.025,
+            "vignette": 0.75,
+            "grain": 0.3,
+            "dust": 0.35,
+            "zoom": 0.03,
             "drift": "in"
           },
           "transition": {
@@ -78,14 +78,14 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient dark stone temple, shadowy tall warrior,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring house, lit window warm illumination, forest, establish scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.72,
-            "grain": 0.22,
-            "dust": 0.3,
-            "zoom": 0.025,
+            "vignette": 0.75,
+            "grain": 0.3,
+            "dust": 0.35,
+            "zoom": 0.03,
             "drift": "in"
           },
           "transition": {
@@ -95,24 +95,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_quarry_echo",
+        "src": "amb_warm",
         "volume": 0.15
       },
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_temple_gong",
+          "sfx": "sfx_conch_call",
           "volume": 0.16
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0502"
+        "color": "#0e0602"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.26,
+        "intensity": 0.3,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -123,10 +123,123 @@
       "lines": [
         {
           "character": null,
-          "text": "महाभारत का वो योद्धा जिसे मौत ने भी ठुकरा दिया, आज भी पांच हजार सालों से एक रिसते हुए जख्म के साथ हमारे बीच भटक रहा है। असीरगढ़ के किले में लोग आज भी दावा करते हैं कि हर सुबह मंदिर के कपाट खुलने से पहले वहां ताजे फूल और चंदन मिलते हैं। आखिर वो खौफनाक सजा क्या थी जिसने उसे मजबूर किया कि..."
+          "text": "कालका-शिमला टनल तैंतीस में आज भी वो पुराना साया दिखता है।"
         }
       ],
-      "visualKeywords": "ancient dark stone temple, shadowy tall warrior, moonlit fort ruins, bloody forehead close-up."
+      "visualKeywords": "Kalka Shimla railway, dark tunnel, eerie train, fog"
+    },
+    {
+      "id": "scene-002",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.88,
+            "grain": 0.45,
+            "dust": 0.4,
+            "shake": 0.28,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.88,
+            "grain": 0.45,
+            "dust": 0.4,
+            "shake": 0.28,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.88,
+            "grain": 0.45,
+            "dust": 0.4,
+            "shake": 0.45,
+            "zoom": 0.05,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.25
+      },
+      "soundCues": [
+        {
+          "at": 0.12,
+          "sfx": "sfx_cinematic_hit",
+          "volume": 0.25
+        },
+        {
+          "at": 3.17,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.25
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0e0602"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "लाइट बुझते ही, ट्रेन के अंदर वो ठीक मेरे पीछे था।"
+        }
+      ],
+      "visualKeywords": "Inside train, flickering lights, dark silhouette, suspenseful shadow"
     }
   ]
 }

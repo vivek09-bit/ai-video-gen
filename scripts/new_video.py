@@ -795,6 +795,44 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    visual_mode_group = parser.add_mutually_exclusive_group()
+    visual_mode_group.add_argument(
+        "--visual-mode",
+        "--generation-mode",
+        choices=("image", "video"),
+        default="image",
+        help="generate still images or LTX-Video clips for visuals (default: image; modes are exclusive)",
+    )
+    visual_mode_group.add_argument(
+        "--video-gen",
+        dest="visual_mode",
+        action="store_const",
+        const="video",
+        help="shortcut for --visual-mode video",
+    )
+    parser.add_argument(
+        "--audio-model",
+        choices=("auto", "kokoro", "indicf5"),
+        default="auto",
+        help="narration model; auto uses Kokoro by default and selects IndicF5 for an IndicF5 voice",
+    )
+    parser.add_argument(
+        "--video-model",
+        default="jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE",
+        help="Hugging Face model ID for LTX-Video generation",
+    )
+    parser.add_argument(
+        "--video-seconds",
+        type=float,
+        default=4.0,
+        help="duration of each generated LTX scene clip; longer scenes loop the clip (default: 4)",
+    )
+    parser.add_argument(
+        "--video-steps",
+        type=int,
+        default=8,
+        help="LTX-Video inference steps (default: 8)",
+    )
     parser.add_argument("--topic", help="what the video is about")
     parser.add_argument(
         "--auto-topic",
@@ -823,7 +861,7 @@ def main() -> int:
     parser.add_argument(
         "--voice",
         default=None,
-        help="Voice id, alias, or blend (e.g. indicf5, indicf5_female, hm_omega, hindi_female, bm_george, af_heart+af_bella, deep_male)",
+        help="Voice id, alias, or blend (e.g. hm_omega, indicf5_aarav, indicf5_priya, hindi_female, bm_george)",
     )
     parser.add_argument(
         "--dynamic-speed",
@@ -889,6 +927,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--scene-seconds",
+        "--scene-second",
         "--scean-seconds",
         "--sceen-seconds",
         "--scene-sec",
@@ -1072,7 +1111,7 @@ def main() -> int:
         "--imageprovider",
         "--image-provider",
         dest="image_provider",
-        help="Image provider (local, fetch, pollinations, fireworks, together, fal, replicate, openai)",
+        help="Image provider (local, fetch, pollinations, vast, fireworks, together, fal, replicate, openai)",
     )
     parser.add_argument(
         "--imagemodel",
@@ -1146,7 +1185,59 @@ def main() -> int:
         action="store_true",
         help="write script.json and synthesise the narration, but skip the render",
     )
+    parser.add_argument(
+        "--vast",
+        action="store_true",
+        help="use Vast.ai for image generation (RTX 3090); video mode selects RTX 4090 automatically",
+    )
+    parser.add_argument(
+        "--vast-instance",
+        dest="vast_instance",
+        type=int,
+        default=None,
+        help="existing Vast.ai instance ID to connect / start",
+    )
+    parser.add_argument(
+        "--vast-url",
+        dest="vast_url",
+        type=str,
+        default=None,
+        help="direct URL of running Vast.ai GPU server (e.g. http://ip:8000)",
+    )
+    parser.add_argument(
+        "--vast-autostop",
+        dest="vast_autostop",
+        action="store_true",
+        default=True,
+        help="(default) automatically stop the Vast.ai instance after visual/audio generation",
+    )
+    parser.add_argument(
+        "--no-vast-autostop",
+        dest="vast_autostop",
+        action="store_false",
+        help="keep Vast.ai instance running after generation",
+    )
+    parser.add_argument(
+        "--gpu-render",
+        action="store_true",
+        help="enable GPU-accelerated Remotion rendering locally if supported",
+    )
     args = parser.parse_args()
+
+    if args.visual_mode == "video" and args.no_images:
+        parser.error("--no-images cannot be used with video generation.")
+    if args.visual_mode == "video" and (
+        args.image_provider
+        or args.image_model
+        or args.images
+        or args.free_images
+        or args.local_images
+    ):
+        parser.error("image-generation options cannot be combined with --visual-mode video.")
+    if args.visual_mode == "video" and args.video_seconds <= 0:
+        parser.error("--video-seconds must be greater than zero.")
+    if args.visual_mode == "video" and not 1 <= args.video_steps <= 50:
+        parser.error("--video-steps must be between 1 and 50.")
 
     if args.formats:
         print("=" * 74)
@@ -1227,8 +1318,23 @@ def main() -> int:
 
     # Resolve primary voice (resolves aliases, blends, or genre/language fallback)
     from tts import resolve_voice
+    requested_voice = args.voice or os.environ.get("VOICE")
+    requested_voice_key = (requested_voice or "").strip().lower()
+    voice_requests_indicf5 = requested_voice_key.startswith(("indicf5", "indic_"))
+    if args.audio_model == "kokoro" and voice_requests_indicf5:
+        parser.error("--audio-model kokoro cannot be combined with an IndicF5 voice.")
+    if args.audio_model == "indicf5" and args.voice and not voice_requests_indicf5:
+        parser.error("--audio-model indicf5 requires an IndicF5 voice, e.g. --voice indicf5_aarav.")
+    audio_model = (
+        "indicf5"
+        if args.audio_model == "indicf5" or (args.audio_model == "auto" and voice_requests_indicf5)
+        else "kokoro"
+    )
+    if audio_model == "indicf5" and not voice_requests_indicf5:
+        requested_voice = "indicf5_aarav"
+
     primary_voice = resolve_voice(
-        args.voice or os.environ.get("VOICE"),
+        requested_voice,
         default_lang=args.language,
         genre=target_genre,
     )
@@ -1438,10 +1544,85 @@ def main() -> int:
         secondary_voice=sec_voice,
         show_headline=args.show_headline,
     )
+    script["audioModel"] = audio_model
+    script["visualMode"] = args.visual_mode
 
-    # ---- generate AI images if enabled ------------------------------------
+    # ---- Vast.ai Cloud GPU Orchestration ---------------------------------
+    vast_instance_id = None
+    vast_mgr = None
+    requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
+    detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
+    needs_vast = (
+        args.visual_mode == "video"
+        or args.vast
+        or args.vast_instance is not None
+        or args.vast_url is not None
+        or audio_model == "indicf5"
+        or (not args.no_images and detected_image_provider == "vast")
+    )
+    expected_gpu = "RTX 4090" if args.visual_mode == "video" else "RTX 3090"
+
+    def stop_vast_instance() -> None:
+        if needs_vast and vast_mgr and vast_instance_id and args.vast_autostop:
+            try:
+                print("\n[Vast Manager] Generation complete. Stopping GPU instance to avoid idle compute charges...")
+                vast_mgr.stop_instance(vast_instance_id)
+            except Exception as stop_err:
+                print(f"  [Vast Manager Warning] Failed to stop instance {vast_instance_id}: {stop_err}", file=sys.stderr)
+
+    if needs_vast:
+        print()
+        print("=" * 74)
+        print(f"VAST.AI CLOUD GPU INITIALIZATION ({expected_gpu} 24GB)")
+        print("=" * 74)
+        try:
+            from vast_manager import VastManager
+            vast_mgr = VastManager()
+            if getattr(args, "vast_url", None):
+                server_url = args.vast_url
+                vast_mgr.server_url = server_url.rstrip("/")
+                os.environ["VAST_SERVER_URL"] = server_url
+                print(f"  Connected to provided Vast server: {server_url}")
+            elif getattr(args, "vast_instance", None):
+                vast_instance_id = args.vast_instance
+                print(f"  Starting existing Vast instance {vast_instance_id}...")
+                vast_mgr.start_instance(vast_instance_id)
+                server_url = vast_mgr.wait_until_ready(vast_instance_id)
+                os.environ["VAST_SERVER_URL"] = server_url
+            else:
+                server_url = os.environ.get("VAST_SERVER_URL", "")
+                if not server_url:
+                    print(f"  Searching and spinning up a one-GPU {expected_gpu} instance...")
+                    vast_instance_id = vast_mgr.create_instance(gpu_name=expected_gpu)
+                    server_url = vast_mgr.wait_until_ready(vast_instance_id)
+                    os.environ["VAST_SERVER_URL"] = server_url
+            health = vast_mgr.require_gpu(expected_gpu, server_url)
+            print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
+            os.environ["USE_VAST"] = "1"
+        except Exception as vast_init_err:
+            print(f"  [Vast Manager Error] Failed to initialize the required Vast GPU: {vast_init_err}", file=sys.stderr)
+            stop_vast_instance()
+            return 1
+
+    # ---- generate exactly one visual type --------------------------------
     cli_img_prov = args.image_provider
-    if getattr(args, "local_images", False) and not cli_img_prov:
+    if args.visual_mode == "video":
+        try:
+            from generate_videos import generate_videos_for_script
+            script = generate_videos_for_script(
+                script,
+                model=args.video_model,
+                duration_seconds=args.video_seconds,
+                steps=args.video_steps,
+                manager=vast_mgr,
+            )
+        except Exception as video_err:
+            print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
+            stop_vast_instance()
+            return 1
+    elif (args.vast or args.vast_url or args.vast_instance is not None) and not cli_img_prov:
+        cli_img_prov = "vast"
+    elif getattr(args, "local_images", False) and not cli_img_prov:
         cli_img_prov = "local"
     elif args.free_images and not cli_img_prov:
         cli_img_prov = "fetch"
@@ -1453,9 +1634,9 @@ def main() -> int:
         or args.images
         or args.free_images
         or getattr(args, "local_images", False)
-        or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local")))
+        or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local", "vast")))
     )
-    if should_gen_images:
+    if args.visual_mode == "image" and should_gen_images:
         print()
         print("=" * 74)
         print("SCENE IMAGES")
@@ -1479,10 +1660,19 @@ def main() -> int:
     tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
     if not args.dynamic_speed:
         tts_cmd.append("--flat-speed")
-    if not run_step(
-        "narration and lip sync (Kokoro + Rhubarb)",
+    if audio_model == "indicf5":
+        tts_cmd.append("--vast")
+        if os.environ.get("VAST_SERVER_URL"):
+            tts_cmd.extend(["--vast-url", os.environ["VAST_SERVER_URL"]])
+        tts_cmd.append("--require-vast")
+    tts_succeeded = run_step(
+        f"narration and lip sync ({'IndicF5 on Vast.ai' if audio_model == 'indicf5' else 'Kokoro'} + Rhubarb)",
         tts_cmd,
-    ):
+    )
+
+    # ---- Vast.ai Auto-Stop after Generation ------------------------------
+    stop_vast_instance()
+    if not tts_succeeded:
         return 1
 
     # ---- multi-platform social media upload metadata ----------------------
@@ -1526,9 +1716,13 @@ def main() -> int:
         report(args, target_sec=target_sec)
         return 0
 
+    render_args = f'--concurrency={args.concurrency}'
+    if getattr(args, "gpu_render", False):
+        render_args += " --gl=angle"
+
     if not run_step(
         "render (Remotion)",
-        f'npx remotion render Main "{args.out}" --concurrency={args.concurrency}',
+        f'npx remotion render Main "{args.out}" {render_args}',
         shell=True,
     ):
         return 1

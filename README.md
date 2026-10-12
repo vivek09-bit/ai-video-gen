@@ -175,8 +175,16 @@ Useful flags:
 | `--subtitles` | on-screen captions & .srt script: `hinglish` (default for Hindi voice) or `devanagari` |
 | `--no-hinglish-subtitles` | keep Devanagari script for captions and subtitles instead of Roman Hinglish |
 | `--voice` | primary narrator voice, alias, or blend (e.g. `hm_omega`, `hindi_female`, `bm_george`, `af_heart+af_bella`) |
+| `--audio-model` | `kokoro` (default) or `indicf5`; IndicF5 runs on the selected Vast.ai GPU |
 | `--voice-2` / `--secondary-voice` | secondary voice for dialogue/antagonist in character scenes |
 | `--voices` | list all 30+ available Kokoro voices, aliases, and blending syntax |
+| `--visual-mode` / `--generation-mode` | choose `image` or `video`; exactly one generated visual mode is used per video |
+| `--video-gen` | shortcut for `--visual-mode video`; generates LTX-Video scene clips on an RTX 4090 |
+| `--video-seconds` / `--video-steps` | duration and inference steps per LTX-Video scene clip |
+| `--video-model` | LTX-Video Diffusers model ID (default: `jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE`, 2B distilled) |
+| `--vast` | use an RTX 3090 for Flux.1-schnell image generation; video mode selects an RTX 4090 automatically |
+| `--vast-instance` / `--vast-url` | start an existing instance or connect to a configured Vast.ai inference server |
+| `--no-vast-autostop` | leave the Vast.ai instance running after generation |
 | `--genre` / `--genres` | story/visual genre (horror, fantasy, scifi, documentary, anime, comedy, etc.) |
 | `--format` / `--formats` | video framing preset (`reel` [9:16], `landscape` [16:9], `square` [1:1], `portrait` [4:5], `cinema` [21:9], `classic` [4:3]) |
 | `--theme` / `--themes` | visual color/font theme (e.g. `cyber_neon`, `blood_red`, `synthwave`, `#ff007f`) |
@@ -192,6 +200,53 @@ Useful flags:
 | `--characters` | cast a character; **off by default** |
 | `--metadata` / `--no-metadata` | auto-generate upload metadata for YouTube, Instagram, Facebook, TikTok (default: enabled) |
 | `--out` | output path, default `out/video.mp4` |
+
+### Vast.ai image and video generation
+
+Image and video generation are exclusive for each output video. Image mode keeps
+the existing image providers; `--vast` routes Flux.1-schnell to a single RTX 3090
+with 24GB VRAM. Video mode uses LTX-Video 2B distilled on a single RTX 4090 with
+24GB VRAM and replaces each scene's image shots with a looping generated video
+background. Narration is generated in either mode.
+
+```powershell
+# Flux.1-schnell images on a Vast.ai RTX 3090; Kokoro narration locally
+npm run new -- --topic "पुरानी हवेली का राज़" --visual-mode image --vast --audio-model kokoro
+
+# LTX-Video clips on a Vast.ai RTX 4090; Kokoro narration locally
+npm run new -- --topic "पुरानी हवेली का राज़" --video-gen --audio-model kokoro
+
+# LTX-Video plus IndicF5 Aarav narration on the same RTX 4090
+npm run new -- --topic "पुरानी हवेली का राज़" --video-gen --audio-model indicf5 --voice indicf5_aarav
+```
+
+IndicF5 is also available with `indicf5_kabir`, `indicf5_rohan`,
+`indicf5_priya`, and `indicf5_ananya`. In image mode, choosing IndicF5 uses the
+same RTX 3090 instance after Flux generation. `--audio-model auto` (the default)
+uses Kokoro unless an IndicF5 voice is selected, in which case it requires
+Vast.ai and defaults to remote IndicF5 synthesis without a local fallback.
+
+When no existing server is supplied, Vast.ai provisions one GPU, exposes its
+inference port, clones the configured project repository, installs the inference
+dependencies, and starts the server. Set `VAST_SERVER_REPO_URL` and
+`VAST_SERVER_GIT_REF` if deploying from a different public repository or branch.
+`VAST_SERVER_ONSTART_CMD` can override the full startup command. Make sure the
+repository/ref contains this Vast server implementation. For an already-running
+instance/server, use `--vast-instance ID` or `--vast-url URL`; that server must
+already have this project's inference service running and its IndicF5 reference
+audio if that model is selected.
+
+To manually set up the GPU server, use a CUDA-enabled PyTorch build and:
+
+```bash
+pip install --upgrade "diffusers>=0.33" accelerate transformers sentencepiece imageio-ffmpeg soundfile f5-tts cached-path vocos
+python scripts/vast_server.py
+```
+
+If Hugging Face requires model access, configure `HF_TOKEN` in the Vast server
+environment before starting the server.
+On startup, the client checks the server-reported GPU and stops with an error if
+it does not match the selected mode. `--vast-autostop` is on by default.
 
 ### On-screen text
 

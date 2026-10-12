@@ -88,6 +88,8 @@ def normalize_provider_name(name: str | None) -> str:
         return "replicate"
     if n in ("openai", "dalle", "dalle3"):
         return "openai"
+    if n in ("vast", "vastai", "vastgpu"):
+        return "vast"
     return name.lower().strip()
 
 
@@ -741,6 +743,9 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     if provider == "openai":
         key = os.environ.get("OPENAI_API_KEY", "")
         return "openai", key, model or "dall-e-3"
+    if provider == "vast":
+        key = os.environ.get("VAST_API_KEY", "")
+        return "vast", key or "vast", model or "black-forest-labs/FLUX.1-schnell"
 
     # Default to local SSD-1B generation
     return "local", "local", model or "segmind/SSD-1B"
@@ -1655,6 +1660,8 @@ def generate_images_for_script(
             provider_title = f"Local SD 1.5 + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
     elif resolved_provider == "pollinations":
         provider_title = f"Pollinations AI (FREE, {aspect_ratio} @ {width}x{height})"
+    elif resolved_provider == "vast":
+        provider_title = f"Vast.ai Cloud RTX 3090 GPU (FLUX.1-schnell, {aspect_ratio} @ {width}x{height})"
     else:
         provider_title = f"{resolved_provider.upper()} ({aspect_ratio} @ {width}x{height})"
     print(f"Retrieving background images via {provider_title} ({model or 'default'}) for {total_scenes} scenes...")
@@ -1751,6 +1758,17 @@ def generate_images_for_script(
                     img_data = generate_replicate(prompt, api_key, model)
                 elif resolved_provider == "openai":
                     img_data = generate_openai(prompt, api_key, model)
+                elif resolved_provider == "vast":
+                    from vast_manager import VastManager
+                    vast_mgr = VastManager()
+                    scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
+                    img_data = vast_mgr.generate_image(
+                        prompt,
+                        width=width,
+                        height=height,
+                        steps=4,
+                        seed=scene_seed,
+                    )
                 else:
                     raise ValueError(f"Unknown image provider: {resolved_provider}")
 
@@ -1786,7 +1804,7 @@ def main() -> None:
         "--imageprovider",
         "--image-provider",
         dest="provider",
-        help="Image provider (local, free, pollinations, fireworks, together, fal, replicate, openai)",
+        help="Image provider (local, free, pollinations, vast, fireworks, together, fal, replicate, openai)",
     )
     parser.add_argument(
         "--model",

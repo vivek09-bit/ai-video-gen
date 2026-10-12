@@ -120,7 +120,7 @@ export interface MouthCue {
 /** A reusable character. Defined once, reused across every episode. */
 export interface CharacterSpec {
   name: string;
-  /** Kokoro voice id, e.g. `af_heart`. Gives each character a distinct voice. */
+  /** TTS voice id, e.g. `af_heart` or `indicf5_aarav`. */
   voice: string;
   speed?: number;
   palette: {
@@ -220,6 +220,11 @@ export interface ScriptFile {
   aspectRatio?: string;
   /** Default Kokoro voice id for narration. */
   voice: string;
+  /** Narration engine selected for this project. */
+  audioModel?: 'kokoro' | 'indicf5';
+  /** Exactly one visual generation mode is used for generated assets. */
+  visualMode?: 'image' | 'video';
+  videoModel?: string;
   speed: number;
   fps: number;
   width: number;

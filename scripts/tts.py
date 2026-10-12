@@ -885,6 +885,226 @@ CARTESIA_VOICES: dict[str, dict] = {
     },
 }
 
+# AI4Bharat IndicF5 zero-shot multilingual DiT voice catalog
+INDICF5_VOICES: dict[str, dict] = {
+    "indicf5_aarav": {
+        "id": "indicf5_aarav",
+        "name": "Aarav",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Deep, resonant & authoritative (zero-shot DiT, ideal for history, mythology, epics)",
+        "prompt_wav": "public/audio/prompts/indicf5/aarav.wav",
+        "prompt_text": "public/audio/prompts/indicf5/aarav.txt",
+        "fallback_kokoro": "hm_omega",
+        "aliases": ["indicf5", "indicf5_male", "indicf5_deep", "indic_aarav"],
+    },
+    "indicf5_kabir": {
+        "id": "indicf5_kabir",
+        "name": "Kabir",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Calm, natural & conversational (zero-shot DiT, ideal for documentary, explainer)",
+        "prompt_wav": "public/audio/prompts/indicf5/kabir.wav",
+        "prompt_text": "public/audio/prompts/indicf5/kabir.txt",
+        "fallback_kokoro": "hm_psi",
+        "aliases": ["indicf5_calm", "indicf5_doc", "indic_kabir"],
+    },
+    "indicf5_rohan": {
+        "id": "indicf5_rohan",
+        "name": "Rohan",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "male",
+        "style": "Direct & serious (zero-shot DiT, ideal for mysteries)",
+        "prompt_wav": "public/audio/prompts/indicf5/rohan.wav",
+        "prompt_text": "public/audio/prompts/indicf5/rohan.txt",
+        "fallback_kokoro": "hm_omega",
+        "aliases": ["indicf5_mystery", "indic_rohan"],
+    },
+    "indicf5_priya": {
+        "id": "indicf5_priya",
+        "name": "Priya",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "female",
+        "style": "Warm, expressive & engaging (zero-shot DiT, ideal for drama, storytelling)",
+        "prompt_wav": "public/audio/prompts/indicf5/priya.wav",
+        "prompt_text": "public/audio/prompts/indicf5/priya.txt",
+        "fallback_kokoro": "hf_alpha",
+        "aliases": ["indicf5_female", "indicf5_warm", "indic_priya"],
+    },
+    "indicf5_ananya": {
+        "id": "indicf5_ananya",
+        "name": "Ananya",
+        "lang": "hi",
+        "lang_name": "Hindi / Hinglish",
+        "gender": "female",
+        "style": "Soft, cheerful & pleasant (zero-shot DiT, ideal for lifestyle, casual)",
+        "prompt_wav": "public/audio/prompts/indicf5/ananya.wav",
+        "prompt_text": "public/audio/prompts/indicf5/ananya.txt",
+        "fallback_kokoro": "hf_beta",
+        "aliases": ["indicf5_soft", "indicf5_cheerful", "indic_ananya"],
+    },
+}
+
+_INDICF5_ENGINE = None
+
+
+class IndicF5Engine:
+    """AI4Bharat IndicF5 DiT flow-matching zero-shot TTS engine with Vocos vocoder."""
+
+    def __init__(self) -> None:
+        import sys, torch, torchaudio, soundfile as sf
+        from cached_path import cached_path
+        from f5_tts.model import CFM, DiT
+        from f5_tts.model.utils import get_tokenizer
+        from vocos import Vocos
+        from safetensors.torch import load_file
+
+        def _soundfile_load(filepath, *args, **kwargs):
+            wav_np, sr = sf.read(str(filepath), dtype="float32")
+            if wav_np.ndim == 1:
+                t = torch.from_numpy(wav_np).unsqueeze(0)
+            else:
+                t = torch.from_numpy(wav_np.T)
+            return t, sr
+
+        torchaudio.load = _soundfile_load
+        torch._dynamo.config.suppress_errors = True
+        torch.compiler.disable()
+
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.dtype = torch.float32 if self.device == "cpu" else torch.float16
+
+        print(f"[IndicF5 TTS] Initializing AI4Bharat IndicF5 zero-shot engine on {self.device}...")
+        vocab_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt"))
+        model_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/model.safetensors"))
+
+        vocab_char_map, vocab_size = get_tokenizer(vocab_path, tokenizer="custom")
+        transformer = DiT(
+            dim=1024,
+            depth=22,
+            heads=16,
+            ff_mult=2,
+            text_dim=512,
+            conv_layers=4,
+            text_num_embeds=vocab_size,
+            mel_dim=100,
+        )
+        state_dict = load_file(model_path, device="cpu")
+        clean_sd = {k.replace("ema_model._orig_mod.", "").replace("ema_model.", ""): v for k, v in state_dict.items() if "vocoder" not in k}
+
+        self.model = CFM(
+            transformer=transformer,
+            mel_spec_kwargs=dict(
+                target_sample_rate=24000,
+                n_mel_channels=100,
+                hop_length=256,
+                win_length=1024,
+                n_fft=1024,
+                mel_spec_type="vocos",
+            ),
+            odeint_kwargs=dict(method="euler"),
+            vocab_char_map=vocab_char_map,
+        )
+        self.model.load_state_dict(clean_sd, strict=False)
+        self.model.to(device=self.device, dtype=self.dtype).eval()
+        self.vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
+        voc_sd = {k.replace("vocoder._orig_mod.", "").replace("vocoder.", ""): v for k, v in state_dict.items() if "vocoder" in k}
+        if voc_sd:
+            self.vocos.load_state_dict(voc_sd, strict=True)
+        self.vocos.to(device=self.device).eval()
+        print("[IndicF5 TTS] IndicF5 model & finetuned Vocos vocoder loaded successfully.")
+
+    def synthesize(self, text: str, ref_audio_path, ref_text: str, speed: float = 1.0, nfe_step: int | None = None):
+        import torch, numpy as np, os
+        from f5_tts.infer.utils_infer import infer_process
+        if nfe_step is None:
+            nfe_step = int(os.environ.get("INDICF5_NFE_STEPS", 16 if self.device == "cpu" else 32))
+        with torch.no_grad():
+            wav, sr, _ = infer_process(
+                ref_audio=str(ref_audio_path),
+                ref_text=ref_text,
+                gen_text=text,
+                model_obj=self.model,
+                vocoder=self.vocos,
+                mel_spec_type="vocos",
+                target_rms=0.1,
+                cross_fade_duration=0.15,
+                nfe_step=nfe_step,
+                cfg_strength=2.0,
+                speed=speed,
+                device=self.device,
+            )
+        if isinstance(wav, torch.Tensor):
+            wav = wav.squeeze().cpu().numpy()
+        wav = np.asarray(wav, dtype=np.float32)
+        if wav.ndim > 1:
+            wav = wav.squeeze()
+        return wav
+
+
+def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndarray | None:
+    global _INDICF5_ENGINE
+    vinfo = INDICF5_VOICES.get(voice_key.lower())
+    if not vinfo:
+        for vk, vi in INDICF5_VOICES.items():
+            if voice_key.lower() == vk.lower() or voice_key.lower() in [a.lower() for a in vi.get("aliases", [])]:
+                vinfo = vi
+                break
+    if not vinfo:
+        return None
+
+    try:
+        norm_text = normalize_hindi_phonetics(text)
+        if not is_devanagari(norm_text):
+            print(
+                f"[IndicF5 TTS Notice] Input text is in Roman script. IndicF5 is trained on native Devanagari script. "
+                f"For best natural voice generation, provide Devanagari Hindi (e.g., 'चार हज़ार बार...').",
+                file=sys.stderr,
+            )
+
+        # Check if Vast.ai remote GPU is configured
+        vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+        use_vast = os.environ.get("USE_VAST", "0") == "1" or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
+        if use_vast or vast_url:
+            try:
+                from vast_manager import VastManager
+                import io
+                import soundfile as sf
+                mgr = VastManager(server_url=vast_url or None)
+                audio_bytes, dur = mgr.synthesize_tts(
+                    text=norm_text,
+                    voice=voice_key,
+                    speed=speed,
+                )
+                wav_np, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
+                return wav_np
+            except Exception as vast_err:
+                if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
+                    raise RuntimeError(f"Required Vast.ai IndicF5 synthesis failed: {vast_err}") from vast_err
+                print(f"[IndicF5 Remote Vast Warning] Remote Vast.ai synthesis failed ({vast_err}), falling back to local...", file=sys.stderr)
+
+        ref_wav = ROOT / vinfo["prompt_wav"]
+        ref_txt = ROOT / vinfo["prompt_text"]
+        if not ref_wav.exists() or not ref_txt.exists():
+            print(f"[IndicF5 TTS Warning] Prompt files missing for {voice_key} ({ref_wav}), falling back to Kokoro...", file=sys.stderr)
+            return None
+
+        ref_text_content = ref_txt.read_text(encoding="utf-8").strip()
+        if _INDICF5_ENGINE is None:
+            _INDICF5_ENGINE = IndicF5Engine()
+        audio = _INDICF5_ENGINE.synthesize(norm_text, ref_wav, ref_text_content, speed=speed)
+        return audio
+    except Exception as e:
+        if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
+            raise
+        print(f"[IndicF5 TTS Warning] IndicF5 generation failed ({e}), falling back to Kokoro...", file=sys.stderr)
+        return None
+
+
 _CARTESIA_WARNED = False
 
 
@@ -990,307 +1210,21 @@ def synthesize_cartesia(
         return None
 
 
-# --------------------------------------------------------------------------
-# AI4Bharat IndicF5 Multilingual Zero-Shot Neural TTS Voices & Integration
-# --------------------------------------------------------------------------
-
-INDICF5_VOICES: dict[str, dict] = {
-    "indicf5_aarav": {
-        "id": "indicf5_aarav",
-        "name": "Aarav",
-        "lang": "hi",
-        "lang_name": "Hindi / Hinglish",
-        "gender": "male",
-        "style": "Deep, resonant & authoritative (zero-shot DiT, ideal for horror, mythology, epics)",
-        "prompt_wav": "public/audio/prompts/indicf5/aarav.wav",
-        "prompt_text": "public/audio/prompts/indicf5/aarav.txt",
-        "fallback_kokoro": "hm_omega",
-        "aliases": [
-            "indicf5",
-            "indicf5_male",
-            "indicf5_deep",
-            "indicf5_horror",
-            "indic_f5",
-            "indic_male",
-            "indic_aarav",
-        ],
-    },
-    "indicf5_kabir": {
-        "id": "indicf5_kabir",
-        "name": "Kabir",
-        "lang": "hi",
-        "lang_name": "Hindi / Hinglish",
-        "gender": "male",
-        "style": "Calm, natural & conversational (zero-shot DiT, ideal for documentary, explainer, scifi)",
-        "prompt_wav": "public/audio/prompts/indicf5/kabir.wav",
-        "prompt_text": "public/audio/prompts/indicf5/kabir.txt",
-        "fallback_kokoro": "hm_psi",
-        "aliases": [
-            "indicf5_calm",
-            "indicf5_doc",
-            "indicf5_explainer",
-            "indic_calm",
-            "indic_explainer",
-            "indic_kabir",
-        ],
-    },
-    "indicf5_priya": {
-        "id": "indicf5_priya",
-        "name": "Priya",
-        "lang": "hi",
-        "lang_name": "Hindi / Hinglish",
-        "gender": "female",
-        "style": "Warm, expressive & engaging (zero-shot DiT, ideal for fantasy, drama, storytelling)",
-        "prompt_wav": "public/audio/prompts/indicf5/priya.wav",
-        "prompt_text": "public/audio/prompts/indicf5/priya.txt",
-        "fallback_kokoro": "hf_alpha",
-        "aliases": [
-            "indicf5_female",
-            "indicf5_warm",
-            "indicf5_story",
-            "indic_female",
-            "indic_warm",
-            "indic_priya",
-        ],
-    },
-    "indicf5_ananya": {
-        "id": "indicf5_ananya",
-        "name": "Ananya",
-        "lang": "hi",
-        "lang_name": "Hindi / Hinglish",
-        "gender": "female",
-        "style": "Soft, cheerful & pleasant (zero-shot DiT, ideal for comedy, casual lifestyle)",
-        "prompt_wav": "public/audio/prompts/indicf5/ananya.wav",
-        "prompt_text": "public/audio/prompts/indicf5/ananya.txt",
-        "fallback_kokoro": "hf_beta",
-        "aliases": [
-            "indicf5_soft",
-            "indicf5_casual",
-            "indicf5_comedy",
-            "indicf5_cheerful",
-            "indic_soft",
-            "indic_ananya",
-        ],
-    },
-    "indicf5_rohan": {
-        "id": "indicf5_rohan",
-        "name": "Rohan",
-        "lang": "hi",
-        "lang_name": "Hindi / Hinglish",
-        "gender": "male",
-        "style": "Eerie, ominous & gritty (zero-shot DiT, ideal for supernatural thrillers & mystery)",
-        "prompt_wav": "public/audio/prompts/indicf5/rohan.wav",
-        "prompt_text": "public/audio/prompts/indicf5/rohan.txt",
-        "fallback_kokoro": "hm_omega",
-        "aliases": [
-            "indicf5_eerie",
-            "indicf5_mystery",
-            "indicf5_supernatural",
-            "indic_rohan",
-        ],
-    },
-}
-
-_INDICF5_WARNED = False
-_INDICF5_ENGINE = None
-
-
-class IndicF5Engine:
-    """Singleton wrapper around AI4Bharat's IndicF5 DiT model + Vocos vocoder."""
-
-    def __init__(self) -> None:
-        import os
-        import sys
-        import torch
-        import torchaudio
-        import soundfile as sf
-        from cached_path import cached_path
-        from f5_tts.model import CFM, DiT
-        from f5_tts.model.utils import get_tokenizer
-        from vocos import Vocos
-
-        # Patch torchaudio.load on Windows to avoid libtorchcodec DLL loading issues
-        def _soundfile_load(filepath, *args, **kwargs):
-            wav_np, sr = sf.read(str(filepath), dtype="float32")
-            if wav_np.ndim == 1:
-                t = torch.from_numpy(wav_np).unsqueeze(0)
-            else:
-                t = torch.from_numpy(wav_np.T)
-            return t, sr
-
-        torchaudio.load = _soundfile_load
-
-        # Ensure UTF-8 console output for Devanagari logging
-        if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
-            try:
-                sys.stdout.reconfigure(encoding="utf-8")
-            except Exception:
-                pass
-
-        # Disable torch.compile to prevent Triton/CUDA errors on Windows CPU
-        torch._dynamo.config.suppress_errors = True
-        torch.compiler.disable()
-
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.dtype = torch.float32 if self.device == "cpu" else torch.float16
-
-        print(f"[IndicF5 TTS] Initializing AI4Bharat IndicF5 zero-shot engine on {self.device}...", file=sys.stderr)
-        vocab_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt"))
-        model_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/model.safetensors"))
-
-        vocab_char_map, vocab_size = get_tokenizer(vocab_path, tokenizer="custom")
-        transformer = DiT(
-            dim=1024,
-            depth=22,
-            heads=16,
-            ff_mult=2,
-            text_dim=512,
-            conv_layers=4,
-            text_num_embeds=vocab_size,
-            mel_dim=100,
-        )
-
-        from safetensors.torch import load_file
-        state_dict = load_file(model_path, device="cpu")
-        clean_sd = {}
-        for k, v in state_dict.items():
-            clean_k = k.replace("ema_model._orig_mod.", "").replace("ema_model.", "")
-            clean_sd[clean_k] = v
-
-        self.model = CFM(
-            transformer=transformer,
-            mel_spec_kwargs=dict(
-                target_sample_rate=24000,
-                n_mel_channels=100,
-                hop_length=256,
-                win_length=1024,
-                n_fft=1024,
-                mel_spec_type="vocos",
-            ),
-            odeint_kwargs=dict(method="euler"),
-            vocab_char_map=vocab_char_map,
-        )
-        self.model.load_state_dict(clean_sd, strict=False)
-        self.model.to(device=self.device, dtype=self.dtype)
-        self.model.eval()
-
-        self.vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
-        self.vocos.to(device=self.device)
-        print("[IndicF5 TTS] IndicF5 model & Vocos vocoder loaded successfully.", file=sys.stderr)
-
-    def synthesize(
-        self,
-        text: str,
-        ref_audio_path: Path | str,
-        ref_text: str,
-        speed: float = 1.0,
-        nfe_step: int | None = None,
-    ) -> np.ndarray:
-        import torch
-        import numpy as np
-        from f5_tts.infer.utils_infer import infer_process
-
-        if nfe_step is None:
-            nfe_step = int(os.environ.get("INDICF5_NFE_STEPS", 16 if self.device == "cpu" else 32))
-
-        with torch.no_grad():
-            wav, sr, _ = infer_process(
-                ref_audio=str(ref_audio_path),
-                ref_text=ref_text,
-                gen_text=text,
-                model_obj=self.model,
-                vocoder=self.vocos,
-                mel_spec_type="vocos",
-                target_rms=0.1,
-                cross_fade_duration=0.15,
-                nfe_step=nfe_step,
-                cfg_strength=2.0,
-                speed=speed,
-                device=self.device,
-            )
-
-        if isinstance(wav, torch.Tensor):
-            wav = wav.squeeze().cpu().numpy()
-        wav = np.asarray(wav, dtype=np.float32)
-        if wav.ndim > 1:
-            wav = wav.squeeze()
-        return wav
-
-
-def get_indicf5_engine() -> IndicF5Engine:
-    global _INDICF5_ENGINE
-    if _INDICF5_ENGINE is None:
-        _INDICF5_ENGINE = IndicF5Engine()
-    return _INDICF5_ENGINE
-
-
-def synthesize_indicf5(
-    text: str,
-    voice_key_or_id: str,
-    speed: float = 1.0,
-    fallback_voice: str = "hm_omega",
-    nfe_step: int | None = None,
-) -> np.ndarray | None:
-    """Synthesise text via AI4Bharat IndicF5 zero-shot TTS model with automatic Kokoro fallback."""
-    global _INDICF5_WARNED
-    import numpy as np
-
-    # Find matching voice entry
-    vinfo = INDICF5_VOICES.get(voice_key_or_id.lower())
-    if not vinfo:
-        for vkey, info in INDICF5_VOICES.items():
-            if voice_key_or_id.lower() == vkey.lower() or voice_key_or_id.lower() in [
-                a.lower() for a in info.get("aliases", [])
-            ]:
-                vinfo = info
-                break
-
-    if not vinfo:
-        vinfo = INDICF5_VOICES["indicf5_aarav"]
-
-    ref_wav_path = ROOT / vinfo["prompt_wav"]
-    ref_txt_path = ROOT / vinfo["prompt_text"]
-
-    if not ref_wav_path.exists() or not ref_txt_path.exists():
-        if not _INDICF5_WARNED:
-            print(
-                f"[IndicF5 TTS Notice] Reference prompt for '{vinfo['name']}' not found at {ref_wav_path}. "
-                f"Falling back to local Kokoro ({fallback_voice})...",
-                file=sys.stderr,
-            )
-            _INDICF5_WARNED = True
-        return None
-
-    try:
-        ref_text = ref_txt_path.read_text(encoding="utf-8").strip()
-        engine = get_indicf5_engine()
-        return engine.synthesize(text=text, ref_audio_path=ref_wav_path, ref_text=ref_text, speed=speed, nfe_step=nfe_step)
-    except Exception as e:
-        if not _INDICF5_WARNED:
-            print(
-                f"[IndicF5 TTS Notice] IndicF5 synthesis failed ({e}). "
-                f"Automatically falling back to Kokoro-82M ({fallback_voice})...",
-                file=sys.stderr,
-            )
-            _INDICF5_WARNED = True
-        return None
-
-
 VOICE_ALIASES: dict[str, str] = {}
 for vid, vinfo in VOICE_CATALOG.items():
     VOICE_ALIASES[vid.lower()] = vid
     for alias in vinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = vid
 
-for cvid, cvinfo in CARTESIA_VOICES.items():
-    VOICE_ALIASES[cvid.lower()] = cvid
-    for alias in cvinfo.get("aliases", []):
-        VOICE_ALIASES[alias.lower().replace("-", "_")] = cvid
-
 for ivid, ivinfo in INDICF5_VOICES.items():
     VOICE_ALIASES[ivid.lower()] = ivid
     for alias in ivinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = ivid
+
+for cvid, cvinfo in CARTESIA_VOICES.items():
+    VOICE_ALIASES[cvid.lower()] = cvid
+    for alias in cvinfo.get("aliases", []):
+        VOICE_ALIASES[alias.lower().replace("-", "_")] = cvid
 
 # Backwards compatibility map
 EN_VOICES = {
@@ -1405,6 +1339,13 @@ def resolve_voice(
 def list_voices(lang_filter: str | None = None) -> list[dict]:
     """Return structured voice catalog items, optionally filtered by language."""
     items = []
+    for ivid, ivinfo in INDICF5_VOICES.items():
+        if lang_filter:
+            filt = lang_filter.lower().strip()
+            if filt in ("hi", "hindi", "hinglish"):
+                items.append(dict(ivinfo))
+        else:
+            items.append(dict(ivinfo))
     for vid, vinfo in VOICE_CATALOG.items():
         if lang_filter:
             filt = lang_filter.lower().strip()
@@ -1435,9 +1376,9 @@ def format_voices_table() -> str:
 
     lines = [
         "=" * 74,
-        "INDICF5 HINDI VOICES (AI4Bharat Zero-Shot Neural Flow Matching TTS)",
+        "INDICF5 ZERO-SHOT HINDI VOICES (AI4Bharat DiT Flow-Matching TTS)",
         "=" * 74,
-        "  * Zero-shot reference voice cloning via AI4Bharat IndicF5 22-layer DiT + Vocos 24kHz.",
+        "  * Native Hindi pronunciation, intonation & timbre via reference voice prompts.",
     ]
     for ikey, iinfo in INDICF5_VOICES.items():
         aliases_str = f" [Aliases: {', '.join(iinfo['aliases'])}]" if iinfo.get("aliases") else ""
@@ -1478,9 +1419,7 @@ def format_voices_table() -> str:
         "     --voice \"hindi_male,hindi_female\"    (blend by alias)",
         "",
         "2. Aliases:",
-        "     --voice indicf5_male                (maps to indicf5_aarav)",
-        "     --voice indicf5_female              (maps to indicf5_priya)",
-        "     --voice indicf5_calm                (maps to indicf5_kabir)",
+        "     --voice hindi_male                  (maps to hm_omega)",
         "     --voice hindi_female                (maps to hf_alpha)",
         "     --voice documentary                 (maps to bm_george - BBC documentary style)",
         "     --voice deep_male                   (maps to am_onyx - deep bass trailer voice)",
@@ -1489,28 +1428,24 @@ def format_voices_table() -> str:
         "3. Multi-Character Dialogue:",
         "     In script.json, assign voices per-character or per-scene lines:",
         "       \"characters\": {",
-        "           \"hero\": {\"name\": \"Goku\", \"voice\": \"indicf5_aarav\"},",
-        "           \"villain\": {\"name\": \"Shadow\", \"voice\": \"indicf5_rohan\"}",
+        "           \"hero\": {\"name\": \"Goku\", \"voice\": \"hm_omega\"},",
+        "           \"villain\": {\"name\": \"Shadow\", \"voice\": \"am_onyx\"}",
         "       }",
     ])
     return "\n".join(lines)
 
+
 def generate_voice_samples() -> int:
-    """Synthesise and export short preview audio samples for IndicF5 and Kokoro Hindi voices."""
+    """Synthesise and export short preview audio samples for Kokoro Hindi voices."""
     import soundfile as sf
 
     samples_dir = PUBLIC / "audio" / "samples"
     samples_dir.mkdir(parents=True, exist_ok=True)
 
     engine = Voice()
-    sample_text = "नमस्ते, यह इंडिक एफ-फाइव और कोकोरो हिंदी हिंग्लिश आवाज़ का ऑडियो सैंपल है।"
+    sample_text = "नमस्ते, यह कोकोरो हिंदी हिंग्लिश आवाज़ का ऑडियो सैंपल है।"
 
     sample_voices = [
-        ("indicf5_aarav", "indicf5_aarav", "IndicF5 Aarav (Deep / Horror / Epic)"),
-        ("indicf5_kabir", "indicf5_kabir", "IndicF5 Kabir (Calm / Documentary / Explainer)"),
-        ("indicf5_priya", "indicf5_priya", "IndicF5 Priya (Warm / Storytelling / Drama)"),
-        ("indicf5_ananya", "indicf5_ananya", "IndicF5 Ananya (Soft / Cheerful / Casual)"),
-        ("indicf5_rohan", "indicf5_rohan", "IndicF5 Rohan (Eerie / Supernatural / Mystery)"),
         ("kokoro_aarav", "hm_omega", "Kokoro Aarav (Deep / Resonant)"),
         ("kokoro_kabir", "hm_psi", "Kokoro Kabir (Calm / Documentary)"),
         ("kokoro_priya", "hf_alpha", "Kokoro Priya (Warm / Expressive)"),
@@ -1518,7 +1453,7 @@ def generate_voice_samples() -> int:
     ]
 
     print("=" * 70)
-    print("GENERATING HINDI / HINGLISH VOICE SAMPLES (IndicF5 + Kokoro)")
+    print("GENERATING HINDI / HINGLISH VOICE SAMPLES (Kokoro)")
     print("=" * 70)
     for sample_name, vid, desc in sample_voices:
         out_file = samples_dir / f"{sample_name}.wav"
@@ -1702,40 +1637,17 @@ class Voice:
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
 
-        # Check if voice is IndicF5 (with zero-crash Kokoro fallback)
-        is_indicf5 = (
-            primary.lower().startswith("indicf5")
-            or primary.lower().startswith("indic_")
-            or primary.lower() in INDICF5_VOICES
+        # Check if voice is IndicF5 (AI4Bharat zero-shot DiT Hindi TTS)
+        is_indicf5 = primary.lower().startswith("indic") or primary.lower() in INDICF5_VOICES or any(
+            primary.lower() in [a.lower() for a in vi.get("aliases", [])] for vi in INDICF5_VOICES.values()
         )
-        if not is_indicf5:
-            for ikey, iinfo in INDICF5_VOICES.items():
-                if primary.lower() == ikey.lower() or primary.lower() in [
-                    a.lower() for a in iinfo.get("aliases", [])
-                ]:
-                    is_indicf5 = True
-                    break
-
         if is_indicf5:
-            iinfo = INDICF5_VOICES.get(primary.lower())
-            if not iinfo:
-                for ikey, candidate in INDICF5_VOICES.items():
-                    if primary.lower() == ikey.lower() or primary.lower() in [
-                        a.lower() for a in candidate.get("aliases", [])
-                    ]:
-                        iinfo = candidate
-                        break
-            fallback = iinfo["fallback_kokoro"] if iinfo else "hm_omega"
-            indic_audio = synthesize_indicf5(
-                clean_text,
-                primary,
-                speed=speed,
-                fallback_voice=fallback,
-            )
+            indic_audio = synthesize_indicf5(clean_text, primary, speed=speed)
             if indic_audio is not None and len(indic_audio) > 0:
                 return apply_fades(trim_edge_silence(indic_audio, threshold=0.005, padding=0.005))
-
-            # Fallback to local Kokoro neural voice
+            # Fallback if indicf5 fails
+            vinfo = INDICF5_VOICES.get(primary.lower())
+            fallback = vinfo["fallback_kokoro"] if vinfo else "hm_omega"
             resolved_voice = fallback
             primary = resolved_voice.split(",")[0].strip()
 
@@ -2180,7 +2092,19 @@ def main() -> int:
     parser.add_argument("--samples", action="store_true", help="generate short preview .wav samples for Hindi / Hinglish voices into public/audio/samples/")
     parser.add_argument("--hinglish", action="store_true", help="force Roman Hinglish on-screen captions & subtitles")
     parser.add_argument("--no-hinglish", action="store_true", help="disable Roman Hinglish transliteration (keep Devanagari subtitles)")
+    parser.add_argument("--vast", action="store_true", help="use remote Vast.ai GPU instance for IndicF5 synthesis")
+    parser.add_argument("--vast-url", type=str, default=None, help="Vast.ai server URL (e.g. http://ip:port)")
+    parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 synthesis fails")
     args = parser.parse_args()
+
+    if args.vast:
+        os.environ["USE_VAST"] = "1"
+    if args.vast_url:
+        os.environ["VAST_SERVER_URL"] = args.vast_url
+    if args.require_vast:
+        if not (args.vast or args.vast_url or os.environ.get("VAST_SERVER_URL")):
+            parser.error("--require-vast needs --vast or a configured Vast server URL.")
+        os.environ["REQUIRE_VAST_TTS"] = "1"
 
     # Ensure audio assets (ambience beds, sfx) are present
     try:
