@@ -1600,14 +1600,23 @@ def main() -> int:
                 server_url = vast_mgr.wait_until_ready(vast_instance_id)
                 os.environ["VAST_SERVER_URL"] = server_url
             else:
-                # --vast always provisions a fresh GPU. A stale VAST_SERVER_URL
-                # (e.g. the local dev server) must never short-circuit this, so we
-                # ignore the environment here and rely on --vast-url / --vast-instance
-                # for connecting to an already-running server.
-                print(f"  Searching and spinning up a one-GPU {expected_gpu} instance...")
-                vast_instance_id = vast_mgr.create_instance(gpu_name=expected_gpu)
-                server_url = vast_mgr.wait_until_ready(vast_instance_id)
-                os.environ["VAST_SERVER_URL"] = server_url
+                # Reuse an already-rented instance of the right GPU before paying for a
+                # new one. Broken instances (bad host / failed image pull) are destroyed
+                # so they stop billing storage instead of being skipped.
+                vast_instance_id, server_url = vast_mgr.find_existing_instance(expected_gpu, min_disk=50)
+
+                if vast_instance_id:
+                    if not server_url:
+                        print(f"  Found existing Vast instance {vast_instance_id}. Starting it...")
+                        vast_mgr.start_instance(vast_instance_id)
+                    server_url = vast_mgr.wait_until_ready(vast_instance_id)
+                    os.environ["VAST_SERVER_URL"] = server_url
+                else:
+                    # Nothing reusable: rent the cheapest in-budget GPU, moving to the
+                    # next offer if a host cannot pull the image.
+                    print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
+                    vast_instance_id, server_url = vast_mgr.provision_instance(gpu_name=expected_gpu, disk_gb=50)
+                    os.environ["VAST_SERVER_URL"] = server_url
             health = vast_mgr.require_gpu(expected_gpu, server_url)
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
             os.environ["USE_VAST"] = "1"

@@ -4,11 +4,16 @@
 Image generation uses one RTX 3090; LTX-Video uses one RTX 4090. Both can also
 run remote IndicF5 narration before the selected instance is stopped.
 
+An already-rented instance of the right GPU is reused before anything new is
+rented, and every offer is filtered against a per-GPU all-in price ceiling
+($0.40/hr for an RTX 3090, $0.50/hr for an RTX 4090). Override with
+VAST_MAX_DPH_RTX_3090 / VAST_MAX_DPH_RTX_4090, or --max-price.
+
 Usage:
-  # Search cheapest RTX 4090 offers
+  # Search cheapest RTX 4090 offers within budget
   python scripts/vast_manager.py search
 
-  # Create instance from best offer
+  # Rent the cheapest in-budget instance, replacing hosts that fail to start
   python scripts/vast_manager.py create [--disk 50]
 
   # Start existing instance
@@ -19,6 +24,9 @@ Usage:
 
   # Stop instance to pause billing
   python scripts/vast_manager.py stop <INSTANCE_ID>
+
+  # Destroy broken or over-budget instances
+  python scripts/vast_manager.py prune [--dry-run]
 """
 
 from __future__ import annotations
@@ -45,6 +53,57 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from generate_images import load_env_file
 
 load_env_file()
+
+# ---------------------------------------------------------------------------
+# Hourly price ceilings in USD/hour, all-in (GPU + storage + bandwidth).
+# Override any model with an env var: VAST_MAX_DPH_RTX_3090=0.35
+# ---------------------------------------------------------------------------
+DEFAULT_GPU_BUDGETS: dict[str, float] = {
+    "RTX 3090": 0.40,
+    "RTX 4090": 0.50,
+}
+
+
+def _gpu_slug(gpu_name: str) -> str:
+    """Normalise a GPU name for env-var lookup: 'RTX 3090' -> 'RTX_3090'."""
+    slug = "".join(ch if ch.isalnum() else "_" for ch in gpu_name.upper()).strip("_")
+    while "__" in slug:
+        slug = slug.replace("__", "_")
+    return slug
+
+
+def gpu_budget(gpu_name: str) -> float:
+    """Return the maximum $/hr we are willing to pay for this GPU model."""
+    env_name = f"VAST_MAX_DPH_{_gpu_slug(gpu_name)}"
+    env_value = os.environ.get(env_name)
+    if env_value:
+        try:
+            return float(env_value)
+        except ValueError:
+            print(f"[Vast Manager Warning] Ignoring invalid {env_name}={env_value!r}", file=sys.stderr)
+    normalised = gpu_name.upper().replace("NVIDIA GEFORCE ", "").strip()
+    for name, limit in DEFAULT_GPU_BUDGETS.items():
+        if name in normalised or normalised in name:
+            return limit
+    return float(os.environ.get("VAST_MAX_DPH", "0.50"))
+
+
+def hourly_rate(record: dict) -> float:
+    """Extract the all-in $/hr (GPU + storage + bandwidth) from an offer or instance."""
+    for key in ("dph_total", "dph_total_adj", "dph_base", "dph"):
+        value = record.get(key)
+        if isinstance(value, (int, float)) and value > 0:
+            return float(value)
+    return float("inf")
+
+
+def format_rate(rate: float) -> str:
+    """Render a $/hr figure, or 'n/a' when the API did not report one."""
+    return "n/a" if rate == float("inf") else f"${rate:.3f}/hr"
+
+
+class InstanceBroken(RuntimeError):
+    """Raised when a rented instance cannot become healthy (bad host or image pull)."""
 
 
 class VastManager:
@@ -109,49 +168,78 @@ class VastManager:
     def search_gpu(
         self,
         gpu_name: str,
-        max_dph: float = 0.50,
+        max_dph: float | None = None,
         min_disk: int = 40,
     ) -> list[dict]:
-        """Search for a single GPU of the requested model."""
+        """Search for a single GPU of the requested model inside the budget ceiling."""
+        limit = gpu_budget(gpu_name) if max_dph is None else max_dph
         gpu_filter = gpu_name.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "_")
-        query = f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{max_dph} disk_space>={min_disk} inet_down>100 cpu_ram>=32"
+        query = f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} disk_space>={min_disk} inet_down>100 cpu_ram>=32"
+        offers: list[dict] = []
         try:
-            raw = self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"])
-            offers = json.loads(raw)
-            return offers
+            offers = json.loads(self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"]))
         except Exception as e:
             print(f"[Vast Manager Warning] {gpu_name} offer search failed ({e}), trying standard search query...", file=sys.stderr)
             try:
-                raw = self.run_cli(["search", "offers", f"gpu_name={gpu_filter} rented=False", "-o", "dph+", "--raw"])
-                return json.loads(raw)
+                offers = json.loads(self.run_cli(["search", "offers", f"gpu_name={gpu_filter} rented=False", "-o", "dph+", "--raw"]))
             except Exception:
                 return []
+        # Vast filters on `dph`, which excludes storage and bandwidth. `dph_total`
+        # is the rate that actually gets billed, so enforce the ceiling on that too.
+        affordable = [offer for offer in offers if hourly_rate(offer) <= limit]
+        if len(affordable) != len(offers):
+            print(
+                f"[Vast Manager] Dropped {len(offers) - len(affordable)} {gpu_name} offer(s) priced above "
+                f"the ${limit:.2f}/hr all-in ceiling."
+            )
+        affordable.sort(key=hourly_rate)
+        return affordable
 
-    def search_rtx_4090(self, max_dph: float = 0.50, min_disk: int = 40) -> list[dict]:
+    def search_rtx_4090(self, max_dph: float | None = None, min_disk: int = 40) -> list[dict]:
         """Backwards-compatible search for RTX 4090 offers."""
         return self.search_gpu("RTX 4090", max_dph=max_dph, min_disk=min_disk)
 
-    def search_rtx_3090(self, max_dph: float = 0.50, min_disk: int = 40) -> list[dict]:
+    def search_rtx_3090(self, max_dph: float | None = None, min_disk: int = 40) -> list[dict]:
         """Search for RTX 3090 24GB offers."""
         return self.search_gpu("RTX 3090", max_dph=max_dph, min_disk=min_disk)
 
     def create_instance(
         self,
         offer_id: int | None = None,
-        disk_gb: int = 100,
+        disk_gb: int = 50,
         image: str = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime",
         onstart_cmd: str | None = None,
         gpu_name: str = "RTX 4090",
+        max_dph: float | None = None,
     ) -> int:
-        """Create a one-GPU Vast.ai instance of the requested model."""
+        """Create a one-GPU Vast.ai instance of the requested model inside the budget."""
+        limit = gpu_budget(gpu_name) if max_dph is None else max_dph
         if offer_id is None:
-            offers = self.search_gpu(gpu_name, min_disk=disk_gb)
+            offers = self.search_gpu(gpu_name, max_dph=limit, min_disk=disk_gb)
             if not offers:
-                raise RuntimeError(f"No available {gpu_name} offers found matching criteria.")
+                raise RuntimeError(
+                    f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB disk."
+                )
             best = offers[0]
             offer_id = int(best["id"])
-            dph = best.get("dph_total", best.get("dph", "N/A"))
-            print(f"[Vast Manager] Selected best {gpu_name} offer: {offer_id} (${dph}/hr)")
+            print(
+                f"[Vast Manager] Selected cheapest {gpu_name} offer: {offer_id} "
+                f"({format_rate(hourly_rate(best))}, budget ${limit:.2f}/hr)"
+            )
+        else:
+            rate = self._offer_rate(offer_id)
+            if rate == float("inf"):
+                print(
+                    f"[Vast Manager Warning] Could not price offer {offer_id}; proceeding because "
+                    "it was requested explicitly.",
+                    file=sys.stderr,
+                )
+            elif rate > limit:
+                raise RuntimeError(
+                    f"Offer {offer_id} costs ${rate:.3f}/hr, above the ${limit:.2f}/hr {gpu_name} budget."
+                )
+            else:
+                print(f"[Vast Manager] Offer {offer_id} is ${rate:.3f}/hr (budget ${limit:.2f}/hr)")
 
         print(f"[Vast Manager] Launching instance on offer {offer_id} with {disk_gb}GB disk...")
         args = [
@@ -177,11 +265,127 @@ class VastManager:
         print(f"[Vast Manager] Instance created successfully. ID: {instance_id}")
         return int(instance_id)
 
+    def _offer_rate(self, offer_id: int) -> float:
+        """Look up the all-in $/hr for a specific offer (inf when unavailable)."""
+        try:
+            offers = json.loads(self.run_cli(["search", "offers", f"id={offer_id}", "--raw"]))
+        except Exception:
+            return float("inf")
+        for offer in offers:
+            if int(offer.get("id", 0)) == int(offer_id):
+                return hourly_rate(offer)
+        return float("inf")
+
+    def provision_instance(
+        self,
+        gpu_name: str,
+        disk_gb: int = 50,
+        attempts: int = 3,
+        max_dph: float | None = None,
+    ) -> tuple[int, str]:
+        """Rent a GPU, moving to the next offer when a host cannot pull the image.
+
+        The cheapest in-budget offers are tried in turn. An instance that reports a
+        fatal start-up error (e.g. a Docker registry TLS timeout) is destroyed so it
+        stops billing storage before the next offer is attempted.
+        """
+        limit = gpu_budget(gpu_name) if max_dph is None else max_dph
+        offers = self.search_gpu(gpu_name, max_dph=limit, min_disk=disk_gb)
+        if not offers:
+            raise RuntimeError(
+                f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB disk."
+            )
+        total = min(attempts, len(offers))
+        last_error: Exception | None = None
+        for index, offer in enumerate(offers[:total], start=1):
+            offer_id = int(offer["id"])
+            print(f"[Vast Manager] Attempt {index}/{total}: offer {offer_id} ({format_rate(hourly_rate(offer))})")
+            instance_id = self.create_instance(
+                offer_id=offer_id,
+                disk_gb=disk_gb,
+                gpu_name=gpu_name,
+                max_dph=limit,
+            )
+            try:
+                return instance_id, self.wait_until_ready(instance_id)
+            except Exception as error:
+                last_error = error
+                print(f"[Vast Manager Warning] Instance {instance_id} did not come up: {error}", file=sys.stderr)
+                print(f"[Vast Manager] Destroying instance {instance_id} to stop storage charges...")
+                try:
+                    self.destroy_instance(instance_id)
+                except Exception as destroy_err:
+                    print(f"[Vast Manager Warning] Could not destroy {instance_id}: {destroy_err}", file=sys.stderr)
+        raise RuntimeError(
+            f"Could not rent a working {gpu_name} instance after {total} attempt(s): {last_error}"
+        ) from last_error
+
     def start_instance(self, instance_id: int) -> bool:
         """Start an existing stopped instance."""
         print(f"[Vast Manager] Starting instance {instance_id}...")
         self.run_cli(["start", "instance", str(instance_id)])
         return True
+
+    def find_existing_instance(
+        self,
+        expected_gpu: str,
+        min_disk: int = 50,
+        max_dph: float | None = None,
+        destroy_broken: bool = True,
+    ) -> tuple[int | None, str | None]:
+        """Reuse an already-rented instance of the right GPU that still fits the budget.
+
+        Instances left behind by a failed host (as opposed to ones we deliberately
+        stopped) can never be reused, so they are destroyed by default instead of
+        being skipped while they keep billing for disk.
+        """
+        limit = gpu_budget(expected_gpu) if max_dph is None else max_dph
+        print(f"[Vast Manager] Searching for a reusable {expected_gpu} instance (budget ${limit:.2f}/hr)...")
+        try:
+            instances = json.loads(self.run_cli(["show", "instances", "--raw"]))
+        except Exception as e:
+            print(f"[Vast Manager Warning] Failed to query existing instances: {e}", file=sys.stderr)
+            return None, None
+
+        wanted = expected_gpu.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "")
+        for inst in instances:
+            instance_id = int(inst.get("id") or 0)
+            status = str(inst.get("actual_status") or inst.get("status") or "").lower()
+            gpu_name = str(inst.get("gpu_name") or "unknown").upper().replace("NVIDIA GEFORCE ", "")
+            disk_space = int(float(inst.get("disk_space") or 0))
+            rate = hourly_rate(inst)
+            status_msg = str(inst.get("status_msg") or "")
+
+            if wanted not in gpu_name.replace(" ", ""):
+                continue
+
+            if status in ("error", "offline") or "error response from daemon" in status_msg.lower():
+                print(f"  Instance {instance_id} ({gpu_name}) is unusable [{status or 'error'}]: {status_msg or 'no status message'}")
+                if destroy_broken:
+                    print(f"  Destroying broken instance {instance_id} so it stops billing storage...")
+                    try:
+                        self.destroy_instance(instance_id)
+                    except Exception as e:
+                        print(f"  [Vast Manager Warning] Could not destroy {instance_id}: {e}", file=sys.stderr)
+                continue
+
+            if status not in ("running", "stopped", "created", "exited"):
+                print(f"  Skipping instance {instance_id}: status {status!r} is not reusable yet.")
+                continue
+            if disk_space < min_disk:
+                print(f"  Skipping instance {instance_id}: {disk_space}GB disk is below the {min_disk}GB minimum.")
+                continue
+            if rate > limit:
+                print(f"  Skipping instance {instance_id}: {format_rate(rate)} exceeds the ${limit:.2f}/hr budget.")
+                continue
+
+            server_url = self._resolve_server_url(inst) if status == "running" else None
+            print(
+                f"  Reusing instance {instance_id} (status={status}, GPU={gpu_name}, "
+                f"disk={disk_space}GB, {format_rate(rate)})"
+            )
+            return instance_id, server_url
+        return None, None
 
     def stop_instance(self, instance_id: int) -> bool:
         """Stop an instance to halt GPU compute billing."""
@@ -194,6 +398,43 @@ class VastManager:
         print(f"[Vast Manager] Destroying instance {instance_id}...")
         self.run_cli(["destroy", "instance", str(instance_id)])
         return True
+
+    def prune_instances(self, dry_run: bool = False) -> list[int]:
+        """Destroy rented instances that can never be reused (broken hosts, over budget)."""
+        try:
+            instances = json.loads(self.run_cli(["show", "instances", "--raw"]))
+        except Exception as e:
+            print(f"[Vast Manager Warning] Failed to list instances: {e}", file=sys.stderr)
+            return []
+
+        removed: list[int] = []
+        if not instances:
+            print("[Vast Manager] No rented instances to prune.")
+            return removed
+
+        for inst in instances:
+            instance_id = int(inst.get("id") or 0)
+            status = str(inst.get("actual_status") or inst.get("status") or "").lower()
+            gpu_name = str(inst.get("gpu_name") or "unknown")
+            status_msg = str(inst.get("status_msg") or "")
+            rate = hourly_rate(inst)
+            limit = gpu_budget(gpu_name)
+            broken = status in ("error", "offline") or "error response from daemon" in status_msg.lower()
+            over_budget = rate > limit
+            if not broken and not over_budget:
+                print(f"  Keeping {instance_id} ({gpu_name}, {status or 'unknown'}, {format_rate(rate)})")
+                continue
+            reason = "broken host / image pull failure" if broken else f"{format_rate(rate)} is above the ${limit:.2f}/hr budget"
+            if dry_run:
+                print(f"  [dry-run] Would destroy {instance_id} ({gpu_name}): {reason}")
+                continue
+            print(f"  Destroying {instance_id} ({gpu_name}): {reason}")
+            try:
+                self.destroy_instance(instance_id)
+                removed.append(instance_id)
+            except Exception as e:
+                print(f"  [Vast Manager Warning] Could not destroy {instance_id}: {e}", file=sys.stderr)
+        return removed
 
     def get_instance_info(self, instance_id: int) -> dict[str, Any]:
         """Fetch status and connection info for a specific instance."""
@@ -222,8 +463,17 @@ class VastManager:
         while time.time() - start_t < timeout_sec:
             info = self.get_instance_info(instance_id)
             status = info.get("actual_status") or ""
+            status_msg = str(info.get("status_msg") or "")
+            # A host that cannot pull the image will never become healthy; fail fast
+            # so the caller can destroy it and try a different offer.
+            if status in ("error", "offline") or "error response from daemon" in status_msg.lower():
+                raise InstanceBroken(
+                    f"instance {instance_id} failed to start [{status or 'error'}]: {status_msg or 'no status message'}"
+                )
             url = self._resolve_server_url(info) if status == "running" else ""
             msg = f"status={status!r} url={url or 'port 8000 not mapped yet'}"
+            if status_msg:
+                msg = f"{msg} msg={status_msg}"
             if msg != last_msg:
                 print(f"[Vast Manager] {msg}")
                 last_msg = msg
@@ -371,14 +621,19 @@ def main() -> int:
     # Search
     p_search = subparsers.add_parser("search", help="Search for a one-GPU Vast.ai offer")
     p_search.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
-    p_search.add_argument("--max-price", type=float, default=0.50, help="Max $/hr")
-    p_search.add_argument("--disk", type=int, default=40, help="Min disk space in GB")
+    p_search.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
+    p_search.add_argument("--disk", type=int, default=30, help="Min disk space in GB")
 
     # Create
-    p_create = subparsers.add_parser("create", help="Create a one-GPU Vast.ai instance")
+    p_create = subparsers.add_parser("create", help="Rent a one-GPU Vast.ai instance within budget")
     p_create.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
     p_create.add_argument("--offer", type=int, default=None, help="Specific offer ID")
     p_create.add_argument("--disk", type=int, default=60, help="Disk space in GB")
+    p_create.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
+
+    # Prune
+    p_prune = subparsers.add_parser("prune", help="Destroy broken or over-budget instances")
+    p_prune.add_argument("--dry-run", action="store_true", help="List what would be destroyed and exit")
 
     # Start
     p_start = subparsers.add_parser("start", help="Start existing instance")
@@ -400,13 +655,14 @@ def main() -> int:
     mgr = VastManager()
 
     if args.action == "search":
-        offers = mgr.search_gpu(args.gpu, max_dph=args.max_price, min_disk=args.disk)
-        print(f"\nFound {len(offers)} available {args.gpu} offers:\n")
+        limit = args.max_price if args.max_price is not None else gpu_budget(args.gpu)
+        offers = mgr.search_gpu(args.gpu, max_dph=limit, min_disk=args.disk)
+        print(f"\nFound {len(offers)} available {args.gpu} offers under ${limit:.2f}/hr:\n")
         print(f"{'Offer ID':<10} {'$/hr':<8} {'GPU':<14} {'VRAM':<8} {'DL (Mbps)':<12} {'Location'}")
         print("-" * 65)
         for o in offers[:10]:
             oid = o.get("id")
-            dph = f"${o.get('dph_total', o.get('dph', 0)):.3f}"
+            dph = format_rate(hourly_rate(o))
             gpu = o.get("gpu_name", "RTX 4090")
             vram = f"{o.get('gpu_ram', 24)}GB"
             dl = f"{o.get('inet_down', 0):.0f}"
@@ -415,8 +671,28 @@ def main() -> int:
         return 0
 
     elif args.action == "create":
-        inst_id = mgr.create_instance(offer_id=args.offer, disk_gb=args.disk, gpu_name=args.gpu)
-        print(f"Created instance: {inst_id}")
+        if args.offer is not None:
+            inst_id = mgr.create_instance(
+                offer_id=args.offer,
+                disk_gb=args.disk,
+                gpu_name=args.gpu,
+                max_dph=args.max_price,
+            )
+            print(f"Created instance: {inst_id}")
+        else:
+            # Rent within budget and fall through to another host if the first fails.
+            inst_id, url = mgr.provision_instance(
+                gpu_name=args.gpu,
+                disk_gb=args.disk,
+                max_dph=args.max_price,
+            )
+            print(f"Created instance: {inst_id} (server: {url})")
+        return 0
+
+    elif args.action == "prune":
+        removed = mgr.prune_instances(dry_run=args.dry_run)
+        if removed:
+            print(f"Destroyed {len(removed)} instance(s): {', '.join(map(str, removed))}")
         return 0
 
     elif args.action == "start":

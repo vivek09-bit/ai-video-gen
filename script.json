@@ -1,6 +1,6 @@
 {
-  "title": "सनौली का अनसुलझा रहस्य",
-  "topic": " 4000 साल पुराने महाभारत कालीन युद्ध Sanauli Excavation Mystery",
+  "title": "चीन का वो मंदिर जिसे बनाने वाले गायब हो गए — चार हज़ार साल पुराना रहस्य",
+  "topic": "4000 saal purani china ki kahani",
   "language": "hi",
   "genre": "ancient_history",
   "visualStyle": null,
@@ -14,7 +14,7 @@
   "speed": 0.94,
   "sentencePauseSeconds": 0.06,
   "ambience": {
-    "src": "amb_vedic_resonance",
+    "src": "amb_temple",
     "volume": 0.2
   },
   "captions": {
@@ -32,15 +32,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "midnight_blue",
-    "name": "Midnight Blue",
-    "accent": "#38bdf8",
-    "text": "#f8fafc",
-    "muted": "#94a3b8",
-    "panel": "rgba(15, 23, 42, 0.75)",
+    "key": "blood_red",
+    "name": "Blood Red",
+    "accent": "#ef4444",
+    "text": "#fef2f2",
+    "muted": "#fca5a5",
+    "panel": "rgba(45, 10, 10, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#050c18"
+    "bg_color": "#0c0404"
   },
   "characters": {},
   "scenes": [
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Excavation site, dusty fields, metal detector, iron, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: aerial drone shot of flooded Chinese valley,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -78,7 +78,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Excavation site, dusty fields, metal detector, iron, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: aerial drone shot of flooded Chinese valley,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -95,7 +95,7 @@
         }
       ],
       "ambience": {
-        "src": "amb_temple",
+        "src": "amb_quarry_echo",
         "volume": 0.15
       },
       "soundCues": [
@@ -107,7 +107,7 @@
       ],
       "background": {
         "type": "color",
-        "color": "#050c18"
+        "color": "#0c0404"
       },
       "cast": [],
       "acting": {
@@ -123,10 +123,10 @@
       "lines": [
         {
           "character": null,
-          "text": "कल्पना कीजिए कि एक किसान अपने खेत को खोद रहा है और अचानक उसका फावड़ा किसी ऐसी धातु से टकराता है, जो वहाँ होनी ही नहीं चाहिए थी। उत्तर प्रदेश के सनौली गांव में ठीक यही हुआ था। जब सरकारी टीम ने खुदाई शुरू की, तो जो बाहर निकला, उसने पूरी दुनिया के आर्कियोलॉजिस्ट्स के होश उड़ा दिए। चार हजार साल पुरानी एक ऐसी युद्ध वाली गाड़ी, यानी रथ, जिसे देख कर आज के मॉडर्न इंजीनियर्स भी अपनी आंखों पर यकीन नहीं कर पा रहे हैं।"
+          "text": "साल दो हज़ार उन्नीस की बात है। चीन के झेजियांग प्रांत में एक झील है, क्वियांदाओ लेक। और उस झील के नीचे, पानी की सतह से चालीस मीटर नीचे, एक ऐसा शहर सोया हुआ है, जिसे देखकर आज के इंजीनियर भी सिर पकड़ लेते हैं। गांव के लोग इसे शापित शहर कहते हैं। कहते हैं कि जब पानी घटता है, तब भी नीचे की मूर्तियाँ सीधे आसमान की तरफ देखती हैं। गाइड जब टूरिस्टों को नाव पर ले जाता है, तो पानी के नीचे चमकते हुए पत्थर के शेर, ड्रैगन, और तैंतीस मीटर ऊँचे दरवाज़े दिखाई देते हैं। लेकिन हैरानी की बात ये है कि ये शहर किसी बाढ़ में नहीं डूबा। इसे जान-बूझकर पानी में डुबोया गया था। और जिसने इसे बनाया, उसका नाम तक इतिहास के पन्नों से मिटा दिया गया। तो चलिए, आज आपको उस शहर की कहानी सुनाता हूँ, जो चार हज़ार साल पहले बना था, और आज भी पानी के अंदर अपने रहस्य की रक्षा कर रहा है।"
         }
       ],
-      "visualKeywords": "Excavation site, dusty fields, metal detector, iron chariot wheel"
+      "visualKeywords": "aerial drone shot of flooded Chinese valley, submerged stone temple under green water"
     }
   ],
   "audioModel": "indicf5",
