@@ -213,7 +213,7 @@ def prefetch_for(jobs: list[dict]) -> list[str]:
         for job in jobs
     )
     if wants_indicf5:
-        models.append("ai4bharat/indic-parler-tts")
+        models.append("RXD03/indic-parler-tts")
     if any(job.get("video-gen") for job in jobs):
         video_models = [str(job["video-model"]) for job in jobs if job.get("video-model")]
         models.append(

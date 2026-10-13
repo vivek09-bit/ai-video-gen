@@ -259,23 +259,41 @@ def load_indic_parler_engine():
         from parler_tts import ParlerTTSForConditionalGeneration
         from transformers import AutoTokenizer
 
-        repo_id = os.environ.get("INDIC_PARLER_MODEL", "ai4bharat/indic-parler-tts")
+        repo_candidates: list[str]
+        try:
+            from tts import indic_parler_model_candidates
+            repo_candidates = indic_parler_model_candidates()
+        except Exception:
+            repo_candidates = [os.environ.get("INDIC_PARLER_MODEL") or "RXD03/indic-parler-tts"]
 
         class SimpleIndicParler:
             def __init__(self):
                 self.device = DEVICE
-                self.model = (
-                    ParlerTTSForConditionalGeneration.from_pretrained(
-                        repo_id, torch_dtype=torch.float32
-                    )
-                    .to(DEVICE)
-                    .eval()
-                )
+                model = None
+                loaded_repo = ""
+                last_err: Exception | None = None
+                for repo_id in repo_candidates:
+                    try:
+                        model = ParlerTTSForConditionalGeneration.from_pretrained(
+                            repo_id, torch_dtype=torch.float32
+                        )
+                        loaded_repo = repo_id
+                        break
+                    except Exception as err:  # noqa: BLE001
+                        last_err = err
+                        print(
+                            f"[Vast Server] {repo_id} unavailable ({type(err).__name__}); "
+                            "trying next candidate...",
+                            file=sys.stderr,
+                        )
+                if model is None:
+                    raise RuntimeError(f"no Indic Parler-TTS model could be loaded: {last_err}")
+                self.model = model.to(DEVICE).eval()
                 self.description_tokenizer = AutoTokenizer.from_pretrained(
                     self.model.config.text_encoder._name_or_path
                 )
-                self.prompt_tokenizer = AutoTokenizer.from_pretrained(repo_id)
-                self.sample_rate = int(getattr(self.model.config, "sampling_rate", 44100))
+                self.prompt_tokenizer = AutoTokenizer.from_pretrained(loaded_repo)
+                self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
                 self.resampler = torchaudio.transforms.Resample(self.sample_rate, 24000)
 
             def synthesize(self, text, description, speed=1.0):

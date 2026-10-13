@@ -892,7 +892,25 @@ CARTESIA_VOICES: dict[str, dict] = {
 # steered entirely by a natural-language *description* of the speaker (gender, timbre,
 # pace, recording quality). That is far more stable than ref-audio alignment and removes
 # the need to ship or upload reference voices.
-INDIC_PARLER_MODEL = os.environ.get("INDIC_PARLER_MODEL", "ai4bharat/indic-parler-tts")
+INDIC_PARLER_MODEL = os.environ.get("INDIC_PARLER_MODEL", "").strip()
+# Ordered candidates. The official AI4Bharat repo is GATED (401 without a token that has
+# accepted its terms), so ungated mirrors are listed as fallbacks. Set INDIC_PARLER_MODEL
+# to pin one repo explicitly (which disables the chain).
+INDIC_PARLER_MODEL_FALLBACKS: tuple[str, ...] = (
+    "ai4bharat/indic-parler-tts",
+    "RXD03/indic-parler-tts",
+    "Yogi5/indic-parler-tts-backup",
+    "naklitechie/indic-parler-tts",
+)
+
+
+def indic_parler_model_candidates() -> list[str]:
+    """Repos to try, in order, when loading Indic Parler-TTS."""
+    if INDIC_PARLER_MODEL:
+        return [INDIC_PARLER_MODEL]
+    return list(INDIC_PARLER_MODEL_FALLBACKS)
+
+
 INDIC_PARLER_VOICES: dict[str, dict] = {
     "indic_parler_aarav": {
         "id": "indic_parler_aarav",
@@ -1026,19 +1044,32 @@ class IndicParlerEngine:
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.dtype = torch.float32
-        print(f"[Indic Parler-TTS] Loading {INDIC_PARLER_MODEL} on {self.device}...")
-        self.model = (
-            ParlerTTSForConditionalGeneration.from_pretrained(
-                INDIC_PARLER_MODEL, torch_dtype=self.dtype
-            )
-            .to(self.device)
-            .eval()
-        )
+        last_err: Exception | None = None
+        model = None
+        loaded_repo = ""
+        for repo_id in indic_parler_model_candidates():
+            try:
+                print(f"[Indic Parler-TTS] Loading {repo_id} on {self.device}...")
+                model = ParlerTTSForConditionalGeneration.from_pretrained(
+                    repo_id, torch_dtype=self.dtype
+                )
+                loaded_repo = repo_id
+                break
+            except Exception as err:  # noqa: BLE001 - gated/offline repos fall through
+                last_err = err
+                print(
+                    f"[Indic Parler-TTS] {repo_id} unavailable "
+                    f"({type(err).__name__}: {str(err)[:120]}); trying next candidate...",
+                    file=sys.stderr,
+                )
+        if model is None:
+            raise RuntimeError(f"no Indic Parler-TTS model could be loaded: {last_err}")
+        self.model = model.to(self.device).eval()
         self.description_tokenizer = AutoTokenizer.from_pretrained(
             self.model.config.text_encoder._name_or_path
         )
-        self.prompt_tokenizer = AutoTokenizer.from_pretrained(INDIC_PARLER_MODEL)
-        self.sample_rate = int(getattr(self.model.config, "sampling_rate", 44100))
+        self.prompt_tokenizer = AutoTokenizer.from_pretrained(loaded_repo)
+        self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
         print(
             f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
         )

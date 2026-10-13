@@ -234,7 +234,7 @@ SERVER_DEPENDENCY_PROBE: str = (
 
 # Hugging Face repos prefetched during the install so the first request is not stuck
 # on a download. Anything needed by Indic Parler-TTS narration goes here by default.
-DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/indic-parler-tts",)
+DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("RXD03/indic-parler-tts",)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
 DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"

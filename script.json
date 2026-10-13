@@ -1,5 +1,5 @@
 {
-  "title": "पुरानी हवेली का राज़",
+  "title": "पुरानी हवेली का राज़: रात तीन बजे की घंटी",
   "topic": "पुरानी हवेली का राज़",
   "language": "hi",
   "genre": "horror",
@@ -9,7 +9,7 @@
   "width": 1920,
   "height": 1080,
   "fps": 30,
-  "voice": "indicf5_aarav",
+  "voice": "indic_parler_aarav",
   "secondaryVoice": null,
   "speed": 1.0,
   "sentencePauseSeconds": 0.06,
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture golden, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution ancient heritage, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 2,
           "effects": {
@@ -79,7 +79,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture golden, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution ancient heritage, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 1,
           "effects": {
@@ -125,10 +125,10 @@
       "lines": [
         {
           "character": null,
-          "text": "पुरानी हवेली की दीवार पर आज भी एक नाम लिखा है। और वो नाम तुम्हारा है। असल में, रात के तीन बजे जब रोहन ने उस सौ साल से बंद कमरे का दरवाज़ा खोला, तो अंदर की दीवार पर ताज़ा खुदा नाम देखकर उसका खून जम गया। वही नाम, वही लिखावट, जो उसकी डायरी में थी। तभी अचानक पीछे से एक ठंडी साँस ने उसका कंधा छुआ।"
+          "text": "रात ठीक तीन बजे, इस पुरानी हवेली में एक घंटी बजती है, जिसे सुनकर मेरी रूह काँप जाती है। बड़े पापा ने मरते वक्त कहा था, हवेली में ग्यारह कमरे हैं, पर हर घंटी के बाद एक कमरा गायब हो जाता है। आज मैंने गिना, तो बारह कमरे दिख रहे थे। और हैरानी की बात ये थी, तेरहवें कमरे से मेरा नाम पुकारा जा रहा था।"
         }
       ],
-      "visualKeywords": "dusty haveli wall, carved name, flashlight beam, shocked young man face"
+      "visualKeywords": "old mansion hallway, night, ticking clock, dim lantern"
     },
     {
       "id": "scene-002",
@@ -144,7 +144,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: hidden 13th door, mirror reflection, protagonist face,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 2,
           "effects": {
@@ -166,7 +166,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: hidden 13th door, mirror reflection, protagonist face,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 1,
           "effects": {
@@ -189,7 +189,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: hidden 13th door, mirror reflection, protagonist face,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 1,
           "effects": {
@@ -241,10 +241,10 @@
       "lines": [
         {
           "character": null,
-          "text": "हैरानी की बात ये थी कि वो हवेली तो सिर्फ दो मंज़िल की थी। लेकिन तभी सीढ़ियों से एक औरत की रुलाई गूंजी, वो रुलाई जो सिर्फ कुँवारी लड़कियों को सुनाई देती है। और फिर वो समझ गया, ये हवेली का आखिरी वारिस कोई इंसान नहीं, बल्कि वही आत्मा है, जो सौ साल से अपने ही कातिल का इंतज़ार कर रही थी।"
+          "text": "मैंने वो दरवाज़ा धकेल दिया, अंदर घुप्प अंधेरा था, और बीच में रखा था एक पुराना आईना। आईने में मेरा ही चेहरा था, लेकिन वो मुस्कुरा रहा था, जबकि मेरी आँखों से आँसू बह रहे थे। तभी मेरे पीछे वो दरवाज़ा बंद हो गया, और आईने वाले ने धीरे से कहा, अब बारी तुम्हारी है। मैं चीख भी नहीं पाया, क्योंकि घंटी फिर बजी, और हवेली में अब सिर्फ ग्यारह कमरे बचे थे।"
         }
       ],
-      "visualKeywords": "dark staircase, flickering lantern, shadowy woman figure, terrified man turning"
+      "visualKeywords": "hidden 13th door, mirror reflection, protagonist face, candlelight"
     }
   ],
   "audioModel": "indicf5",
@@ -262,58 +262,58 @@
     "ai_synthesis": {
       "concepts": [
         {
-          "title": "हवेली की दीवार पर लिखा नाम किसका था?",
-          "hook": "उस पुरानी हवेली की दीवार पर आज भी एक नाम लिखा है... और वो नाम तुम्हारा है।",
-          "core_angle": "A young man inherits a haveli and finds his own name freshly carved into a wall that has been sealed for 100 years, leading him to discover he is the reincarnation of the previous owner who was murdered there.",
-          "recommended_topic_arg": "पुरानी हवेली की दीवार पर लिखा रहस्यमयी नाम और पुनर्जन्म का राज़",
+          "title": "हवेली की आखिरी रात: जो दीवारें बोलती हैं",
+          "hook": "उस हवेली में आज भी रात 3 बजे घंटी बजती है... और हर बार एक कमरा कम हो जाता है।",
+          "core_angle": "A cursed mansion where each toll of the 3 AM bell erases one room from existence—and the narrator is live-streaming from inside.",
+          "recommended_topic_arg": "Horror story about a haunted haveli where a ghost bell at 3 AM makes rooms vanish one by one, told by a vlogger who gets trapped inside",
           "target_emotion": "dread"
         },
         {
-          "title": "हवेली में रात 3 बजे कौन रोता है?",
-          "hook": "रात के तीन बजे हवेली से आने वाली औरत की रुलाई... जो सिर्फ कुँवारी लड़कियों को सुनाई देती है।",
-          "core_angle": "A group of friends stay overnight in a haunted haveli and discover that the crying woman only appears to unmarried girls, warning them about a curse that has killed every bride in their family for generations.",
-          "recommended_topic_arg": "हवेली में रात 3 बजे रोने वाली औरत की कहानी और कुँवारी लड़कियों पर श्राप",
-          "target_emotion": "curiosity"
-        },
-        {
-          "title": "हवेली का आखिरी वारिस कौन है?",
-          "hook": "उस हवेली का आखिरी वारिस आज तक जिंदा है... लेकिन वो इंसान नहीं है।",
-          "core_angle": "A lawyer investigating a property dispute discovers that the haveli's last living heir is actually a shape-shifting entity that has been impersonating the family for decades, feeding on anyone who tries to claim the inheritance.",
-          "recommended_topic_arg": "पुरानी हवेली का आखिरी वारिस और शेपशिफ्टिंग आत्मा का राज़",
+          "title": "मैंने हवेली का आईना तोड़ा... फिर जो हुआ",
+          "hook": "आईने में मेरा प्रतिबिंब मुस्कुराया... जबकि मैं रो रहा था।",
+          "core_angle": "A mirror in the haveli reflects a parallel life where the protagonist never left—and the reflection is slowly swapping places with the real person.",
+          "recommended_topic_arg": "Horror story about a haunted mirror in an old haveli that shows a parallel version of the protagonist's life, leading to a terrifying identity swap",
           "target_emotion": "shock"
         },
         {
-          "title": "हवेली के आईने में कैद आत्मा",
-          "hook": "उस हवेली के आईने में एक आत्मा कैद है... और वो बाहर निकलने के लिए तुम्हारा नाम पुकार रही है।",
-          "core_angle": "A girl buys an antique mirror from a haveli and realizes that the spirit trapped inside can only be freed if someone takes her place, forcing her to choose between her own freedom and the spirit's vengeance.",
-          "recommended_topic_arg": "हवेली के पुराने आईने में कैद आत्मा की कहानी",
+          "title": "हवेली का 13वाँ दरवाज़ा: कभी मत खोलना",
+          "hook": "हवेली में 12 कमरे हैं... लेकिन रात में 13 दरवाज़े गिने जाते हैं।",
+          "core_angle": "A 13th door appears only at midnight; each person who opens it returns as a different person—and the family has been hiding this secret for generations.",
+          "recommended_topic_arg": "Horror story about a mysterious 13th door in a haveli that appears at midnight, and the family curse that follows anyone who opens it",
+          "target_emotion": "curiosity"
+        },
+        {
+          "title": "पुरानी हवेली की दुल्हन: 100 साल पुराना श्राप",
+          "hook": "हवेली की छत पर आज भी दुल्हन का जोड़ा सूखता है... लेकिन दुल्हन कभी नहीं दिखती।",
+          "core_angle": "A bride's wedding outfit is laid out to dry every night by an unseen force; whoever touches it becomes the next bride in a 100-year-old curse.",
+          "recommended_topic_arg": "Horror story about a cursed haveli where a ghost bride's wedding dress appears every night, and anyone who touches it is forced to marry a spirit",
           "target_emotion": "dread"
         },
         {
-          "title": "हवेली की सीढ़ियाँ क्यों गिनती हैं?",
-          "hook": "हवेली की सीढ़ियाँ हर रात अपने आप गिनी जाती हैं... और गिनती हमेशा 13 पर जाकर रुक जाती है।",
-          "core_angle": "A paranormal investigator discovers that the haveli's staircase is cursed: anyone who climbs it after midnight becomes trapped in a time loop, reliving the night of a massacre that happened 200 years ago, and the only way out is to change history.",
-          "recommended_topic_arg": "हवेली की 13 सीढ़ियों का श्राप और टाइम लूप का राज़",
-          "target_emotion": "excitement"
+          "title": "हवेली के तहखाने में 7 दिन: कोई नहीं बचा",
+          "hook": "मैं 7 दिन तक हवेली के तहखाने में फंसा रहा... और हर दिन एक आवाज़ मुझे नीचे बुलाती रही।",
+          "core_angle": "A survival horror where the basement has no exit, and each day a new voice mimics a loved one to lure the protagonist deeper—until he realizes he's been dead since day one.",
+          "recommended_topic_arg": "Horror story about a person trapped in a haunted haveli basement for 7 days, tormented by voices mimicking loved ones, with a shocking twist ending",
+          "target_emotion": "shock"
         }
       ],
       "seo_tags": [
-        "पुरानी हवेली का राज़",
+        "हवेली का राज़",
         "भूतिया हवेली",
-        "हिंदी हॉरर कहानी",
-        "हवेली हॉरर",
-        "आत्मा की कहानी",
+        "हॉरर कहानी हिंदी",
+        "पुरानी हवेली",
         "डरावनी कहानी",
+        "भूत की कहानी",
+        "हिंदी हॉरर स्टोरी",
         "रहस्यमयी हवेली",
-        "भूत प्रेत कहानी",
-        "हॉरर स्टोरी हिंदी",
-        "श्रापित हवेली"
+        "श्रापित हवेली",
+        "हॉरर वीडियो"
       ],
       "recommended_hashtags": [
-        "#पुरानीहवेली",
+        "#हवेली",
         "#हॉररकहानी",
-        "#भूतियाहवेली",
-        "#हिंदीहॉरर",
+        "#भूतिया",
+        "#HindiHorror",
         "#डरावनीकहानी"
       ]
     }

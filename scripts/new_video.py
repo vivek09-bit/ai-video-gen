@@ -1725,7 +1725,7 @@ def main() -> int:
     # Prefetch the weights this run will actually need while the container is still
     # installing, so the first request is not stuck waiting on a download. Video mode
     # pulls the LTX checkpoint too; image mode never touches it.
-    vast_prefetch = ["ai4bharat/indic-parler-tts"] if audio_model == "indicf5" else []
+    vast_prefetch = ["RXD03/indic-parler-tts"] if audio_model == "indicf5" else []
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
     render_on_vast = args.render_on == "vast"
