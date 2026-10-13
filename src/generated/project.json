@@ -1,11 +1,11 @@
 {
   "script": {
-    "title": "पुरानी हवेली का राज़",
-    "voice": "indic_parler_aarav",
-    "speed": 1.0,
+    "title": "चीन की खुदाई में मिला चार हज़ार साल पुराना डरावना सच",
+    "voice": "indic_parler_priya",
+    "speed": 0.94,
     "fps": 30,
-    "width": 1920,
-    "height": 1080,
+    "width": 1080,
+    "height": 1920,
     "tailPaddingSeconds": 1.2,
     "sentencePauseSeconds": 0.06,
     "master": {
@@ -21,39 +21,39 @@
     "captions": {
       "enabled": true,
       "wordsPerCue": 5,
-      "bottom": 0.14,
-      "fontSize": 48,
+      "bottom": 0.28,
+      "fontSize": 55,
       "uppercase": false,
       "highlight": true,
       "position": "bottom",
       "outline": 0,
       "panel": true,
-      "maxWidth": 0.92,
+      "maxWidth": 0.88,
       "rise": 14,
       "hinglish": true
     },
     "music": null,
     "theme": {
-      "accent": "#e2e8f0",
-      "text": "#ffffff",
-      "muted": "#94a3b8",
-      "panel": "rgba(20, 20, 24, 0.82)",
+      "accent": "#f97316",
+      "text": "#fff7ed",
+      "muted": "#fdba74",
+      "panel": "rgba(35, 18, 10, 0.75)",
       "headlineFont": "Georgia, 'Times New Roman', serif",
       "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-      "key": "monochrome_noir",
-      "name": "Monochrome Noir",
-      "bg_color": "#050507"
+      "key": "amber_ember",
+      "name": "Amber Ember",
+      "bg_color": "#0a0502"
     },
     "characters": {},
-    "topic": "पुरानी हवेली का राज़",
+    "topic": "4000 saal puri china ki khudai ka raz़",
     "language": "hi",
-    "genre": "horror",
+    "genre": "ancient_history",
     "visualStyle": null,
-    "format": "landscape",
-    "aspectRatio": "16:9",
+    "format": "reel",
+    "aspectRatio": "9:16",
     "secondaryVoice": null,
     "ambience": {
-      "src": "amb_wind",
+      "src": "amb_ancient_sanctum",
       "volume": 0.2
     },
     "scenes": [
@@ -63,7 +63,7 @@
         "lines": [
           {
             "character": null,
-            "text": "तीस साल से बंद पुरानी हवेली का वो कमरा आज खुल गया। जैसे ही दरवाज़ा खिसका, अंदर से ठंडी हवा का झोंका आया और दीवार पर टंगा आईना अपने आप चमक उठा। आईने में एक लड़की का चेहरा दिखा, जो तीस साल पहले इसी कमरे में मरी थी। और तभी आईने के अंदर से उसने धीरे से फुसफुसाया, अब तुम मेरी जगह लो।"
+            "text": "चीन के शान्शी प्रांत में, चार हज़ार साल पुरानी एक खुदाई के दौरान, मज़दूरों को ज़मीन के नीचे कुछ ऐसा मिला, जिसने पूरी दुनिया के इतिहासकारों की नींद उड़ा दी। ये कोई साधारण क़ब्र नहीं थी... ये एक ऐसा सील किया हुआ कमरा था, जिसका दरवाज़ा खोलने पर अंदर से एक अजीब सी गूँज निकली... जैसे चार हज़ार साल पुरानी कोई आवाज़ आज भी वहाँ क़ैद हो... और बाहर निकलने के लिए छटपटा रही हो।"
           }
         ],
         "headline": "",
@@ -75,7 +75,7 @@
           "from": "#0b1220",
           "to": "#132a44",
           "angle": 160,
-          "color": "#050507"
+          "color": "#0a0502"
         },
         "cast": [],
         "shots": [
@@ -85,16 +85,15 @@
               "src": "images/scene-001.png",
               "kenBurns": "in",
               "dim": 0.15,
-              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture eerie, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+              "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavation pit, archaeologists with torches, ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
             },
             "weight": 2,
             "effects": {
-              "vignette": 0.88,
-              "grain": 0.42,
-              "dust": 0.28,
+              "vignette": 0.72,
+              "grain": 0.22,
+              "dust": 0.3,
               "zoom": 0.025,
-              "drift": "in",
-              "exposureFlicker": 0.12
+              "drift": "in"
             },
             "transition": {
               "type": "cut"
@@ -106,16 +105,15 @@
               "src": "images/scene-001.png",
               "kenBurns": "out",
               "dim": 0.15,
-              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture eerie, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+              "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavation pit, archaeologists with torches, ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.88,
-              "grain": 0.42,
-              "dust": 0.28,
+              "vignette": 0.72,
+              "grain": 0.22,
+              "dust": 0.3,
               "zoom": 0.025,
-              "drift": "in",
-              "exposureFlicker": 0.12
+              "drift": "in"
             },
             "transition": {
               "type": "crossfade",
@@ -124,14 +122,14 @@
           }
         ],
         "ambience": {
-          "src": "amb_wind",
-          "volume": 0.16
+          "src": "amb_temple",
+          "volume": 0.15
         },
         "soundCues": [
           {
             "at": 0.0,
-            "sfx": "sfx_footstep_wood",
-            "volume": 0.17
+            "sfx": "sfx_bell",
+            "volume": 0.16
           }
         ],
         "padBefore": 0.12,
@@ -139,13 +137,13 @@
         "holdSeconds": 3.0,
         "beat": "establish",
         "acting": {
-          "emotion": "worried",
-          "intensity": 0.34,
+          "emotion": "calm",
+          "intensity": 0.26,
           "head": "left",
           "eyes": "left",
           "gesture": "none"
         },
-        "visualKeywords": "dark old haveli, rusted locked door, candle light, spider webs, night"
+        "visualKeywords": "dark excavation pit, archaeologists with torches, ancient sealed tomb entrance, dust particles floating"
       },
       {
         "id": "scene-002",
@@ -153,7 +151,7 @@
         "lines": [
           {
             "character": null,
-            "text": "मैं पीछे हटा, लेकिन आईने से मेरा प्रतिबिंब हिला नहीं। उस लड़की ने धीरे से अपना हाथ आईने की सतह से बाहर निकाला और मेरी तरफ बढ़ा दिया। मेरे पैर जैसे जम गए, और कमरे का दरवाज़ा अपने आप बंद हो गया। तभी आईने में मेरा चेहरा धुंधला होने लगा और उसकी जगह उस लड़की की शक्ल उभर आई। आज भी वो हवेली में कोई नया मेहमान आने का इंतज़ार करती है।"
+            "text": "लेकिन जैसे ही पुरातत्वविदों ने अंदर क़दम रखा, हैरानी की बात ये थी कि वहाँ कोई सोना या हीरा नहीं था... बल्कि एक ऐसा कांस्य का बर्तन रखा था, जिसकी दीवारें इतनी पतली और सटीक थीं, कि आज की मशीनें भी उसे बना नहीं सकतीं। और उस बर्तन के अंदर से, आज भी एक गहरी गूँज निकल रही थी... जिसकी आवाज़ सुनकर वैज्ञानिकों के पसीने छूट गए। तभी अचानक, वहाँ मौजूद एक वैज्ञानिक ने देखा कि दीवार पर कुछ लिखा था... और वो लिखावट आज की भाषा से मेल खा रही थी... जो चार हज़ार साल पहले असंभव था।"
           }
         ],
         "headline": "",
@@ -165,7 +163,7 @@
           "from": "#0b1220",
           "to": "#132a44",
           "angle": 160,
-          "color": "#050507"
+          "color": "#0a0502"
         },
         "cast": [],
         "shots": [
@@ -175,17 +173,16 @@
               "src": "images/scene-002.png",
               "kenBurns": "out",
               "dim": 0.15,
-              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: cracked mirror, ghost girl reflection, protagonist terrified,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+              "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
             },
             "weight": 2,
             "effects": {
-              "vignette": 0.96,
-              "grain": 0.58,
-              "dust": 0.15,
-              "shake": 0.4,
-              "zoom": 0.06,
-              "drift": "in",
-              "exposureFlicker": 0.35
+              "vignette": 0.8,
+              "grain": 0.3,
+              "dust": 0.25,
+              "shake": 0.12,
+              "zoom": 0.04,
+              "drift": "in"
             },
             "transition": {
               "type": "cut"
@@ -197,17 +194,16 @@
               "src": "images/scene-002.png",
               "kenBurns": "left",
               "dim": 0.15,
-              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: cracked mirror, ghost girl reflection, protagonist terrified,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+              "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.96,
-              "grain": 0.58,
-              "dust": 0.15,
-              "shake": 0.4,
-              "zoom": 0.06,
-              "drift": "in",
-              "exposureFlicker": 0.35
+              "vignette": 0.8,
+              "grain": 0.3,
+              "dust": 0.25,
+              "shake": 0.12,
+              "zoom": 0.04,
+              "drift": "in"
             },
             "transition": {
               "type": "crossfade",
@@ -220,17 +216,16 @@
               "src": "images/scene-002.png",
               "kenBurns": "right",
               "dim": 0.15,
-              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: cracked mirror, ghost girl reflection, protagonist terrified,, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+              "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.96,
-              "grain": 0.58,
-              "dust": 0.15,
-              "shake": 0.45,
-              "zoom": 0.06,
-              "drift": "in",
-              "exposureFlicker": 0.35
+              "vignette": 0.8,
+              "grain": 0.3,
+              "dust": 0.25,
+              "shake": 0.44,
+              "zoom": 0.04,
+              "drift": "in"
             },
             "transition": {
               "type": "crossfade",
@@ -239,18 +234,18 @@
           }
         ],
         "ambience": {
-          "src": "amb_ghost_voices",
+          "src": "amb_tension",
           "volume": 0.25
         },
         "soundCues": [
           {
             "at": 0.15,
-            "sfx": "sfx_phantom_shriek",
+            "sfx": "sfx_impact",
             "volume": 0.25
           },
           {
             "at": 16.8,
-            "sfx": "sfx_boom",
+            "sfx": "sfx_mystic_reveal",
             "volume": 0.25
           }
         ],
@@ -259,22 +254,22 @@
         "holdSeconds": 3.0,
         "beat": "reveal",
         "acting": {
-          "emotion": "shock",
+          "emotion": "calm",
           "intensity": 1.0,
           "head": "center",
           "eyes": "center",
-          "gesture": "recoil"
+          "gesture": "explain"
         },
-        "visualKeywords": "cracked mirror, ghost girl reflection, protagonist terrified, flickering candle, shadow hand"
+        "visualKeywords": "bronze vessel glowing under torchlight, sub-millimeter precision jade artifact, shocked archaeologist face, dim underground chamber"
       }
     ],
     "audioModel": "indicf5",
     "visualMode": "image",
     "research": {
-      "seed": "पुरानी हवेली का राज़",
-      "genre": "horror",
+      "seed": "4000 saal puri china ki khudai ka raz़",
+      "genre": "ancient_history",
       "keywords": {
-        "seed": "पुरानी हवेली का राज़",
+        "seed": "4000 saal puri china ki khudai ka raz़",
         "youtube_trending": [],
         "google_search": [],
         "questions_and_curiosity": [],
@@ -283,389 +278,449 @@
       "ai_synthesis": {
         "concepts": [
           {
-            "title": "हवेली का बंद कमरा: 30 साल बाद खुला",
-            "hook": "उस बंद कमरे से आज भी आवाज़ आती है... और आज उसका दरवाज़ा खुल गया।",
-            "core_angle": "A sealed room in an old haveli is opened after 30 years, revealing a mirror that reflects a girl who died there—and she wants the viewer to take her place.",
-            "recommended_topic_arg": "पुरानी हवेली का राज़: बंद कमरे में 30 साल से कैद आत्मा की कहानी",
+            "title": "4000 साल पुरानी चीन की खुदाई में मिला डरावना सच!",
+            "hook": "4000 साल पुरानी चीन की खुदाई में एक ऐसी चीज़ मिली जिसने पूरी दुनिया को हिला दिया!",
+            "core_angle": "The excavation revealed a perfectly preserved mummy that seemed to whisper a warning about an ancient curse, challenging everything we know about Chinese history.",
+            "recommended_topic_arg": "4000 saal purani china ki khudai ka raaz: ek mummy aur shraap ki kahani",
             "target_emotion": "dread"
           },
           {
-            "title": "हवेली की दीवारों में छिपी डायरी",
-            "hook": "हवेली की दीवार तोड़ी तो निकली एक डायरी... जिसमें लिखा था मेरा नाम।",
-            "core_angle": "A diary found inside a haveli wall predicts the deaths of everyone who reads it, and the narrator realizes they are the next name written in it.",
-            "recommended_topic_arg": "हवेली की दीवार में मिली श्रापित डायरी: मौत की भविष्यवाणी",
-            "target_emotion": "shock"
+            "title": "चीन की खुदाई में मिली 4000 साल पुरानी तकनीक जो आज भी है रहस्य!",
+            "hook": "4000 साल पहले चीन में ऐसी तकनीक थी जो आज के वैज्ञानिकों को भी चौंका दे!",
+            "core_angle": "Archaeologists unearthed a device that suggests ancient Chinese had advanced technology far beyond their time, possibly of extraterrestrial origin.",
+            "recommended_topic_arg": "प्राचीन चीन की खुदाई में मिली अत्याधुनिक तकनीक: रहस्यमय यंत्र",
+            "target_emotion": "wonder"
           },
           {
-            "title": "हवेली की आखिरी वारिस: रात 3 बजे की विरासत",
-            "hook": "रात 3 बजे हवेली का दरवाज़ा खुद खुलता है... और अंदर कोई मेरा इंतज़ार करता है।",
-            "core_angle": "The last heir of a haveli must spend one night alone to claim inheritance, but at 3 AM the ancestral spirits offer a choice: leave forever or become the new guardian.",
-            "recommended_topic_arg": "हवेली की आखिरी वारिस: रात 3 बजे का श्राप और विरासत का सौदा",
+            "title": "4000 साल पुरानी चीन की खुदाई में मिला इंसानी इतिहास का सबसे बड़ा रहस्य!",
+            "hook": "चीन की खुदाई में मिली 4000 साल पुरानी किताब, जिसमें लिखी हैं ऐसी बातें जो आपको हैरान कर देंगी!",
+            "core_angle": "A sealed book found in the tomb contains prophecies that accurately predict modern events, making experts question the timeline of human civilization.",
+            "recommended_topic_arg": "4000 saal purani china ki khudai mein mili bhavishyavani karne wali kitab",
             "target_emotion": "curiosity"
           },
           {
-            "title": "हवेली का आईना: जो दिखाता है मौत का चेहरा",
-            "hook": "हवेली के आईने में मैंने अपना चेहरा देखा... लेकिन वो मुस्कुरा रहा था।",
-            "core_angle": "An antique mirror in a haveli shows the future death of anyone who looks into it, and the narrator sees their own death—but the reflection starts moving on its own.",
-            "recommended_topic_arg": "हवेली का श्रापित आईना: मौत का चेहरा दिखाने वाला राज़",
-            "target_emotion": "dread"
+            "title": "चीन की खुदाई में मिली 4000 साल पुरानी सभ्यता, जो अचानक क्यों हुई गायब?",
+            "hook": "4000 साल पहले चीन में एक पूरी सभ्यता रहस्यमय तरीके से गायब हो गई, और अब खुदाई में मिले सबूत!",
+            "core_angle": "The excavation reveals evidence of a sudden mass disappearance, possibly due to an ancient experiment gone wrong, leaving behind cryptic clues.",
+            "recommended_topic_arg": "प्राचीन चीन की गायब हुई सभ्यता: खुदाई में मिले रहस्यमय सबूत",
+            "target_emotion": "shock"
           },
           {
-            "title": "हवेली की रसोई में बना आखिरी खाना",
-            "hook": "हवेली की रसोई से आज भी खाने की खुशबू आती है... पर वहाँ कोई नहीं रहता।",
-            "core_angle": "A cursed kitchen in a haveli cooks a meal every night for a family that died 100 years ago, and anyone who eats it becomes trapped in the past forever.",
-            "recommended_topic_arg": "हवेली की रसोई: हर रात बनता है भूतिया खाना, खाने वाला बन जाता है कैद",
-            "target_emotion": "wonder"
+            "title": "4000 साल पुरानी चीन की खुदाई में मिला ऐसा खजाना, जिसने बदल दिया इतिहास!",
+            "hook": "चीन की खुदाई में मिला 4000 साल पुराना खजाना, जो बताता है कि प्राचीन चीनियों के पास थी अद्भुत शक्ति!",
+            "core_angle": "The treasure includes artifacts that suggest ancient Chinese possessed supernatural abilities or advanced knowledge, rewriting history books.",
+            "recommended_topic_arg": "4000 saal purani china ki khudai mein mila adbhut khazana",
+            "target_emotion": "excitement"
           }
         ],
         "seo_tags": [
-          "पुरानी हवेली का राज़",
-          "हवेली भूतिया कहानी",
-          "हिंदी horror story",
-          "bhootiya kahani",
-          "haunted haveli",
-          "real ghost story hindi",
-          "भूत की कहानी",
-          "horror shorts hindi",
-          "purani haveli",
-          "डरावनी कहानी"
+          "प्राचीन चीन खुदाई",
+          "4000 साल पुरानी खोज",
+          "चीन का रहस्य",
+          "पुरातत्व रहस्य",
+          "प्राचीन सभ्यता",
+          "खुदाई में मिली चीजें",
+          "इतिहास के रहस्य",
+          "चीन की खोज",
+          "प्राचीन तकनीक",
+          "रहस्यमय खजाना"
         ],
         "recommended_hashtags": [
-          "#horrorstory",
-          "#bhootiyakahani",
-          "#hauntedhaveli",
-          "#hindihorror",
-          "#shorts"
+          "#प्राचीनचीन",
+          "#खुदाईकरहस्य",
+          "#इतिहास",
+          "#रहस्य",
+          "#पुरातत्व"
         ]
       }
     }
   },
   "timings": {
-    "totalDuration": 47.9533,
-    "totalWords": 135,
+    "totalDuration": 281.1658,
+    "totalWords": 174,
     "scenes": [
       {
         "id": "scene-001",
         "index": 0,
         "start": 0.0,
-        "duration": 22.818,
+        "duration": 124.6306,
         "audioStart": 0.12,
         "audio": "audio/voice/scene-001.wav",
         "words": [
           {
-            "text": "tis",
+            "text": "chin",
             "start": 0.0,
-            "end": 0.2957
-          },
-          {
-            "text": "sal",
-            "start": 0.2957,
-            "end": 0.5914
-          },
-          {
-            "text": "se",
-            "start": 0.5914,
-            "end": 0.7902
-          },
-          {
-            "text": "bnd",
-            "start": 0.7902,
-            "end": 1.1113
-          },
-          {
-            "text": "purani",
-            "start": 1.1113,
-            "end": 1.6721
-          },
-          {
-            "text": "haveli",
-            "start": 1.6721,
-            "end": 2.2329
-          },
-          {
-            "text": "ka",
-            "start": 2.2329,
-            "end": 2.4317
-          },
-          {
-            "text": "woh",
-            "start": 2.4317,
-            "end": 2.6305
-          },
-          {
-            "text": "kamra",
-            "start": 2.6305,
-            "end": 3.125
-          },
-          {
-            "text": "aaj",
-            "start": 3.125,
-            "end": 3.3595
-          },
-          {
-            "text": "khul",
-            "start": 3.3595,
-            "end": 3.6807
-          },
-          {
-            "text": "gaya.",
-            "start": 3.6807,
-            "end": 4.0783
-          },
-          {
-            "text": "jaise",
-            "start": 4.1629,
-            "end": 4.5459
-          },
-          {
-            "text": "hi",
-            "start": 4.5459,
-            "end": 4.7216
-          },
-          {
-            "text": "darwaza",
-            "start": 4.7216,
-            "end": 5.4424
-          },
-          {
-            "text": "khisaka,",
-            "start": 5.4424,
-            "end": 5.9875
-          },
-          {
-            "text": "andar",
-            "start": 5.9875,
-            "end": 6.3614
-          },
-          {
-            "text": "se",
-            "start": 6.3614,
-            "end": 6.5371
-          },
-          {
-            "text": "thndi",
-            "start": 6.5371,
-            "end": 6.9651
-          },
-          {
-            "text": "hava",
-            "start": 6.9651,
-            "end": 7.3165
-          },
-          {
-            "text": "ka",
-            "start": 7.3165,
-            "end": 7.4922
-          },
-          {
-            "text": "jhonka",
-            "start": 7.4922,
-            "end": 7.9517
-          },
-          {
-            "text": "aaya",
-            "start": 7.9517,
-            "end": 8.2806
-          },
-          {
-            "text": "aur",
-            "start": 8.2806,
-            "end": 8.4563
-          },
-          {
-            "text": "divar",
-            "start": 8.4563,
-            "end": 8.8617
-          },
-          {
-            "text": "par",
-            "start": 8.8617,
-            "end": 9.0915
-          },
-          {
-            "text": "tnga",
-            "start": 9.0915,
-            "end": 9.4969
-          },
-          {
-            "text": "aaeena",
-            "start": 9.4969,
-            "end": 9.9475
-          },
-          {
-            "text": "apne",
-            "start": 9.9475,
-            "end": 10.3304
-          },
-          {
-            "text": "aap",
-            "start": 10.3304,
-            "end": 10.5376
-          },
-          {
-            "text": "chamak",
-            "start": 10.5376,
-            "end": 10.9115
-          },
-          {
-            "text": "utha.",
-            "start": 10.9115,
-            "end": 11.2629
-          },
-          {
-            "text": "aaeene",
-            "start": 11.3479,
-            "end": 11.8204
-          },
-          {
-            "text": "mein",
-            "start": 11.8204,
-            "end": 12.0614
-          },
-          {
-            "text": "ek",
-            "start": 12.0614,
-            "end": 12.2787
-          },
-          {
-            "text": "laraki",
-            "start": 12.2787,
-            "end": 12.7607
-          },
-          {
-            "text": "ka",
-            "start": 12.7607,
-            "end": 12.945
-          },
-          {
-            "text": "chehara",
-            "start": 12.945,
-            "end": 13.531
-          },
-          {
-            "text": "dikha,",
-            "start": 13.531,
-            "end": 14.0129
-          },
-          {
-            "text": "jo",
-            "start": 14.0129,
-            "end": 14.2303
-          },
-          {
-            "text": "tis",
-            "start": 14.2303,
-            "end": 14.5044
-          },
-          {
-            "text": "sal",
-            "start": 14.5044,
-            "end": 14.7784
-          },
-          {
-            "text": "pehle",
-            "start": 14.7784,
-            "end": 15.3313
-          },
-          {
-            "text": "isi",
-            "start": 15.3313,
-            "end": 15.6101
-          },
-          {
-            "text": "kamare",
-            "start": 15.6101,
-            "end": 16.0685
-          },
-          {
-            "text": "mein",
-            "start": 16.0685,
-            "end": 16.3094
-          },
-          {
-            "text": "mari",
-            "start": 16.3094,
-            "end": 16.6449
-          },
-          {
-            "text": "thi.",
-            "start": 16.6449,
-            "end": 16.8529
-          },
-          {
-            "text": "aur",
-            "start": 16.9381,
-            "end": 17.129
-          },
-          {
-            "text": "tabhi",
-            "start": 17.129,
-            "end": 17.5354
-          },
-          {
-            "text": "aaeene",
-            "start": 17.5354,
-            "end": 18.025
+            "end": 0.739
           },
           {
             "text": "ke",
-            "start": 18.025,
-            "end": 18.2159
+            "start": 0.739,
+            "end": 1.2359
+          },
+          {
+            "text": "shanshi",
+            "start": 1.2359,
+            "end": 2.3827
+          },
+          {
+            "text": "prant",
+            "start": 2.3827,
+            "end": 3.3383
+          },
+          {
+            "text": "mein,",
+            "start": 3.3383,
+            "end": 4.2302
+          },
+          {
+            "text": "char",
+            "start": 4.2302,
+            "end": 4.9692
+          },
+          {
+            "text": "hazar",
+            "start": 4.9692,
+            "end": 6.4218
+          },
+          {
+            "text": "sal",
+            "start": 6.4218,
+            "end": 7.1608
+          },
+          {
+            "text": "purani",
+            "start": 7.1608,
+            "end": 8.5624
+          },
+          {
+            "text": "ek",
+            "start": 8.5624,
+            "end": 9.1485
+          },
+          {
+            "text": "khudaee",
+            "start": 9.1485,
+            "end": 10.55
+          },
+          {
+            "text": "ke",
+            "start": 10.55,
+            "end": 11.047
+          },
+          {
+            "text": "dauran,",
+            "start": 11.047,
+            "end": 12.4358
+          },
+          {
+            "text": "mazaduron",
+            "start": 12.4358,
+            "end": 14.2324
+          },
+          {
+            "text": "ko",
+            "start": 14.2324,
+            "end": 14.7293
+          },
+          {
+            "text": "zamin",
+            "start": 14.7293,
+            "end": 15.876
+          },
+          {
+            "text": "ke",
+            "start": 15.876,
+            "end": 16.373
+          },
+          {
+            "text": "neeche",
+            "start": 16.373,
+            "end": 17.456
+          },
+          {
+            "text": "kuchh",
+            "start": 17.456,
+            "end": 18.2587
+          },
+          {
+            "text": "aisa",
+            "start": 18.2587,
+            "end": 19.1888
+          },
+          {
+            "text": "mila,",
+            "start": 19.1888,
+            "end": 20.3356
+          },
+          {
+            "text": "jisane",
+            "start": 20.3356,
+            "end": 21.5715
+          },
+          {
+            "text": "puri",
+            "start": 21.5715,
+            "end": 22.5654
+          },
+          {
+            "text": "duniya",
+            "start": 22.5654,
+            "end": 24.0561
+          },
+          {
+            "text": "ke",
+            "start": 24.0561,
+            "end": 24.5531
+          },
+          {
+            "text": "itihasakaron",
+            "start": 24.5531,
+            "end": 27.1906
+          },
+          {
+            "text": "ki",
+            "start": 27.1906,
+            "end": 27.5983
+          },
+          {
+            "text": "nind",
+            "start": 27.5983,
+            "end": 28.401
+          },
+          {
+            "text": "ura",
+            "start": 28.401,
+            "end": 29.7007
+          },
+          {
+            "text": "di.",
+            "start": 29.7007,
+            "end": 30.1976
+          },
+          {
+            "text": "ye",
+            "start": 30.2822,
+            "end": 32.6707
+          },
+          {
+            "text": "koee",
+            "start": 32.6707,
+            "end": 36.7129
+          },
+          {
+            "text": "sadharan",
+            "start": 36.7129,
+            "end": 45.3485
+          },
+          {
+            "text": "qabr",
+            "start": 45.3485,
+            "end": 50.4318
+          },
+          {
+            "text": "nahi",
+            "start": 50.4318,
+            "end": 55.5152
+          },
+          {
+            "text": "thi...",
+            "start": 55.5152,
+            "end": 60.4148
+          },
+          {
+            "text": "ye",
+            "start": 60.4997,
+            "end": 61.3233
+          },
+          {
+            "text": "ek",
+            "start": 61.3233,
+            "end": 62.2947
+          },
+          {
+            "text": "aisa",
+            "start": 62.2947,
+            "end": 63.8362
+          },
+          {
+            "text": "sil",
+            "start": 63.8362,
+            "end": 65.061
+          },
+          {
+            "text": "kiya",
+            "start": 65.061,
+            "end": 66.7081
+          },
+          {
+            "text": "huaa",
+            "start": 66.7081,
+            "end": 68.1019
+          },
+          {
+            "text": "kamra",
+            "start": 68.1019,
+            "end": 70.1502
+          },
+          {
+            "text": "tha,",
+            "start": 70.1502,
+            "end": 71.4806
+          },
+          {
+            "text": "jisaka",
+            "start": 71.4806,
+            "end": 73.529
+          },
+          {
+            "text": "darwaza",
+            "start": 73.529,
+            "end": 76.9077
+          },
+          {
+            "text": "kholane",
+            "start": 76.9077,
+            "end": 79.3573
+          },
+          {
+            "text": "par",
+            "start": 79.3573,
+            "end": 80.4343
           },
           {
             "text": "andar",
-            "start": 18.2159,
-            "end": 18.6223
+            "start": 80.4343,
+            "end": 82.187
           },
           {
             "text": "se",
-            "start": 18.6223,
-            "end": 18.8132
+            "start": 82.187,
+            "end": 83.0106
           },
           {
-            "text": "usane",
-            "start": 18.8132,
-            "end": 19.2294
+            "text": "ek",
+            "start": 83.0106,
+            "end": 83.982
           },
           {
-            "text": "dhire",
-            "start": 19.2294,
-            "end": 19.7043
+            "text": "ajib",
+            "start": 83.982,
+            "end": 85.6291
           },
           {
-            "text": "se",
-            "start": 19.7043,
-            "end": 19.8952
+            "text": "si",
+            "start": 85.6291,
+            "end": 86.4527
           },
           {
-            "text": "phusaphusaya,",
-            "start": 19.8952,
-            "end": 20.894
+            "text": "gunj",
+            "start": 86.4527,
+            "end": 88.0365
           },
           {
-            "text": "ab",
-            "start": 20.894,
-            "end": 21.085
+            "text": "nikali...",
+            "start": 88.0365,
+            "end": 90.6973
           },
           {
-            "text": "tum",
-            "start": 21.085,
-            "end": 21.3347
+            "text": "jaise",
+            "start": 90.7825,
+            "end": 93.5939
           },
           {
-            "text": "meri",
-            "start": 21.3347,
-            "end": 21.7165
+            "text": "char",
+            "start": 93.5939,
+            "end": 95.5123
           },
           {
-            "text": "jagah",
-            "start": 21.7165,
-            "end": 22.1229
+            "text": "hazar",
+            "start": 95.5123,
+            "end": 99.2828
           },
           {
-            "text": "lo.",
-            "start": 22.1229,
-            "end": 22.3481
+            "text": "sal",
+            "start": 99.2828,
+            "end": 101.2012
+          },
+          {
+            "text": "purani",
+            "start": 101.2012,
+            "end": 104.8395
+          },
+          {
+            "text": "koee",
+            "start": 104.8395,
+            "end": 107.0224
+          },
+          {
+            "text": "aawaz",
+            "start": 107.0224,
+            "end": 109.8338
+          },
+          {
+            "text": "aaj",
+            "start": 109.8338,
+            "end": 111.3552
+          },
+          {
+            "text": "bhi",
+            "start": 111.3552,
+            "end": 113.0421
+          },
+          {
+            "text": "wahan",
+            "start": 113.0421,
+            "end": 115.7873
+          },
+          {
+            "text": "qaid",
+            "start": 115.7873,
+            "end": 118.4995
+          },
+          {
+            "text": "ho...",
+            "start": 118.4995,
+            "end": 120.9801
+          },
+          {
+            "text": "aur",
+            "start": 121.0657,
+            "end": 121.2669
+          },
+          {
+            "text": "bahar",
+            "start": 121.2669,
+            "end": 121.7311
+          },
+          {
+            "text": "nikalane",
+            "start": 121.7311,
+            "end": 122.3604
+          },
+          {
+            "text": "ke",
+            "start": 122.3604,
+            "end": 122.5616
+          },
+          {
+            "text": "lie",
+            "start": 122.5616,
+            "end": 122.902
+          },
+          {
+            "text": "chhatapata",
+            "start": 122.902,
+            "end": 123.5933
+          },
+          {
+            "text": "rahi",
+            "start": 123.5933,
+            "end": 123.9595
+          },
+          {
+            "text": "ho.",
+            "start": 123.9595,
+            "end": 124.1607
           }
         ],
         "lines": [
@@ -673,1088 +728,553 @@
             "characterId": null,
             "audio": "audio/voice/scene-001.wav",
             "start": 0.12,
-            "duration": 22.348,
+            "duration": 124.1606,
             "words": [
               {
-                "text": "तीस",
+                "text": "चीन",
                 "start": 0.0,
-                "end": 0.2957
-              },
-              {
-                "text": "साल",
-                "start": 0.2957,
-                "end": 0.5914
-              },
-              {
-                "text": "से",
-                "start": 0.5914,
-                "end": 0.7902
-              },
-              {
-                "text": "बंद",
-                "start": 0.7902,
-                "end": 1.1113
-              },
-              {
-                "text": "पुरानी",
-                "start": 1.1113,
-                "end": 1.6721
-              },
-              {
-                "text": "हवेली",
-                "start": 1.6721,
-                "end": 2.2329
-              },
-              {
-                "text": "का",
-                "start": 2.2329,
-                "end": 2.4317
-              },
-              {
-                "text": "वो",
-                "start": 2.4317,
-                "end": 2.6305
-              },
-              {
-                "text": "कमरा",
-                "start": 2.6305,
-                "end": 3.125
-              },
-              {
-                "text": "आज",
-                "start": 3.125,
-                "end": 3.3595
-              },
-              {
-                "text": "खुल",
-                "start": 3.3595,
-                "end": 3.6807
-              },
-              {
-                "text": "गया।",
-                "start": 3.6807,
-                "end": 4.0783
-              },
-              {
-                "text": "जैसे",
-                "start": 4.1629,
-                "end": 4.5459
-              },
-              {
-                "text": "ही",
-                "start": 4.5459,
-                "end": 4.7216
-              },
-              {
-                "text": "दरवाज़ा",
-                "start": 4.7216,
-                "end": 5.4424
-              },
-              {
-                "text": "खिसका,",
-                "start": 5.4424,
-                "end": 5.9875
-              },
-              {
-                "text": "अंदर",
-                "start": 5.9875,
-                "end": 6.3614
-              },
-              {
-                "text": "से",
-                "start": 6.3614,
-                "end": 6.5371
-              },
-              {
-                "text": "ठंडी",
-                "start": 6.5371,
-                "end": 6.9651
-              },
-              {
-                "text": "हवा",
-                "start": 6.9651,
-                "end": 7.3165
-              },
-              {
-                "text": "का",
-                "start": 7.3165,
-                "end": 7.4922
-              },
-              {
-                "text": "झोंका",
-                "start": 7.4922,
-                "end": 7.9517
-              },
-              {
-                "text": "आया",
-                "start": 7.9517,
-                "end": 8.2806
-              },
-              {
-                "text": "और",
-                "start": 8.2806,
-                "end": 8.4563
-              },
-              {
-                "text": "दीवार",
-                "start": 8.4563,
-                "end": 8.8617
-              },
-              {
-                "text": "पर",
-                "start": 8.8617,
-                "end": 9.0915
-              },
-              {
-                "text": "टंगा",
-                "start": 9.0915,
-                "end": 9.4969
-              },
-              {
-                "text": "आईना",
-                "start": 9.4969,
-                "end": 9.9475
-              },
-              {
-                "text": "अपने",
-                "start": 9.9475,
-                "end": 10.3304
-              },
-              {
-                "text": "आप",
-                "start": 10.3304,
-                "end": 10.5376
-              },
-              {
-                "text": "चमक",
-                "start": 10.5376,
-                "end": 10.9115
-              },
-              {
-                "text": "उठा।",
-                "start": 10.9115,
-                "end": 11.2629
-              },
-              {
-                "text": "आईने",
-                "start": 11.3479,
-                "end": 11.8204
-              },
-              {
-                "text": "में",
-                "start": 11.8204,
-                "end": 12.0614
-              },
-              {
-                "text": "एक",
-                "start": 12.0614,
-                "end": 12.2787
-              },
-              {
-                "text": "लड़की",
-                "start": 12.2787,
-                "end": 12.7607
-              },
-              {
-                "text": "का",
-                "start": 12.7607,
-                "end": 12.945
-              },
-              {
-                "text": "चेहरा",
-                "start": 12.945,
-                "end": 13.531
-              },
-              {
-                "text": "दिखा,",
-                "start": 13.531,
-                "end": 14.0129
-              },
-              {
-                "text": "जो",
-                "start": 14.0129,
-                "end": 14.2303
-              },
-              {
-                "text": "तीस",
-                "start": 14.2303,
-                "end": 14.5044
-              },
-              {
-                "text": "साल",
-                "start": 14.5044,
-                "end": 14.7784
-              },
-              {
-                "text": "पहले",
-                "start": 14.7784,
-                "end": 15.3313
-              },
-              {
-                "text": "इसी",
-                "start": 15.3313,
-                "end": 15.6101
-              },
-              {
-                "text": "कमरे",
-                "start": 15.6101,
-                "end": 16.0685
-              },
-              {
-                "text": "में",
-                "start": 16.0685,
-                "end": 16.3094
-              },
-              {
-                "text": "मरी",
-                "start": 16.3094,
-                "end": 16.6449
-              },
-              {
-                "text": "थी।",
-                "start": 16.6449,
-                "end": 16.8529
-              },
-              {
-                "text": "और",
-                "start": 16.9381,
-                "end": 17.129
-              },
-              {
-                "text": "तभी",
-                "start": 17.129,
-                "end": 17.5354
-              },
-              {
-                "text": "आईने",
-                "start": 17.5354,
-                "end": 18.025
+                "end": 0.739
               },
               {
                 "text": "के",
-                "start": 18.025,
-                "end": 18.2159
+                "start": 0.739,
+                "end": 1.2359
+              },
+              {
+                "text": "शान्शी",
+                "start": 1.2359,
+                "end": 2.3827
+              },
+              {
+                "text": "प्रांत",
+                "start": 2.3827,
+                "end": 3.3383
+              },
+              {
+                "text": "में,",
+                "start": 3.3383,
+                "end": 4.2302
+              },
+              {
+                "text": "चार",
+                "start": 4.2302,
+                "end": 4.9692
+              },
+              {
+                "text": "हज़ार",
+                "start": 4.9692,
+                "end": 6.4218
+              },
+              {
+                "text": "साल",
+                "start": 6.4218,
+                "end": 7.1608
+              },
+              {
+                "text": "पुरानी",
+                "start": 7.1608,
+                "end": 8.5624
+              },
+              {
+                "text": "एक",
+                "start": 8.5624,
+                "end": 9.1485
+              },
+              {
+                "text": "खुदाई",
+                "start": 9.1485,
+                "end": 10.55
+              },
+              {
+                "text": "के",
+                "start": 10.55,
+                "end": 11.047
+              },
+              {
+                "text": "दौरान,",
+                "start": 11.047,
+                "end": 12.4358
+              },
+              {
+                "text": "मज़दूरों",
+                "start": 12.4358,
+                "end": 14.2324
+              },
+              {
+                "text": "को",
+                "start": 14.2324,
+                "end": 14.7293
+              },
+              {
+                "text": "ज़मीन",
+                "start": 14.7293,
+                "end": 15.876
+              },
+              {
+                "text": "के",
+                "start": 15.876,
+                "end": 16.373
+              },
+              {
+                "text": "नीचे",
+                "start": 16.373,
+                "end": 17.456
+              },
+              {
+                "text": "कुछ",
+                "start": 17.456,
+                "end": 18.2587
+              },
+              {
+                "text": "ऐसा",
+                "start": 18.2587,
+                "end": 19.1888
+              },
+              {
+                "text": "मिला,",
+                "start": 19.1888,
+                "end": 20.3356
+              },
+              {
+                "text": "जिसने",
+                "start": 20.3356,
+                "end": 21.5715
+              },
+              {
+                "text": "पूरी",
+                "start": 21.5715,
+                "end": 22.5654
+              },
+              {
+                "text": "दुनिया",
+                "start": 22.5654,
+                "end": 24.0561
+              },
+              {
+                "text": "के",
+                "start": 24.0561,
+                "end": 24.5531
+              },
+              {
+                "text": "इतिहासकारों",
+                "start": 24.5531,
+                "end": 27.1906
+              },
+              {
+                "text": "की",
+                "start": 27.1906,
+                "end": 27.5983
+              },
+              {
+                "text": "नींद",
+                "start": 27.5983,
+                "end": 28.401
+              },
+              {
+                "text": "उड़ा",
+                "start": 28.401,
+                "end": 29.7007
+              },
+              {
+                "text": "दी।",
+                "start": 29.7007,
+                "end": 30.1976
+              },
+              {
+                "text": "ये",
+                "start": 30.2822,
+                "end": 32.6707
+              },
+              {
+                "text": "कोई",
+                "start": 32.6707,
+                "end": 36.7129
+              },
+              {
+                "text": "साधारण",
+                "start": 36.7129,
+                "end": 45.3485
+              },
+              {
+                "text": "क़ब्र",
+                "start": 45.3485,
+                "end": 50.4318
+              },
+              {
+                "text": "नहीं",
+                "start": 50.4318,
+                "end": 55.5152
+              },
+              {
+                "text": "थी...",
+                "start": 55.5152,
+                "end": 60.4148
+              },
+              {
+                "text": "ये",
+                "start": 60.4997,
+                "end": 61.3233
+              },
+              {
+                "text": "एक",
+                "start": 61.3233,
+                "end": 62.2947
+              },
+              {
+                "text": "ऐसा",
+                "start": 62.2947,
+                "end": 63.8362
+              },
+              {
+                "text": "सील",
+                "start": 63.8362,
+                "end": 65.061
+              },
+              {
+                "text": "किया",
+                "start": 65.061,
+                "end": 66.7081
+              },
+              {
+                "text": "हुआ",
+                "start": 66.7081,
+                "end": 68.1019
+              },
+              {
+                "text": "कमरा",
+                "start": 68.1019,
+                "end": 70.1502
+              },
+              {
+                "text": "था,",
+                "start": 70.1502,
+                "end": 71.4806
+              },
+              {
+                "text": "जिसका",
+                "start": 71.4806,
+                "end": 73.529
+              },
+              {
+                "text": "दरवाज़ा",
+                "start": 73.529,
+                "end": 76.9077
+              },
+              {
+                "text": "खोलने",
+                "start": 76.9077,
+                "end": 79.3573
+              },
+              {
+                "text": "पर",
+                "start": 79.3573,
+                "end": 80.4343
               },
               {
                 "text": "अंदर",
-                "start": 18.2159,
-                "end": 18.6223
+                "start": 80.4343,
+                "end": 82.187
               },
               {
                 "text": "से",
-                "start": 18.6223,
-                "end": 18.8132
+                "start": 82.187,
+                "end": 83.0106
               },
               {
-                "text": "उसने",
-                "start": 18.8132,
-                "end": 19.2294
+                "text": "एक",
+                "start": 83.0106,
+                "end": 83.982
               },
               {
-                "text": "धीरे",
-                "start": 19.2294,
-                "end": 19.7043
+                "text": "अजीब",
+                "start": 83.982,
+                "end": 85.6291
               },
               {
-                "text": "से",
-                "start": 19.7043,
-                "end": 19.8952
+                "text": "सी",
+                "start": 85.6291,
+                "end": 86.4527
               },
               {
-                "text": "फुसफुसाया,",
-                "start": 19.8952,
-                "end": 20.894
+                "text": "गूँज",
+                "start": 86.4527,
+                "end": 88.0365
               },
               {
-                "text": "अब",
-                "start": 20.894,
-                "end": 21.085
+                "text": "निकली...",
+                "start": 88.0365,
+                "end": 90.6973
               },
               {
-                "text": "तुम",
-                "start": 21.085,
-                "end": 21.3347
+                "text": "जैसे",
+                "start": 90.7825,
+                "end": 93.5939
               },
               {
-                "text": "मेरी",
-                "start": 21.3347,
-                "end": 21.7165
+                "text": "चार",
+                "start": 93.5939,
+                "end": 95.5123
               },
               {
-                "text": "जगह",
-                "start": 21.7165,
-                "end": 22.1229
+                "text": "हज़ार",
+                "start": 95.5123,
+                "end": 99.2828
               },
               {
-                "text": "लो।",
-                "start": 22.1229,
-                "end": 22.3481
+                "text": "साल",
+                "start": 99.2828,
+                "end": 101.2012
+              },
+              {
+                "text": "पुरानी",
+                "start": 101.2012,
+                "end": 104.8395
+              },
+              {
+                "text": "कोई",
+                "start": 104.8395,
+                "end": 107.0224
+              },
+              {
+                "text": "आवाज़",
+                "start": 107.0224,
+                "end": 109.8338
+              },
+              {
+                "text": "आज",
+                "start": 109.8338,
+                "end": 111.3552
+              },
+              {
+                "text": "भी",
+                "start": 111.3552,
+                "end": 113.0421
+              },
+              {
+                "text": "वहाँ",
+                "start": 113.0421,
+                "end": 115.7873
+              },
+              {
+                "text": "क़ैद",
+                "start": 115.7873,
+                "end": 118.4995
+              },
+              {
+                "text": "हो...",
+                "start": 118.4995,
+                "end": 120.9801
+              },
+              {
+                "text": "और",
+                "start": 121.0657,
+                "end": 121.2669
+              },
+              {
+                "text": "बाहर",
+                "start": 121.2669,
+                "end": 121.7311
+              },
+              {
+                "text": "निकलने",
+                "start": 121.7311,
+                "end": 122.3604
+              },
+              {
+                "text": "के",
+                "start": 122.3604,
+                "end": 122.5616
+              },
+              {
+                "text": "लिए",
+                "start": 122.5616,
+                "end": 122.902
+              },
+              {
+                "text": "छटपटा",
+                "start": 122.902,
+                "end": 123.5933
+              },
+              {
+                "text": "रही",
+                "start": 123.5933,
+                "end": 123.9595
+              },
+              {
+                "text": "हो।",
+                "start": 123.9595,
+                "end": 124.1607
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.33,
-                "value": "B"
-              },
-              {
-                "start": 0.33,
-                "end": 0.47,
-                "value": "D"
-              },
-              {
-                "start": 0.47,
-                "end": 0.54,
-                "value": "C"
-              },
-              {
-                "start": 0.54,
-                "end": 0.68,
-                "value": "B"
-              },
-              {
-                "start": 0.68,
-                "end": 0.82,
-                "value": "C"
-              },
-              {
-                "start": 0.82,
-                "end": 1.1,
-                "value": "A"
-              },
-              {
-                "start": 1.1,
-                "end": 1.19,
-                "value": "B"
-              },
-              {
-                "start": 1.19,
-                "end": 1.35,
-                "value": "A"
-              },
-              {
-                "start": 1.35,
-                "end": 1.41,
-                "value": "B"
-              },
-              {
-                "start": 1.41,
-                "end": 1.53,
-                "value": "C"
-              },
-              {
-                "start": 1.53,
-                "end": 1.74,
-                "value": "B"
-              },
-              {
-                "start": 1.74,
-                "end": 1.95,
-                "value": "H"
-              },
-              {
-                "start": 1.95,
-                "end": 2.09,
-                "value": "B"
-              },
-              {
-                "start": 2.09,
-                "end": 2.37,
-                "value": "D"
-              },
-              {
-                "start": 2.37,
-                "end": 2.44,
-                "value": "H"
-              },
-              {
-                "start": 2.44,
-                "end": 2.51,
-                "value": "F"
-              },
-              {
-                "start": 2.51,
-                "end": 2.58,
-                "value": "E"
-              },
-              {
-                "start": 2.58,
-                "end": 2.72,
-                "value": "D"
-              },
-              {
-                "start": 2.72,
-                "end": 2.79,
-                "value": "C"
-              },
-              {
-                "start": 2.79,
-                "end": 2.91,
-                "value": "A"
-              },
-              {
-                "start": 2.91,
-                "end": 2.97,
-                "value": "B"
-              },
-              {
-                "start": 2.97,
-                "end": 3.1,
-                "value": "C"
-              },
-              {
-                "start": 3.1,
-                "end": 3.29,
-                "value": "D"
-              },
-              {
-                "start": 3.29,
-                "end": 3.34,
-                "value": "C"
-              },
-              {
-                "start": 3.34,
-                "end": 3.73,
-                "value": "B"
-              },
-              {
-                "start": 3.73,
-                "end": 4.01,
-                "value": "C"
-              },
-              {
-                "start": 4.01,
-                "end": 4.64,
-                "value": "B"
-              },
-              {
-                "start": 4.64,
-                "end": 4.71,
-                "value": "C"
-              },
-              {
-                "start": 4.71,
-                "end": 4.78,
-                "value": "B"
-              },
-              {
-                "start": 4.78,
-                "end": 4.85,
-                "value": "E"
-              },
-              {
-                "start": 4.85,
-                "end": 5.34,
-                "value": "B"
-              },
-              {
-                "start": 5.34,
-                "end": 5.55,
-                "value": "C"
-              },
-              {
-                "start": 5.55,
-                "end": 5.62,
-                "value": "E"
-              },
-              {
-                "start": 5.62,
-                "end": 5.83,
-                "value": "B"
-              },
-              {
-                "start": 5.83,
-                "end": 5.9,
-                "value": "C"
-              },
-              {
-                "start": 5.9,
-                "end": 6.04,
-                "value": "B"
-              },
-              {
-                "start": 6.04,
-                "end": 6.11,
-                "value": "C"
-              },
-              {
-                "start": 6.11,
-                "end": 6.25,
-                "value": "B"
-              },
-              {
-                "start": 6.25,
-                "end": 6.37,
+                "end": 30.26,
                 "value": "X"
               },
               {
-                "start": 6.37,
-                "end": 6.44,
-                "value": "B"
-              },
-              {
-                "start": 6.44,
-                "end": 6.51,
+                "start": 30.26,
+                "end": 30.47,
                 "value": "C"
               },
               {
-                "start": 6.51,
-                "end": 6.72,
+                "start": 30.47,
+                "end": 30.54,
                 "value": "B"
               },
               {
-                "start": 6.72,
-                "end": 6.86,
-                "value": "C"
-              },
-              {
-                "start": 6.86,
-                "end": 6.93,
+                "start": 30.54,
+                "end": 30.68,
                 "value": "E"
               },
               {
-                "start": 6.93,
-                "end": 7.07,
-                "value": "F"
-              },
-              {
-                "start": 7.07,
-                "end": 7.28,
+                "start": 30.68,
+                "end": 30.96,
                 "value": "B"
               },
               {
-                "start": 7.28,
-                "end": 7.35,
-                "value": "F"
-              },
-              {
-                "start": 7.35,
-                "end": 7.49,
+                "start": 30.96,
+                "end": 31.24,
                 "value": "C"
               },
               {
-                "start": 7.49,
-                "end": 7.56,
+                "start": 31.24,
+                "end": 41.67,
                 "value": "E"
               },
               {
-                "start": 7.56,
-                "end": 7.63,
+                "start": 41.67,
+                "end": 43.21,
                 "value": "C"
               },
               {
-                "start": 7.63,
-                "end": 7.7,
+                "start": 43.21,
+                "end": 43.42,
                 "value": "B"
               },
               {
-                "start": 7.7,
-                "end": 7.77,
+                "start": 43.42,
+                "end": 47.83,
                 "value": "C"
               },
               {
-                "start": 7.77,
-                "end": 7.89,
+                "start": 47.83,
+                "end": 49.65,
+                "value": "B"
+              },
+              {
+                "start": 49.65,
+                "end": 51.89,
+                "value": "C"
+              },
+              {
+                "start": 51.89,
+                "end": 53.58,
                 "value": "A"
               },
               {
-                "start": 7.89,
-                "end": 8.21,
+                "start": 53.58,
+                "end": 58.62,
                 "value": "B"
               },
               {
-                "start": 8.21,
-                "end": 8.35,
+                "start": 58.62,
+                "end": 60.37,
+                "value": "C"
+              },
+              {
+                "start": 60.37,
+                "end": 60.44,
+                "value": "B"
+              },
+              {
+                "start": 60.44,
+                "end": 121.04,
+                "value": "X"
+              },
+              {
+                "start": 121.04,
+                "end": 121.09,
+                "value": "B"
+              },
+              {
+                "start": 121.09,
+                "end": 121.14,
                 "value": "E"
               },
               {
-                "start": 8.35,
-                "end": 8.43,
+                "start": 121.14,
+                "end": 121.21,
+                "value": "C"
+              },
+              {
+                "start": 121.21,
+                "end": 121.29,
                 "value": "A"
               },
               {
-                "start": 8.43,
-                "end": 8.62,
-                "value": "B"
-              },
-              {
-                "start": 8.62,
-                "end": 8.69,
-                "value": "C"
-              },
-              {
-                "start": 8.69,
-                "end": 8.77,
-                "value": "A"
-              },
-              {
-                "start": 8.77,
-                "end": 8.94,
-                "value": "F"
-              },
-              {
-                "start": 8.94,
-                "end": 9.01,
-                "value": "B"
-              },
-              {
-                "start": 9.01,
-                "end": 9.22,
-                "value": "C"
-              },
-              {
-                "start": 9.22,
-                "end": 9.29,
-                "value": "B"
-              },
-              {
-                "start": 9.29,
-                "end": 9.36,
-                "value": "C"
-              },
-              {
-                "start": 9.36,
-                "end": 9.5,
-                "value": "B"
-              },
-              {
-                "start": 9.5,
-                "end": 9.57,
-                "value": "C"
-              },
-              {
-                "start": 9.57,
-                "end": 9.71,
+                "start": 121.29,
+                "end": 121.72,
                 "value": "D"
               },
               {
-                "start": 9.71,
-                "end": 9.99,
-                "value": "B"
-              },
-              {
-                "start": 9.99,
-                "end": 10.06,
-                "value": "D"
-              },
-              {
-                "start": 10.06,
-                "end": 10.14,
-                "value": "A"
-              },
-              {
-                "start": 10.14,
-                "end": 10.38,
+                "start": 121.72,
+                "end": 121.79,
                 "value": "C"
               },
               {
-                "start": 10.38,
-                "end": 10.45,
-                "value": "D"
-              },
-              {
-                "start": 10.45,
-                "end": 10.55,
-                "value": "A"
-              },
-              {
-                "start": 10.55,
-                "end": 10.67,
+                "start": 121.79,
+                "end": 122.0,
                 "value": "B"
               },
               {
-                "start": 10.67,
-                "end": 10.74,
+                "start": 122.0,
+                "end": 122.56,
+                "value": "C"
+              },
+              {
+                "start": 122.56,
+                "end": 122.77,
+                "value": "B"
+              },
+              {
+                "start": 122.77,
+                "end": 122.84,
+                "value": "C"
+              },
+              {
+                "start": 122.84,
+                "end": 123.32,
+                "value": "B"
+              },
+              {
+                "start": 123.32,
+                "end": 123.45,
+                "value": "C"
+              },
+              {
+                "start": 123.45,
+                "end": 123.52,
+                "value": "B"
+              },
+              {
+                "start": 123.52,
+                "end": 123.66,
+                "value": "C"
+              },
+              {
+                "start": 123.66,
+                "end": 123.94,
+                "value": "B"
+              },
+              {
+                "start": 123.94,
+                "end": 124.15,
                 "value": "E"
               },
               {
-                "start": 10.74,
-                "end": 10.82,
-                "value": "A"
-              },
-              {
-                "start": 10.82,
-                "end": 10.95,
-                "value": "F"
-              },
-              {
-                "start": 10.95,
-                "end": 11.02,
-                "value": "C"
-              },
-              {
-                "start": 11.02,
-                "end": 11.23,
-                "value": "D"
-              },
-              {
-                "start": 11.23,
-                "end": 11.3,
-                "value": "B"
-              },
-              {
-                "start": 11.3,
-                "end": 11.44,
-                "value": "C"
-              },
-              {
-                "start": 11.44,
-                "end": 11.51,
-                "value": "B"
-              },
-              {
-                "start": 11.51,
-                "end": 11.65,
-                "value": "C"
-              },
-              {
-                "start": 11.65,
-                "end": 11.74,
-                "value": "A"
-              },
-              {
-                "start": 11.74,
-                "end": 11.8,
-                "value": "C"
-              },
-              {
-                "start": 11.8,
-                "end": 12.21,
-                "value": "B"
-              },
-              {
-                "start": 12.21,
-                "end": 12.28,
-                "value": "C"
-              },
-              {
-                "start": 12.28,
-                "end": 12.35,
-                "value": "F"
-              },
-              {
-                "start": 12.35,
-                "end": 12.56,
-                "value": "B"
-              },
-              {
-                "start": 12.56,
-                "end": 12.77,
-                "value": "C"
-              },
-              {
-                "start": 12.77,
-                "end": 13.05,
-                "value": "B"
-              },
-              {
-                "start": 13.05,
-                "end": 13.19,
-                "value": "C"
-              },
-              {
-                "start": 13.19,
-                "end": 13.54,
-                "value": "B"
-              },
-              {
-                "start": 13.54,
-                "end": 13.61,
-                "value": "D"
-              },
-              {
-                "start": 13.61,
-                "end": 14.06,
-                "value": "F"
-              },
-              {
-                "start": 14.06,
-                "end": 14.42,
-                "value": "B"
-              },
-              {
-                "start": 14.42,
-                "end": 14.7,
-                "value": "E"
-              },
-              {
-                "start": 14.7,
-                "end": 15.12,
-                "value": "C"
-              },
-              {
-                "start": 15.12,
-                "end": 15.19,
-                "value": "H"
-              },
-              {
-                "start": 15.19,
-                "end": 15.26,
-                "value": "C"
-              },
-              {
-                "start": 15.26,
-                "end": 15.61,
-                "value": "B"
-              },
-              {
-                "start": 15.61,
-                "end": 15.69,
-                "value": "A"
-              },
-              {
-                "start": 15.69,
-                "end": 16.08,
-                "value": "B"
-              },
-              {
-                "start": 16.08,
-                "end": 16.16,
-                "value": "A"
-              },
-              {
-                "start": 16.16,
-                "end": 16.22,
-                "value": "C"
-              },
-              {
-                "start": 16.22,
-                "end": 16.27,
-                "value": "B"
-              },
-              {
-                "start": 16.27,
-                "end": 16.35,
-                "value": "A"
-              },
-              {
-                "start": 16.35,
-                "end": 16.44,
-                "value": "F"
-              },
-              {
-                "start": 16.44,
-                "end": 16.58,
-                "value": "B"
-              },
-              {
-                "start": 16.58,
-                "end": 16.82,
-                "value": "A"
-              },
-              {
-                "start": 16.82,
-                "end": 16.96,
-                "value": "D"
-              },
-              {
-                "start": 16.96,
-                "end": 17.03,
-                "value": "C"
-              },
-              {
-                "start": 17.03,
-                "end": 17.11,
-                "value": "A"
-              },
-              {
-                "start": 17.11,
-                "end": 17.22,
-                "value": "E"
-              },
-              {
-                "start": 17.22,
-                "end": 17.3,
-                "value": "A"
-              },
-              {
-                "start": 17.3,
-                "end": 17.51,
-                "value": "B"
-              },
-              {
-                "start": 17.51,
-                "end": 17.79,
-                "value": "D"
-              },
-              {
-                "start": 17.79,
-                "end": 17.86,
-                "value": "B"
-              },
-              {
-                "start": 17.86,
-                "end": 17.94,
-                "value": "A"
-              },
-              {
-                "start": 17.94,
-                "end": 18.3,
-                "value": "C"
-              },
-              {
-                "start": 18.3,
-                "end": 18.37,
-                "value": "B"
-              },
-              {
-                "start": 18.37,
-                "end": 18.44,
-                "value": "C"
-              },
-              {
-                "start": 18.44,
-                "end": 18.79,
-                "value": "B"
-              },
-              {
-                "start": 18.79,
-                "end": 18.93,
-                "value": "E"
-              },
-              {
-                "start": 18.93,
-                "end": 19.0,
-                "value": "B"
-              },
-              {
-                "start": 19.0,
-                "end": 19.08,
-                "value": "A"
-              },
-              {
-                "start": 19.08,
-                "end": 19.18,
-                "value": "B"
-              },
-              {
-                "start": 19.18,
-                "end": 19.25,
-                "value": "C"
-              },
-              {
-                "start": 19.25,
-                "end": 19.81,
-                "value": "B"
-              },
-              {
-                "start": 19.81,
-                "end": 20.07,
-                "value": "A"
-              },
-              {
-                "start": 20.07,
-                "end": 20.12,
-                "value": "B"
-              },
-              {
-                "start": 20.12,
-                "end": 20.17,
-                "value": "E"
-              },
-              {
-                "start": 20.17,
-                "end": 20.38,
-                "value": "G"
-              },
-              {
-                "start": 20.38,
-                "end": 20.45,
-                "value": "B"
-              },
-              {
-                "start": 20.45,
-                "end": 20.52,
-                "value": "H"
-              },
-              {
-                "start": 20.52,
-                "end": 20.59,
-                "value": "C"
-              },
-              {
-                "start": 20.59,
-                "end": 20.73,
-                "value": "B"
-              },
-              {
-                "start": 20.73,
-                "end": 20.83,
-                "value": "D"
-              },
-              {
-                "start": 20.83,
-                "end": 20.87,
-                "value": "C"
-              },
-              {
-                "start": 20.87,
-                "end": 20.94,
-                "value": "A"
-              },
-              {
-                "start": 20.94,
-                "end": 21.09,
-                "value": "B"
-              },
-              {
-                "start": 21.09,
-                "end": 21.16,
-                "value": "E"
-              },
-              {
-                "start": 21.16,
-                "end": 21.3,
-                "value": "F"
-              },
-              {
-                "start": 21.3,
-                "end": 21.4,
-                "value": "A"
-              },
-              {
-                "start": 21.4,
-                "end": 21.45,
-                "value": "C"
-              },
-              {
-                "start": 21.45,
-                "end": 21.57,
-                "value": "B"
-              },
-              {
-                "start": 21.57,
-                "end": 21.71,
-                "value": "F"
-              },
-              {
-                "start": 21.71,
-                "end": 21.92,
-                "value": "C"
-              },
-              {
-                "start": 21.92,
-                "end": 22.06,
-                "value": "B"
-              },
-              {
-                "start": 22.06,
-                "end": 22.14,
-                "value": "A"
-              },
-              {
-                "start": 22.14,
-                "end": 22.2,
-                "value": "E"
-              },
-              {
-                "start": 22.2,
-                "end": 22.33,
-                "value": "F"
-              },
-              {
-                "start": 22.33,
-                "end": 22.34,
+                "start": 124.15,
+                "end": 124.16,
                 "value": "X"
               }
             ]
@@ -1764,1604 +1284,1194 @@
       {
         "id": "scene-002",
         "index": 1,
-        "start": 22.818,
-        "duration": 25.1353,
-        "audioStart": 22.938,
+        "start": 124.6306,
+        "duration": 156.5352,
+        "audioStart": 124.7506,
         "audio": "audio/voice/scene-002.wav",
         "words": [
           {
-            "text": "main",
-            "start": 0.0,
-            "end": 0.2014
-          },
-          {
-            "text": "peeche",
-            "start": 0.2014,
-            "end": 0.6454
-          },
-          {
-            "text": "hata,",
-            "start": 0.6454,
-            "end": 1.0574
-          },
-          {
             "text": "lekin",
-            "start": 1.0574,
-            "end": 1.4694
-          },
-          {
-            "text": "aaeene",
-            "start": 1.4694,
-            "end": 1.9271
-          },
-          {
-            "text": "se",
-            "start": 1.9271,
-            "end": 2.1056
-          },
-          {
-            "text": "mera",
-            "start": 2.1056,
-            "end": 2.4947
-          },
-          {
-            "text": "pratibinb",
-            "start": 2.4947,
-            "end": 3.163
-          },
-          {
-            "text": "hila",
-            "start": 3.163,
-            "end": 3.5201
-          },
-          {
-            "text": "nahi.",
-            "start": 3.5201,
-            "end": 3.9
-          },
-          {
-            "text": "us",
-            "start": 3.9846,
-            "end": 4.1359
-          },
-          {
-            "text": "laraki",
-            "start": 4.1359,
-            "end": 4.5314
-          },
-          {
-            "text": "ne",
-            "start": 4.5314,
-            "end": 4.7098
-          },
-          {
-            "text": "dhire",
-            "start": 4.7098,
-            "end": 5.086
-          },
-          {
-            "text": "se",
-            "start": 5.086,
-            "end": 5.2373
-          },
-          {
-            "text": "apna",
-            "start": 5.2373,
-            "end": 5.5669
-          },
-          {
-            "text": "hath",
-            "start": 5.5669,
-            "end": 5.8384
-          },
-          {
-            "text": "aaeene",
-            "start": 5.8384,
-            "end": 6.2262
-          },
-          {
-            "text": "ki",
-            "start": 6.2262,
-            "end": 6.3503
-          },
-          {
-            "text": "satah",
-            "start": 6.3503,
-            "end": 6.6722
-          },
-          {
-            "text": "se",
-            "start": 6.6722,
-            "end": 6.8235
-          },
-          {
-            "text": "bahar",
-            "start": 6.8235,
-            "end": 7.1725
-          },
-          {
-            "text": "nikala",
-            "start": 7.1725,
-            "end": 7.6263
-          },
-          {
-            "text": "aur",
-            "start": 7.6263,
-            "end": 7.7775
-          },
-          {
-            "text": "meri",
-            "start": 7.7775,
-            "end": 8.08
-          },
-          {
-            "text": "taraph",
-            "start": 8.08,
-            "end": 8.4484
-          },
-          {
-            "text": "barha",
-            "start": 8.4484,
-            "end": 8.9371
-          },
-          {
-            "text": "diya.",
-            "start": 8.9371,
-            "end": 9.2396
-          },
-          {
-            "text": "mere",
-            "start": 9.3245,
-            "end": 9.7072
-          },
-          {
-            "text": "pair",
-            "start": 9.7072,
-            "end": 9.9682
+            "start": 0.0,
+            "end": 1.6612
           },
           {
             "text": "jaise",
-            "start": 9.9682,
-            "end": 10.3509
+            "start": 1.6612,
+            "end": 3.2302
           },
           {
-            "text": "jam",
-            "start": 10.3509,
-            "end": 10.5804
+            "text": "hi",
+            "start": 3.2302,
+            "end": 3.9501
           },
           {
-            "text": "gae,",
-            "start": 10.5804,
-            "end": 10.9316
+            "text": "puratatvavidon",
+            "start": 3.9501,
+            "end": 8.4538
           },
           {
-            "text": "aur",
-            "start": 10.9316,
-            "end": 11.1071
+            "text": "ne",
+            "start": 8.4538,
+            "end": 9.3029
           },
           {
-            "text": "kamare",
-            "start": 11.1071,
-            "end": 11.5438
+            "text": "andar",
+            "start": 9.3029,
+            "end": 10.835
           },
           {
-            "text": "ka",
-            "start": 11.5438,
-            "end": 11.7193
+            "text": "qadam",
+            "start": 10.835,
+            "end": 12.367
           },
           {
-            "text": "darwaza",
-            "start": 11.7193,
-            "end": 12.4396
+            "text": "rakha,",
+            "start": 12.367,
+            "end": 14.2497
           },
           {
-            "text": "apne",
-            "start": 12.4396,
-            "end": 12.8222
-          },
-          {
-            "text": "aap",
-            "start": 12.8222,
-            "end": 13.0293
-          },
-          {
-            "text": "bnd",
-            "start": 13.0293,
-            "end": 13.3128
-          },
-          {
-            "text": "ho",
-            "start": 13.3128,
-            "end": 13.4884
-          },
-          {
-            "text": "gaya.",
-            "start": 13.4884,
-            "end": 13.8395
-          },
-          {
-            "text": "tabhi",
-            "start": 13.9248,
-            "end": 14.3071
-          },
-          {
-            "text": "aaeene",
-            "start": 14.3071,
-            "end": 14.7676
-          },
-          {
-            "text": "mein",
-            "start": 14.7676,
-            "end": 15.0025
-          },
-          {
-            "text": "mera",
-            "start": 15.0025,
-            "end": 15.394
-          },
-          {
-            "text": "chehara",
-            "start": 15.394,
-            "end": 15.9652
-          },
-          {
-            "text": "dhundhala",
-            "start": 15.9652,
-            "end": 16.5777
-          },
-          {
-            "text": "hone",
-            "start": 16.5777,
-            "end": 16.9692
-          },
-          {
-            "text": "laga",
-            "start": 16.9692,
-            "end": 17.3285
-          },
-          {
-            "text": "aur",
-            "start": 17.3285,
-            "end": 17.5081
-          },
-          {
-            "text": "usaki",
-            "start": 17.5081,
-            "end": 17.8674
-          },
-          {
-            "text": "jagah",
-            "start": 17.8674,
-            "end": 18.2497
-          },
-          {
-            "text": "us",
-            "start": 18.2497,
-            "end": 18.4293
-          },
-          {
-            "text": "laraki",
-            "start": 18.4293,
-            "end": 18.8991
+            "text": "hairani",
+            "start": 14.2497,
+            "end": 16.4093
           },
           {
             "text": "ki",
-            "start": 18.8991,
-            "end": 19.0465
+            "start": 16.4093,
+            "end": 17.0
           },
           {
-            "text": "shakl",
-            "start": 19.0465,
-            "end": 19.4288
+            "text": "baat",
+            "start": 17.0,
+            "end": 18.0706
           },
           {
-            "text": "ubhar",
-            "start": 19.4288,
-            "end": 19.8111
+            "text": "ye",
+            "start": 18.0706,
+            "end": 18.7904
           },
           {
-            "text": "aaee.",
-            "start": 19.8111,
-            "end": 20.0598
+            "text": "thi",
+            "start": 18.7904,
+            "end": 19.6026
           },
           {
-            "text": "aaj",
-            "start": 20.1453,
-            "end": 20.364
+            "text": "ki",
+            "start": 19.6026,
+            "end": 20.3225
           },
           {
-            "text": "bhi",
-            "start": 20.364,
-            "end": 20.6064
-          },
-          {
-            "text": "woh",
-            "start": 20.6064,
-            "end": 20.7917
-          },
-          {
-            "text": "haveli",
-            "start": 20.7917,
-            "end": 21.3146
-          },
-          {
-            "text": "mein",
-            "start": 21.3146,
-            "end": 21.557
+            "text": "wahan",
+            "start": 20.3225,
+            "end": 21.8545
           },
           {
             "text": "koee",
-            "start": 21.557,
-            "end": 21.8706
+            "start": 21.8545,
+            "end": 23.0727
           },
           {
-            "text": "naya",
-            "start": 21.8706,
-            "end": 22.2414
+            "text": "sona",
+            "start": 23.0727,
+            "end": 24.6417
           },
           {
-            "text": "mehaman",
-            "start": 22.2414,
-            "end": 22.8878
+            "text": "ya",
+            "start": 24.6417,
+            "end": 25.4907
           },
           {
-            "text": "aane",
-            "start": 22.8878,
-            "end": 23.2347
+            "text": "hira",
+            "start": 25.4907,
+            "end": 27.0597
+          },
+          {
+            "text": "nahi",
+            "start": 27.0597,
+            "end": 28.5917
+          },
+          {
+            "text": "tha...",
+            "start": 28.5917,
+            "end": 30.1976
+          },
+          {
+            "text": "balki",
+            "start": 30.2822,
+            "end": 31.6793
+          },
+          {
+            "text": "ek",
+            "start": 31.6793,
+            "end": 32.4536
+          },
+          {
+            "text": "aisa",
+            "start": 32.4536,
+            "end": 33.6824
+          },
+          {
+            "text": "kansy",
+            "start": 33.6824,
+            "end": 35.2814
           },
           {
             "text": "ka",
-            "start": 23.2347,
-            "end": 23.4201
+            "start": 35.2814,
+            "end": 35.9379
           },
           {
-            "text": "intazar",
-            "start": 23.4201,
-            "end": 24.0522
+            "text": "bartan",
+            "start": 35.9379,
+            "end": 37.537
           },
           {
-            "text": "karti",
-            "start": 24.0522,
-            "end": 24.48
+            "text": "rakha",
+            "start": 37.537,
+            "end": 39.0519
           },
           {
-            "text": "hai.",
-            "start": 24.48,
-            "end": 24.6653
+            "text": "tha,",
+            "start": 39.0519,
+            "end": 40.1124
+          },
+          {
+            "text": "jisaki",
+            "start": 40.1124,
+            "end": 41.6273
+          },
+          {
+            "text": "divaren",
+            "start": 41.6273,
+            "end": 43.7987
+          },
+          {
+            "text": "itani",
+            "start": 43.7987,
+            "end": 45.1117
+          },
+          {
+            "text": "patali",
+            "start": 45.1117,
+            "end": 46.6266
+          },
+          {
+            "text": "aur",
+            "start": 46.6266,
+            "end": 47.2831
+          },
+          {
+            "text": "satik",
+            "start": 47.2831,
+            "end": 48.798
+          },
+          {
+            "text": "thin,",
+            "start": 48.798,
+            "end": 49.9426
+          },
+          {
+            "text": "ki",
+            "start": 49.9426,
+            "end": 50.5991
+          },
+          {
+            "text": "aaj",
+            "start": 50.5991,
+            "end": 51.3734
+          },
+          {
+            "text": "ki",
+            "start": 51.3734,
+            "end": 51.912
+          },
+          {
+            "text": "machines",
+            "start": 51.912,
+            "end": 54.0834
+          },
+          {
+            "text": "bhi",
+            "start": 54.0834,
+            "end": 54.9419
+          },
+          {
+            "text": "use",
+            "start": 54.9419,
+            "end": 56.0528
+          },
+          {
+            "text": "bana",
+            "start": 56.0528,
+            "end": 57.3657
+          },
+          {
+            "text": "nahi",
+            "start": 57.3657,
+            "end": 58.7628
+          },
+          {
+            "text": "sakatin.",
+            "start": 58.7628,
+            "end": 60.4798
+          },
+          {
+            "text": "aur",
+            "start": 60.5647,
+            "end": 61.8617
+          },
+          {
+            "text": "us",
+            "start": 61.8617,
+            "end": 63.1588
+          },
+          {
+            "text": "bartan",
+            "start": 63.1588,
+            "end": 66.3182
+          },
+          {
+            "text": "ke",
+            "start": 66.3182,
+            "end": 67.6152
+          },
+          {
+            "text": "andar",
+            "start": 67.6152,
+            "end": 70.3756
+          },
+          {
+            "text": "se,",
+            "start": 70.3756,
+            "end": 72.0717
+          },
+          {
+            "text": "aaj",
+            "start": 72.0717,
+            "end": 73.6015
+          },
+          {
+            "text": "bhi",
+            "start": 73.6015,
+            "end": 75.2977
+          },
+          {
+            "text": "ek",
+            "start": 75.2977,
+            "end": 76.8275
+          },
+          {
+            "text": "gahari",
+            "start": 76.8275,
+            "end": 80.4858
+          },
+          {
+            "text": "gunj",
+            "start": 80.4858,
+            "end": 82.9801
+          },
+          {
+            "text": "nikal",
+            "start": 82.9801,
+            "end": 85.7404
+          },
+          {
+            "text": "rahi",
+            "start": 85.7404,
+            "end": 88.1017
+          },
+          {
+            "text": "thi...",
+            "start": 88.1017,
+            "end": 90.7623
+          },
+          {
+            "text": "jisaki",
+            "start": 90.8475,
+            "end": 94.3817
+          },
+          {
+            "text": "aawaz",
+            "start": 94.3817,
+            "end": 97.7195
+          },
+          {
+            "text": "sunakar",
+            "start": 97.7195,
+            "end": 102.5103
+          },
+          {
+            "text": "vaigyaanikon",
+            "start": 102.5103,
+            "end": 109.5787
+          },
+          {
+            "text": "ke",
+            "start": 109.5787,
+            "end": 111.1101
+          },
+          {
+            "text": "pasine",
+            "start": 111.1101,
+            "end": 115.7046
+          },
+          {
+            "text": "chhut",
+            "start": 115.7046,
+            "end": 118.4534
+          },
+          {
+            "text": "gae.",
+            "start": 118.4534,
+            "end": 121.0451
+          },
+          {
+            "text": "tabhi",
+            "start": 121.1307,
+            "end": 123.3254
+          },
+          {
+            "text": "achanak,",
+            "start": 123.3254,
+            "end": 126.5514
+          },
+          {
+            "text": "wahan",
+            "start": 126.5514,
+            "end": 128.7462
+          },
+          {
+            "text": "maujud",
+            "start": 128.7462,
+            "end": 131.3111
+          },
+          {
+            "text": "ek",
+            "start": 131.3111,
+            "end": 132.5275
+          },
+          {
+            "text": "vaigyaanik",
+            "start": 132.5275,
+            "end": 136.441
+          },
+          {
+            "text": "ne",
+            "start": 136.441,
+            "end": 137.6574
+          },
+          {
+            "text": "dekha",
+            "start": 137.6574,
+            "end": 140.2223
+          },
+          {
+            "text": "ki",
+            "start": 140.2223,
+            "end": 141.2536
+          },
+          {
+            "text": "divar",
+            "start": 141.2536,
+            "end": 143.6334
+          },
+          {
+            "text": "par",
+            "start": 143.6334,
+            "end": 144.982
+          },
+          {
+            "text": "kuchh",
+            "start": 144.982,
+            "end": 146.6479
+          },
+          {
+            "text": "likha",
+            "start": 146.6479,
+            "end": 149.0278
+          },
+          {
+            "text": "tha...",
+            "start": 149.0278,
+            "end": 151.3283
+          },
+          {
+            "text": "aur",
+            "start": 151.4142,
+            "end": 151.5644
+          },
+          {
+            "text": "woh",
+            "start": 151.5644,
+            "end": 151.7147
+          },
+          {
+            "text": "likhavat",
+            "start": 151.7147,
+            "end": 152.231
+          },
+          {
+            "text": "aaj",
+            "start": 152.231,
+            "end": 152.4082
+          },
+          {
+            "text": "ki",
+            "start": 152.4082,
+            "end": 152.5315
+          },
+          {
+            "text": "bhasha",
+            "start": 152.5315,
+            "end": 152.9052
+          },
+          {
+            "text": "se",
+            "start": 152.9052,
+            "end": 153.0555
+          },
+          {
+            "text": "mel",
+            "start": 153.0555,
+            "end": 153.2789
+          },
+          {
+            "text": "kha",
+            "start": 153.2789,
+            "end": 153.5024
+          },
+          {
+            "text": "rahi",
+            "start": 153.5024,
+            "end": 153.7759
+          },
+          {
+            "text": "thi...",
+            "start": 153.7759,
+            "end": 154.0842
+          },
+          {
+            "text": "jo",
+            "start": 154.1704,
+            "end": 154.3231
+          },
+          {
+            "text": "char",
+            "start": 154.3231,
+            "end": 154.5155
+          },
+          {
+            "text": "hazar",
+            "start": 154.5155,
+            "end": 154.8939
+          },
+          {
+            "text": "sal",
+            "start": 154.8939,
+            "end": 155.0864
+          },
+          {
+            "text": "pehle",
+            "start": 155.0864,
+            "end": 155.4747
+          },
+          {
+            "text": "asnbhav",
+            "start": 155.4747,
+            "end": 155.8961
+          },
+          {
+            "text": "tha.",
+            "start": 155.8961,
+            "end": 156.0654
           }
         ],
         "lines": [
           {
             "characterId": null,
             "audio": "audio/voice/scene-002.wav",
-            "start": 22.938,
-            "duration": 24.6653,
+            "start": 124.7506,
+            "duration": 156.0652,
             "words": [
               {
-                "text": "मैं",
-                "start": 0.0,
-                "end": 0.2014
-              },
-              {
-                "text": "पीछे",
-                "start": 0.2014,
-                "end": 0.6454
-              },
-              {
-                "text": "हटा,",
-                "start": 0.6454,
-                "end": 1.0574
-              },
-              {
                 "text": "लेकिन",
-                "start": 1.0574,
-                "end": 1.4694
-              },
-              {
-                "text": "आईने",
-                "start": 1.4694,
-                "end": 1.9271
-              },
-              {
-                "text": "से",
-                "start": 1.9271,
-                "end": 2.1056
-              },
-              {
-                "text": "मेरा",
-                "start": 2.1056,
-                "end": 2.4947
-              },
-              {
-                "text": "प्रतिबिंब",
-                "start": 2.4947,
-                "end": 3.163
-              },
-              {
-                "text": "हिला",
-                "start": 3.163,
-                "end": 3.5201
-              },
-              {
-                "text": "नहीं।",
-                "start": 3.5201,
-                "end": 3.9
-              },
-              {
-                "text": "उस",
-                "start": 3.9846,
-                "end": 4.1359
-              },
-              {
-                "text": "लड़की",
-                "start": 4.1359,
-                "end": 4.5314
-              },
-              {
-                "text": "ने",
-                "start": 4.5314,
-                "end": 4.7098
-              },
-              {
-                "text": "धीरे",
-                "start": 4.7098,
-                "end": 5.086
-              },
-              {
-                "text": "से",
-                "start": 5.086,
-                "end": 5.2373
-              },
-              {
-                "text": "अपना",
-                "start": 5.2373,
-                "end": 5.5669
-              },
-              {
-                "text": "हाथ",
-                "start": 5.5669,
-                "end": 5.8384
-              },
-              {
-                "text": "आईने",
-                "start": 5.8384,
-                "end": 6.2262
-              },
-              {
-                "text": "की",
-                "start": 6.2262,
-                "end": 6.3503
-              },
-              {
-                "text": "सतह",
-                "start": 6.3503,
-                "end": 6.6722
-              },
-              {
-                "text": "से",
-                "start": 6.6722,
-                "end": 6.8235
-              },
-              {
-                "text": "बाहर",
-                "start": 6.8235,
-                "end": 7.1725
-              },
-              {
-                "text": "निकाला",
-                "start": 7.1725,
-                "end": 7.6263
-              },
-              {
-                "text": "और",
-                "start": 7.6263,
-                "end": 7.7775
-              },
-              {
-                "text": "मेरी",
-                "start": 7.7775,
-                "end": 8.08
-              },
-              {
-                "text": "तरफ",
-                "start": 8.08,
-                "end": 8.4484
-              },
-              {
-                "text": "बढ़ा",
-                "start": 8.4484,
-                "end": 8.9371
-              },
-              {
-                "text": "दिया।",
-                "start": 8.9371,
-                "end": 9.2396
-              },
-              {
-                "text": "मेरे",
-                "start": 9.3245,
-                "end": 9.7072
-              },
-              {
-                "text": "पैर",
-                "start": 9.7072,
-                "end": 9.9682
+                "start": 0.0,
+                "end": 1.6612
               },
               {
                 "text": "जैसे",
-                "start": 9.9682,
-                "end": 10.3509
+                "start": 1.6612,
+                "end": 3.2302
               },
               {
-                "text": "जम",
-                "start": 10.3509,
-                "end": 10.5804
+                "text": "ही",
+                "start": 3.2302,
+                "end": 3.9501
               },
               {
-                "text": "गए,",
-                "start": 10.5804,
-                "end": 10.9316
+                "text": "पुरातत्वविदों",
+                "start": 3.9501,
+                "end": 8.4538
               },
               {
-                "text": "और",
-                "start": 10.9316,
-                "end": 11.1071
+                "text": "ने",
+                "start": 8.4538,
+                "end": 9.3029
               },
               {
-                "text": "कमरे",
-                "start": 11.1071,
-                "end": 11.5438
+                "text": "अंदर",
+                "start": 9.3029,
+                "end": 10.835
               },
               {
-                "text": "का",
-                "start": 11.5438,
-                "end": 11.7193
+                "text": "क़दम",
+                "start": 10.835,
+                "end": 12.367
               },
               {
-                "text": "दरवाज़ा",
-                "start": 11.7193,
-                "end": 12.4396
+                "text": "रखा,",
+                "start": 12.367,
+                "end": 14.2497
               },
               {
-                "text": "अपने",
-                "start": 12.4396,
-                "end": 12.8222
-              },
-              {
-                "text": "आप",
-                "start": 12.8222,
-                "end": 13.0293
-              },
-              {
-                "text": "बंद",
-                "start": 13.0293,
-                "end": 13.3128
-              },
-              {
-                "text": "हो",
-                "start": 13.3128,
-                "end": 13.4884
-              },
-              {
-                "text": "गया।",
-                "start": 13.4884,
-                "end": 13.8395
-              },
-              {
-                "text": "तभी",
-                "start": 13.9248,
-                "end": 14.3071
-              },
-              {
-                "text": "आईने",
-                "start": 14.3071,
-                "end": 14.7676
-              },
-              {
-                "text": "में",
-                "start": 14.7676,
-                "end": 15.0025
-              },
-              {
-                "text": "मेरा",
-                "start": 15.0025,
-                "end": 15.394
-              },
-              {
-                "text": "चेहरा",
-                "start": 15.394,
-                "end": 15.9652
-              },
-              {
-                "text": "धुंधला",
-                "start": 15.9652,
-                "end": 16.5777
-              },
-              {
-                "text": "होने",
-                "start": 16.5777,
-                "end": 16.9692
-              },
-              {
-                "text": "लगा",
-                "start": 16.9692,
-                "end": 17.3285
-              },
-              {
-                "text": "और",
-                "start": 17.3285,
-                "end": 17.5081
-              },
-              {
-                "text": "उसकी",
-                "start": 17.5081,
-                "end": 17.8674
-              },
-              {
-                "text": "जगह",
-                "start": 17.8674,
-                "end": 18.2497
-              },
-              {
-                "text": "उस",
-                "start": 18.2497,
-                "end": 18.4293
-              },
-              {
-                "text": "लड़की",
-                "start": 18.4293,
-                "end": 18.8991
+                "text": "हैरानी",
+                "start": 14.2497,
+                "end": 16.4093
               },
               {
                 "text": "की",
-                "start": 18.8991,
-                "end": 19.0465
+                "start": 16.4093,
+                "end": 17.0
               },
               {
-                "text": "शक्ल",
-                "start": 19.0465,
-                "end": 19.4288
+                "text": "बात",
+                "start": 17.0,
+                "end": 18.0706
               },
               {
-                "text": "उभर",
-                "start": 19.4288,
-                "end": 19.8111
+                "text": "ये",
+                "start": 18.0706,
+                "end": 18.7904
               },
               {
-                "text": "आई।",
-                "start": 19.8111,
-                "end": 20.0598
+                "text": "थी",
+                "start": 18.7904,
+                "end": 19.6026
               },
               {
-                "text": "आज",
-                "start": 20.1453,
-                "end": 20.364
+                "text": "कि",
+                "start": 19.6026,
+                "end": 20.3225
               },
               {
-                "text": "भी",
-                "start": 20.364,
-                "end": 20.6064
-              },
-              {
-                "text": "वो",
-                "start": 20.6064,
-                "end": 20.7917
-              },
-              {
-                "text": "हवेली",
-                "start": 20.7917,
-                "end": 21.3146
-              },
-              {
-                "text": "में",
-                "start": 21.3146,
-                "end": 21.557
+                "text": "वहाँ",
+                "start": 20.3225,
+                "end": 21.8545
               },
               {
                 "text": "कोई",
-                "start": 21.557,
-                "end": 21.8706
+                "start": 21.8545,
+                "end": 23.0727
               },
               {
-                "text": "नया",
-                "start": 21.8706,
-                "end": 22.2414
+                "text": "सोना",
+                "start": 23.0727,
+                "end": 24.6417
               },
               {
-                "text": "मेहमान",
-                "start": 22.2414,
-                "end": 22.8878
+                "text": "या",
+                "start": 24.6417,
+                "end": 25.4907
               },
               {
-                "text": "आने",
-                "start": 22.8878,
-                "end": 23.2347
+                "text": "हीरा",
+                "start": 25.4907,
+                "end": 27.0597
+              },
+              {
+                "text": "नहीं",
+                "start": 27.0597,
+                "end": 28.5917
+              },
+              {
+                "text": "था...",
+                "start": 28.5917,
+                "end": 30.1976
+              },
+              {
+                "text": "बल्कि",
+                "start": 30.2822,
+                "end": 31.6793
+              },
+              {
+                "text": "एक",
+                "start": 31.6793,
+                "end": 32.4536
+              },
+              {
+                "text": "ऐसा",
+                "start": 32.4536,
+                "end": 33.6824
+              },
+              {
+                "text": "कांस्य",
+                "start": 33.6824,
+                "end": 35.2814
               },
               {
                 "text": "का",
-                "start": 23.2347,
-                "end": 23.4201
+                "start": 35.2814,
+                "end": 35.9379
               },
               {
-                "text": "इंतज़ार",
-                "start": 23.4201,
-                "end": 24.0522
+                "text": "बर्तन",
+                "start": 35.9379,
+                "end": 37.537
               },
               {
-                "text": "करती",
-                "start": 24.0522,
-                "end": 24.48
+                "text": "रखा",
+                "start": 37.537,
+                "end": 39.0519
               },
               {
-                "text": "है।",
-                "start": 24.48,
-                "end": 24.6653
+                "text": "था,",
+                "start": 39.0519,
+                "end": 40.1124
+              },
+              {
+                "text": "जिसकी",
+                "start": 40.1124,
+                "end": 41.6273
+              },
+              {
+                "text": "दीवारें",
+                "start": 41.6273,
+                "end": 43.7987
+              },
+              {
+                "text": "इतनी",
+                "start": 43.7987,
+                "end": 45.1117
+              },
+              {
+                "text": "पतली",
+                "start": 45.1117,
+                "end": 46.6266
+              },
+              {
+                "text": "और",
+                "start": 46.6266,
+                "end": 47.2831
+              },
+              {
+                "text": "सटीक",
+                "start": 47.2831,
+                "end": 48.798
+              },
+              {
+                "text": "थीं,",
+                "start": 48.798,
+                "end": 49.9426
+              },
+              {
+                "text": "कि",
+                "start": 49.9426,
+                "end": 50.5991
+              },
+              {
+                "text": "आज",
+                "start": 50.5991,
+                "end": 51.3734
+              },
+              {
+                "text": "की",
+                "start": 51.3734,
+                "end": 51.912
+              },
+              {
+                "text": "मशीनें",
+                "start": 51.912,
+                "end": 54.0834
+              },
+              {
+                "text": "भी",
+                "start": 54.0834,
+                "end": 54.9419
+              },
+              {
+                "text": "उसे",
+                "start": 54.9419,
+                "end": 56.0528
+              },
+              {
+                "text": "बना",
+                "start": 56.0528,
+                "end": 57.3657
+              },
+              {
+                "text": "नहीं",
+                "start": 57.3657,
+                "end": 58.7628
+              },
+              {
+                "text": "सकतीं।",
+                "start": 58.7628,
+                "end": 60.4798
+              },
+              {
+                "text": "और",
+                "start": 60.5647,
+                "end": 61.8617
+              },
+              {
+                "text": "उस",
+                "start": 61.8617,
+                "end": 63.1588
+              },
+              {
+                "text": "बर्तन",
+                "start": 63.1588,
+                "end": 66.3182
+              },
+              {
+                "text": "के",
+                "start": 66.3182,
+                "end": 67.6152
+              },
+              {
+                "text": "अंदर",
+                "start": 67.6152,
+                "end": 70.3756
+              },
+              {
+                "text": "से,",
+                "start": 70.3756,
+                "end": 72.0717
+              },
+              {
+                "text": "आज",
+                "start": 72.0717,
+                "end": 73.6015
+              },
+              {
+                "text": "भी",
+                "start": 73.6015,
+                "end": 75.2977
+              },
+              {
+                "text": "एक",
+                "start": 75.2977,
+                "end": 76.8275
+              },
+              {
+                "text": "गहरी",
+                "start": 76.8275,
+                "end": 80.4858
+              },
+              {
+                "text": "गूँज",
+                "start": 80.4858,
+                "end": 82.9801
+              },
+              {
+                "text": "निकल",
+                "start": 82.9801,
+                "end": 85.7404
+              },
+              {
+                "text": "रही",
+                "start": 85.7404,
+                "end": 88.1017
+              },
+              {
+                "text": "थी...",
+                "start": 88.1017,
+                "end": 90.7623
+              },
+              {
+                "text": "जिसकी",
+                "start": 90.8475,
+                "end": 94.3817
+              },
+              {
+                "text": "आवाज़",
+                "start": 94.3817,
+                "end": 97.7195
+              },
+              {
+                "text": "सुनकर",
+                "start": 97.7195,
+                "end": 102.5103
+              },
+              {
+                "text": "वैज्ञानिकों",
+                "start": 102.5103,
+                "end": 109.5787
+              },
+              {
+                "text": "के",
+                "start": 109.5787,
+                "end": 111.1101
+              },
+              {
+                "text": "पसीने",
+                "start": 111.1101,
+                "end": 115.7046
+              },
+              {
+                "text": "छूट",
+                "start": 115.7046,
+                "end": 118.4534
+              },
+              {
+                "text": "गए।",
+                "start": 118.4534,
+                "end": 121.0451
+              },
+              {
+                "text": "तभी",
+                "start": 121.1307,
+                "end": 123.3254
+              },
+              {
+                "text": "अचानक,",
+                "start": 123.3254,
+                "end": 126.5514
+              },
+              {
+                "text": "वहाँ",
+                "start": 126.5514,
+                "end": 128.7462
+              },
+              {
+                "text": "मौजूद",
+                "start": 128.7462,
+                "end": 131.3111
+              },
+              {
+                "text": "एक",
+                "start": 131.3111,
+                "end": 132.5275
+              },
+              {
+                "text": "वैज्ञानिक",
+                "start": 132.5275,
+                "end": 136.441
+              },
+              {
+                "text": "ने",
+                "start": 136.441,
+                "end": 137.6574
+              },
+              {
+                "text": "देखा",
+                "start": 137.6574,
+                "end": 140.2223
+              },
+              {
+                "text": "कि",
+                "start": 140.2223,
+                "end": 141.2536
+              },
+              {
+                "text": "दीवार",
+                "start": 141.2536,
+                "end": 143.6334
+              },
+              {
+                "text": "पर",
+                "start": 143.6334,
+                "end": 144.982
+              },
+              {
+                "text": "कुछ",
+                "start": 144.982,
+                "end": 146.6479
+              },
+              {
+                "text": "लिखा",
+                "start": 146.6479,
+                "end": 149.0278
+              },
+              {
+                "text": "था...",
+                "start": 149.0278,
+                "end": 151.3283
+              },
+              {
+                "text": "और",
+                "start": 151.4142,
+                "end": 151.5644
+              },
+              {
+                "text": "वो",
+                "start": 151.5644,
+                "end": 151.7147
+              },
+              {
+                "text": "लिखावट",
+                "start": 151.7147,
+                "end": 152.231
+              },
+              {
+                "text": "आज",
+                "start": 152.231,
+                "end": 152.4082
+              },
+              {
+                "text": "की",
+                "start": 152.4082,
+                "end": 152.5315
+              },
+              {
+                "text": "भाषा",
+                "start": 152.5315,
+                "end": 152.9052
+              },
+              {
+                "text": "से",
+                "start": 152.9052,
+                "end": 153.0555
+              },
+              {
+                "text": "मेल",
+                "start": 153.0555,
+                "end": 153.2789
+              },
+              {
+                "text": "खा",
+                "start": 153.2789,
+                "end": 153.5024
+              },
+              {
+                "text": "रही",
+                "start": 153.5024,
+                "end": 153.7759
+              },
+              {
+                "text": "थी...",
+                "start": 153.7759,
+                "end": 154.0842
+              },
+              {
+                "text": "जो",
+                "start": 154.1704,
+                "end": 154.3231
+              },
+              {
+                "text": "चार",
+                "start": 154.3231,
+                "end": 154.5155
+              },
+              {
+                "text": "हज़ार",
+                "start": 154.5155,
+                "end": 154.8939
+              },
+              {
+                "text": "साल",
+                "start": 154.8939,
+                "end": 155.0864
+              },
+              {
+                "text": "पहले",
+                "start": 155.0864,
+                "end": 155.4747
+              },
+              {
+                "text": "असंभव",
+                "start": 155.4747,
+                "end": 155.8961
+              },
+              {
+                "text": "था।",
+                "start": 155.8961,
+                "end": 156.0654
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.04,
+                "end": 151.39,
+                "value": "X"
+              },
+              {
+                "start": 151.39,
+                "end": 151.45,
                 "value": "B"
               },
               {
-                "start": 0.04,
-                "end": 0.08,
-                "value": "A"
+                "start": 151.45,
+                "end": 151.58,
+                "value": "E"
               },
               {
-                "start": 0.08,
-                "end": 0.14,
+                "start": 151.58,
+                "end": 151.65,
+                "value": "B"
+              },
+              {
+                "start": 151.65,
+                "end": 151.86,
+                "value": "F"
+              },
+              {
+                "start": 151.86,
+                "end": 151.93,
+                "value": "B"
+              },
+              {
+                "start": 151.93,
+                "end": 152.21,
                 "value": "C"
               },
               {
-                "start": 0.14,
-                "end": 0.19,
-                "value": "B"
+                "start": 152.21,
+                "end": 152.28,
+                "value": "E"
               },
               {
-                "start": 0.19,
-                "end": 0.27,
+                "start": 152.28,
+                "end": 152.36,
                 "value": "A"
               },
               {
-                "start": 0.27,
-                "end": 0.59,
+                "start": 152.36,
+                "end": 152.5,
+                "value": "C"
+              },
+              {
+                "start": 152.5,
+                "end": 152.71,
                 "value": "B"
               },
               {
-                "start": 0.59,
-                "end": 0.66,
+                "start": 152.71,
+                "end": 152.78,
+                "value": "F"
+              },
+              {
+                "start": 152.78,
+                "end": 152.86,
+                "value": "A"
+              },
+              {
+                "start": 152.86,
+                "end": 153.11,
                 "value": "D"
               },
               {
-                "start": 0.66,
-                "end": 0.74,
-                "value": "A"
+                "start": 153.11,
+                "end": 153.18,
+                "value": "B"
               },
               {
-                "start": 0.74,
-                "end": 1.25,
+                "start": 153.18,
+                "end": 153.39,
                 "value": "C"
               },
               {
-                "start": 1.25,
-                "end": 1.32,
+                "start": 153.39,
+                "end": 153.53,
+                "value": "F"
+              },
+              {
+                "start": 153.53,
+                "end": 153.6,
+                "value": "C"
+              },
+              {
+                "start": 153.6,
+                "end": 153.67,
+                "value": "B"
+              },
+              {
+                "start": 153.67,
+                "end": 153.79,
+                "value": "A"
+              },
+              {
+                "start": 153.79,
+                "end": 154.29,
+                "value": "B"
+              },
+              {
+                "start": 154.29,
+                "end": 154.36,
+                "value": "F"
+              },
+              {
+                "start": 154.36,
+                "end": 154.43,
+                "value": "B"
+              },
+              {
+                "start": 154.43,
+                "end": 154.57,
+                "value": "C"
+              },
+              {
+                "start": 154.57,
+                "end": 154.64,
+                "value": "B"
+              },
+              {
+                "start": 154.64,
+                "end": 154.72,
+                "value": "A"
+              },
+              {
+                "start": 154.72,
+                "end": 154.9,
+                "value": "C"
+              },
+              {
+                "start": 154.9,
+                "end": 154.97,
+                "value": "B"
+              },
+              {
+                "start": 154.97,
+                "end": 155.11,
+                "value": "C"
+              },
+              {
+                "start": 155.11,
+                "end": 155.25,
+                "value": "B"
+              },
+              {
+                "start": 155.25,
+                "end": 155.32,
+                "value": "C"
+              },
+              {
+                "start": 155.32,
+                "end": 155.59,
+                "value": "B"
+              },
+              {
+                "start": 155.59,
+                "end": 155.77,
+                "value": "C"
+              },
+              {
+                "start": 155.77,
+                "end": 155.91,
                 "value": "H"
               },
               {
-                "start": 1.32,
-                "end": 1.39,
+                "start": 155.91,
+                "end": 155.98,
                 "value": "C"
               },
               {
-                "start": 1.39,
-                "end": 1.6,
+                "start": 155.98,
+                "end": 156.05,
                 "value": "B"
               },
               {
-                "start": 1.6,
-                "end": 1.74,
-                "value": "C"
-              },
-              {
-                "start": 1.74,
-                "end": 1.81,
-                "value": "B"
-              },
-              {
-                "start": 1.81,
-                "end": 2.09,
-                "value": "C"
-              },
-              {
-                "start": 2.09,
-                "end": 2.44,
-                "value": "B"
-              },
-              {
-                "start": 2.44,
-                "end": 2.51,
-                "value": "F"
-              },
-              {
-                "start": 2.51,
-                "end": 2.58,
-                "value": "C"
-              },
-              {
-                "start": 2.58,
-                "end": 2.66,
-                "value": "A"
-              },
-              {
-                "start": 2.66,
-                "end": 2.86,
-                "value": "C"
-              },
-              {
-                "start": 2.86,
-                "end": 2.93,
-                "value": "B"
-              },
-              {
-                "start": 2.93,
-                "end": 3.01,
-                "value": "A"
-              },
-              {
-                "start": 3.01,
-                "end": 3.11,
-                "value": "B"
-              },
-              {
-                "start": 3.11,
-                "end": 3.2,
-                "value": "A"
-              },
-              {
-                "start": 3.2,
-                "end": 3.42,
-                "value": "B"
-              },
-              {
-                "start": 3.42,
-                "end": 3.49,
-                "value": "H"
-              },
-              {
-                "start": 3.49,
-                "end": 3.56,
-                "value": "D"
-              },
-              {
-                "start": 3.56,
-                "end": 3.77,
-                "value": "B"
-              },
-              {
-                "start": 3.77,
-                "end": 3.83,
-                "value": "A"
-              },
-              {
-                "start": 3.83,
-                "end": 3.89,
-                "value": "B"
-              },
-              {
-                "start": 3.89,
-                "end": 3.94,
-                "value": "A"
-              },
-              {
-                "start": 3.94,
-                "end": 4.06,
-                "value": "E"
-              },
-              {
-                "start": 4.06,
-                "end": 4.27,
-                "value": "F"
-              },
-              {
-                "start": 4.27,
-                "end": 4.34,
-                "value": "C"
-              },
-              {
-                "start": 4.34,
-                "end": 4.55,
-                "value": "B"
-              },
-              {
-                "start": 4.55,
-                "end": 4.63,
-                "value": "A"
-              },
-              {
-                "start": 4.63,
-                "end": 4.68,
-                "value": "C"
-              },
-              {
-                "start": 4.68,
-                "end": 5.21,
-                "value": "B"
-              },
-              {
-                "start": 5.21,
-                "end": 5.28,
-                "value": "D"
-              },
-              {
-                "start": 5.28,
-                "end": 5.35,
-                "value": "B"
-              },
-              {
-                "start": 5.35,
-                "end": 5.44,
-                "value": "A"
-              },
-              {
-                "start": 5.44,
-                "end": 5.5,
-                "value": "C"
-              },
-              {
-                "start": 5.5,
-                "end": 5.55,
-                "value": "E"
-              },
-              {
-                "start": 5.55,
-                "end": 5.62,
-                "value": "D"
-              },
-              {
-                "start": 5.62,
-                "end": 5.7,
-                "value": "A"
-              },
-              {
-                "start": 5.7,
-                "end": 6.17,
-                "value": "C"
-              },
-              {
-                "start": 6.17,
-                "end": 6.25,
-                "value": "A"
-              },
-              {
-                "start": 6.25,
-                "end": 6.49,
-                "value": "B"
-              },
-              {
-                "start": 6.49,
-                "end": 6.56,
-                "value": "C"
-              },
-              {
-                "start": 6.56,
-                "end": 6.84,
-                "value": "B"
-              },
-              {
-                "start": 6.84,
-                "end": 6.92,
-                "value": "A"
-              },
-              {
-                "start": 6.92,
-                "end": 7.22,
-                "value": "D"
-              },
-              {
-                "start": 7.22,
-                "end": 7.43,
-                "value": "C"
-              },
-              {
-                "start": 7.43,
-                "end": 7.5,
-                "value": "E"
-              },
-              {
-                "start": 7.5,
-                "end": 7.86,
-                "value": "B"
-              },
-              {
-                "start": 7.86,
-                "end": 7.94,
-                "value": "D"
-              },
-              {
-                "start": 7.94,
-                "end": 7.98,
-                "value": "C"
-              },
-              {
-                "start": 7.98,
-                "end": 8.07,
-                "value": "A"
-              },
-              {
-                "start": 8.07,
-                "end": 8.13,
-                "value": "C"
-              },
-              {
-                "start": 8.13,
-                "end": 8.53,
-                "value": "B"
-              },
-              {
-                "start": 8.53,
-                "end": 8.61,
-                "value": "A"
-              },
-              {
-                "start": 8.61,
-                "end": 8.81,
-                "value": "C"
-              },
-              {
-                "start": 8.81,
-                "end": 8.89,
-                "value": "A"
-              },
-              {
-                "start": 8.89,
-                "end": 9.12,
-                "value": "B"
-              },
-              {
-                "start": 9.12,
-                "end": 9.2,
-                "value": "A"
-              },
-              {
-                "start": 9.2,
-                "end": 9.39,
-                "value": "C"
-              },
-              {
-                "start": 9.39,
-                "end": 9.53,
-                "value": "B"
-              },
-              {
-                "start": 9.53,
-                "end": 9.61,
-                "value": "A"
-              },
-              {
-                "start": 9.61,
-                "end": 9.9,
-                "value": "C"
-              },
-              {
-                "start": 9.9,
-                "end": 9.97,
-                "value": "G"
-              },
-              {
-                "start": 9.97,
-                "end": 10.18,
-                "value": "B"
-              },
-              {
-                "start": 10.18,
-                "end": 10.32,
-                "value": "C"
-              },
-              {
-                "start": 10.32,
-                "end": 10.4,
-                "value": "A"
-              },
-              {
-                "start": 10.4,
-                "end": 10.58,
-                "value": "C"
-              },
-              {
-                "start": 10.58,
-                "end": 10.98,
-                "value": "B"
-              },
-              {
-                "start": 10.98,
-                "end": 11.03,
-                "value": "E"
-              },
-              {
-                "start": 11.03,
-                "end": 11.1,
-                "value": "C"
-              },
-              {
-                "start": 11.1,
-                "end": 11.2,
-                "value": "D"
-              },
-              {
-                "start": 11.2,
-                "end": 11.24,
-                "value": "C"
-              },
-              {
-                "start": 11.24,
-                "end": 11.33,
-                "value": "A"
-              },
-              {
-                "start": 11.33,
-                "end": 11.39,
-                "value": "B"
-              },
-              {
-                "start": 11.39,
-                "end": 11.65,
-                "value": "C"
-              },
-              {
-                "start": 11.65,
-                "end": 11.73,
-                "value": "A"
-              },
-              {
-                "start": 11.73,
-                "end": 12.01,
-                "value": "C"
-              },
-              {
-                "start": 12.01,
-                "end": 12.22,
-                "value": "E"
-              },
-              {
-                "start": 12.22,
-                "end": 12.29,
-                "value": "B"
-              },
-              {
-                "start": 12.29,
-                "end": 12.36,
-                "value": "D"
-              },
-              {
-                "start": 12.36,
-                "end": 12.44,
-                "value": "A"
-              },
-              {
-                "start": 12.44,
-                "end": 12.61,
-                "value": "C"
-              },
-              {
-                "start": 12.61,
-                "end": 12.68,
-                "value": "B"
-              },
-              {
-                "start": 12.68,
-                "end": 12.76,
-                "value": "A"
-              },
-              {
-                "start": 12.76,
-                "end": 12.81,
-                "value": "C"
-              },
-              {
-                "start": 12.81,
-                "end": 12.85,
-                "value": "B"
-              },
-              {
-                "start": 12.85,
-                "end": 12.92,
-                "value": "C"
-              },
-              {
-                "start": 12.92,
-                "end": 13.0,
-                "value": "A"
-              },
-              {
-                "start": 13.0,
-                "end": 13.21,
-                "value": "E"
-              },
-              {
-                "start": 13.21,
-                "end": 13.29,
-                "value": "A"
-              },
-              {
-                "start": 13.29,
-                "end": 13.46,
-                "value": "E"
-              },
-              {
-                "start": 13.46,
-                "end": 13.6,
-                "value": "F"
-              },
-              {
-                "start": 13.6,
-                "end": 13.81,
-                "value": "C"
-              },
-              {
-                "start": 13.81,
-                "end": 13.88,
-                "value": "B"
-              },
-              {
-                "start": 13.88,
-                "end": 13.95,
-                "value": "F"
-              },
-              {
-                "start": 13.95,
-                "end": 14.03,
-                "value": "A"
-              },
-              {
-                "start": 14.03,
-                "end": 14.32,
-                "value": "B"
-              },
-              {
-                "start": 14.32,
-                "end": 14.39,
-                "value": "D"
-              },
-              {
-                "start": 14.39,
-                "end": 14.81,
-                "value": "B"
-              },
-              {
-                "start": 14.81,
-                "end": 14.89,
-                "value": "A"
-              },
-              {
-                "start": 14.89,
-                "end": 14.99,
-                "value": "B"
-              },
-              {
-                "start": 14.99,
-                "end": 15.11,
-                "value": "A"
-              },
-              {
-                "start": 15.11,
-                "end": 15.23,
-                "value": "B"
-              },
-              {
-                "start": 15.23,
-                "end": 15.37,
-                "value": "C"
-              },
-              {
-                "start": 15.37,
-                "end": 15.51,
-                "value": "B"
-              },
-              {
-                "start": 15.51,
-                "end": 15.58,
-                "value": "C"
-              },
-              {
-                "start": 15.58,
-                "end": 15.72,
-                "value": "B"
-              },
-              {
-                "start": 15.72,
-                "end": 15.79,
-                "value": "C"
-              },
-              {
-                "start": 15.79,
-                "end": 15.91,
-                "value": "A"
-              },
-              {
-                "start": 15.91,
-                "end": 15.98,
-                "value": "C"
-              },
-              {
-                "start": 15.98,
-                "end": 16.11,
-                "value": "E"
-              },
-              {
-                "start": 16.11,
-                "end": 16.32,
-                "value": "B"
-              },
-              {
-                "start": 16.32,
-                "end": 16.39,
-                "value": "C"
-              },
-              {
-                "start": 16.39,
-                "end": 16.53,
-                "value": "E"
-              },
-              {
-                "start": 16.53,
-                "end": 16.6,
-                "value": "B"
-              },
-              {
-                "start": 16.6,
-                "end": 16.68,
-                "value": "A"
-              },
-              {
-                "start": 16.68,
-                "end": 16.73,
-                "value": "B"
-              },
-              {
-                "start": 16.73,
-                "end": 16.77,
-                "value": "H"
-              },
-              {
-                "start": 16.77,
-                "end": 16.85,
-                "value": "A"
-              },
-              {
-                "start": 16.85,
-                "end": 16.97,
-                "value": "D"
-              },
-              {
-                "start": 16.97,
-                "end": 17.25,
-                "value": "E"
-              },
-              {
-                "start": 17.25,
-                "end": 17.46,
-                "value": "F"
-              },
-              {
-                "start": 17.46,
-                "end": 17.81,
-                "value": "B"
-              },
-              {
-                "start": 17.81,
-                "end": 17.95,
-                "value": "C"
-              },
-              {
-                "start": 17.95,
-                "end": 18.02,
-                "value": "B"
-              },
-              {
-                "start": 18.02,
-                "end": 18.09,
-                "value": "C"
-              },
-              {
-                "start": 18.09,
-                "end": 18.37,
-                "value": "B"
-              },
-              {
-                "start": 18.37,
-                "end": 18.65,
-                "value": "F"
-              },
-              {
-                "start": 18.65,
-                "end": 18.72,
-                "value": "C"
-              },
-              {
-                "start": 18.72,
-                "end": 19.21,
-                "value": "B"
-              },
-              {
-                "start": 19.21,
-                "end": 19.35,
-                "value": "C"
-              },
-              {
-                "start": 19.35,
-                "end": 19.56,
-                "value": "F"
-              },
-              {
-                "start": 19.56,
-                "end": 19.65,
-                "value": "A"
-              },
-              {
-                "start": 19.65,
-                "end": 19.85,
-                "value": "B"
-              },
-              {
-                "start": 19.85,
-                "end": 19.92,
-                "value": "C"
-              },
-              {
-                "start": 19.92,
-                "end": 20.13,
-                "value": "B"
-              },
-              {
-                "start": 20.13,
-                "end": 20.27,
-                "value": "D"
-              },
-              {
-                "start": 20.27,
-                "end": 20.62,
-                "value": "B"
-              },
-              {
-                "start": 20.62,
-                "end": 20.69,
-                "value": "F"
-              },
-              {
-                "start": 20.69,
-                "end": 20.83,
-                "value": "E"
-              },
-              {
-                "start": 20.83,
-                "end": 21.04,
-                "value": "C"
-              },
-              {
-                "start": 21.04,
-                "end": 21.11,
-                "value": "G"
-              },
-              {
-                "start": 21.11,
-                "end": 21.18,
-                "value": "C"
-              },
-              {
-                "start": 21.18,
-                "end": 21.39,
-                "value": "B"
-              },
-              {
-                "start": 21.39,
-                "end": 21.49,
-                "value": "A"
-              },
-              {
-                "start": 21.49,
-                "end": 21.6,
-                "value": "C"
-              },
-              {
-                "start": 21.6,
-                "end": 21.74,
-                "value": "B"
-              },
-              {
-                "start": 21.74,
-                "end": 21.88,
-                "value": "F"
-              },
-              {
-                "start": 21.88,
-                "end": 22.09,
-                "value": "B"
-              },
-              {
-                "start": 22.09,
-                "end": 22.44,
-                "value": "C"
-              },
-              {
-                "start": 22.44,
-                "end": 22.51,
-                "value": "E"
-              },
-              {
-                "start": 22.51,
-                "end": 22.61,
-                "value": "A"
-              },
-              {
-                "start": 22.61,
-                "end": 22.68,
-                "value": "C"
-              },
-              {
-                "start": 22.68,
-                "end": 22.75,
-                "value": "D"
-              },
-              {
-                "start": 22.75,
-                "end": 22.85,
-                "value": "A"
-              },
-              {
-                "start": 22.85,
-                "end": 22.97,
-                "value": "D"
-              },
-              {
-                "start": 22.97,
-                "end": 23.04,
-                "value": "B"
-              },
-              {
-                "start": 23.04,
-                "end": 23.11,
-                "value": "C"
-              },
-              {
-                "start": 23.11,
-                "end": 23.32,
-                "value": "B"
-              },
-              {
-                "start": 23.32,
-                "end": 23.46,
-                "value": "C"
-              },
-              {
-                "start": 23.46,
-                "end": 23.88,
-                "value": "B"
-              },
-              {
-                "start": 23.88,
-                "end": 24.23,
-                "value": "C"
-              },
-              {
-                "start": 24.23,
-                "end": 24.51,
-                "value": "B"
-              },
-              {
-                "start": 24.51,
-                "end": 24.58,
-                "value": "C"
-              },
-              {
-                "start": 24.58,
-                "end": 24.65,
-                "value": "B"
-              },
-              {
-                "start": 24.65,
-                "end": 24.66,
+                "start": 156.05,
+                "end": 156.06,
                 "value": "X"
               }
             ]

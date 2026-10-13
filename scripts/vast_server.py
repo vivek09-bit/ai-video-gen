@@ -60,7 +60,9 @@ def _audio_is_bad(wav) -> bool:
     x = np.asarray(wav, dtype=np.float64).reshape(-1)
     if x.size == 0 or not np.all(np.isfinite(x)):
         return True
-    if np.max(np.abs(x)) < 1e-4:  # silence
+    if float(np.max(np.abs(x))) < 0.02:  # near-silence / blank output (~-34 dBFS peak)
+        return True
+    if float(np.sqrt(np.mean(x ** 2))) < 0.01:  # far too quiet to be speech
         return True
     if np.std(x) < 1e-5:  # constant / pure DC
         return True
@@ -297,7 +299,7 @@ def load_indic_parler_engine():
                 self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
                 self.resampler = torchaudio.transforms.Resample(self.sample_rate, 24000)
                 self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
-                self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "1") != "1"
+                self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "0") != "1"
 
             def synthesize(self, text, description, speed=1.0):
                 input_ids = self.description_tokenizer(

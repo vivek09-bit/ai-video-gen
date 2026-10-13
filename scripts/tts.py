@@ -80,7 +80,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 12
+AUDIO_PIPELINE_VERSION = 13
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -1085,7 +1085,9 @@ class IndicParlerEngine:
         # generation_config). Greedy decoding (the default) plus a fixed seed pins ONE
         # speaker across every sentence. Set INDIC_PARLER_GREEDY=0 to restore sampling.
         self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
-        self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "1") != "1"
+        # Greedy decoding is OFF by default: Parler-TTS is trained for sampling and greedy
+        # degenerates to near-silent output on some segments. Opt in with INDIC_PARLER_GREEDY=1.
+        self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "0") != "1"
         print(
             f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
         )
@@ -1766,7 +1768,9 @@ def audio_is_bad(wav) -> bool:
     x = np.asarray(wav, dtype=np.float64).reshape(-1)
     if x.size == 0 or not np.all(np.isfinite(x)):
         return True
-    if np.max(np.abs(x)) < 1e-4:  # silence
+    if float(np.max(np.abs(x))) < 0.02:  # near-silence / blank output (~-34 dBFS peak)
+        return True
+    if float(np.sqrt(np.mean(x ** 2))) < 0.01:  # far too quiet to be speech
         return True
     if np.std(x) < 1e-5:  # constant / pure DC
         return True

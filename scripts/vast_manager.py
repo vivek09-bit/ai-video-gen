@@ -282,7 +282,9 @@ def _wav_is_bad(wav_bytes: bytes) -> bool:
     x = np.asarray(wav_np, dtype=np.float64).reshape(-1)
     if x.size == 0 or not np.all(np.isfinite(x)):
         return True
-    if np.max(np.abs(x)) < 1e-4:  # silence
+    if float(np.max(np.abs(x))) < 0.02:  # near-silence / blank output (~-34 dBFS peak)
+        return True
+    if float(np.sqrt(np.mean(x ** 2))) < 0.01:  # far too quiet to be speech
         return True
     if np.std(x) < 1e-5:  # constant / pure DC
         return True
