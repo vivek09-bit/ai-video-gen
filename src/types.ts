@@ -7,16 +7,16 @@
  */
 
 export type BackgroundSpec =
-  | {type: 'color'; color: string}
-  | {type: 'gradient'; from: string; to: string; angle: number}
-  | {type: 'pattern'; pattern: 'grid' | 'dots' | 'diagonal'; bg: string; line: string}
+  | { type: 'color'; color: string }
+  | { type: 'gradient'; from: string; to: string; angle: number }
+  | { type: 'pattern'; pattern: 'grid' | 'dots' | 'diagonal'; bg: string; line: string }
   | {
-      type: 'image';
-      src: string;
-      kenBurns: 'in' | 'out' | 'left' | 'right' | 'none';
-      dim: number;
-    }
-  | {type: 'video'; src: string; dim: number};
+    type: 'image';
+    src: string;
+    kenBurns: 'in' | 'out' | 'left' | 'right' | 'none';
+    dim: number;
+  }
+  | { type: 'video'; src: string; dim: number };
 
 export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 
@@ -65,17 +65,17 @@ export interface ActingSpec {
  * AI generated background images.
  */
 export type VisualSpec =
-  | {type: 'image'; src: string; kenBurns?: 'in' | 'out' | 'left' | 'right' | 'none'; dim?: number; prompt?: string}
-  | {type: 'void'; creep?: number; tint?: string}
-  | {type: 'fog'; density?: number; glow?: number; seed?: number}
-  | {type: 'forest'; fog?: number; moonlight?: number}
-  | {type: 'figure'; distance?: number; fog?: number; glow?: number}
-  | {type: 'house'; fog?: number; lit?: boolean; moonlight?: number}
-  | {type: 'corridor'; flicker?: number; depth?: number}
-  | {type: 'candle'; glow?: number}
-  | {type: 'rain'; intensity?: number; lightning?: boolean}
-  | {type: 'eyes'; pairs?: number; spread?: number}
-  | {type: 'grave'; fog?: number; moonlight?: number};
+  | { type: 'image'; src: string; kenBurns?: 'in' | 'out' | 'left' | 'right' | 'none'; dim?: number; prompt?: string }
+  | { type: 'void'; creep?: number; tint?: string }
+  | { type: 'fog'; density?: number; glow?: number; seed?: number }
+  | { type: 'forest'; fog?: number; moonlight?: number }
+  | { type: 'figure'; distance?: number; fog?: number; glow?: number }
+  | { type: 'house'; fog?: number; lit?: boolean; moonlight?: number }
+  | { type: 'corridor'; flicker?: number; depth?: number }
+  | { type: 'candle'; glow?: number }
+  | { type: 'rain'; intensity?: number; lightning?: boolean }
+  | { type: 'eyes'; pairs?: number; spread?: number }
+  | { type: 'grave'; fog?: number; moonlight?: number };
 
 /** Per-shot grading and camera treatment. All values are 0..1 unless noted. */
 export interface ShotEffects {
@@ -99,7 +99,7 @@ export interface ShotSpec {
   visual: VisualSpec;
   weight?: number;
   effects?: ShotEffects;
-  transition?: {type: 'cut' | 'fade' | 'crossfade'; seconds?: number};
+  transition?: { type: 'cut' | 'fade' | 'crossfade'; seconds?: number };
 }
 
 /** A one-shot sound effect placed at a point in the scene. */
@@ -167,7 +167,7 @@ export interface Scene {
   /** Default performance for every cast member in this scene. */
   acting?: ActingSpec;
   /** Looping ambience bed, e.g. `amb_drone`. Mixed under the narration. */
-  ambience: {src: string; volume: number} | null;
+  ambience: { src: string; volume: number } | null;
   /** One-shot stingers and impacts, timed from the scene start. */
   soundCues: SoundCue[];
   /** Seconds of silence before narration starts. */
@@ -221,7 +221,7 @@ export interface ScriptFile {
   /** Default Kokoro voice id for narration. */
   voice: string;
   /** Narration engine selected for this project. */
-  audioModel?: 'kokoro' | 'indicf5';
+  audioModel?: 'kokoro' | 'indic_parler' | 'indicf5';
   /** Exactly one visual generation mode is used for generated assets. */
   visualMode?: 'image' | 'video';
   videoModel?: string;
@@ -233,9 +233,9 @@ export interface ScriptFile {
   /** Silence inserted between sentences, in seconds. */
   sentencePauseSeconds: number;
   /** Global continuous background ambience spanning the full video duration without interruption. */
-  ambience?: {src: string; volume: number} | null;
+  ambience?: { src: string; volume: number } | null;
   captions: CaptionOptions;
-  music: {src: string; volume: number; fadeOutSeconds: number} | null;
+  music: { src: string; volume: number; fadeOutSeconds: number } | null;
   theme: Theme;
   characters: Record<string, CharacterSpec>;
   scenes: Scene[];

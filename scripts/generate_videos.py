@@ -40,8 +40,14 @@ def generate_videos_for_script(
     fps: int = 24,
     steps: int = 8,
     manager: VastManager | None = None,
+    force: bool = False,
 ) -> dict[str, Any]:
-    """Generate video backgrounds and replace scene shots to prevent image/video mixing."""
+    """Generate video backgrounds and replace scene shots to prevent image/video mixing.
+
+    Clips are minutes of GPU work each, so an existing file is reused by default rather
+    than regenerated: a run that dies at scene 15 must not re-pay for scenes 1-14.
+    Pass `force=True` to regenerate.
+    """
     scenes = script_data.get("scenes", [])
     if not scenes:
         raise ValueError("Cannot generate video: script contains no scenes.")
@@ -55,12 +61,18 @@ def generate_videos_for_script(
     topic = script_data.get("topic", script_data.get("title", ""))
     genre = script_data.get("genre")
     visual_style = script_data.get("visualStyle")
+    # Research keywords (Phase 1) bias the LTX prompt for scenes without explicit keywords.
+    script_keywords = script_data.get("keywords") or None
+    # Theme (Phase 5) pushes the palette/mood into the visual prompt.
+    theme = script_data.get("theme")
     width, height = _video_dimensions(
         int(script_data.get("width") or 1920),
         int(script_data.get("height") or 1080),
     )
     frame_total = _frame_count(duration_seconds, fps)
-    client = manager or VastManager()
+    # Built lazily: a run where every clip is already on disk never touches the GPU, so
+    # it must not require a server URL to exist.
+    client: VastManager | None = manager
 
     for index, scene in enumerate(scenes):
         scene_id = scene.get("id", f"scene-{index + 1:03d}")
@@ -70,24 +82,30 @@ def generate_videos_for_script(
             genre=genre,
             visual_style=visual_style,
             index=index,
+            script_keywords=script_keywords,
+            theme=theme,
         )
         video_name = f"{scene_id}.mp4"
         video_path = output_dir / video_name
         seed = int(hashlib.sha256(f"{topic}_{scene_id}_{index}".encode("utf-8")).hexdigest()[:8], 16)
-        print(f"  [{index + 1}/{len(scenes)}] Generating LTX-Video clip for {scene_id}...")
-        video_data = client.generate_video(
-            prompt,
-            width=width,
-            height=height,
-            num_frames=frame_total,
-            fps=fps,
-            steps=steps,
-            seed=seed,
-            model=model,
-        )
-        if not video_data:
-            raise RuntimeError(f"LTX-Video returned an empty clip for scene {scene_id}.")
-        video_path.write_bytes(video_data)
+        if not force and video_path.exists() and video_path.stat().st_size > 0:
+            print(f"  [{index + 1}/{len(scenes)}] {video_name} already generated, reusing.")
+        else:
+            print(f"  [{index + 1}/{len(scenes)}] Generating LTX-Video clip for {scene_id}...")
+            client = client or VastManager()
+            video_data = client.generate_video(
+                prompt,
+                width=width,
+                height=height,
+                num_frames=frame_total,
+                fps=fps,
+                steps=steps,
+                seed=seed,
+                model=model,
+            )
+            if not video_data:
+                raise RuntimeError(f"LTX-Video returned an empty clip for scene {scene_id}.")
+            video_path.write_bytes(video_data)
 
         # Use a video background and discard planned image shots: a video-mode
         # render must never mix generated image assets with generated clips.

@@ -1,8 +1,8 @@
 {
-  "title": "चीन का 4000 साल पुराना ऐसा रहस्य जो आज तक कोई नहीं सुलझा पाया",
-  "topic": "4000 saal purani china ki kahani",
+  "title": "पुरानी हवेली का राज़",
+  "topic": "पुरानी हवेली का राज़",
   "language": "hi",
-  "genre": "ancient_history",
+  "genre": "horror",
   "visualStyle": null,
   "format": "landscape",
   "aspectRatio": "16:9",
@@ -11,10 +11,10 @@
   "fps": 30,
   "voice": "indicf5_aarav",
   "secondaryVoice": null,
-  "speed": 0.94,
+  "speed": 1.0,
   "sentencePauseSeconds": 0.06,
   "ambience": {
-    "src": "amb_temple",
+    "src": "amb_wind",
     "volume": 0.2
   },
   "captions": {
@@ -32,15 +32,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "blood_red",
-    "name": "Blood Red",
-    "accent": "#ef4444",
-    "text": "#fef2f2",
-    "muted": "#fca5a5",
-    "panel": "rgba(45, 10, 10, 0.75)",
+    "key": "monochrome_noir",
+    "name": "Monochrome Noir",
+    "accent": "#e2e8f0",
+    "text": "#ffffff",
+    "muted": "#94a3b8",
+    "panel": "rgba(20, 20, 24, 0.82)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0c0404"
+    "bg_color": "#050507"
   },
   "characters": {},
   "scenes": [
@@ -58,15 +58,16 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient Chinese bronze mask, museum spotlight, dark, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture golden, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.72,
-            "grain": 0.22,
-            "dust": 0.3,
+            "vignette": 0.88,
+            "grain": 0.42,
+            "dust": 0.28,
             "zoom": 0.025,
-            "drift": "in"
+            "drift": "in",
+            "exposureFlicker": 0.12
           },
           "transition": {
             "type": "cut"
@@ -78,15 +79,16 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient Chinese bronze mask, museum spotlight, dark, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: ancient heritage mansion dark manor architecture golden, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.72,
-            "grain": 0.22,
-            "dust": 0.3,
+            "vignette": 0.88,
+            "grain": 0.42,
+            "dust": 0.28,
             "zoom": 0.025,
-            "drift": "in"
+            "drift": "in",
+            "exposureFlicker": 0.12
           },
           "transition": {
             "type": "crossfade",
@@ -95,24 +97,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_quarry_echo",
-        "volume": 0.15
+        "src": "amb_wind",
+        "volume": 0.16
       },
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_temple_gong",
-          "volume": 0.16
+          "sfx": "sfx_footstep_wood",
+          "volume": 0.17
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0c0404"
+        "color": "#050507"
       },
       "cast": [],
       "acting": {
-        "emotion": "calm",
-        "intensity": 0.26,
+        "emotion": "worried",
+        "intensity": 0.34,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -123,12 +125,197 @@
       "lines": [
         {
           "character": null,
-          "text": "साल दो हज़ार बाईस, चीन के सिचुआन प्रांत में एक खुदाई चल रही थी, और अचानक मजदूरों के हाथों में एक ऐसी चीज़ लगी जिसने पूरी दुनिया के पुरातत्व वैज्ञानिकों के होश उड़ा दिए। सोने की चमकती हुई एक मुखौटा, यानी मास्क, जिसकी आँखें बिल्कुल ज़िंदा इंसान जैसी लग रही थीं। लेकिन यहाँ असली सवाल ये नहीं था कि ये मास्क किसने बनाया, असली सवाल ये था कि चार हज़ार साल पहले, जब ना बिजली थी, ना लोहा, ना कोई आधुनिक औज़ार, तब इंसान ने इस मास्क को इतनी बारीकी से कैसे बनाया। और सबसे हैरानी की बात ये है कि जब वैज्ञानिकों ने इस मास्क को लैब में टेस्ट किया, तो पता चला कि इसमें इस्तेमाल हुआ सोना, आज के सोने से भी ज़्यादा शुद्ध था। नब्बे प्रतिशत से भी ऊपर। ये सुनकर आप सोच रहे होंगे कि ये तो बस एक मास्क है, तो इसमें ऐसा क्या है जो चार हज़ार साल से दुनिया से छिपा हुआ था। लेकिन दोस्तों, ये सिर्फ़ शुरुआत है। क्योंकि जो चीज़ इस मास्क के साथ मिली, वो आज तक की सबसे बड़ी पहेली बनी हुई है।"
+          "text": "पुरानी हवेली की दीवार पर आज भी एक नाम लिखा है। और वो नाम तुम्हारा है। असल में, रात के तीन बजे जब रोहन ने उस सौ साल से बंद कमरे का दरवाज़ा खोला, तो अंदर की दीवार पर ताज़ा खुदा नाम देखकर उसका खून जम गया। वही नाम, वही लिखावट, जो उसकी डायरी में थी। तभी अचानक पीछे से एक ठंडी साँस ने उसका कंधा छुआ।"
         }
       ],
-      "visualKeywords": "ancient Chinese bronze mask, museum spotlight, dark background, macro detail"
+      "visualKeywords": "dusty haveli wall, carved name, flashlight beam, shocked young man face"
+    },
+    {
+      "id": "scene-002",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.96,
+            "grain": 0.58,
+            "dust": 0.15,
+            "shake": 0.4,
+            "zoom": 0.06,
+            "drift": "in",
+            "exposureFlicker": 0.35
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.96,
+            "grain": 0.58,
+            "dust": 0.15,
+            "shake": 0.4,
+            "zoom": 0.06,
+            "drift": "in",
+            "exposureFlicker": 0.35
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: dramatic climax finale sunset resolution spirit apparition, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.96,
+            "grain": 0.58,
+            "dust": 0.15,
+            "shake": 0.45,
+            "zoom": 0.06,
+            "drift": "in",
+            "exposureFlicker": 0.35
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ghost_voices",
+        "volume": 0.25
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_phantom_shriek",
+          "volume": 0.25
+        },
+        {
+          "at": 16.8,
+          "sfx": "sfx_boom",
+          "volume": 0.25
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050507"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "shock",
+        "intensity": 1.0,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "recoil"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "हैरानी की बात ये थी कि वो हवेली तो सिर्फ दो मंज़िल की थी। लेकिन तभी सीढ़ियों से एक औरत की रुलाई गूंजी, वो रुलाई जो सिर्फ कुँवारी लड़कियों को सुनाई देती है। और फिर वो समझ गया, ये हवेली का आखिरी वारिस कोई इंसान नहीं, बल्कि वही आत्मा है, जो सौ साल से अपने ही कातिल का इंतज़ार कर रही थी।"
+        }
+      ],
+      "visualKeywords": "dark staircase, flickering lantern, shadowy woman figure, terrified man turning"
     }
   ],
   "audioModel": "indicf5",
-  "visualMode": "image"
+  "visualMode": "image",
+  "research": {
+    "seed": "पुरानी हवेली का राज़",
+    "genre": "horror",
+    "keywords": {
+      "seed": "पुरानी हवेली का राज़",
+      "youtube_trending": [],
+      "google_search": [],
+      "questions_and_curiosity": [],
+      "long_tail_keywords": []
+    },
+    "ai_synthesis": {
+      "concepts": [
+        {
+          "title": "हवेली की दीवार पर लिखा नाम किसका था?",
+          "hook": "उस पुरानी हवेली की दीवार पर आज भी एक नाम लिखा है... और वो नाम तुम्हारा है।",
+          "core_angle": "A young man inherits a haveli and finds his own name freshly carved into a wall that has been sealed for 100 years, leading him to discover he is the reincarnation of the previous owner who was murdered there.",
+          "recommended_topic_arg": "पुरानी हवेली की दीवार पर लिखा रहस्यमयी नाम और पुनर्जन्म का राज़",
+          "target_emotion": "dread"
+        },
+        {
+          "title": "हवेली में रात 3 बजे कौन रोता है?",
+          "hook": "रात के तीन बजे हवेली से आने वाली औरत की रुलाई... जो सिर्फ कुँवारी लड़कियों को सुनाई देती है।",
+          "core_angle": "A group of friends stay overnight in a haunted haveli and discover that the crying woman only appears to unmarried girls, warning them about a curse that has killed every bride in their family for generations.",
+          "recommended_topic_arg": "हवेली में रात 3 बजे रोने वाली औरत की कहानी और कुँवारी लड़कियों पर श्राप",
+          "target_emotion": "curiosity"
+        },
+        {
+          "title": "हवेली का आखिरी वारिस कौन है?",
+          "hook": "उस हवेली का आखिरी वारिस आज तक जिंदा है... लेकिन वो इंसान नहीं है।",
+          "core_angle": "A lawyer investigating a property dispute discovers that the haveli's last living heir is actually a shape-shifting entity that has been impersonating the family for decades, feeding on anyone who tries to claim the inheritance.",
+          "recommended_topic_arg": "पुरानी हवेली का आखिरी वारिस और शेपशिफ्टिंग आत्मा का राज़",
+          "target_emotion": "shock"
+        },
+        {
+          "title": "हवेली के आईने में कैद आत्मा",
+          "hook": "उस हवेली के आईने में एक आत्मा कैद है... और वो बाहर निकलने के लिए तुम्हारा नाम पुकार रही है।",
+          "core_angle": "A girl buys an antique mirror from a haveli and realizes that the spirit trapped inside can only be freed if someone takes her place, forcing her to choose between her own freedom and the spirit's vengeance.",
+          "recommended_topic_arg": "हवेली के पुराने आईने में कैद आत्मा की कहानी",
+          "target_emotion": "dread"
+        },
+        {
+          "title": "हवेली की सीढ़ियाँ क्यों गिनती हैं?",
+          "hook": "हवेली की सीढ़ियाँ हर रात अपने आप गिनी जाती हैं... और गिनती हमेशा 13 पर जाकर रुक जाती है।",
+          "core_angle": "A paranormal investigator discovers that the haveli's staircase is cursed: anyone who climbs it after midnight becomes trapped in a time loop, reliving the night of a massacre that happened 200 years ago, and the only way out is to change history.",
+          "recommended_topic_arg": "हवेली की 13 सीढ़ियों का श्राप और टाइम लूप का राज़",
+          "target_emotion": "excitement"
+        }
+      ],
+      "seo_tags": [
+        "पुरानी हवेली का राज़",
+        "भूतिया हवेली",
+        "हिंदी हॉरर कहानी",
+        "हवेली हॉरर",
+        "आत्मा की कहानी",
+        "डरावनी कहानी",
+        "रहस्यमयी हवेली",
+        "भूत प्रेत कहानी",
+        "हॉरर स्टोरी हिंदी",
+        "श्रापित हवेली"
+      ],
+      "recommended_hashtags": [
+        "#पुरानीहवेली",
+        "#हॉररकहानी",
+        "#भूतियाहवेली",
+        "#हिंदीहॉरर",
+        "#डरावनीकहानी"
+      ]
+    }
+  }
 }

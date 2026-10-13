@@ -1,8 +1,8 @@
 {
   "script": {
-    "title": "कालका-शिमला टनल तैंतीस का खौफनाक रहस्य",
-    "voice": "hm_omega",
-    "speed": 0.94,
+    "title": "पुरानी हवेली की दीवार के पीछे छिपा राज़",
+    "voice": "indicf5_aarav",
+    "speed": 1.0,
     "fps": 30,
     "width": 1920,
     "height": 1080,
@@ -34,26 +34,26 @@
     },
     "music": null,
     "theme": {
-      "accent": "#f97316",
-      "text": "#fff7ed",
-      "muted": "#ffedd5",
-      "panel": "rgba(40, 22, 10, 0.75)",
+      "accent": "#e2e8f0",
+      "text": "#ffffff",
+      "muted": "#94a3b8",
+      "panel": "rgba(20, 20, 24, 0.82)",
       "headlineFont": "Georgia, 'Times New Roman', serif",
       "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-      "key": "desert_dusk",
-      "name": "Desert Dusk",
-      "bg_color": "#0e0602"
+      "key": "monochrome_noir",
+      "name": "Monochrome Noir",
+      "bg_color": "#050507"
     },
     "characters": {},
-    "topic": "The Ghost Tunnel Of Kalka Shimla Railway Mystery And True Legend. This story blends historical intrigue with chilling paranormal folklore, perfectly matching your channel's eerie late-night atmosphere.",
+    "topic": "पुरानी हवेली का राज़",
     "language": "hi",
-    "genre": "mythology",
+    "genre": "horror",
     "visualStyle": null,
     "format": "landscape",
     "aspectRatio": "16:9",
     "secondaryVoice": null,
     "ambience": {
-      "src": "amb_warm",
+      "src": "amb_wind",
       "volume": 0.2
     },
     "scenes": [
@@ -63,7 +63,7 @@
         "lines": [
           {
             "character": null,
-            "text": "कालका-शिमला टनल तैंतीस में आज भी वो पुराना साया दिखता है।"
+            "text": "रात के ठीक दो बजे, उस पुरानी हवेली की दीवार के पीछे से एक आवाज़ आई। वो किसी इंसान की नहीं थी। कोई धीमी आवाज़ में गिनती गिन रहा था... एक... दो... तीन... मैंने अपने कानों पर यकीन नहीं किया। लेकिन जैसे ही मैंने उस आवाज़ को गिनना शुरू किया, मेरे हाथ-पैर ठंडे पड़ गए। क्योंकि हवेली का आखिरी वारिस कहता था, जो भी उस गिनती को पूरा सुन लेता है, वो हमेशा के लिए गायब हो जाता है।"
           }
         ],
         "headline": "",
@@ -75,7 +75,7 @@
           "from": "#0b1220",
           "to": "#132a44",
           "angle": 160,
-          "color": "#0e0602"
+          "color": "#050507"
         },
         "cast": [],
         "shots": [
@@ -85,15 +85,16 @@
               "src": "images/scene-001.png",
               "kenBurns": "in",
               "dim": 0.15,
-              "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring house, lit window warm illumination, forest, establish scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: old mansion wall, dim moonlight, ticking clock,, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
             },
             "weight": 2,
             "effects": {
-              "vignette": 0.75,
-              "grain": 0.3,
-              "dust": 0.35,
-              "zoom": 0.03,
-              "drift": "in"
+              "vignette": 0.88,
+              "grain": 0.42,
+              "dust": 0.28,
+              "zoom": 0.025,
+              "drift": "in",
+              "exposureFlicker": 0.12
             },
             "transition": {
               "type": "cut"
@@ -105,15 +106,16 @@
               "src": "images/scene-001.png",
               "kenBurns": "out",
               "dim": 0.15,
-              "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring house, lit window warm illumination, forest, establish scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: old mansion wall, dim moonlight, ticking clock,, featuring corridor, flickering flame light, house, establish scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.75,
-              "grain": 0.3,
-              "dust": 0.35,
-              "zoom": 0.03,
-              "drift": "in"
+              "vignette": 0.88,
+              "grain": 0.42,
+              "dust": 0.28,
+              "zoom": 0.025,
+              "drift": "in",
+              "exposureFlicker": 0.12
             },
             "transition": {
               "type": "crossfade",
@@ -122,14 +124,14 @@
           }
         ],
         "ambience": {
-          "src": "amb_warm",
-          "volume": 0.15
+          "src": "amb_wind",
+          "volume": 0.16
         },
         "soundCues": [
           {
             "at": 0.0,
-            "sfx": "sfx_conch_call",
-            "volume": 0.16
+            "sfx": "sfx_footstep_wood",
+            "volume": 0.17
           }
         ],
         "padBefore": 0.0,
@@ -137,13 +139,13 @@
         "holdSeconds": 3.0,
         "beat": "establish",
         "acting": {
-          "emotion": "calm",
-          "intensity": 0.3,
+          "emotion": "worried",
+          "intensity": 0.34,
           "head": "left",
           "eyes": "left",
           "gesture": "none"
         },
-        "visualKeywords": "Kalka Shimla railway, dark tunnel, eerie train, fog"
+        "visualKeywords": "old mansion wall, dim moonlight, ticking clock, shadowy room"
       },
       {
         "id": "scene-002",
@@ -151,7 +153,7 @@
         "lines": [
           {
             "character": null,
-            "text": "लाइट बुझते ही, ट्रेन के अंदर वो ठीक मेरे पीछे था।"
+            "text": "अगली सुबह मैंने हवेली की उस दीवार को तोड़ा, तो अंदर एक पुराना कमरा मिला। वहाँ एक डायरी रखी थी, जिसमें लिखा था कि हर रात वो गिनती उन रिश्तेदारों की आत्माएँ गिनती हैं, जिन्होंने आखिरी वारिस को ज़िंदा जलाया था। और उस दिन के बाद से, हवेली के आईने में मेरा चेहरा नहीं दिखता। सिर्फ वो आवाज़ गिनती है... एक... दो... तीन... और मैं खुद उस गिनती का हिस्सा बन चुका हूँ।"
           }
         ],
         "headline": "",
@@ -163,7 +165,7 @@
           "from": "#0b1220",
           "to": "#132a44",
           "angle": 160,
-          "color": "#0e0602"
+          "color": "#050507"
         },
         "cast": [],
         "shots": [
@@ -173,16 +175,17 @@
               "src": "images/scene-002.png",
               "kenBurns": "out",
               "dim": 0.15,
-              "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: golden desert sand dunes wind sweeping spirit, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
             },
             "weight": 2,
             "effects": {
-              "vignette": 0.88,
-              "grain": 0.45,
-              "dust": 0.4,
-              "shake": 0.28,
-              "zoom": 0.05,
-              "drift": "in"
+              "vignette": 0.96,
+              "grain": 0.58,
+              "dust": 0.15,
+              "shake": 0.4,
+              "zoom": 0.06,
+              "drift": "in",
+              "exposureFlicker": 0.35
             },
             "transition": {
               "type": "cut"
@@ -194,16 +197,17 @@
               "src": "images/scene-002.png",
               "kenBurns": "left",
               "dim": 0.15,
-              "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: golden desert sand dunes wind sweeping spirit, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.88,
-              "grain": 0.45,
-              "dust": 0.4,
-              "shake": 0.28,
-              "zoom": 0.05,
-              "drift": "in"
+              "vignette": 0.96,
+              "grain": 0.58,
+              "dust": 0.15,
+              "shake": 0.4,
+              "zoom": 0.06,
+              "drift": "in",
+              "exposureFlicker": 0.35
             },
             "transition": {
               "type": "crossfade",
@@ -216,16 +220,17 @@
               "src": "images/scene-002.png",
               "kenBurns": "right",
               "dim": 0.15,
-              "prompt": "Grand epic mythological painting, ancient Indian temple art style, divine golden aura, dramatic clouds, majestic celestial glory: vintage steam locomotive train railway tracks eerie, featuring figure, glowing magical radiance, candle, eyes, reveal scene, masterpiece epic fantasy art, opulent divine lighting, sacred atmosphere."
+              "prompt": "Masterpiece cinematic dark horror atmosphere, terrifying 2D digital concept art, eerie volumetric fog, sinister low-key lighting, deep dramatic shadows, ominous mystery: golden desert sand dunes wind sweeping spirit, featuring figure, glowing magical radiance, eyes, reveal scene, monochrome film-noir palette, high-contrast black and white, highly detailed dark atmospheric horror background, 8k cinematic composition, chilling moody lighting, photorealistic textures."
             },
             "weight": 1,
             "effects": {
-              "vignette": 0.88,
-              "grain": 0.45,
-              "dust": 0.4,
+              "vignette": 0.96,
+              "grain": 0.58,
+              "dust": 0.15,
               "shake": 0.45,
-              "zoom": 0.05,
-              "drift": "in"
+              "zoom": 0.06,
+              "drift": "in",
+              "exposureFlicker": 0.35
             },
             "transition": {
               "type": "crossfade",
@@ -234,18 +239,18 @@
           }
         ],
         "ambience": {
-          "src": "amb_temple",
+          "src": "amb_ghost_voices",
           "volume": 0.25
         },
         "soundCues": [
           {
-            "at": 0.12,
-            "sfx": "sfx_cinematic_hit",
+            "at": 0.15,
+            "sfx": "sfx_phantom_shriek",
             "volume": 0.25
           },
           {
-            "at": 3.17,
-            "sfx": "sfx_mystic_reveal",
+            "at": 16.8,
+            "sfx": "sfx_boom",
             "volume": 0.25
           }
         ],
@@ -260,76 +265,487 @@
           "eyes": "center",
           "gesture": "recoil"
         },
-        "visualKeywords": "Inside train, flickering lights, dark silhouette, suspenseful shadow"
+        "visualKeywords": "cracked wall opening, secret room, old diary, flickering candle"
       }
-    ]
+    ],
+    "audioModel": "indicf5",
+    "visualMode": "image",
+    "research": {
+      "seed": "पुरानी हवेली का राज़",
+      "genre": "horror",
+      "keywords": {
+        "seed": "पुरानी हवेली का राज़",
+        "youtube_trending": [],
+        "google_search": [],
+        "questions_and_curiosity": [],
+        "long_tail_keywords": []
+      },
+      "ai_synthesis": {
+        "concepts": [
+          {
+            "title": "हवेली की दीवार से निकली आवाज़",
+            "hook": "रात के ठीक 2 बजे हवेली की दीवार से जो आवाज़ आई, वो किसी इंसान की नहीं थी।",
+            "core_angle": "हवेली की दीवार के पीछे छिपा एक पुराना कमरा, जहाँ से हर रात गिनती की आवाज़ आती है, और जो भी उसे गिनता है, वो गायब हो जाता है।",
+            "recommended_topic_arg": "पुरानी हवेली की दीवार से आने वाली रहस्यमयी आवाज़ और गायब होते लोगों की कहानी",
+            "target_emotion": "dread"
+          },
+          {
+            "title": "हवेली का आखिरी वारिस",
+            "hook": "हवेली के आखिरी वारिस ने मरने से पहले एक चेतावनी दी थी, जिसे किसी ने नहीं माना।",
+            "core_angle": "हवेली के आखिरी वारिस की मौत के बाद उसकी आत्मा उन सभी रिश्तेदारों को एक-एक करके बुलाती है जिन्होंने उसे ज़िंदा जलाया था।",
+            "recommended_topic_arg": "हवेली के आखिरी वारिस की मौत का बदला लेने वाली आत्मा की कहानी",
+            "target_emotion": "shock"
+          },
+          {
+            "title": "हवेली के आईने में कैद आत्मा",
+            "hook": "उस हवेली के आईने में जो दिखता है, वो सिर्फ तुम्हारा चेहरा नहीं है।",
+            "core_angle": "हवेली के एक पुराने आईने में एक आत्मा कैद है, जो हर उस इंसान का चेहरा चुरा लेती है जो उसमें खुद को देखता है, और फिर उसकी जगह ले लेती है।",
+            "recommended_topic_arg": "हवेली के श्रापित आईने में कैद आत्मा और चेहरा चुराने की कहानी",
+            "target_emotion": "curiosity"
+          },
+          {
+            "title": "हवेली की तहखाने में बंद सच",
+            "hook": "हवेली के तहखाने का दरवाज़ा 100 साल से बंद था, लेकिन अंदर से आवाज़ आ रही थी।",
+            "core_angle": "हवेली के तहखाने में बंद एक जीवित प्राणी है, जिसे 100 साल पहले कैद किया गया था, और वो अब बाहर निकलने के लिए बेचैन है।",
+            "recommended_topic_arg": "हवेली के तहखाने में 100 साल से बंद रहस्यमयी प्राणी की कहानी",
+            "target_emotion": "dread"
+          },
+          {
+            "title": "हवेली की छत पर मिली डायरी",
+            "hook": "हवेली की छत पर पड़ी डायरी में लिखा था, 'जो भी इसे पढ़ेगा, वो अगली रात नहीं देखेगा'।",
+            "core_angle": "हवेली की छत पर मिली एक डायरी में उस हवेली के पिछले मालिक की कहानी है, जिसने अपनी आत्मा शैतान को बेच दी थी, और अब वो डायरी पढ़ने वाले को श्राप देती है।",
+            "recommended_topic_arg": "हवेली की छत पर मिली श्रापित डायरी और उसके पीछे की कहानी",
+            "target_emotion": "shock"
+          }
+        ],
+        "seo_tags": [
+          "पुरानी हवेली का राज़",
+          "हवेली की आवाज़",
+          "हवेली का आखिरी वारिस",
+          "हवेली का आईना",
+          "हवेली का तहखाना",
+          "हवेली की डायरी",
+          "भूतिया हवेली",
+          "हिंदी हॉरर कहानी",
+          "डरावनी कहानी",
+          "रहस्यमयी हवेली"
+        ],
+        "recommended_hashtags": [
+          "#हवेली",
+          "#हॉरर",
+          "#भूतिया",
+          "#हिंदीकहानी",
+          "#रहस्य"
+        ]
+      }
+    }
   },
   "timings": {
-    "totalDuration": 8.575,
-    "totalWords": 22,
+    "totalDuration": 43.1203,
+    "totalWords": 152,
     "scenes": [
       {
         "id": "scene-001",
         "index": 0,
         "start": 0.0,
-        "duration": 4.975,
+        "duration": 23.6168,
         "audioStart": 0.0,
         "audio": "audio/voice/scene-001.wav",
         "words": [
           {
-            "text": "kalaka-shimala",
+            "text": "raat",
             "start": 0.0,
-            "end": 1.0747
+            "end": 0.2359
           },
           {
-            "text": "tunnel",
-            "start": 1.0747,
-            "end": 1.5185
+            "text": "ke",
+            "start": 0.2359,
+            "end": 0.3944
           },
           {
-            "text": "taintis",
-            "start": 1.5185,
-            "end": 2.0638
+            "text": "thik",
+            "start": 0.3944,
+            "end": 0.6791
           },
           {
-            "text": "mein",
-            "start": 2.0638,
-            "end": 2.3365
+            "text": "do",
+            "start": 0.6791,
+            "end": 0.8661
           },
           {
-            "text": "aaj",
-            "start": 2.3365,
-            "end": 2.5825
+            "text": "baje,",
+            "start": 0.8661,
+            "end": 1.2321
           },
           {
-            "text": "bhi",
-            "start": 2.5825,
-            "end": 2.8551
+            "text": "us",
+            "start": 1.2321,
+            "end": 1.3907
+          },
+          {
+            "text": "purani",
+            "start": 1.3907,
+            "end": 1.838
+          },
+          {
+            "text": "haveli",
+            "start": 1.838,
+            "end": 2.2853
+          },
+          {
+            "text": "ki",
+            "start": 2.2853,
+            "end": 2.4154
+          },
+          {
+            "text": "divar",
+            "start": 2.4154,
+            "end": 2.7814
+          },
+          {
+            "text": "ke",
+            "start": 2.7814,
+            "end": 2.94
+          },
+          {
+            "text": "peeche",
+            "start": 2.94,
+            "end": 3.3345
+          },
+          {
+            "text": "se",
+            "start": 3.3345,
+            "end": 3.493
+          },
+          {
+            "text": "ek",
+            "start": 3.493,
+            "end": 3.6801
+          },
+          {
+            "text": "aawaz",
+            "start": 3.6801,
+            "end": 4.0257
+          },
+          {
+            "text": "aaee.",
+            "start": 4.0257,
+            "end": 4.2453
           },
           {
             "text": "woh",
-            "start": 2.8551,
-            "end": 3.0637
+            "start": 4.2735,
+            "end": 4.4508
           },
           {
-            "text": "purana",
-            "start": 3.0637,
-            "end": 3.6892
+            "text": "kisi",
+            "start": 4.4508,
+            "end": 4.7736
           },
           {
-            "text": "saaya",
-            "start": 3.6892,
-            "end": 4.1437
+            "text": "insan",
+            "start": 4.7736,
+            "end": 5.1827
           },
           {
-            "text": "dikhata",
-            "start": 4.1437,
-            "end": 4.7265
+            "text": "ki",
+            "start": 5.1827,
+            "end": 5.3282
+          },
+          {
+            "text": "nahi",
+            "start": 5.3282,
+            "end": 5.7055
+          },
+          {
+            "text": "thi.",
+            "start": 5.7055,
+            "end": 5.9055
+          },
+          {
+            "text": "koee",
+            "start": 5.9338,
+            "end": 6.1952
+          },
+          {
+            "text": "dhimi",
+            "start": 6.1952,
+            "end": 6.5516
+          },
+          {
+            "text": "aawaz",
+            "start": 6.5516,
+            "end": 6.8882
+          },
+          {
+            "text": "mein",
+            "start": 6.8882,
+            "end": 7.0901
+          },
+          {
+            "text": "ginati",
+            "start": 7.0901,
+            "end": 7.4465
+          },
+          {
+            "text": "gin",
+            "start": 7.4465,
+            "end": 7.6485
+          },
+          {
+            "text": "raha",
+            "start": 7.6485,
+            "end": 7.9573
+          },
+          {
+            "text": "tha...",
+            "start": 7.9573,
+            "end": 8.3018
+          },
+          {
+            "text": "ek...",
+            "start": 8.3303,
+            "end": 8.4999
+          },
+          {
+            "text": "do...",
+            "start": 8.5284,
+            "end": 9.2431
+          },
+          {
+            "text": "tin...",
+            "start": 9.2717,
+            "end": 9.5597
+          },
+          {
+            "text": "mainne",
+            "start": 9.5885,
+            "end": 9.961
+          },
+          {
+            "text": "apne",
+            "start": 9.961,
+            "end": 10.3128
+          },
+          {
+            "text": "kanon",
+            "start": 10.3128,
+            "end": 10.6853
+          },
+          {
+            "text": "par",
+            "start": 10.6853,
+            "end": 10.8963
+          },
+          {
+            "text": "yakin",
+            "start": 10.8963,
+            "end": 11.2688
+          },
+          {
+            "text": "nahi",
+            "start": 11.2688,
+            "end": 11.6123
+          },
+          {
+            "text": "kiya.",
+            "start": 11.6123,
+            "end": 11.9352
+          },
+          {
+            "text": "lekin",
+            "start": 11.964,
+            "end": 12.3297
+          },
+          {
+            "text": "jaise",
+            "start": 12.3297,
+            "end": 12.6751
+          },
+          {
+            "text": "hi",
+            "start": 12.6751,
+            "end": 12.8336
+          },
+          {
+            "text": "mainne",
+            "start": 12.8336,
+            "end": 13.1993
+          },
+          {
+            "text": "us",
+            "start": 13.1993,
+            "end": 13.3578
+          },
+          {
+            "text": "aawaz",
+            "start": 13.3578,
+            "end": 13.7032
+          },
+          {
+            "text": "ko",
+            "start": 13.7032,
+            "end": 13.8617
+          },
+          {
+            "text": "ginana",
+            "start": 13.8617,
+            "end": 14.2558
+          },
+          {
+            "text": "shuru",
+            "start": 14.2558,
+            "end": 14.5728
+          },
+          {
+            "text": "kiya,",
+            "start": 14.5728,
+            "end": 14.9385
+          },
+          {
+            "text": "mere",
+            "start": 14.9385,
+            "end": 15.2839
+          },
+          {
+            "text": "hath-pair",
+            "start": 15.2839,
+            "end": 15.804
+          },
+          {
+            "text": "thnde",
+            "start": 15.804,
+            "end": 16.2185
+          },
+          {
+            "text": "par",
+            "start": 16.2185,
+            "end": 16.4745
+          },
+          {
+            "text": "gae.",
+            "start": 16.4745,
+            "end": 16.7427
+          },
+          {
+            "text": "kyunki",
+            "start": 16.7716,
+            "end": 17.1826
+          },
+          {
+            "text": "haveli",
+            "start": 17.1826,
+            "end": 17.6258
+          },
+          {
+            "text": "ka",
+            "start": 17.6258,
+            "end": 17.783
+          },
+          {
+            "text": "aakhiri",
+            "start": 17.783,
+            "end": 18.2544
+          },
+          {
+            "text": "varis",
+            "start": 18.2544,
+            "end": 18.617
+          },
+          {
+            "text": "kahata",
+            "start": 18.617,
+            "end": 19.0884
+          },
+          {
+            "text": "tha,",
+            "start": 19.0884,
+            "end": 19.3423
+          },
+          {
+            "text": "jo",
+            "start": 19.3423,
+            "end": 19.5276
+          },
+          {
+            "text": "bhi",
+            "start": 19.5276,
+            "end": 19.7331
+          },
+          {
+            "text": "us",
+            "start": 19.7331,
+            "end": 19.8902
+          },
+          {
+            "text": "ginati",
+            "start": 19.8902,
+            "end": 20.2529
+          },
+          {
+            "text": "ko",
+            "start": 20.2529,
+            "end": 20.41
+          },
+          {
+            "text": "pura",
+            "start": 20.41,
+            "end": 20.7525
+          },
+          {
+            "text": "sun",
+            "start": 20.7525,
+            "end": 20.958
+          },
+          {
+            "text": "leta",
+            "start": 20.958,
+            "end": 21.3005
+          },
+          {
+            "text": "hai,",
+            "start": 21.3005,
+            "end": 21.506
+          },
+          {
+            "text": "woh",
+            "start": 21.506,
+            "end": 21.6631
+          },
+          {
+            "text": "hamesha",
+            "start": 21.6631,
+            "end": 22.1345
+          },
+          {
+            "text": "ke",
+            "start": 22.1345,
+            "end": 22.2916
+          },
+          {
+            "text": "lie",
+            "start": 22.2916,
+            "end": 22.5576
+          },
+          {
+            "text": "gayab",
+            "start": 22.5576,
+            "end": 22.9202
+          },
+          {
+            "text": "ho",
+            "start": 22.9202,
+            "end": 23.0773
+          },
+          {
+            "text": "jata",
+            "start": 23.0773,
+            "end": 23.4198
           },
           {
             "text": "hai.",
-            "start": 4.7265,
-            "end": 4.935
+            "start": 23.4198,
+            "end": 23.577
           }
         ],
         "lines": [
@@ -337,248 +753,478 @@
             "characterId": null,
             "audio": "audio/voice/scene-001.wav",
             "start": 0.0,
-            "duration": 4.935,
+            "duration": 23.5768,
             "words": [
               {
-                "text": "कालका-शिमला",
+                "text": "रात",
                 "start": 0.0,
-                "end": 1.0747
+                "end": 0.2359
               },
               {
-                "text": "टनल",
-                "start": 1.0747,
-                "end": 1.5185
+                "text": "के",
+                "start": 0.2359,
+                "end": 0.3944
               },
               {
-                "text": "तैंतीस",
-                "start": 1.5185,
-                "end": 2.0638
+                "text": "ठीक",
+                "start": 0.3944,
+                "end": 0.6791
               },
               {
-                "text": "में",
-                "start": 2.0638,
-                "end": 2.3365
+                "text": "दो",
+                "start": 0.6791,
+                "end": 0.8661
               },
               {
-                "text": "आज",
-                "start": 2.3365,
-                "end": 2.5825
+                "text": "बजे,",
+                "start": 0.8661,
+                "end": 1.2321
               },
               {
-                "text": "भी",
-                "start": 2.5825,
-                "end": 2.8551
+                "text": "उस",
+                "start": 1.2321,
+                "end": 1.3907
+              },
+              {
+                "text": "पुरानी",
+                "start": 1.3907,
+                "end": 1.838
+              },
+              {
+                "text": "हवेली",
+                "start": 1.838,
+                "end": 2.2853
+              },
+              {
+                "text": "की",
+                "start": 2.2853,
+                "end": 2.4154
+              },
+              {
+                "text": "दीवार",
+                "start": 2.4154,
+                "end": 2.7814
+              },
+              {
+                "text": "के",
+                "start": 2.7814,
+                "end": 2.94
+              },
+              {
+                "text": "पीछे",
+                "start": 2.94,
+                "end": 3.3345
+              },
+              {
+                "text": "से",
+                "start": 3.3345,
+                "end": 3.493
+              },
+              {
+                "text": "एक",
+                "start": 3.493,
+                "end": 3.6801
+              },
+              {
+                "text": "आवाज़",
+                "start": 3.6801,
+                "end": 4.0257
+              },
+              {
+                "text": "आई।",
+                "start": 4.0257,
+                "end": 4.2453
               },
               {
                 "text": "वो",
-                "start": 2.8551,
-                "end": 3.0637
+                "start": 4.2735,
+                "end": 4.4508
               },
               {
-                "text": "पुराना",
-                "start": 3.0637,
-                "end": 3.6892
+                "text": "किसी",
+                "start": 4.4508,
+                "end": 4.7736
               },
               {
-                "text": "साया",
-                "start": 3.6892,
-                "end": 4.1437
+                "text": "इंसान",
+                "start": 4.7736,
+                "end": 5.1827
               },
               {
-                "text": "दिखता",
-                "start": 4.1437,
-                "end": 4.7265
+                "text": "की",
+                "start": 5.1827,
+                "end": 5.3282
+              },
+              {
+                "text": "नहीं",
+                "start": 5.3282,
+                "end": 5.7055
+              },
+              {
+                "text": "थी।",
+                "start": 5.7055,
+                "end": 5.9055
+              },
+              {
+                "text": "कोई",
+                "start": 5.9338,
+                "end": 6.1952
+              },
+              {
+                "text": "धीमी",
+                "start": 6.1952,
+                "end": 6.5516
+              },
+              {
+                "text": "आवाज़",
+                "start": 6.5516,
+                "end": 6.8882
+              },
+              {
+                "text": "में",
+                "start": 6.8882,
+                "end": 7.0901
+              },
+              {
+                "text": "गिनती",
+                "start": 7.0901,
+                "end": 7.4465
+              },
+              {
+                "text": "गिन",
+                "start": 7.4465,
+                "end": 7.6485
+              },
+              {
+                "text": "रहा",
+                "start": 7.6485,
+                "end": 7.9573
+              },
+              {
+                "text": "था...",
+                "start": 7.9573,
+                "end": 8.3018
+              },
+              {
+                "text": "एक...",
+                "start": 8.3303,
+                "end": 8.4999
+              },
+              {
+                "text": "दो...",
+                "start": 8.5284,
+                "end": 9.2431
+              },
+              {
+                "text": "तीन...",
+                "start": 9.2717,
+                "end": 9.5597
+              },
+              {
+                "text": "मैंने",
+                "start": 9.5885,
+                "end": 9.961
+              },
+              {
+                "text": "अपने",
+                "start": 9.961,
+                "end": 10.3128
+              },
+              {
+                "text": "कानों",
+                "start": 10.3128,
+                "end": 10.6853
+              },
+              {
+                "text": "पर",
+                "start": 10.6853,
+                "end": 10.8963
+              },
+              {
+                "text": "यकीन",
+                "start": 10.8963,
+                "end": 11.2688
+              },
+              {
+                "text": "नहीं",
+                "start": 11.2688,
+                "end": 11.6123
+              },
+              {
+                "text": "किया।",
+                "start": 11.6123,
+                "end": 11.9352
+              },
+              {
+                "text": "लेकिन",
+                "start": 11.964,
+                "end": 12.3297
+              },
+              {
+                "text": "जैसे",
+                "start": 12.3297,
+                "end": 12.6751
+              },
+              {
+                "text": "ही",
+                "start": 12.6751,
+                "end": 12.8336
+              },
+              {
+                "text": "मैंने",
+                "start": 12.8336,
+                "end": 13.1993
+              },
+              {
+                "text": "उस",
+                "start": 13.1993,
+                "end": 13.3578
+              },
+              {
+                "text": "आवाज़",
+                "start": 13.3578,
+                "end": 13.7032
+              },
+              {
+                "text": "को",
+                "start": 13.7032,
+                "end": 13.8617
+              },
+              {
+                "text": "गिनना",
+                "start": 13.8617,
+                "end": 14.2558
+              },
+              {
+                "text": "शुरू",
+                "start": 14.2558,
+                "end": 14.5728
+              },
+              {
+                "text": "किया,",
+                "start": 14.5728,
+                "end": 14.9385
+              },
+              {
+                "text": "मेरे",
+                "start": 14.9385,
+                "end": 15.2839
+              },
+              {
+                "text": "हाथ-पैर",
+                "start": 15.2839,
+                "end": 15.804
+              },
+              {
+                "text": "ठंडे",
+                "start": 15.804,
+                "end": 16.2185
+              },
+              {
+                "text": "पड़",
+                "start": 16.2185,
+                "end": 16.4745
+              },
+              {
+                "text": "गए।",
+                "start": 16.4745,
+                "end": 16.7427
+              },
+              {
+                "text": "क्योंकि",
+                "start": 16.7716,
+                "end": 17.1826
+              },
+              {
+                "text": "हवेली",
+                "start": 17.1826,
+                "end": 17.6258
+              },
+              {
+                "text": "का",
+                "start": 17.6258,
+                "end": 17.783
+              },
+              {
+                "text": "आखिरी",
+                "start": 17.783,
+                "end": 18.2544
+              },
+              {
+                "text": "वारिस",
+                "start": 18.2544,
+                "end": 18.617
+              },
+              {
+                "text": "कहता",
+                "start": 18.617,
+                "end": 19.0884
+              },
+              {
+                "text": "था,",
+                "start": 19.0884,
+                "end": 19.3423
+              },
+              {
+                "text": "जो",
+                "start": 19.3423,
+                "end": 19.5276
+              },
+              {
+                "text": "भी",
+                "start": 19.5276,
+                "end": 19.7331
+              },
+              {
+                "text": "उस",
+                "start": 19.7331,
+                "end": 19.8902
+              },
+              {
+                "text": "गिनती",
+                "start": 19.8902,
+                "end": 20.2529
+              },
+              {
+                "text": "को",
+                "start": 20.2529,
+                "end": 20.41
+              },
+              {
+                "text": "पूरा",
+                "start": 20.41,
+                "end": 20.7525
+              },
+              {
+                "text": "सुन",
+                "start": 20.7525,
+                "end": 20.958
+              },
+              {
+                "text": "लेता",
+                "start": 20.958,
+                "end": 21.3005
+              },
+              {
+                "text": "है,",
+                "start": 21.3005,
+                "end": 21.506
+              },
+              {
+                "text": "वो",
+                "start": 21.506,
+                "end": 21.6631
+              },
+              {
+                "text": "हमेशा",
+                "start": 21.6631,
+                "end": 22.1345
+              },
+              {
+                "text": "के",
+                "start": 22.1345,
+                "end": 22.2916
+              },
+              {
+                "text": "लिए",
+                "start": 22.2916,
+                "end": 22.5576
+              },
+              {
+                "text": "गायब",
+                "start": 22.5576,
+                "end": 22.9202
+              },
+              {
+                "text": "हो",
+                "start": 22.9202,
+                "end": 23.0773
+              },
+              {
+                "text": "जाता",
+                "start": 23.0773,
+                "end": 23.4198
               },
               {
                 "text": "है।",
-                "start": 4.7265,
-                "end": 4.935
+                "start": 23.4198,
+                "end": 23.577
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.2,
-                "value": "D"
-              },
-              {
-                "start": 0.2,
-                "end": 0.39,
-                "value": "C"
-              },
-              {
-                "start": 0.39,
-                "end": 0.44,
-                "value": "E"
-              },
-              {
-                "start": 0.44,
-                "end": 0.62,
-                "value": "F"
-              },
-              {
-                "start": 0.62,
-                "end": 0.77,
-                "value": "A"
-              },
-              {
-                "start": 0.77,
-                "end": 0.83,
-                "value": "C"
-              },
-              {
-                "start": 0.83,
-                "end": 0.96,
-                "value": "B"
-              },
-              {
-                "start": 0.96,
-                "end": 1.11,
-                "value": "X"
-              },
-              {
-                "start": 1.11,
-                "end": 1.17,
-                "value": "B"
-              },
-              {
-                "start": 1.17,
-                "end": 1.36,
-                "value": "C"
-              },
-              {
-                "start": 1.36,
-                "end": 1.43,
-                "value": "G"
-              },
-              {
-                "start": 1.43,
-                "end": 1.57,
-                "value": "B"
-              },
-              {
-                "start": 1.57,
-                "end": 1.64,
-                "value": "C"
-              },
-              {
-                "start": 1.64,
-                "end": 1.99,
-                "value": "B"
-              },
-              {
-                "start": 1.99,
-                "end": 2.07,
-                "value": "A"
-              },
-              {
-                "start": 2.07,
-                "end": 2.23,
-                "value": "C"
-              },
-              {
-                "start": 2.23,
-                "end": 2.3,
-                "value": "B"
-              },
-              {
-                "start": 2.3,
-                "end": 2.62,
-                "value": "X"
-              },
-              {
-                "start": 2.62,
-                "end": 2.68,
-                "value": "B"
-              },
-              {
-                "start": 2.68,
-                "end": 2.73,
-                "value": "C"
-              },
-              {
-                "start": 2.73,
-                "end": 2.87,
-                "value": "B"
-              },
-              {
-                "start": 2.87,
-                "end": 2.95,
-                "value": "A"
-              },
-              {
-                "start": 2.95,
-                "end": 3.25,
-                "value": "B"
-              },
-              {
-                "start": 3.25,
-                "end": 3.33,
-                "value": "A"
-              },
-              {
-                "start": 3.33,
-                "end": 3.47,
-                "value": "E"
-              },
-              {
-                "start": 3.47,
-                "end": 3.64,
-                "value": "A"
-              },
-              {
-                "start": 3.64,
-                "end": 3.71,
-                "value": "F"
-              },
-              {
-                "start": 3.71,
-                "end": 3.77,
-                "value": "B"
-              },
-              {
-                "start": 3.77,
-                "end": 3.84,
-                "value": "D"
-              },
-              {
-                "start": 3.84,
-                "end": 3.98,
-                "value": "C"
-              },
-              {
-                "start": 3.98,
-                "end": 4.12,
-                "value": "B"
-              },
-              {
-                "start": 4.12,
                 "end": 4.19,
-                "value": "C"
+                "value": "X"
               },
               {
                 "start": 4.19,
-                "end": 4.47,
+                "end": 4.33,
                 "value": "B"
               },
               {
-                "start": 4.47,
-                "end": 4.55,
-                "value": "A"
+                "start": 4.33,
+                "end": 5.85,
+                "value": "X"
               },
               {
-                "start": 4.55,
-                "end": 4.85,
-                "value": "C"
-              },
-              {
-                "start": 4.85,
-                "end": 4.92,
+                "start": 5.85,
+                "end": 5.99,
                 "value": "B"
               },
               {
-                "start": 4.92,
-                "end": 4.93,
+                "start": 5.99,
+                "end": 8.25,
+                "value": "X"
+              },
+              {
+                "start": 8.25,
+                "end": 8.58,
+                "value": "B"
+              },
+              {
+                "start": 8.58,
+                "end": 9.19,
+                "value": "X"
+              },
+              {
+                "start": 9.19,
+                "end": 9.33,
+                "value": "B"
+              },
+              {
+                "start": 9.33,
+                "end": 9.51,
+                "value": "X"
+              },
+              {
+                "start": 9.51,
+                "end": 9.64,
+                "value": "B"
+              },
+              {
+                "start": 9.64,
+                "end": 11.88,
+                "value": "X"
+              },
+              {
+                "start": 11.88,
+                "end": 12.02,
+                "value": "B"
+              },
+              {
+                "start": 12.02,
+                "end": 16.69,
+                "value": "X"
+              },
+              {
+                "start": 16.69,
+                "end": 16.83,
+                "value": "B"
+              },
+              {
+                "start": 16.83,
+                "end": 23.57,
                 "value": "X"
               }
             ]
@@ -588,254 +1234,824 @@
       {
         "id": "scene-002",
         "index": 1,
-        "start": 4.975,
-        "duration": 3.6,
-        "audioStart": 4.975,
+        "start": 23.6168,
+        "duration": 19.5035,
+        "audioStart": 23.6168,
         "audio": "audio/voice/scene-002.wav",
         "words": [
           {
-            "text": "lait",
+            "text": "agali",
             "start": 0.0,
-            "end": 0.3597
+            "end": 0.2551
           },
           {
-            "text": "bujhate",
-            "start": 0.3597,
-            "end": 0.8623
+            "text": "subah",
+            "start": 0.2551,
+            "end": 0.5266
           },
           {
-            "text": "hi,",
-            "start": 0.8623,
-            "end": 1.0975
+            "text": "mainne",
+            "start": 0.5266,
+            "end": 0.821
           },
           {
-            "text": "train",
-            "start": 1.0975,
-            "end": 1.4203
+            "text": "haveli",
+            "start": 0.821,
+            "end": 1.1807
           },
           {
-            "text": "ke",
-            "start": 1.4203,
-            "end": 1.6002
+            "text": "ki",
+            "start": 1.1807,
+            "end": 1.2854
+          },
+          {
+            "text": "us",
+            "start": 1.2854,
+            "end": 1.413
+          },
+          {
+            "text": "divar",
+            "start": 1.413,
+            "end": 1.7073
+          },
+          {
+            "text": "ko",
+            "start": 1.7073,
+            "end": 1.8349
+          },
+          {
+            "text": "tora,",
+            "start": 1.8349,
+            "end": 2.2699
+          },
+          {
+            "text": "to",
+            "start": 2.2699,
+            "end": 2.4204
           },
           {
             "text": "andar",
-            "start": 1.6002,
-            "end": 1.9829
+            "start": 2.4204,
+            "end": 2.6918
+          },
+          {
+            "text": "ek",
+            "start": 2.6918,
+            "end": 2.8423
+          },
+          {
+            "text": "purana",
+            "start": 2.8423,
+            "end": 3.225
+          },
+          {
+            "text": "kamra",
+            "start": 3.225,
+            "end": 3.5422
+          },
+          {
+            "text": "mila.",
+            "start": 3.5422,
+            "end": 3.7973
+          },
+          {
+            "text": "wahan",
+            "start": 3.8255,
+            "end": 4.1143
+          },
+          {
+            "text": "ek",
+            "start": 4.1143,
+            "end": 4.2743
+          },
+          {
+            "text": "dayari",
+            "start": 4.2743,
+            "end": 4.6118
+          },
+          {
+            "text": "rakhi",
+            "start": 4.6118,
+            "end": 4.9006
+          },
+          {
+            "text": "thi,",
+            "start": 4.9006,
+            "end": 5.0954
+          },
+          {
+            "text": "jisamen",
+            "start": 5.0954,
+            "end": 5.4747
+          },
+          {
+            "text": "likha",
+            "start": 5.4747,
+            "end": 5.7878
+          },
+          {
+            "text": "tha",
+            "start": 5.7878,
+            "end": 5.9652
+          },
+          {
+            "text": "ki",
+            "start": 5.9652,
+            "end": 6.1009
+          },
+          {
+            "text": "har",
+            "start": 6.1009,
+            "end": 6.2783
+          },
+          {
+            "text": "raat",
+            "start": 6.2783,
+            "end": 6.4801
           },
           {
             "text": "woh",
-            "start": 1.9829,
-            "end": 2.1627
+            "start": 6.4801,
+            "end": 6.6158
           },
           {
-            "text": "thik",
-            "start": 2.1627,
-            "end": 2.4855
+            "text": "ginati",
+            "start": 6.6158,
+            "end": 6.929
           },
           {
-            "text": "mere",
-            "start": 2.4855,
-            "end": 2.8775
+            "text": "un",
+            "start": 6.929,
+            "end": 7.0646
           },
           {
-            "text": "peeche",
-            "start": 2.8775,
-            "end": 3.3248
+            "text": "rishtedaron",
+            "start": 7.0646,
+            "end": 7.6909
+          },
+          {
+            "text": "ki",
+            "start": 7.6909,
+            "end": 7.8022
+          },
+          {
+            "text": "aatmaen",
+            "start": 7.8022,
+            "end": 8.1397
+          },
+          {
+            "text": "ginati",
+            "start": 8.1397,
+            "end": 8.4528
+          },
+          {
+            "text": "hain,",
+            "start": 8.4528,
+            "end": 8.6477
+          },
+          {
+            "text": "jinhonne",
+            "start": 8.6477,
+            "end": 9.1139
+          },
+          {
+            "text": "aakhiri",
+            "start": 9.1139,
+            "end": 9.5209
+          },
+          {
+            "text": "varis",
+            "start": 9.5209,
+            "end": 9.8341
+          },
+          {
+            "text": "ko",
+            "start": 9.8341,
+            "end": 9.9697
+          },
+          {
+            "text": "zinda",
+            "start": 9.9697,
+            "end": 10.3664
+          },
+          {
+            "text": "jalaya",
+            "start": 10.3664,
+            "end": 10.7734
           },
           {
             "text": "tha.",
-            "start": 3.3248,
-            "end": 3.56
+            "start": 10.7734,
+            "end": 10.9509
+          },
+          {
+            "text": "aur",
+            "start": 10.9792,
+            "end": 11.1055
+          },
+          {
+            "text": "us",
+            "start": 11.1055,
+            "end": 11.2318
+          },
+          {
+            "text": "din",
+            "start": 11.2318,
+            "end": 11.397
+          },
+          {
+            "text": "ke",
+            "start": 11.397,
+            "end": 11.5234
+          },
+          {
+            "text": "bad",
+            "start": 11.5234,
+            "end": 11.7112
+          },
+          {
+            "text": "se,",
+            "start": 11.7112,
+            "end": 11.8765
+          },
+          {
+            "text": "haveli",
+            "start": 11.8765,
+            "end": 12.2328
+          },
+          {
+            "text": "ke",
+            "start": 12.2328,
+            "end": 12.3591
+          },
+          {
+            "text": "aaeene",
+            "start": 12.3591,
+            "end": 12.683
+          },
+          {
+            "text": "mein",
+            "start": 12.683,
+            "end": 12.8482
+          },
+          {
+            "text": "mera",
+            "start": 12.8482,
+            "end": 13.1236
+          },
+          {
+            "text": "chehara",
+            "start": 13.1236,
+            "end": 13.5252
+          },
+          {
+            "text": "nahi",
+            "start": 13.5252,
+            "end": 13.7941
+          },
+          {
+            "text": "dikhata.",
+            "start": 13.7941,
+            "end": 14.1472
+          },
+          {
+            "text": "sirf",
+            "start": 14.1756,
+            "end": 14.4437
+          },
+          {
+            "text": "woh",
+            "start": 14.4437,
+            "end": 14.5832
+          },
+          {
+            "text": "aawaz",
+            "start": 14.5832,
+            "end": 14.887
+          },
+          {
+            "text": "ginati",
+            "start": 14.887,
+            "end": 15.2088
+          },
+          {
+            "text": "hai...",
+            "start": 15.2088,
+            "end": 15.4769
+          },
+          {
+            "text": "ek...",
+            "start": 15.5054,
+            "end": 16.2201
+          },
+          {
+            "text": "do...",
+            "start": 16.2487,
+            "end": 16.9634
+          },
+          {
+            "text": "tin...",
+            "start": 16.9922,
+            "end": 17.2268
+          },
+          {
+            "text": "aur",
+            "start": 17.2557,
+            "end": 17.4049
+          },
+          {
+            "text": "main",
+            "start": 17.4049,
+            "end": 17.5733
+          },
+          {
+            "text": "khud",
+            "start": 17.5733,
+            "end": 17.8144
+          },
+          {
+            "text": "us",
+            "start": 17.8144,
+            "end": 17.9636
+          },
+          {
+            "text": "ginati",
+            "start": 17.9636,
+            "end": 18.308
+          },
+          {
+            "text": "ka",
+            "start": 18.308,
+            "end": 18.4573
+          },
+          {
+            "text": "hissa",
+            "start": 18.4573,
+            "end": 18.8017
+          },
+          {
+            "text": "ban",
+            "start": 18.8017,
+            "end": 18.9968
+          },
+          {
+            "text": "chuka",
+            "start": 18.9968,
+            "end": 19.2953
+          },
+          {
+            "text": "hun.",
+            "start": 19.2953,
+            "end": 19.4637
           }
         ],
         "lines": [
           {
             "characterId": null,
             "audio": "audio/voice/scene-002.wav",
-            "start": 4.975,
-            "duration": 3.56,
+            "start": 23.6168,
+            "duration": 19.4635,
             "words": [
               {
-                "text": "लाइट",
+                "text": "अगली",
                 "start": 0.0,
-                "end": 0.3597
+                "end": 0.2551
               },
               {
-                "text": "बुझते",
-                "start": 0.3597,
-                "end": 0.8623
+                "text": "सुबह",
+                "start": 0.2551,
+                "end": 0.5266
               },
               {
-                "text": "ही,",
-                "start": 0.8623,
-                "end": 1.0975
+                "text": "मैंने",
+                "start": 0.5266,
+                "end": 0.821
               },
               {
-                "text": "ट्रेन",
-                "start": 1.0975,
-                "end": 1.4203
+                "text": "हवेली",
+                "start": 0.821,
+                "end": 1.1807
               },
               {
-                "text": "के",
-                "start": 1.4203,
-                "end": 1.6002
+                "text": "की",
+                "start": 1.1807,
+                "end": 1.2854
+              },
+              {
+                "text": "उस",
+                "start": 1.2854,
+                "end": 1.413
+              },
+              {
+                "text": "दीवार",
+                "start": 1.413,
+                "end": 1.7073
+              },
+              {
+                "text": "को",
+                "start": 1.7073,
+                "end": 1.8349
+              },
+              {
+                "text": "तोड़ा,",
+                "start": 1.8349,
+                "end": 2.2699
+              },
+              {
+                "text": "तो",
+                "start": 2.2699,
+                "end": 2.4204
               },
               {
                 "text": "अंदर",
-                "start": 1.6002,
-                "end": 1.9829
+                "start": 2.4204,
+                "end": 2.6918
+              },
+              {
+                "text": "एक",
+                "start": 2.6918,
+                "end": 2.8423
+              },
+              {
+                "text": "पुराना",
+                "start": 2.8423,
+                "end": 3.225
+              },
+              {
+                "text": "कमरा",
+                "start": 3.225,
+                "end": 3.5422
+              },
+              {
+                "text": "मिला।",
+                "start": 3.5422,
+                "end": 3.7973
+              },
+              {
+                "text": "वहाँ",
+                "start": 3.8255,
+                "end": 4.1143
+              },
+              {
+                "text": "एक",
+                "start": 4.1143,
+                "end": 4.2743
+              },
+              {
+                "text": "डायरी",
+                "start": 4.2743,
+                "end": 4.6118
+              },
+              {
+                "text": "रखी",
+                "start": 4.6118,
+                "end": 4.9006
+              },
+              {
+                "text": "थी,",
+                "start": 4.9006,
+                "end": 5.0954
+              },
+              {
+                "text": "जिसमें",
+                "start": 5.0954,
+                "end": 5.4747
+              },
+              {
+                "text": "लिखा",
+                "start": 5.4747,
+                "end": 5.7878
+              },
+              {
+                "text": "था",
+                "start": 5.7878,
+                "end": 5.9652
+              },
+              {
+                "text": "कि",
+                "start": 5.9652,
+                "end": 6.1009
+              },
+              {
+                "text": "हर",
+                "start": 6.1009,
+                "end": 6.2783
+              },
+              {
+                "text": "रात",
+                "start": 6.2783,
+                "end": 6.4801
               },
               {
                 "text": "वो",
-                "start": 1.9829,
-                "end": 2.1627
+                "start": 6.4801,
+                "end": 6.6158
               },
               {
-                "text": "ठीक",
-                "start": 2.1627,
-                "end": 2.4855
+                "text": "गिनती",
+                "start": 6.6158,
+                "end": 6.929
               },
               {
-                "text": "मेरे",
-                "start": 2.4855,
-                "end": 2.8775
+                "text": "उन",
+                "start": 6.929,
+                "end": 7.0646
               },
               {
-                "text": "पीछे",
-                "start": 2.8775,
-                "end": 3.3248
+                "text": "रिश्तेदारों",
+                "start": 7.0646,
+                "end": 7.6909
+              },
+              {
+                "text": "की",
+                "start": 7.6909,
+                "end": 7.8022
+              },
+              {
+                "text": "आत्माएँ",
+                "start": 7.8022,
+                "end": 8.1397
+              },
+              {
+                "text": "गिनती",
+                "start": 8.1397,
+                "end": 8.4528
+              },
+              {
+                "text": "हैं,",
+                "start": 8.4528,
+                "end": 8.6477
+              },
+              {
+                "text": "जिन्होंने",
+                "start": 8.6477,
+                "end": 9.1139
+              },
+              {
+                "text": "आखिरी",
+                "start": 9.1139,
+                "end": 9.5209
+              },
+              {
+                "text": "वारिस",
+                "start": 9.5209,
+                "end": 9.8341
+              },
+              {
+                "text": "को",
+                "start": 9.8341,
+                "end": 9.9697
+              },
+              {
+                "text": "ज़िंदा",
+                "start": 9.9697,
+                "end": 10.3664
+              },
+              {
+                "text": "जलाया",
+                "start": 10.3664,
+                "end": 10.7734
               },
               {
                 "text": "था।",
-                "start": 3.3248,
-                "end": 3.56
+                "start": 10.7734,
+                "end": 10.9509
+              },
+              {
+                "text": "और",
+                "start": 10.9792,
+                "end": 11.1055
+              },
+              {
+                "text": "उस",
+                "start": 11.1055,
+                "end": 11.2318
+              },
+              {
+                "text": "दिन",
+                "start": 11.2318,
+                "end": 11.397
+              },
+              {
+                "text": "के",
+                "start": 11.397,
+                "end": 11.5234
+              },
+              {
+                "text": "बाद",
+                "start": 11.5234,
+                "end": 11.7112
+              },
+              {
+                "text": "से,",
+                "start": 11.7112,
+                "end": 11.8765
+              },
+              {
+                "text": "हवेली",
+                "start": 11.8765,
+                "end": 12.2328
+              },
+              {
+                "text": "के",
+                "start": 12.2328,
+                "end": 12.3591
+              },
+              {
+                "text": "आईने",
+                "start": 12.3591,
+                "end": 12.683
+              },
+              {
+                "text": "में",
+                "start": 12.683,
+                "end": 12.8482
+              },
+              {
+                "text": "मेरा",
+                "start": 12.8482,
+                "end": 13.1236
+              },
+              {
+                "text": "चेहरा",
+                "start": 13.1236,
+                "end": 13.5252
+              },
+              {
+                "text": "नहीं",
+                "start": 13.5252,
+                "end": 13.7941
+              },
+              {
+                "text": "दिखता।",
+                "start": 13.7941,
+                "end": 14.1472
+              },
+              {
+                "text": "सिर्फ",
+                "start": 14.1756,
+                "end": 14.4437
+              },
+              {
+                "text": "वो",
+                "start": 14.4437,
+                "end": 14.5832
+              },
+              {
+                "text": "आवाज़",
+                "start": 14.5832,
+                "end": 14.887
+              },
+              {
+                "text": "गिनती",
+                "start": 14.887,
+                "end": 15.2088
+              },
+              {
+                "text": "है...",
+                "start": 15.2088,
+                "end": 15.4769
+              },
+              {
+                "text": "एक...",
+                "start": 15.5054,
+                "end": 16.2201
+              },
+              {
+                "text": "दो...",
+                "start": 16.2487,
+                "end": 16.9634
+              },
+              {
+                "text": "तीन...",
+                "start": 16.9922,
+                "end": 17.2268
+              },
+              {
+                "text": "और",
+                "start": 17.2557,
+                "end": 17.4049
+              },
+              {
+                "text": "मैं",
+                "start": 17.4049,
+                "end": 17.5733
+              },
+              {
+                "text": "खुद",
+                "start": 17.5733,
+                "end": 17.8144
+              },
+              {
+                "text": "उस",
+                "start": 17.8144,
+                "end": 17.9636
+              },
+              {
+                "text": "गिनती",
+                "start": 17.9636,
+                "end": 18.308
+              },
+              {
+                "text": "का",
+                "start": 18.308,
+                "end": 18.4573
+              },
+              {
+                "text": "हिस्सा",
+                "start": 18.4573,
+                "end": 18.8017
+              },
+              {
+                "text": "बन",
+                "start": 18.8017,
+                "end": 18.9968
+              },
+              {
+                "text": "चुका",
+                "start": 18.9968,
+                "end": 19.2953
+              },
+              {
+                "text": "हूँ।",
+                "start": 19.2953,
+                "end": 19.4637
               }
             ],
             "mouthCues": [
               {
                 "start": 0.0,
-                "end": 0.06,
-                "value": "B"
-              },
-              {
-                "start": 0.06,
-                "end": 0.19,
-                "value": "C"
-              },
-              {
-                "start": 0.19,
-                "end": 0.26,
-                "value": "B"
-              },
-              {
-                "start": 0.26,
-                "end": 0.34,
-                "value": "A"
-              },
-              {
-                "start": 0.34,
-                "end": 0.5,
-                "value": "F"
-              },
-              {
-                "start": 0.5,
-                "end": 0.57,
-                "value": "B"
-              },
-              {
-                "start": 0.57,
-                "end": 0.71,
-                "value": "C"
-              },
-              {
-                "start": 0.71,
-                "end": 0.99,
-                "value": "B"
-              },
-              {
-                "start": 0.99,
-                "end": 1.11,
+                "end": 3.75,
                 "value": "X"
               },
               {
-                "start": 1.11,
-                "end": 1.15,
+                "start": 3.75,
+                "end": 3.88,
                 "value": "B"
               },
               {
-                "start": 1.15,
-                "end": 1.61,
-                "value": "C"
+                "start": 3.88,
+                "end": 10.9,
+                "value": "X"
               },
               {
-                "start": 1.61,
-                "end": 1.82,
+                "start": 10.9,
+                "end": 11.03,
                 "value": "B"
               },
               {
-                "start": 1.82,
-                "end": 1.89,
-                "value": "C"
+                "start": 11.03,
+                "end": 14.1,
+                "value": "X"
               },
               {
-                "start": 1.89,
-                "end": 2.03,
+                "start": 14.1,
+                "end": 14.23,
                 "value": "B"
               },
               {
-                "start": 2.03,
-                "end": 2.17,
-                "value": "C"
+                "start": 14.23,
+                "end": 15.43,
+                "value": "X"
               },
               {
-                "start": 2.17,
-                "end": 2.25,
-                "value": "A"
-              },
-              {
-                "start": 2.25,
-                "end": 2.31,
-                "value": "E"
-              },
-              {
-                "start": 2.31,
-                "end": 2.72,
+                "start": 15.43,
+                "end": 15.56,
                 "value": "B"
               },
               {
-                "start": 2.72,
-                "end": 2.8,
-                "value": "A"
+                "start": 15.56,
+                "end": 16.17,
+                "value": "X"
               },
               {
-                "start": 2.8,
-                "end": 2.93,
+                "start": 16.17,
+                "end": 16.3,
                 "value": "B"
               },
               {
-                "start": 2.93,
-                "end": 3.01,
-                "value": "A"
+                "start": 16.3,
+                "end": 16.91,
+                "value": "X"
               },
               {
-                "start": 3.01,
-                "end": 3.26,
+                "start": 16.91,
+                "end": 17.05,
                 "value": "B"
               },
               {
-                "start": 3.26,
-                "end": 3.34,
-                "value": "A"
+                "start": 17.05,
+                "end": 17.18,
+                "value": "X"
               },
               {
-                "start": 3.34,
-                "end": 3.55,
-                "value": "D"
+                "start": 17.18,
+                "end": 17.31,
+                "value": "B"
               },
               {
-                "start": 3.55,
-                "end": 3.56,
+                "start": 17.31,
+                "end": 19.46,
                 "value": "X"
               }
             ]

@@ -517,7 +517,26 @@ def extract_chapters_from_data(
     return chapters
 
 
-def build_seo_tags(topic: str, genre: str, language: str, headlines: list[str]) -> list[str]:
+def _research_seo_extras(research: dict | None) -> list[str]:
+    """SEO tags/hashtags gathered by the research stage, cleaned and de-duplicated."""
+    if not research:
+        return []
+    ai = research.get("ai_synthesis") or {}
+    extras: list[str] = []
+    for item in list(ai.get("seo_tags") or []) + list(ai.get("recommended_hashtags") or []):
+        clean = re.sub(r"[<>\r\n]+", "", str(item)).lstrip("#").strip()
+        if clean and clean not in extras:
+            extras.append(clean)
+    return extras
+
+
+def build_seo_tags(
+    topic: str,
+    genre: str,
+    language: str,
+    headlines: list[str],
+    research: dict | None = None,
+) -> list[str]:
     """Generate search keywords and tags for video SEO (max ~450 chars total, <= 30 tags)."""
     tags = []
     clean_topic = topic.lower().strip()
@@ -549,6 +568,9 @@ def build_seo_tags(topic: str, genre: str, language: str, headlines: list[str]) 
         tags.extend(["english", "story in english", "english stories"])
 
     tags.extend(["short film", "2d animation", "storytelling", "viral video", "shorts", "youtube shorts"])
+
+    # Fold in the live research tags gathered for this topic before de-duplicating/capping.
+    tags.extend(_research_seo_extras(research))
 
     seen = set()
     result = []
@@ -596,7 +618,7 @@ def generate_metadata_procedural(
 
     full_narration = " ".join(narration_parts)
     chapters = extract_chapters_from_data(script_data, timings_data)
-    seo_tags = build_seo_tags(topic, genre, language, headlines)
+    seo_tags = build_seo_tags(topic, genre, language, headlines, research=script_data.get("research"))
     category_id = YOUTUBE_CATEGORY_MAP.get(genre.lower(), "24")
 
     # Transliterated title for international SEO if Devanagari
@@ -902,6 +924,10 @@ def generate_metadata_ai(
             yt["is_shorts"] = procedural_base["youtube"]["is_shorts"]
             if not yt.get("tags"):
                 yt["tags"] = procedural_base["youtube"]["tags"]
+            # Fold in the live research tags so AI metadata still benefits from them.
+            for _tag in _research_seo_extras(script_data.get("research")):
+                if _tag not in yt["tags"]:
+                    yt["tags"].append(_tag)
 
         # Validate Instagram block
         if "instagram" in data:

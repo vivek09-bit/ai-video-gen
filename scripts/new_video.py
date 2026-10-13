@@ -843,9 +843,9 @@ def main() -> int:
     )
     parser.add_argument(
         "--audio-model",
-        choices=("auto", "kokoro", "indicf5"),
+        choices=("auto", "kokoro", "indic_parler", "parler", "indicf5"),
         default="auto",
-        help="narration model; auto uses Kokoro by default and selects IndicF5 for an IndicF5 voice",
+        help="narration model; auto uses Kokoro by default and selects Indic Parler-TTS for an Indic voice",
     )
     parser.add_argument(
         "--video-model",
@@ -898,7 +898,7 @@ def main() -> int:
     parser.add_argument(
         "--voice",
         default=None,
-        help="Voice id, alias, or blend (e.g. hm_omega, indicf5_aarav, indicf5_priya, hindi_female, bm_george)",
+        help="Voice id, alias, or blend (e.g. hm_omega, indic_parler_aarav, indic_parler_priya, hindi_female, bm_george)",
     )
     parser.add_argument(
         "--dynamic-speed",
@@ -1114,6 +1114,12 @@ def main() -> int:
     )
     parser.add_argument("--out", default="out/video.mp4")
     parser.add_argument(
+        "--purge-audio-cache",
+        dest="purge_audio_cache",
+        action="store_true",
+        help="delete cached GPU narration segments and scene sidecars before synthesis",
+    )
+    parser.add_argument(
         "--model",
         default=os.environ.get("LLM_MODEL"),
         help="LLM model or provider shortcut (e.g. deepseek, omniroute, together, fireworks, ollama, or model ID)",
@@ -1163,6 +1169,20 @@ def main() -> int:
         dest="keep_images",
         action="store_true",
         help="preserve and reuse existing scene image files on disk instead of fetching new ones",
+    )
+    parser.add_argument(
+        "--force-videos",
+        dest="force_videos",
+        action="store_true",
+        help="regenerate LTX-Video clips even when the clip is already on disk",
+    )
+    parser.add_argument(
+        "--stop-after",
+        choices=("write", "audio", "metadata"),
+        default=None,
+        help="stop early: 'write' leaves narration+render to a later run; 'audio' also "
+             "synthesises narration and stops the GPU but renders nothing; 'metadata' also "
+             "writes upload metadata. Used by scripts/batch.py to keep GPU work in one pass",
     )
     parser.add_argument("--dry-run", action="store_true", help="show the plan and stop")
     parser.add_argument(
@@ -1245,13 +1265,25 @@ def main() -> int:
         "--vast-strict",
         dest="vast_strict",
         action="store_true",
-        help="abort if the Vast.ai GPU cannot be rented (default: fall back to local IndicF5)",
+        help="deprecated alias for the default behaviour: abort rather than fall back to CPU",
+    )
+    parser.add_argument(
+        "--allow-local-fallback",
+        dest="allow_local_fallback",
+        action="store_true",
+        help="if the GPU cannot be used, degrade to local CPU synthesis instead of aborting",
     )
     parser.add_argument(
         "--no-vast",
         dest="no_vast",
         action="store_true",
-        help="never rent a GPU; run IndicF5 narration locally on the CPU",
+        help="never rent a GPU; run Indic Parler-TTS narration locally on the CPU",
+    )
+    parser.add_argument(
+        "--render-on",
+        choices=("local", "vast"),
+        default=os.environ.get("RENDER_ON", "local"),
+        help="where the final Remotion render runs (default: local; 'vast' uses the rented GPU box)",
     )
     parser.add_argument(
         "--vast-autostop",
@@ -1273,6 +1305,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if getattr(args, "no_vast", False) and args.render_on == "vast":
+        parser.error("--no-vast cannot be combined with --render-on vast (the render would need a GPU box).")
     if args.visual_mode == "video" and args.no_images:
         parser.error("--no-images cannot be used with video generation.")
     if getattr(args, "no_vast", False) and args.visual_mode == "video":
@@ -1394,18 +1428,19 @@ def main() -> int:
     from tts import resolve_voice
     requested_voice = args.voice or os.environ.get("VOICE")
     requested_voice_key = (requested_voice or "").strip().lower()
-    voice_requests_indicf5 = requested_voice_key.startswith(("indicf5", "indic_"))
-    if args.audio_model == "kokoro" and voice_requests_indicf5:
-        parser.error("--audio-model kokoro cannot be combined with an IndicF5 voice.")
-    if args.audio_model == "indicf5" and args.voice and not voice_requests_indicf5:
-        parser.error("--audio-model indicf5 requires an IndicF5 voice, e.g. --voice indicf5_aarav.")
+    voice_requests_indic = requested_voice_key.startswith(("indicf5", "indic_"))
+    indic_engine_selected = args.audio_model in ("indicf5", "indic_parler", "parler")
+    if args.audio_model == "kokoro" and voice_requests_indic:
+        parser.error("--audio-model kokoro cannot be combined with an Indic Parler-TTS voice.")
+    if indic_engine_selected and args.voice and not voice_requests_indic:
+        parser.error("--audio-model indic_parler requires an Indic voice, e.g. --voice indic_parler_aarav.")
     audio_model = (
         "indicf5"
-        if args.audio_model == "indicf5" or (args.audio_model == "auto" and voice_requests_indicf5)
+        if indic_engine_selected or (args.audio_model == "auto" and voice_requests_indic)
         else "kokoro"
     )
-    if audio_model == "indicf5" and not voice_requests_indicf5:
-        requested_voice = "indicf5_aarav"
+    if audio_model == "indicf5" and not voice_requests_indic:
+        requested_voice = "indic_parler_aarav"
 
     primary_voice = resolve_voice(
         requested_voice,
@@ -1622,6 +1657,35 @@ def main() -> int:
     script["audioModel"] = audio_model
     script["visualMode"] = args.visual_mode
 
+    # ---- persist research / keywords (Phase 1) ---------------------------
+    # The research report only steered the writer prompt above; keep it on the script so the
+    # visual prompts (Phase 2) and SEO tags (Phase 3) can reuse it without re-running research.
+    if research_report:
+        script["research"] = research_report
+        clusters = research_report.get("keywords") or {}
+        flat_keywords: list[str] = []
+        for _key in (
+            "youtube_trending",
+            "google_search",
+            "questions_and_curiosity",
+            "long_tail_keywords",
+        ):
+            for _item in clusters.get(_key) or []:
+                _text = str(_item).strip()
+                if _text and _text not in flat_keywords:
+                    flat_keywords.append(_text)
+        if flat_keywords:
+            script["keywords"] = flat_keywords
+        try:
+            _research_dir = ROOT / "out"
+            _research_dir.mkdir(parents=True, exist_ok=True)
+            (_research_dir / "research.json").write_text(
+                json.dumps(research_report, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        except Exception as _research_err:  # noqa: BLE001 - sidecar is best effort
+            print(f"note: could not write out/research.json ({_research_err})", file=sys.stderr)
+
     # ---- Vast.ai Cloud GPU Orchestration ---------------------------------
     vast_instance_id = None
     vast_mgr = None
@@ -1629,7 +1693,7 @@ def main() -> int:
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
     
     # A GPU is rented when the visuals need one (video mode, or Vast images), or when an
-    # IndicF5 voice is selected: picking IndicF5 *is* the request for GPU narration.
+    # Indic Parler-TTS voice is selected: picking it *is* the request for GPU narration.
     # --no-vast keeps everything local on the CPU.
     no_vast = getattr(args, "no_vast", False)
     needs_vast = not no_vast and (
@@ -1657,6 +1721,14 @@ def main() -> int:
     if no_vast and not args.no_images and detected_image_provider == "vast":
         print("  error: --no-vast cannot be combined with IMAGE_PROVIDER=vast.", file=sys.stderr)
         return 1
+
+    # Prefetch the weights this run will actually need while the container is still
+    # installing, so the first request is not stuck waiting on a download. Video mode
+    # pulls the LTX checkpoint too; image mode never touches it.
+    vast_prefetch = ["ai4bharat/indic-parler-tts"] if audio_model == "indicf5" else []
+    if args.visual_mode == "video":
+        vast_prefetch.append(args.video_model)
+    render_on_vast = args.render_on == "vast"
 
     if args.visual_mode == "video":
         expected_gpu = "RTX 4090"
@@ -1688,7 +1760,7 @@ def main() -> int:
         print(f"VAST.AI CLOUD GPU INITIALIZATION ({expected_gpu} 24GB)")
         print("=" * 74)
         if auto_rented_for_audio:
-            print("  (IndicF5 narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
+            print("  (Indic Parler-TTS narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
         try:
             from vast_manager import VastManager
             vast_mgr = VastManager()
@@ -1702,6 +1774,22 @@ def main() -> int:
                 vast_mgr.start_instance(vast_instance_id)
                 server_url = vast_mgr.wait_until_ready(vast_instance_id)
             else:
+                # Vast cannot change an instance's GPU type, so a leftover instance of the
+                # wrong model would block reuse while still billing storage. Report it and
+                # let the operator decide rather than silently renting a second GPU.
+                conflicts = vast_mgr.conflicting_instances(expected_gpu)
+                if conflicts:
+                    for inst in conflicts:
+                        print(
+                            f"  [Vast Manager] Instance {inst['id']} is a {inst['gpu_name']} "
+                            f"({inst['status']}, {inst['disk_space']}GB) but this run needs {expected_gpu}.",
+                            file=sys.stderr,
+                        )
+                    raise RuntimeError(
+                        f"{len(conflicts)} existing instance(s) of the wrong GPU model block a "
+                        f"clean {expected_gpu} reuse. Prune or destroy them first "
+                        f"(scripts/vast_manager.py prune), or pass --vast-instance to choose one."
+                    )
                 # Reuse an already-rented instance of the right GPU before paying for a
                 # new one. Broken instances (bad host / failed image pull) are destroyed
                 # so they stop billing storage instead of being skipped.
@@ -1716,8 +1804,17 @@ def main() -> int:
                     # Nothing reusable: rent the cheapest in-budget GPU, moving to the
                     # next offer if a host cannot pull the image.
                     print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
-                    vast_instance_id, server_url = vast_mgr.provision_instance(gpu_name=expected_gpu, disk_gb=50)
-            health = vast_mgr.require_gpu(expected_gpu, server_url)
+                    # NOTE: the keywords below are checked against the real signature by
+                    # test_vast_call_sites() in scripts/test_providers.py. This import is
+                    # lazy, so static analysis cannot see a mismatch here.
+                    vast_instance_id, server_url = vast_mgr.provision_instance(
+                        gpu_name=expected_gpu,
+                        disk_gb=50,
+                        prefetch_models=vast_prefetch or None,
+                    )
+            health = vast_mgr.require_gpu(
+                expected_gpu, server_url, require_tts=audio_model == "indicf5"
+            )
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
             os.environ["VAST_SERVER_URL"] = server_url
             os.environ["USE_VAST"] = "1"
@@ -1741,7 +1838,7 @@ def main() -> int:
     # Priority: explicit CLI flag > IMAGE_PROVIDER env > mode defaults.
     # --vast provisions the GPU, but must not silently override a configured
     # provider: with IMAGE_PROVIDER=local the images render on the PC while the
-    # rented GPU is used only for IndicF5 narration.
+    # rented GPU is used only for Indic Parler-TTS narration.
     cli_img_prov = args.image_provider or os.environ.get("IMAGE_PROVIDER") or ""
     if args.visual_mode == "video":
         try:
@@ -1752,6 +1849,7 @@ def main() -> int:
                 duration_seconds=args.video_seconds,
                 steps=args.video_steps,
                 manager=vast_mgr,
+                force=bool(getattr(args, "force_videos", False)),
             )
         except Exception as video_err:
             print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
@@ -1794,41 +1892,67 @@ def main() -> int:
     if missing:
         print(f"  WARNING: scenes {missing} came back empty and will hold as silent shots")
 
+    if getattr(args, "stop_after", None) == "write":
+        print("\n(--stop-after write: script.json is on disk; narration and render left to a later run)")
+        stop_vast_instance()
+        return 0
+
     # ---- audio and video -------------------------------------------------
     tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
     if not args.dynamic_speed:
         tts_cmd.append("--flat-speed")
+    if getattr(args, "purge_audio_cache", False):
+        # A corrupt segment is content-addressed, so only a purge forces a clean rebuild.
+        tts_cmd.append("--purge-audio-cache")
 
     # Narration is the only remaining reason to hold a GPU at this point.
     if needs_vast and not start_vast():
-        if getattr(args, "vast_strict", False):
+        # Abort by default. Indic Parler-TTS on a laptop CPU is slow for a long script, so
+        # a silent fallback turns a two-minute failure into an afternoon. --allow-local-fallback
+        # restores the old behaviour, and --no-vast runs on the CPU on purpose.
+        if not getattr(args, "allow_local_fallback", False):
             print(
-                "  [Vast Manager Error] --vast-strict is set; aborting instead of falling back to local synthesis.",
+                "  [Vast Manager Error] The GPU could not be used and narration needs it.\n"
+                "  Aborting rather than synthesising on the CPU (hours for a long script).\n"
+                "  Use --allow-local-fallback to fall back, or --no-vast to run on the CPU deliberately.",
                 file=sys.stderr,
             )
             return 1
         if audio_model == "indicf5":
             print(
-                "  Continuing without Vast.ai: IndicF5 narration will run locally on the CPU\n"
-                "  (much slower). Pass --vast-strict to abort instead.",
+                "  Continuing without Vast.ai: Indic Parler-TTS narration will run locally on the CPU\n"
+                "  (much slower) because --allow-local-fallback was passed.",
                 file=sys.stderr,
             )
         else:
             print("  Continuing without Vast.ai; narration runs locally with Kokoro.", file=sys.stderr)
 
     vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
+    # No reference-voice upload is needed here: Indic Parler-TTS is steered by a text
+    # description, not a reference clip, so the server needs nothing beyond its own code.
+    strict_audio = not getattr(args, "allow_local_fallback", False)
     if audio_model == "indicf5":
         if vast_server:
             tts_cmd.extend(["--vast", "--vast-url", vast_server])
-            if getattr(args, "vast_strict", False):
+            # Always strict for Indic Parler-TTS: a mid-run remote failure must raise rather
+            # than quietly re-synthesise the whole script on the CPU.
+            if strict_audio:
                 tts_cmd.append("--require-vast")
+        elif strict_audio:
+            print(
+                "  [Indic Parler-TTS] No Vast.ai server available and narration needs the GPU. Aborting.\n"
+                "  Use --allow-local-fallback to synthesise on the CPU instead.",
+                file=sys.stderr,
+            )
+            stop_vast_instance()
+            return 1
         else:
             print(
-                "  [IndicF5] No Vast.ai server available; synthesising locally on the CPU (slow).",
+                "  [Indic Parler-TTS] No Vast.ai server available; synthesising locally on the CPU (slow).",
                 file=sys.stderr,
             )
     if audio_model == "indicf5":
-        tts_label = "IndicF5 on Vast.ai" if vast_server else "IndicF5 (local CPU)"
+        tts_label = "Indic Parler-TTS on Vast.ai" if vast_server else "Indic Parler-TTS (local CPU)"
     else:
         tts_label = "Kokoro"
     tts_succeeded = run_step(
@@ -1836,10 +1960,18 @@ def main() -> int:
         tts_cmd,
     )
 
-    # ---- Vast.ai Auto-Stop after Generation ------------------------------
-    stop_vast_instance()
+    # The instance is stopped after the render, not here: --render-on vast needs it alive.
     if not tts_succeeded:
+        stop_vast_instance()
         return 1
+
+    # --stop-after audio: the GPU's whole job is done (script + narration are on disk and
+    # the audio cache is written), so stop paying for it and skip metadata and the render.
+    if getattr(args, "stop_after", None) == "audio":
+        print("\n(--stop-after audio: script + narration written and cached; GPU stopped, nothing rendered)")
+        stop_vast_instance()
+        report(args, target_sec=planned["target"].get("seconds") if "target" in planned else None)
+        return 0
 
     # ---- multi-platform social media upload metadata ----------------------
     if args.generate_metadata:
@@ -1877,21 +2009,61 @@ def main() -> int:
     # The useful checkpoint: narration and timings now exist, so the audio can be
     # judged before committing to a render that can take hours.
     target_sec = planned["target"].get("seconds") if "target" in planned else None
+    if getattr(args, "stop_after", None) == "metadata":
+        print("\n(--stop-after metadata: script, narration and upload metadata written; nothing rendered)")
+        stop_vast_instance()
+        report(args, target_sec=target_sec)
+        return 0
     if args.no_render:
         print("\n(--no-render: narration and timings written, nothing rendered)")
+        stop_vast_instance()
         report(args, target_sec=target_sec)
         return 0
 
-    render_args = f'--concurrency={args.concurrency}'
-    if getattr(args, "gpu_render", False):
-        render_args += " --gl=angle"
+    if render_on_vast:
+        if not vast_instance_id:
+            print(
+                "  [Vast Render Error] --render-on vast needs a running instance; "
+                "pass --vast-instance <id> or let this run provision one.",
+                file=sys.stderr,
+            )
+            stop_vast_instance()
+            return 1
+        try:
+            import vast_render
 
-    if not run_step(
-        "render (Remotion)",
-        f'npx remotion render Main "{args.out}" {render_args}',
-        shell=True,
-    ):
-        return 1
+            render_step_ok = True
+            print()
+            print("=" * 74)
+            print("RENDER ON VAST.AI")
+            print("=" * 74)
+            vast_render.render_on_vast(
+                vast_mgr,
+                vast_instance_id,
+                args.out,
+                # Remotion is CPU-bound in Chromium, so the win is the instance's cores.
+                concurrency=max(args.concurrency, 8),
+                gl="angle" if getattr(args, "gpu_render", False) else None,
+            )
+        except Exception as render_err:
+            print(f"[Vast Render Error] Remote render failed: {render_err}", file=sys.stderr)
+            render_step_ok = False
+        stop_vast_instance()
+        if not render_step_ok:
+            return 1
+    else:
+        render_args = f'--concurrency={args.concurrency}'
+        if getattr(args, "gpu_render", False):
+            render_args += " --gl=angle"
+
+        if not run_step(
+            "render (Remotion)",
+            f'npx remotion render Main "{args.out}" {render_args}',
+            shell=True,
+        ):
+            stop_vast_instance()
+            return 1
+        stop_vast_instance()
 
     # ---- auto-upload to social platforms ---------------------------------
     if args.auto_upload or args.upload_dry_run:

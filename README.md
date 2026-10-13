@@ -55,7 +55,8 @@ CC-BY-NC), **Higgs Audio v3** (non-commercial), **Wav2Lip** (non-commercial).
 - **Node.js 18+** (tested on 24)
 - **Python** — `setup.ps1` provisions its own 3.12 via `uv`, no admin rights needed
 - No FFmpeg install (Remotion bundles its own)
-- No GPU — everything runs on CPU
+- No GPU required — everything runs on CPU. A rented GPU is optional and is used only
+  for IndicF5 narration and LTX-Video clips; see **Default flow** below.
 
 ## Quick start
 
@@ -90,10 +91,10 @@ are present at every length. A one-minute piece gets shorter scenes, not half a 
 | `resolution` | 0.14 | What it cost; close the loop |
 | `button` | 0.08 | A last line that reframes it |
 
-Scenes are allocated by largest-remainder proportion, one scene minimum each, and the
-planner refuses to go below four scenes — `setup`, `inciting`, `climax` and
-`resolution` are always present. Short pieces drop `button` first, then `hook`, never
-an essential.
+Scenes are allocated by largest-remainder proportion, one scene minimum each. The engine
+floor is `MIN_SCENES = 1`, so `--scene-seconds` can legitimately collapse a video to a
+single scene — `--scene-seconds 600` on `--minutes 10` is one scene, not ten. Short
+pieces drop `button` first, then `hook`.
 
 The writer is told the story job for each scene, and where it sits inside a movement
 that spans several scenes (`complication 3 of 7, and it must be worse than the one
@@ -104,12 +105,15 @@ Measured shape at each length (`npm run test:story` prints this table):
 
 ```
   length  scenes  story arc
-   1 min       4  setup -> inciting -> climax -> resolution
-   3 min       8  setup -> inciting -> rising -> climax -> resolution -> button
-  10 min      25  hook -> setup -> inciting -> rising -> climax -> resolution -> button
-                  rising=7  climax=4  resolution=4
-  60 min     150  hook -> setup -> inciting -> rising -> climax -> resolution -> button
-                  rising=47 climax=24 resolution=21
+  15 sec      1  hook
+  30 sec      1  hook
+   1 min      2  hook -> climax
+   2 min      5  hook -> inciting -> rising -> climax -> resolution
+   3 min      8  hook -> setup -> inciting -> rising -> climax -> resolution -> button
+  10 min     25  hook -> setup -> inciting -> rising -> climax -> resolution -> button
+                 hook=2 setup=3 inciting=3 rising=7 climax=4 resolution=4 button=2
+  60 min    150  hook -> setup -> inciting -> rising -> climax -> resolution -> button
+                 rising=47 climax=24 resolution=21
 ```
 
 ## Narration quality
@@ -175,7 +179,7 @@ Useful flags:
 | `--subtitles` | on-screen captions & .srt script: `hinglish` (default for Hindi voice) or `devanagari` |
 | `--no-hinglish-subtitles` | keep Devanagari script for captions and subtitles instead of Roman Hinglish |
 | `--voice` | primary narrator voice, alias, or blend (e.g. `hm_omega`, `hindi_female`, `bm_george`, `af_heart+af_bella`) |
-| `--audio-model` | `kokoro` (default) or `indicf5`; IndicF5 runs on the selected Vast.ai GPU |
+| `--audio-model` | `kokoro` (default) or `indic_parler`; Indic Parler-TTS runs on the selected Vast.ai GPU (aliases: `parler`, `indicf5`) |
 | `--voice-2` / `--secondary-voice` | secondary voice for dialogue/antagonist in character scenes |
 | `--voices` | list all 30+ available Kokoro voices, aliases, and blending syntax |
 | `--visual-mode` / `--generation-mode` | choose `image` or `video`; exactly one generated visual mode is used per video |
@@ -191,6 +195,8 @@ Useful flags:
 | `--dry-run` | print the plan and stop |
 | `--show-prompt` | print the brief sent to the writer, then stop |
 | `--no-render` | write `script.json` and synthesise the narration, but skip the render |
+| `--stop-after` | stop early: `write` (script only), `audio` (script + narration, GPU stopped, no render), or `metadata` (also writes upload metadata) |
+| `--render-on` | where the final render runs: `local` (default, CPU) or `vast` (remote — needs Vast SSH keys, currently unavailable on this account) |
 | `--narration FILE` | use narration you already have |
 | `--speed` | speech speed multiplier (e.g. `0.8` to `1.5`, default from genre) |
 | `--scene-seconds` | scene length target, default 24 |
@@ -200,6 +206,12 @@ Useful flags:
 | `--characters` | cast a character; **off by default** |
 | `--metadata` / `--no-metadata` | auto-generate upload metadata for YouTube, Instagram, Facebook, TikTok (default: enabled) |
 | `--out` | output path, default `out/video.mp4` |
+
+> **Render engine.** The final video is rendered by **Remotion** (`npx remotion render Main …`),
+> which bundles its own ffmpeg and runs on the **CPU** — there is no separate ffmpeg install.
+> `--render-on vast` would render on the rented GPU box, but it is **unverified**: this Vast
+> account has no SSH keys, so the ssh/scp paths (`--render-on vast`, dependency repair,
+> reference-voice upload) cannot run. Keep the default local render.
 
 ### Vast.ai image and video generation
 
@@ -216,15 +228,19 @@ npm run new -- --topic "पुरानी हवेली का राज़" 
 # LTX-Video clips on a Vast.ai RTX 4090; Kokoro narration locally
 npm run new -- --topic "पुरानी हवेली का राज़" --video-gen --audio-model kokoro
 
-# LTX-Video plus IndicF5 Aarav narration on the same RTX 4090
-npm run new -- --topic "पुरानी हवेली का राज़" --video-gen --audio-model indicf5 --voice indicf5_aarav
+# LTX-Video plus Indic Parler-TTS Aarav narration on the same RTX 4090
+npm run new -- --topic "पुरानी हवेली का राज़" --video-gen --audio-model indic_parler --voice indic_parler_aarav
 ```
 
-IndicF5 is also available with `indicf5_kabir`, `indicf5_rohan`,
-`indicf5_priya`, and `indicf5_ananya`. In image mode, choosing IndicF5 uses the
-same RTX 3090 instance after Flux generation. `--audio-model auto` (the default)
-uses Kokoro unless an IndicF5 voice is selected, in which case it requires
-Vast.ai and defaults to remote IndicF5 synthesis without a local fallback.
+Indic Parler-TTS is also available with `indic_parler_kabir`, `indic_parler_rohan`,
+`indic_parler_priya`, and `indic_parler_ananya` (the old `indicf5_*` ids still resolve as
+aliases). It is AI4Bharat's description-conditioned model: each voice is a natural-language
+speaker description rather than a reference clip, which is far more stable and needs no
+reference files. In image mode with `IMAGE_PROVIDER=vast`,
+choosing an Indic voice reuses the same RTX 3090 instance after Flux generation; with the
+default local images there is no Flux step on the GPU at all. `--audio-model auto`
+(the default) uses Kokoro unless an Indic voice is selected, in which case it
+requires Vast.ai and synthesises remotely.
 
 When no existing server is supplied, Vast.ai provisions one GPU, exposes its
 inference port, clones the configured project repository, installs the inference
@@ -247,6 +263,110 @@ If Hugging Face requires model access, configure `HF_TOKEN` in the Vast server
 environment before starting the server.
 On startup, the client checks the server-reported GPU and stops with an error if
 it does not match the selected mode. `--vast-autostop` is on by default.
+
+### Default flow: Indic Parler-TTS on the GPU, everything else local
+
+With no tuning flags, a run behaves like this:
+
+| Stage | Runs on | Notes |
+|---|---|---|
+| Story planning, narration writing | local / writer API | |
+| Scene images | **local CPU** | `IMAGE_PROVIDER=local` is the default |
+| Indic Parler-TTS narration | **GPU** | the only thing the GPU does |
+| Rhubarb lip sync, mastering | local | |
+| Remotion render | **local** | 5.19 frames/sec measured |
+
+The GPU is rented only when narration needs it, which is after the images are already
+on disk, so a local-image run never bills the GPU while the CPU draws scenes.
+
+GPU selection follows the mode:
+
+| Mode | GPU | Models loaded |
+|---|---|---|
+| `image` / `none` (+ Indic voice) | RTX 3090 | Indic Parler-TTS |
+| `--video-gen` | RTX 4090 | LTX-Video 2B, then Indic Parler-TTS |
+
+LTX and Indic Parler-TTS are not resident together: the server keeps one large model on a
+24 GB card, so video mode loads LTX, generates the clips, releases it, then loads Indic
+Parler-TTS for the narration.
+
+An existing instance is reused before a new one is rented. When nothing is reusable the
+cheapest offer inside the budget ceiling is taken, and a momentarily empty offer list is
+retried every 15 seconds rather than failing.
+
+The instance is **stopped, never destroyed**, unless you run `prune`. A stopped 50 GB
+instance still bills storage (about $0.77/day), which buys a warm install and skips a
+20–30 minute dependency setup on the next run. `--no-vast-autostop` leaves it running
+when chaining several videos.
+
+**Everything the GPU produces is written to local disk as it arrives**, so an
+interrupted run resumes without re-paying for GPU work:
+
+| Artefact | Path |
+|---|---|
+| Narration segments | `out/gpu_audio_cache/<sha>.wav` |
+| Scene narration | `public/audio/voice/<scene>.wav` + `.json` + `.mouth.json` |
+| LTX clips | `public/videos/<scene>.mp4` |
+
+Re-running skips segments and clips that already exist. `--force-videos` regenerates
+clips; deleting `out/gpu_audio_cache/` regenerates narration.
+
+If the GPU cannot be rented or reached, or the server reports the wrong GPU, the run
+**aborts**. It does not quietly fall back to CPU narration: Indic Parler-TTS on a laptop
+CPU is slow for a long video, and a silent fallback turns a two-minute failure into an
+afternoon. Use `--no-vast` to request CPU narration deliberately, or
+`--allow-local-fallback` for the previous behaviour.
+
+#### Troubleshooting: no voice in the output
+
+The old IndicF5 path could return NaN in fp16, which libsndfile encodes as a constant
+`-32768` (`0x8000`) DC WAV — a file that is *structurally* valid but carries no speech.
+Indic Parler-TTS is loaded in **float32**, so that class of bug is gone. The guards that
+caught it are kept as defence-in-depth, and they also protect against any future model
+returning silence:
+
+- the Vast server (`vast_server.py`) rejects non-finite/constant audio before writing a WAV;
+- the client (`vast_manager.py`) rejects it at the transport boundary, so the retry/fallback
+  path runs instead of success-with-silence;
+- the disk cache (`tts.py`) refuses silent/DC segments on write and deletes them on read.
+
+If you have a muted video from an older run, purge the stale cache and rebuild:
+
+```powershell
+npm run voice -- --purge-audio-cache     # or: python scripts/tts.py --purge-audio-cache
+```
+
+`AUDIO_PIPELINE_VERSION` was also bumped, which invalidates every previously generated
+narration segment automatically.
+
+### Batch mode: all GPU work first, then render one by one
+
+GPU time is billed hourly while the local render is free CPU time, so a batch holds the
+GPU only while it is doing inference and releases it before rendering anything.
+
+```powershell
+npm run batch -- --jobs examples/jobs.json --dry-run
+npm run batch -- --jobs examples/jobs.json
+```
+
+The manifest has a `defaults` object merged into every job, plus a `jobs` list. Each job
+takes the same keys as the CLI (`topic`, `minutes`, `genre`, `out`, `voice`, …).
+
+| Phase | Runs on | What happens |
+|---|---|---|
+| `write` | local (+ GPU for `--video-gen`) | research → plan → narration → visuals → `script.json` |
+| `audio` | **GPU** | all narration for every job, cached to disk |
+| `render` | local | audio rebuilt from cache, then rendered one at a time |
+
+The instance is provisioned once for the whole batch and stopped exactly once, after the
+audio phase. Progress is recorded in `out/batch/state.json`, so re-running the batch only
+redoes unfinished work — a crashed batch never re-pays for audio it already has.
+
+Scene ids are reused across jobs (`scene-001.png`, `scene-001.wav`), so each job's assets
+are parked under `out/batch/jobs/<job-id>/` between their write and render phases.
+
+`--phase write|audio|render` runs a single phase, and `--force` redoes phases the ledger
+already marks complete.
 
 ### On-screen text
 

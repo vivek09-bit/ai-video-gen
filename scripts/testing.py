@@ -10,7 +10,7 @@ from transformers import AutoModel
 torch.set_num_threads(os.cpu_count())
 
 model = AutoModel.from_pretrained(
-    "ai4bharat/IndicF5",
+    "ai4bharat/indic-parler-tts",
     trust_remote_code=True,
     low_cpu_mem_usage=False,
 )

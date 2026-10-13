@@ -40,7 +40,52 @@ DEVICE = "cuda" if os.environ.get("FORCE_CPU", "0") != "1" else "cpu"
 _FLUX_PIPE = None
 _LTX_PIPE = None
 _LTX_MODEL_ID: str | None = None
-_INDICF5_ENGINE = None
+_INDIC_PARLER_ENGINE = None
+
+# Latched once the IndicF5 import path is known to work. A failure is deliberately NOT
+# cached: an instance can be repaired over SSH while this process keeps running, and the
+# next /health should reflect that without needing a restart.
+_TTS_IMPORT_OK = False
+
+
+def _audio_is_bad(wav) -> bool:
+    """True when a waveform is empty, non-finite, silent or pure DC.
+
+    IndicF5 on fp16 can return NaN; libsndfile then encodes it as a constant -32768
+    (0x8000) DC WAV that is structurally valid but carries no speech. Rejecting it here
+    turns a corrupt generation into an explicit error instead of a silent success.
+    """
+    import numpy as np
+
+    x = np.asarray(wav, dtype=np.float64).reshape(-1)
+    if x.size == 0 or not np.all(np.isfinite(x)):
+        return True
+    if np.max(np.abs(x)) < 1e-4:  # silence
+        return True
+    if np.std(x) < 1e-5:  # constant / pure DC
+        return True
+    return False
+
+
+def tts_import_error() -> str | None:
+    """Return why the Indic Parler-TTS import path is unusable, or None when it works.
+
+    The synthesis handler imports ``parler_tts`` lazily, inside the request, so a broken
+    wheel anywhere in that chain stays invisible until the first request, which the client
+    then sees only as an opaque HTTP 500 after it has already paid to rent this GPU.
+    Probing the same import up front turns that into a boot-time fact it can act on.
+    """
+    global _TTS_IMPORT_OK
+    if _TTS_IMPORT_OK:
+        return None
+    try:
+        import numpy  # noqa: F401 - importing it is the point, not using it
+        import transformers  # noqa: F401
+        from parler_tts import ParlerTTSForConditionalGeneration  # noqa: F401
+    except Exception as err:  # noqa: BLE001 - any failure here makes synthesis impossible
+        return f"{type(err).__name__}: {err}"
+    _TTS_IMPORT_OK = True
+    return None
 
 
 def _hub_token() -> str | None:
@@ -50,14 +95,14 @@ def _hub_token() -> str | None:
 
 def _release_other_models(active: str) -> None:
     """Keep only one large inference model resident on the 24GB GPU."""
-    global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDICF5_ENGINE
-    for name in ("flux", "ltx", "indicf5"):
+    global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDIC_PARLER_ENGINE
+    for name in ("flux", "ltx", "indic_parler"):
         if name == active:
             continue
         value = {
             "flux": _FLUX_PIPE,
             "ltx": _LTX_PIPE,
-            "indicf5": _INDICF5_ENGINE,
+            "indic_parler": _INDIC_PARLER_ENGINE,
         }[name]
         if value is None:
             continue
@@ -72,7 +117,7 @@ def _release_other_models(active: str) -> None:
             _LTX_PIPE = None
             _LTX_MODEL_ID = None
         else:
-            _INDICF5_ENGINE = None
+            _INDIC_PARLER_ENGINE = None
     gc.collect()
     try:
         import torch
@@ -82,20 +127,42 @@ def _release_other_models(active: str) -> None:
         pass
 
 
-def _resolve_indicf5_reference(voice: str) -> tuple[Path | None, str]:
-    """Map a voice name onto its zero-shot reference wav plus reference transcript."""
-    ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
-    speaker = "aarav"
-    lowered = (voice or "").lower()
-    for candidate in ("priya", "kabir", "rohan", "ananya"):
-        if candidate in lowered:
-            speaker = candidate
-            break
-    ref_wav = ref_dir / f"{speaker}.wav"
-    ref_txt = ref_dir / f"{speaker}.txt"
-    fallback_text = "मौर्यन एम्पायर की हर डेट सिर्फ़ रटो मत।"
-    ref_text = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else fallback_text
-    return (ref_wav if ref_wav.exists() else None), ref_text
+def _pace_word(speed: float) -> str:
+    """Map a numeric speed multiplier onto the pace phrase Parler-TTS understands."""
+    if speed <= 0.92:
+        return "a slow, deliberate pace"
+    if speed >= 1.12:
+        return "a fast, urgent pace"
+    return "a moderate pace"
+
+
+def _resolve_indic_description(voice: str, speed: float = 1.0) -> str:
+    """Map a voice id/alias onto the Parler-TTS speaker description.
+
+    Parler-TTS is steered by a natural-language description rather than a reference clip,
+    so this replaces the old reference-wav lookup. The shared catalog in ``tts.py`` is the
+    source of truth; the literal below is only a fallback for a standalone deployment.
+    """
+    try:
+        from tts import INDIC_PARLER_VOICES
+
+        lowered = (voice or "").lower()
+        base: str | None = None
+        if lowered in INDIC_PARLER_VOICES:
+            base = INDIC_PARLER_VOICES[lowered]["description"]
+        else:
+            for vk, vi in INDIC_PARLER_VOICES.items():
+                if lowered == vk.lower() or lowered in [a.lower() for a in vi.get("aliases", [])]:
+                    base = vi["description"]
+                    break
+        if base:
+            return base.replace("a moderate pace", _pace_word(speed))
+    except Exception:
+        pass
+    return (
+        "A male speaker with a deep, resonant and authoritative voice speaks with a "
+        f"{_pace_word(speed)} in a very clear, close-sounding recording with no background noise."
+    )
 
 
 def get_vram_info() -> dict[str, Any]:
@@ -173,100 +240,60 @@ def load_ltx_pipeline(model_id: str = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-H
     return _LTX_PIPE
 
 
-def load_indicf5_engine():
-    """Load AI4Bharat IndicF5 TTS engine onto GPU."""
-    global _INDICF5_ENGINE
-    if _INDICF5_ENGINE is not None:
-        return _INDICF5_ENGINE
+def load_indic_parler_engine():
+    """Load the AI4Bharat Indic Parler-TTS engine onto the GPU (float32)."""
+    global _INDIC_PARLER_ENGINE
+    if _INDIC_PARLER_ENGINE is not None:
+        return _INDIC_PARLER_ENGINE
 
-    _release_other_models("indicf5")
-    print(f"[Vast Server] Loading AI4Bharat IndicF5 engine on {DEVICE}...")
+    _release_other_models("indic_parler")
+    print(f"[Vast Server] Loading Indic Parler-TTS engine on {DEVICE}...")
     try:
-        from tts import IndicF5Engine
-        _INDICF5_ENGINE = IndicF5Engine()
+        from tts import IndicParlerEngine
+        _INDIC_PARLER_ENGINE = IndicParlerEngine()
     except Exception:
-        # Standalone loading if tts.py is not in path
-        from cached_path import cached_path
-        from f5_tts.model import CFM, DiT
-        from f5_tts.model.utils import get_tokenizer
-        from safetensors.torch import load_file
-        from vocos import Vocos
-        import soundfile as sf
-        import torch, torchaudio
+        # Standalone loading if tts.py is not importable from the server CWD.
+        import numpy as np
+        import torch
+        import torchaudio
+        from parler_tts import ParlerTTSForConditionalGeneration
+        from transformers import AutoTokenizer
 
-        def _soundfile_load(filepath, *args, **kwargs):
-            wav_np, sr = sf.read(str(filepath), dtype="float32")
-            if wav_np.ndim == 1:
-                t = torch.from_numpy(wav_np).unsqueeze(0)
-            else:
-                t = torch.from_numpy(wav_np.T)
-            return t, sr
+        repo_id = os.environ.get("INDIC_PARLER_MODEL", "ai4bharat/indic-parler-tts")
 
-        torchaudio.load = _soundfile_load
-        torch._dynamo.config.suppress_errors = True
-        torch.compiler.disable()
-
-        vocab_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt"))
-        model_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/model.safetensors"))
-        vocab_char_map, vocab_size = get_tokenizer(vocab_path, tokenizer="custom")
-
-        transformer = DiT(
-            dim=1024, depth=22, heads=16, ff_mult=2, text_dim=512,
-            conv_layers=4, text_num_embeds=vocab_size, mel_dim=100,
-        )
-        state_dict = load_file(model_path, device="cpu")
-        clean_sd = {k.replace("ema_model._orig_mod.", "").replace("ema_model.", ""): v for k, v in state_dict.items() if "vocoder" not in k}
-
-        cfm_model = CFM(
-            transformer=transformer,
-            mel_spec_kwargs=dict(
-                target_sample_rate=24000, n_mel_channels=100, hop_length=256,
-                win_length=1024, n_fft=1024, mel_spec_type="vocos",
-            ),
-            odeint_kwargs=dict(method="euler"),
-            vocab_char_map=vocab_char_map,
-        )
-        cfm_model.load_state_dict(clean_sd, strict=False)
-        cfm_model.to(device=DEVICE, dtype=torch.float32 if DEVICE == "cpu" else torch.float16).eval()
-
-        vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
-        voc_sd = {k.replace("vocoder._orig_mod.", "").replace("vocoder.", ""): v for k, v in state_dict.items() if "vocoder" in k}
-        if voc_sd:
-            vocos.load_state_dict(voc_sd, strict=True)
-        vocos.to(device=DEVICE).eval()
-
-        class SimpleIndicF5:
-            def __init__(self, m, v):
-                self.model = m
-                self.vocos = v
+        class SimpleIndicParler:
+            def __init__(self):
                 self.device = DEVICE
-
-            def synthesize(self, text, ref_audio, ref_text, speed=1.0, nfe_step=32):
-                import numpy as np
-                from f5_tts.infer.utils_infer import infer_process
-                with torch.no_grad():
-                    wav, sr, _ = infer_process(
-                        ref_audio=str(ref_audio),
-                        ref_text=ref_text,
-                        gen_text=text,
-                        model_obj=self.model,
-                        vocoder=self.vocos,
-                        mel_spec_type="vocos",
-                        target_rms=0.1,
-                        cross_fade_duration=0.15,
-                        nfe_step=nfe_step,
-                        cfg_strength=2.0,
-                        speed=speed,
-                        device=self.device,
+                self.model = (
+                    ParlerTTSForConditionalGeneration.from_pretrained(
+                        repo_id, torch_dtype=torch.float32
                     )
-                if isinstance(wav, torch.Tensor):
-                    wav = wav.squeeze().cpu().numpy()
-                return np.asarray(wav, dtype=np.float32)
+                    .to(DEVICE)
+                    .eval()
+                )
+                self.description_tokenizer = AutoTokenizer.from_pretrained(
+                    self.model.config.text_encoder._name_or_path
+                )
+                self.prompt_tokenizer = AutoTokenizer.from_pretrained(repo_id)
+                self.sample_rate = int(getattr(self.model.config, "sampling_rate", 44100))
+                self.resampler = torchaudio.transforms.Resample(self.sample_rate, 24000)
 
-        _INDICF5_ENGINE = SimpleIndicF5(cfm_model, vocos)
+            def synthesize(self, text, description, speed=1.0):
+                input_ids = self.description_tokenizer(
+                    description.strip(), return_tensors="pt"
+                ).input_ids.to(self.device)
+                prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
+                with torch.no_grad():
+                    generation = self.model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
+                wav = generation.cpu().numpy().squeeze().astype(np.float32)
+                if wav.ndim > 1:
+                    wav = wav.mean(axis=0)
+                return self.resampler(torch.from_numpy(wav)).numpy().astype(np.float32)
 
-    print("[Vast Server] IndicF5 TTS engine loaded successfully.")
-    return _INDICF5_ENGINE
+        _INDIC_PARLER_ENGINE = SimpleIndicParler()
+
+    print("[Vast Server] Indic Parler-TTS engine loaded successfully.")
+    return _INDIC_PARLER_ENGINE
 
 
 class VastHandler(BaseHTTPRequestHandler):
@@ -281,13 +308,19 @@ class VastHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health" or self.path == "/":
             vram = get_vram_info()
+            # status stays "healthy": this server is alive and the GPU is usable. The
+            # `tts_ready` field is the separate question the client actually needs answered,
+            # because narration cannot use a server whose IndicF5 import path is broken.
+            tts_error = tts_import_error()
             self._send_json({
                 "status": "healthy",
                 "device": DEVICE,
                 "vram": vram,
                 "flux_loaded": _FLUX_PIPE is not None,
                 "ltx_loaded": _LTX_PIPE is not None,
-                "indicf5_loaded": _INDICF5_ENGINE is not None,
+                "tts_loaded": _INDIC_PARLER_ENGINE is not None,
+                "tts_ready": tts_error is None,
+                "tts_error": tts_error,
             })
         else:
             self._send_json({"error": "Not Found"}, status=404)
@@ -437,7 +470,7 @@ class VastHandler(BaseHTTPRequestHandler):
 
     def handle_audio_synthesize(self, req: dict):
         text = req.get("text", "").strip()
-        voice = req.get("voice", "indicf5_aarav").lower()
+        voice = req.get("voice", "indic_parler_aarav").lower()
         speed = float(req.get("speed", 1.0))
 
         if not text:
@@ -446,20 +479,23 @@ class VastHandler(BaseHTTPRequestHandler):
 
         import numpy as np
         import soundfile as sf
-        engine = load_indicf5_engine()
+        engine = load_indic_parler_engine()
+        description = _resolve_indic_description(voice, speed)
 
-        # Resolve prompt reference (absolute, so it works regardless of CWD)
-        ref_wav, ref_text_content = _resolve_indicf5_reference(voice)
-        if ref_wav is None:
+        t0 = time.time()
+        audio_np = engine.synthesize(text, description, speed=speed)
+        gen_time = round(time.time() - t0, 3)
+
+        audio_np = np.asarray(audio_np, dtype=np.float32)
+        if _audio_is_bad(audio_np):
             self._send_json(
-                {"status": "error", "error": f"Missing IndicF5 reference voice for {voice!r}"},
+                {
+                    "status": "error",
+                    "error": "Indic Parler-TTS produced non-finite/constant audio",
+                },
                 status=500,
             )
             return
-
-        t0 = time.time()
-        audio_np = engine.synthesize(text, ref_wav, ref_text_content, speed=speed, nfe_step=32)
-        gen_time = round(time.time() - t0, 3)
 
         buf = io.BytesIO()
         sf.write(buf, audio_np, 24000, format="WAV", subtype="PCM_16")
@@ -477,29 +513,21 @@ class VastHandler(BaseHTTPRequestHandler):
     def handle_audio_synthesize_batch(self, req: dict):
         """Synthesize many narration segments in one round trip.
 
-        The IndicF5 engine stays resident on the GPU, so a long script only pays the
-        HTTP round-trip cost once instead of once per sentence.
+        The Indic Parler-TTS engine stays resident on the GPU, so a long script only pays
+        the HTTP round-trip cost once instead of once per sentence.
         """
         items = req.get("items") or []
         if not items:
             self._send_json({"error": "Missing items"}, status=400)
             return
 
-        voice = str(req.get("voice", "indicf5_aarav"))
+        voice = str(req.get("voice", "indic_parler_aarav"))
         speed = float(req.get("speed", 1.0))
-        nfe_step = int(req.get("nfe_step", 32))
 
         import soundfile as sf
 
-        ref_wav, ref_text = _resolve_indicf5_reference(voice)
-        if ref_wav is None:
-            self._send_json(
-                {"status": "error", "error": f"Missing IndicF5 reference voice for {voice!r}"},
-                status=500,
-            )
-            return
-
-        engine = load_indicf5_engine()
+        engine = load_indic_parler_engine()
+        description = _resolve_indic_description(voice, speed)
         results = []
         started = time.time()
         for index, item in enumerate(items):
@@ -510,9 +538,14 @@ class VastHandler(BaseHTTPRequestHandler):
                 continue
             t0 = time.time()
             try:
-                audio_np = engine.synthesize(text, ref_wav, ref_text, speed=speed, nfe_step=nfe_step)
+                audio_np = engine.synthesize(text, description, speed=speed)
             except Exception as err:  # noqa: BLE001 - report per-item failure to the client
                 results.append({"id": entry_id, "error": f"{type(err).__name__}: {err}"})
+                continue
+            if _audio_is_bad(audio_np):
+                results.append(
+                    {"id": entry_id, "error": "non-finite/constant audio"}
+                )
                 continue
             buf = io.BytesIO()
             sf.write(buf, audio_np, 24000, format="WAV", subtype="PCM_16")
@@ -542,12 +575,12 @@ class VastHandler(BaseHTTPRequestHandler):
         import soundfile as sf
 
         scenes = req.get("scenes", [])
-        voice = req.get("voice", "indicf5_aarav")
+        voice = req.get("voice", "indic_parler_aarav")
         speed = float(req.get("speed", 1.0))
         width = int(req.get("width", 1080))
         height = int(req.get("height", 1920))
 
-        ref_wav, ref_text = _resolve_indicf5_reference(voice)
+        description = _resolve_indic_description(voice, speed)
 
         results = []
         for i, sc in enumerate(scenes):
@@ -565,9 +598,9 @@ class VastHandler(BaseHTTPRequestHandler):
                 img.save(buf, format="PNG")
                 res_entry["image_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")
 
-            if narration_text and ref_wav is not None:
-                engine = load_indicf5_engine()
-                audio_np = engine.synthesize(narration_text, ref_wav, ref_text, speed=speed, nfe_step=32)
+            if narration_text:
+                engine = load_indic_parler_engine()
+                audio_np = engine.synthesize(narration_text, description, speed=speed)
                 buf_a = io.BytesIO()
                 sf.write(buf_a, audio_np, 24000, format="WAV", subtype="PCM_16")
                 res_entry["audio_base64"] = base64.b64encode(buf_a.getvalue()).decode("ascii")

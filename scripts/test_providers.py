@@ -645,6 +645,678 @@ def test_vast_gpu_routing() -> None:
     print("  ✓ Vast creation requests one selected GPU and verifies the running server GPU.")
 
 
+def test_vast_setup_resilience() -> None:
+    print("Testing Vast.ai slow-vs-broken handling, onstart guard and host filters...")
+
+    import vast_manager
+    from vast_manager import InstanceBroken, InstanceSlow, VastManager
+
+    # 1. A host that cannot pull the image is destroyed and blacklisted.
+    broken = VastManager(api_key="test-key")
+    broken.search_gpu = lambda *a, **k: [{"id": 11, "dph_total": 0.2, "machine_id": 777}]  # type: ignore[method-assign]
+    broken.create_instance = lambda **k: 4242  # type: ignore[method-assign]
+    destroyed: list[int] = []
+    broken.destroy_instance = lambda i: destroyed.append(i) or True  # type: ignore[method-assign]
+    broken._safe_stop = lambda i: None  # type: ignore[method-assign]
+
+    def _raise_broken(_i, **_k):
+        raise InstanceBroken("docker TLS handshake timeout")
+
+    broken.wait_until_ready = _raise_broken  # type: ignore[method-assign]
+    broken.bad_hosts = {}
+    bad_recorded: list[tuple] = []
+    broken.mark_bad_host = lambda m, r: bad_recorded.append((m, r))  # type: ignore[method-assign]
+    try:
+        broken.provision_instance("RTX 3090")
+    except RuntimeError:
+        pass
+    assert destroyed == [4242], f"broken instance must be destroyed, got {destroyed}"
+    assert bad_recorded and bad_recorded[0][0] == 777, "broken host must be blacklisted"
+
+    # 2. A host that is merely slow must be STOPPED and kept, never destroyed or
+    #    blacklisted: destroying it would throw away the install it already paid for.
+    slow = VastManager(api_key="test-key")
+    slow.search_gpu = lambda *a, **k: [{"id": 12, "dph_total": 0.2, "machine_id": 888}]  # type: ignore[method-assign]
+    slow.create_instance = lambda **k: 4343  # type: ignore[method-assign]
+    slow_destroyed: list[int] = []
+    slow_stopped: list[int] = []
+    slow.destroy_instance = lambda i: slow_destroyed.append(i) or True  # type: ignore[method-assign]
+    slow.stop_instance = lambda i: slow_stopped.append(i) or True  # type: ignore[method-assign]
+    slow._record_idle = lambda i: None  # type: ignore[method-assign]
+    slow.bad_hosts = {}
+    slow_bad: list[tuple] = []
+    slow.mark_bad_host = lambda m, r: slow_bad.append((m, r))  # type: ignore[method-assign]
+
+    def _raise_slow(_i, **_k):
+        raise InstanceSlow("no install progress for 600s")
+
+    slow.wait_until_ready = _raise_slow  # type: ignore[method-assign]
+    try:
+        slow.provision_instance("RTX 3090")
+        raise AssertionError("a stalled instance must not be reported as ready")
+    except RuntimeError as err:
+        assert "--vast-instance 4343" in str(err), "resume hint must name the stopped instance"
+    assert slow_stopped == [4343], f"slow instance must be stopped, got {slow_stopped}"
+    assert slow_destroyed == [], f"slow instance must NOT be destroyed, got {slow_destroyed}"
+    assert slow_bad == [], "a slow host must not be blacklisted"
+
+    # 3. The install is guarded by a marker so a restarted instance never reinstalls.
+    onstart = VastManager.server_onstart_command()
+    assert ".tube2dscript_deps_ready" in onstart, "onstart must guard the install with a marker"
+    assert "uv pip install --system" in onstart, "onstart must install with uv"
+    assert onstart.index("uv pip install") < onstart.index("apt done"), (
+        "deps and apt must run concurrently, not in sequence"
+    )
+    assert "git clone" in onstart and onstart.index(".tube2dscript_deps_ready") < onstart.index("git clone"), (
+        "the repo must be cloned after apt guarantees git"
+    )
+    assert "torch.version.cuda" in onstart, "onstart must report the CUDA build it ended up with"
+
+    # 5. The torch family must be resolved from the image's own CUDA index. f5-tts
+    #    otherwise drags in a torchaudio built for a different CUDA version, which the
+    #    image's torch cannot load; that surfaced only at first synthesis as
+    #    "Could not load .../torchaudio/lib/libtorchaudio.so" and an opaque HTTP 500.
+    assert "--torch-backend=cu124" in onstart, (
+        "the onstart must pin the torch index to the image's CUDA build (cuda12.4 -> cu124)"
+    )
+    assert "torchaudio" in onstart, "torchaudio must be installed and verified explicitly"
+    assert "torchaudio==2.4.0" in onstart, (
+        "torchaudio must be PINNED to the image's torch version: resolving it freely "
+        "installs a newer torchaudio whose ABI does not match the image's torch"
+    )
+    assert "torchaudio.__version__" in onstart, (
+        "the onstart must compare the torch and torchaudio versions, not merely import them"
+    )
+
+    # 4. Prefetch is caller-driven: video mode is the only thing that needs LTX.
+    ltx_onstart = VastManager.server_onstart_command(prefetch_models=["jbilcke-hf/LTX-Video-2b"])
+    assert "jbilcke-hf/LTX-Video-2b" in ltx_onstart
+    assert "jbilcke-hf/LTX-Video-2b" not in VastManager.server_onstart_command(), (
+        "image-mode runs must not prefetch the LTX checkpoint"
+    )
+
+    # 5. The render stack is NOT part of the onstart dependency marker. The onstart only
+    #    runs at container creation, so anything inside that marker would never reach a
+    #    warm-reused instance -- which is exactly what Fix 1 hands back.
+    plain_stack = VastManager.server_onstart_command()
+    assert "nodejs" not in plain_stack and "fonts-noto-core" not in plain_stack, (
+        "the render stack must not be installed by the onstart script"
+    )
+    ssh_stack = VastManager.render_stack_shell()
+    assert "nodejs" in ssh_stack, "the render stack must install Node"
+    assert "fonts-noto-core" in ssh_stack, (
+        "Devanagari captions need a Noto fallback: the theme fonts are Windows-only names"
+    )
+    assert "npm ci" in ssh_stack, "the render stack must install the npm dependencies"
+    assert "remotion browser ensure" in ssh_stack, "headless Chromium must be fetched for Remotion"
+    assert ssh_stack.strip().startswith("if command -v node"), (
+        "the render stack must be idempotent so a reused instance is cheap to top up"
+    )
+    assert "exit 1" in ssh_stack, "real failures must fail loudly instead of rendering nothing"
+
+    # 6. The install marker must live where the packages live. On the /workspace volume it
+    #    would survive a container reset and falsely claim the deps exist.
+    assert "/workspace/.deps_ready" not in plain_stack, "the marker must not sit on the volume"
+    assert "HOME/.tube2dscript_deps_ready" in plain_stack
+    # The marker must be re-verified with a real import -- and that import has to name the
+    # modules the server loads LAZILY. Probing only the top-level packages is exactly how a
+    # pyarrow/NumPy ABI mismatch was certified "ready", after which the marker kept every
+    # later run from reinstalling and each synthesis request answered HTTP 500.
+    marker_probe = VastManager.dependency_probe_command(quiet=True)
+    assert marker_probe in plain_stack, "the marker must be re-verified with a real import"
+    assert "parler_tts" in marker_probe, (
+        "the probe must import the TTS module the synthesis handler imports lazily"
+    )
+    assert "transformers" in marker_probe, "the probe must import transformers, the model runner"
+    assert plain_stack.count(marker_probe) >= 2, (
+        "the marker check and the marker write must share one probe"
+    )
+
+    # 7. The speed filter relaxes instead of returning nothing.
+    calls: list[str] = []
+    tiered = VastManager(api_key="test-key")
+
+    def tiered_cli(args: list[str]) -> str:
+        query = args[2] if args[0] == "search" and len(args) > 2 else ""
+        calls.append(query)
+        if "inet_down>1000" in query:
+            return "[]"  # strict tier matches nothing
+        return json.dumps([{"id": 99, "dph_total": 0.2, "machine_id": 5}])
+
+    tiered.run_cli = tiered_cli  # type: ignore[method-assign]
+    offers = tiered.search_gpu("RTX 3090", min_inet_down=1000, min_disk_bw=500)
+    assert len(offers) == 1, "the relaxed tier must still find an offer"
+    assert any("inet_down>1000" in q for q in calls), "the strict tier must be tried first"
+    assert any("inet_down>100" in q and "inet_down>1000" not in q for q in calls), (
+        "the relaxed tier must be tried second"
+    )
+
+    # 8. An over-budget offer is still rejected regardless of the speed filters.
+    tiered.run_cli = lambda args: json.dumps([{"id": 100, "dph_total": 9.99, "machine_id": 6}])  # type: ignore[method-assign]
+    assert tiered.search_gpu("RTX 3090") == [], "the price ceiling must survive the filter changes"
+
+    # 9. The remote render payload must be asset-driven. public/ is hundreds of MB of
+    #    stale narration from past runs, so shipping the tree would be wasteful and slow.
+    import vast_render
+
+    payload_files, _payload_warnings = vast_render.collect_payload_files()
+    relative = {str(p.relative_to(vast_render.ROOT)).replace("\\", "/") for p in payload_files}
+    for required in ("script.json", "package.json", "src/generated/project.json", "src/Main.tsx"):
+        assert required in relative, f"the render payload must include {required}"
+    assert not any(name.startswith("out/") for name in relative), "the payload must exclude build output"
+    assert not any(name.startswith("node_modules/") for name in relative)
+    assert sum(p.stat().st_size for p in payload_files) < 400 * 1024 * 1024, (
+        "the payload must be pruned rather than shipping all of public/"
+    )
+
+    print("  ✓ Slow hosts are kept, broken hosts are dropped, and setup is guarded and parallel.")
+
+
+def test_vast_boot_stall_policy() -> None:
+    """Option B (chosen): a boot that makes no progress is STOPPED when the install is real,
+    and only a provably EMPTY install (peak disk below the floor) is treated as broken.
+
+    Drives wait_until_ready() with a fake clock so no real time is spent.
+    """
+    print("Testing Vast.ai boot-stall policy (Option B: stop when alive, destroy only if empty)...")
+
+    import vast_manager
+    from vast_manager import InstanceBroken, InstanceSlow, VastManager
+
+    real_time = vast_manager.time
+
+    class _Clock:
+        def __init__(self) -> None:
+            self.t = 1000.0
+
+        def time(self) -> float:
+            return self.t
+
+        def sleep(self, seconds: float) -> None:
+            self.t += seconds
+
+    def _drive(disk_gb: float):
+        vast_manager.time = _Clock()  # type: ignore[assignment]
+        try:
+            mgr = VastManager(api_key="test-key")
+            mgr._diagnose_boot = lambda *a, **k: None  # type: ignore[method-assign]
+            mgr.mark_bad_host = lambda *a, **k: None  # type: ignore[method-assign]
+            mgr.bad_hosts = {}
+            info = {"actual_status": "running", "status_msg": "", "machine_id": 999}
+            mgr.get_instance_info = lambda _i: dict(info)  # type: ignore[method-assign]
+            mgr._disk_used_gb = lambda _info: disk_gb  # type: ignore[method-assign]
+            # No server URL -> never reaches the health-check success path.
+            mgr._resolve_server_url = lambda _info: ""  # type: ignore[method-assign]
+            return mgr.wait_until_ready(4242)
+        finally:
+            vast_manager.time = real_time
+
+    # Alive but stalled (2GB installed, then frozen): stop-and-keep, never destroy.
+    try:
+        _drive(2.0)
+        raise AssertionError("a stalled-but-alive boot must raise InstanceSlow, not become ready")
+    except InstanceSlow:
+        pass
+    except InstanceBroken as err:
+        raise AssertionError(f"a host with a real install must NOT be destroyed: {err}")
+
+    # Nothing ever installed (disk never passed the floor): the empty install is worthless,
+    # so this is the one boot-stall case that is treated as broken (destroyed) under Option B.
+    try:
+        _drive(0.5)
+        raise AssertionError("a boot that installed nothing must raise InstanceBroken")
+    except InstanceBroken:
+        pass
+
+    print("  ✓ Boot-stall policy held: stalled-but-alive -> InstanceSlow (stop); empty -> InstanceBroken.")
+
+
+def test_vast_dependency_abi() -> None:
+    print("Testing the pinned NumPy/pyarrow ABI, dependency repair, and fast-fail on a broken server...")
+
+    from vast_manager import DEFAULT_SERVER_IMAGE, SERVER_DEPENDENCIES, VastManager
+
+    # 1. numpy and pyarrow must be pinned, and pinned as a PAIR. pyarrow wheels from 17.0.0
+    #    are built against the NumPy 2.x C ABI while the image ships NumPy 1.26.4 for torch
+    #    2.4, and pyarrow declares numpy only as an optional extra -- so a free resolve
+    #    installs an unimportable pyarrow that nothing corrects. Every synthesis request
+    #    then answered HTTP 500, and only after a GPU had been rented for it.
+    pins = {name.split(">")[0].split("<")[0].split("=")[0]: name for name in SERVER_DEPENDENCIES}
+    assert "numpy" in pins, "numpy must be pinned explicitly, not left to the image"
+    assert "<2" in pins["numpy"], f"numpy must stay on the 1.x side of the ABI: {pins['numpy']}"
+    assert any(name.startswith("parler-tts") for name in SERVER_DEPENDENCIES), (
+        "the server must install the TTS engine it actually imports"
+    )
+
+    # 2. The shared package list must still carry the torchaudio pin, and the install helper
+    #    must carry every package: the onstart and `repair` both run this one snippet, so a
+    #    repair can never rebuild a different environment than the install created.
+    packages = VastManager.server_dependency_packages(DEFAULT_SERVER_IMAGE)
+    assert packages[:-1] == SERVER_DEPENDENCIES, "the helper must add exactly the torchaudio pin"
+    assert packages[-1].startswith("torchaudio=="), (
+        f"torchaudio must stay pinned to the image's own torch: {packages[-1]}"
+    )
+    install = VastManager.dependency_install_command()
+    assert "--torch-backend=cu124" in install, "the image's CUDA index must still steer the resolve"
+    for package in packages:
+        assert package in install, f"the install command dropped {package}"
+
+    # 3. The probe must name the lazily imported module, and the repair must clear the
+    #    marker before reinstalling and restore it only after the probe passes -- otherwise
+    #    a warm instance keeps its broken install forever.
+    probe = VastManager.dependency_probe_command()
+    assert "parler_tts" in probe and "transformers" in probe and "numpy" in probe
+
+    repaired: list[tuple[int, str, int]] = []
+    manager = VastManager(api_key="test-key")
+    manager.run_ssh = lambda i, cmd, timeout=600: repaired.append((i, cmd, timeout)) or "[repair] ok"  # type: ignore[method-assign]
+    manager.repair_dependencies(4242, timeout=99)
+    assert repaired and repaired[0][0] == 4242 and repaired[0][2] == 99, repaired
+    command = repaired[0][1]
+    assert 'rm -f "$HOME/.tube2dscript_deps_ready"' in command, (
+        "the repair must clear the marker, or the broken install is never revisited"
+    )
+    for package in packages:
+        assert package in command, f"the repair install dropped {package}"
+    assert "parler_tts" in command, "the repair must re-verify with the lazy probe"
+    assert command.index("rm -f") < command.index("touch"), (
+        "the marker may only be restored after the probe passes"
+    )
+
+    # 4. A server that reports a broken TTS import path must be refused when narration
+    #    needs it, ignored when it does not (image/video runs never touch TTS), and a server
+    #    too old to report the field must be accepted rather than stranded.
+    gated = VastManager(api_key="test-key")
+    broken_health = {
+        "status": "healthy",
+        "vram": {"device_name": "NVIDIA GeForce RTX 3090"},
+        "tts_ready": False,
+        "tts_error": "ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4",
+    }
+    gated.check_health = lambda url=None: dict(broken_health)  # type: ignore[method-assign]
+    assert gated.require_gpu("RTX 3090")["tts_ready"] is False, "image runs must not be blocked"
+    try:
+        gated.require_gpu("RTX 3090", require_tts=True)
+    except RuntimeError as err:
+        assert "pyarrow requires NumPy 2.0" in str(err), str(err)
+        assert "repair" in str(err), "the message must name the repair command"
+    else:
+        raise AssertionError("a broken TTS environment must stop an Indic Parler-TTS run")
+
+    gated.check_health = lambda url=None: {  # type: ignore[method-assign]
+        "status": "healthy",
+        "vram": {"device_name": "NVIDIA GeForce RTX 3090"},
+    }
+    assert gated.require_gpu("RTX 3090", require_tts=True)["status"] == "healthy", (
+        "a server that predates the tts_ready field must not be rejected"
+    )
+
+    # 5. An environment fault in the remote interpreter is stable, so retrying it only
+    #    spends the rental. A dropped connection is not, and must still be retried.
+    assert tts.is_permanent_remote_tts_error(
+        RuntimeError(
+            "HTTP 500 from http://146.113.152.67:40400/v1/audio/synthesize: "
+            "ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4"
+        )
+    ), "the exact failure from the broken instance must not be retried"
+    assert tts.is_permanent_remote_tts_error(ModuleNotFoundError("No module named 'pyarrow'"))
+    assert not tts.is_permanent_remote_tts_error(ConnectionResetError("connection reset by peer"))
+    assert not tts.is_permanent_remote_tts_error(TimeoutError("read timed out"))
+
+    # 6. The server has to be able to answer the question the client now asks. Importing the
+    #    module must stay side-effect free (it only binds the server under __main__), and the
+    #    probe must answer -- usable or a one-line reason -- instead of raising.
+    import vast_server
+
+    assert callable(vast_server.tts_import_error)
+    verdict = vast_server.tts_import_error()
+    assert verdict is None or isinstance(verdict, str), (
+        f"the probe must return None or a reason, never raise: {verdict!r}"
+    )
+
+    print("  ✓ numpy/pyarrow are pinned, the probe covers the lazy import, and repair reuses it.")
+
+
+def test_vast_call_sites() -> None:
+    print("Testing that every VastManager call in the orchestrator matches its signature...")
+
+    import ast
+    import inspect
+
+    import vast_manager
+
+    orchestrator = Path(vast_manager.__file__).resolve().parent / "new_video.py"
+    tree = ast.parse(orchestrator.read_text(encoding="utf-8"))
+
+    # new_video imports VastManager lazily inside the function that needs it, so static
+    # analysis never resolves these calls and a renamed parameter fails at runtime instead
+    # of at review time. Read the keywords back out of the source and check them for real.
+    guarded = (
+        "provision_instance",
+        "create_instance",
+        "find_existing_instance",
+        "wait_until_ready",
+        "require_gpu",
+        "start_instance",
+        "stop_instance",
+    )
+    seen: dict[str, int] = {}
+    checked = 0
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = getattr(func, "attr", None) or getattr(func, "id", None)
+        if name not in guarded:
+            continue
+        method = getattr(vast_manager.VastManager, name, None)
+        assert method is not None, f"new_video.py calls vast_mgr.{name}() but VastManager has no such method"
+        accepted = set(inspect.signature(method).parameters)
+        for keyword in node.keywords:
+            if keyword.arg is None:
+                continue  # **expansion carries no static name
+            assert keyword.arg in accepted, (
+                f"new_video.py line {node.lineno} calls {name}({keyword.arg}=...) but "
+                f"VastManager.{name}() does not accept it "
+                f"(accepts: {', '.join(sorted(accepted))})"
+            )
+            checked += 1
+        seen[name] = seen.get(name, 0) + 1
+
+    assert "provision_instance" in seen, (
+        "the orchestrator no longer calls provision_instance: this guard is stale"
+    )
+    assert "find_existing_instance" in seen, "the orchestrator must still try to reuse a rented instance"
+    assert checked >= 4, f"expected to inspect the orchestrator's Vast keywords, saw {checked}"
+    print(f"  ✓ {checked} orchestrator keywords verified against the real signatures.")
+
+
+def test_gpu_resume_and_batch() -> None:
+    print("Testing the durable GPU audio cache, offer retry, and clip resume...")
+
+    import io as _io
+
+    import numpy as _np
+    import soundfile as sf
+
+    import generate_videos
+    import tts
+    from vast_manager import InstanceBroken, InstanceSlow, VastManager
+
+    # 1. The GPU cache is content-addressed: identical segments share a file, and any
+    #    change of text, voice or speed must not collide with another segment.
+    base = tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.0)
+    assert base == tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.0)
+    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_priya", 1.0), "voice must be part of the key"
+    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.2), "speed must be part of the key"
+    assert base != tts.gpu_cache_path("अलग वाक्य", "indicf5_aarav", 1.0), "text must be part of the key"
+    assert base.suffix == ".wav"
+    assert tts.GPU_CACHE_DIR.name == "gpu_audio_cache"
+
+    # 2. Round-trip through disk. This is what makes a retry free instead of another
+    #    GPU charge, so a segment must come back byte-for-byte. The fixture is real
+    #    (non-silent) audio because silent/DC segments are now refused by the guard.
+    tone = 0.3 * _np.sin(2 * _np.pi * 220 * _np.arange(2400) / 24000)
+    audio_buf = _io.BytesIO()
+    sf.write(audio_buf, tone, 24000, format="WAV", subtype="PCM_16")
+    wav_bytes = audio_buf.getvalue()
+
+    # A silent segment must never be persisted (it would be replayed as a muted video).
+    silent_buf = _io.BytesIO()
+    sf.write(silent_buf, [0.0] * 2400, 24000, format="WAV", subtype="PCM_16")
+    silent_path = tts.gpu_cache_path("कैश साइलेंट", "indicf5_aarav", 1.0)
+    silent_path.unlink(missing_ok=True)
+    tts.write_gpu_cache("कैश साइलेंट", "indicf5_aarav", 1.0, silent_buf.getvalue())
+    assert not silent_path.exists(), "a silent segment must not be written to the gpu cache"
+
+    probe_text, probe_voice, probe_speed = "कैश परीक्षण", "indicf5_aarav", 1.0
+    probe_path = tts.gpu_cache_path(probe_text, probe_voice, probe_speed)
+    probe_path.unlink(missing_ok=True)
+    assert tts.read_gpu_cache(probe_text, probe_voice, probe_speed) is None
+    try:
+        tts.write_gpu_cache(probe_text, probe_voice, probe_speed, wav_bytes)
+        assert probe_path.exists(), "a GPU segment must be persisted to disk"
+        restored = tts.read_gpu_cache(probe_text, probe_voice, probe_speed)
+        assert restored is not None and len(restored) == 2400, "the cached waveform must round-trip"
+    finally:
+        probe_path.unlink(missing_ok=True)
+
+    # 3. An empty offer list is retried rather than failing the run.
+    waiter = VastManager(api_key="test-key")
+    taps: list[float] = []
+    queue: list[list[dict]] = [[], [], [{"id": 21, "dph_total": 0.2, "machine_id": 7}]]
+    waiter.search_gpu = lambda *a, **k: queue.pop(0)  # type: ignore[method-assign]
+    waiter._offer_wait = taps.append  # type: ignore[method-assign]
+    found = waiter.search_gpu_with_wait("RTX 3090", wait_sec=15)
+    assert len(found) == 1, "the search must recover once an offer appears"
+    assert taps == [15, 15], f"each empty search must wait 15s, got {taps}"
+
+    giving_up = VastManager(api_key="test-key")
+    taps2: list[float] = []
+    giving_up.search_gpu = lambda *a, **k: []  # type: ignore[method-assign]
+    giving_up._offer_wait = taps2.append  # type: ignore[method-assign]
+    assert giving_up.search_gpu_with_wait("RTX 3090", wait_sec=15, attempts=3) == []
+    assert taps2 == [15, 15], f"wait between attempts, never after the last, got {taps2}"
+
+    # 4. A leftover instance of the wrong GPU model is reported, because Vast cannot
+    #    change an instance's GPU type and it would keep billing storage.
+    checker = VastManager(api_key="test-key")
+    checker.run_cli = lambda args: json.dumps([  # type: ignore[method-assign]
+        {"id": 1, "gpu_name": "RTX 3090", "actual_status": "stopped", "disk_space": 50, "machine_id": 11},
+        {"id": 2, "gpu_name": "RTX 4090", "actual_status": "stopped", "disk_space": 50, "machine_id": 22},
+        {"id": 3, "gpu_name": "RTX 3090", "actual_status": "exited", "disk_space": 50, "machine_id": 33},
+    ])
+    assert [c["id"] for c in checker.conflicting_instances("RTX 4090")] == [1, 3], (
+        "a run needing a 4090 must flag the two stopped 3090s"
+    )
+    assert [c["id"] for c in checker.conflicting_instances("RTX 3090")] == [2], (
+        "a run needing a 3090 must flag only the 4090"
+    )
+
+    # 5. LTX clips resume from disk instead of re-paying for GPU time.
+    calls: list[str] = []
+
+    class _FakeClipClient:
+        def generate_video(self, prompt, **kwargs) -> bytes:
+            calls.append(prompt)
+            return b"fake-mp4-bytes"
+
+    scene = {
+        "id": "scene-001",
+        "headline": "परीक्षण",
+        "beat": "establish",
+        "movement": "hook",
+        "emotion": "calm",
+        "shots": [],
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        script = {"topic": "resume test", "genre": "horror", "scenes": [dict(scene)]}
+        generate_videos.generate_videos_for_script(
+            script, out_dir=tmp, manager=_FakeClipClient()  # type: ignore[arg-type]
+        )
+        assert len(calls) == 1, "the first run must generate the clip"
+        assert (Path(tmp) / "scene-001.mp4").exists()
+
+        calls.clear()
+        generate_videos.generate_videos_for_script(
+            script, out_dir=tmp, manager=_FakeClipClient()  # type: ignore[arg-type]
+        )
+        assert calls == [], "an existing clip must not be regenerated"
+
+        generate_videos.generate_videos_for_script(
+            script, out_dir=tmp, manager=_FakeClipClient(), force=True  # type: ignore[arg-type]
+        )
+        assert len(calls) == 1, "--force-videos must regenerate the clip"
+
+    # 6. The last-resort offer query must not drop its structural constraints. An offer
+    #    without enough disk or RAM cannot host the job, and renting it fails later in a
+    #    far more confusing way than refusing here.
+    queries: list[str] = []
+    probe = VastManager(api_key="test-key")
+
+    def _empty_cli(args: list[str]) -> str:
+        query = args[2] if args[0] == "search" and len(args) > 2 else ""
+        queries.append(query)
+        return "[]"
+
+    probe.run_cli = _empty_cli  # type: ignore[method-assign]
+    assert probe.search_gpu("RTX 3090", min_disk=50) == []
+    assert queries, "the offer search must have run"
+    final_query = queries[-1]
+    for clause in ("gpu_name=RTX_3090", "num_gpus=1", "rented=False", "disk_space>=50", "cpu_ram>=32", "dph<0.4"):
+        assert clause in final_query, (
+            f"the last-resort query dropped {clause!r}: {final_query!r}"
+        )
+    assert "inet_down" not in final_query, (
+        "the last-resort query may relax speed, but nothing else"
+    )
+
+    # 7. Megabyte-level disk jitter must not count as install progress. A host that never
+    #    installs anything is broken, not slow: waiting out the whole budget wastes the run,
+    #    and stopping it would preserve an empty install that still bills for disk. The
+    #    values below are the real ones from a host that installed 70MB in 16 minutes.
+    import time as _time
+
+    boot = VastManager(api_key="test-key")
+    jitter = [0.001, 0.018, 0.028, 0.039, 0.042, 0.057, 0.061, 0.070]
+    seen = {"n": 0}
+
+    def _stuck_info(_instance_id: int) -> dict:
+        index = min(seen["n"], len(jitter) - 1)
+        seen["n"] += 1
+        return {
+            "actual_status": "running",
+            "status_msg": "success, running",
+            "disk_util": jitter[index],
+            "machine_id": 84216,
+            "public_ipaddr": "203.0.113.9",
+            "ports": {"8000/tcp": [{"HostPort": "50280"}]},
+        }
+
+    def _no_listener(url=None):
+        raise ConnectionResetError("no listener on 8000")
+
+    boot.get_instance_info = _stuck_info  # type: ignore[method-assign]
+    boot.check_health = _no_listener  # type: ignore[method-assign]
+    boot.run_ssh = lambda *a, **k: ""  # type: ignore[method-assign]
+    boot._forget_idle = lambda i: None  # type: ignore[method-assign]
+    blacklisted: list[tuple] = []
+    boot.mark_bad_host = lambda m, r: blacklisted.append((m, r))  # type: ignore[method-assign]
+
+    saved_env = {
+        k: os.environ.get(k)
+        for k in (
+            "VAST_SERVER_STALL_TIMEOUT",
+            "VAST_PROGRESS_MIN_DELTA_GB",
+            "VAST_INSTALL_GRACE_SECONDS",
+            "VAST_INSTALL_FLOOR_GB",
+            "VAST_CONTAINER_TIMEOUT",
+        )
+    }
+    os.environ["VAST_SERVER_STALL_TIMEOUT"] = "600"
+    os.environ["VAST_PROGRESS_MIN_DELTA_GB"] = "0.05"
+    os.environ["VAST_INSTALL_GRACE_SECONDS"] = "60"
+    clock = {"t": 1_000_000.0}
+    real_time, real_sleep = _time.time, _time.sleep
+    _time.time = lambda: clock["t"]  # type: ignore[assignment]
+    _time.sleep = lambda seconds: clock.__setitem__("t", clock["t"] + max(1.0, float(seconds)))  # type: ignore[assignment]
+    try:
+        try:
+            boot.wait_until_ready(999)
+            raise AssertionError("a host that installs nothing must not be reported ready")
+        except InstanceBroken as err:
+            assert "installed nothing" in str(err), f"the message must say what happened: {err}"
+        assert blacklisted == [(84216, "onstart installed nothing")], (
+            f"a host that installed nothing must be blacklisted, got {blacklisted}"
+        )
+        waited = clock["t"] - 1_000_000.0
+        assert waited < 600, f"the stall budget was ignored: waited {waited}s"
+
+        # 8. The image-pull phase must never be judged as "no install progress". Vast reports
+        #    disk_util = -1.0 (no reading yet) for the whole pull, and a cold pull of
+        #    pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime measured 291s. Taking -1.0 as a
+        #    real measurement made peak_disk -1.0, which is below any install floor, so the
+        #    install grace -- which used to start at create time -- fired at 303s while the
+        #    image was still downloading and destroyed a working host (instance 55754805).
+        assert VastManager._disk_used_gb({"disk_util": -1.0}) is None, (
+            "the -1.0 'no reading yet' sentinel must not be treated as a measurement"
+        )
+        assert VastManager._disk_used_gb({"disk_util": 0.0}) == 0.0, (
+            "zero is a real reading and must survive"
+        )
+
+        pulling = VastManager(api_key="test-key")
+        pull_phases: list[dict] = [
+            {
+                "actual_status": "loading",
+                "status_msg": f"2c85778708e9: Download complete ({index})",
+                "disk_util": -1.0,
+                "machine_id": 153772,
+            }
+            for index in range(12)  # 120s of pulling, twice the 60s install grace
+        ]
+        for disk in (0.20, 0.30, 0.45):
+            pull_phases.append(
+                {
+                    "actual_status": "running",
+                    "status_msg": "success, running",
+                    "disk_util": disk,
+                    "machine_id": 153772,
+                    "public_ipaddr": "203.0.113.9",
+                    "ports": {"8000/tcp": [{"HostPort": "36539"}]},
+                }
+            )
+        phase = {"n": 0}
+
+        def _pull_info(_instance_id: int) -> dict:
+            index = min(phase["n"], len(pull_phases) - 1)
+            phase["n"] += 1
+            return dict(pull_phases[index])
+
+        health = {"n": 0}
+
+        def _late_server(url=None) -> dict:
+            health["n"] += 1
+            if health["n"] < 3:
+                raise ConnectionRefusedError("listener not up yet")
+            return {"status": "healthy"}
+
+        pulling.get_instance_info = _pull_info  # type: ignore[method-assign]
+        pulling.check_health = _late_server  # type: ignore[method-assign]
+        pulling.run_ssh = lambda *a, **k: ""  # type: ignore[method-assign]
+        pulling.run_cli = lambda *a, **k: ""  # type: ignore[method-assign]
+        pulling._forget_idle = lambda i: None  # type: ignore[method-assign]
+        pull_blacklist: list[tuple] = []
+        pulling.mark_bad_host = lambda m, r: pull_blacklist.append((m, r))  # type: ignore[method-assign]
+
+        os.environ["VAST_INSTALL_FLOOR_GB"] = "1.5"
+        os.environ["VAST_CONTAINER_TIMEOUT"] = "600"
+        clock["t"] = 4_000_000.0
+        _time.time = lambda: clock["t"]  # type: ignore[assignment]
+        _time.sleep = lambda seconds: clock.__setitem__("t", clock["t"] + max(1.0, float(seconds)))  # type: ignore[assignment]
+        try:
+            url = pulling.wait_until_ready(999)
+        except (InstanceBroken, InstanceSlow) as err:
+            raise AssertionError(
+                f"a slow image pull must not fail the run: {type(err).__name__}: {err}"
+            ) from err
+        assert url == "http://203.0.113.9:36539", url
+        assert pull_blacklist == [], f"a slow pull must not blacklist the host, got {pull_blacklist}"
+        survived = clock["t"] - 4_000_000.0
+        assert survived >= 120, (
+            f"the pull must be allowed to outlast the install grace, saw {survived}s"
+        )
+    finally:
+        _time.time, _time.sleep = real_time, real_sleep
+        for key, value in saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+    print("  ✓ GPU audio is cached to disk, offers retry, and clips resume.")
+
+
 def test_voices() -> None:
     print("Testing Multi-Voice catalog, alias resolution, blending, and language detection...")
 
@@ -675,13 +1347,14 @@ def test_voices() -> None:
     assert len(cmn_voices) >= 4
 
     # 2. Test list_voices and filtering
-    # list_voices() reports every selectable voice, which includes the IndicF5 family.
-    # That family lives in INDICF5_VOICES, not VOICE_CATALOG, so the totals are the union.
+    # list_voices() reports every selectable voice, which includes the Indic Parler-TTS
+    # family. That family lives in INDIC_PARLER_VOICES, not VOICE_CATALOG, so the totals
+    # are the union.
     all_v = tts.list_voices()
-    assert len(all_v) == len(catalog) + len(tts.INDICF5_VOICES)
+    assert len(all_v) == len(catalog) + len(tts.INDIC_PARLER_VOICES)
 
     hi_v = tts.list_voices(lang_filter="hi")
-    assert len(hi_v) == len(hindi_voices) + len(tts.INDICF5_VOICES)
+    assert len(hi_v) == len(hindi_voices) + len(tts.INDIC_PARLER_VOICES)
     assert all(v["lang"] == "hi" for v in hi_v)
 
     # 3. Test format_voices_table
@@ -941,6 +1614,11 @@ if __name__ == "__main__":
     test_video_formats()
     test_video_generation_mode()
     test_vast_gpu_routing()
+    test_vast_setup_resilience()
+    test_vast_boot_stall_policy()
+    test_vast_dependency_abi()
+    test_vast_call_sites()
+    test_gpu_resume_and_batch()
     test_voices()
     test_dynamic_prompting()
     test_llm_routing()

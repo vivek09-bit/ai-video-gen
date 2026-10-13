@@ -226,5 +226,49 @@ assert "पेहला" in tts.normalize_hindi_phonetics("पहला")
 assert "वो" in tts.normalize_hindi_phonetics("वह")
 print("Hindi numbers and phonetic normalization verified.")
 
+# ---------------------------------------------------------------------------
+# Corrupt-audio guards (silent / NaN / DC -> rejected, never cached)
+# ---------------------------------------------------------------------------
+import io  # noqa: E402
+
+import soundfile as sf  # noqa: E402
+
+
+def wav_bytes(samples) -> bytes:
+    buf = io.BytesIO()
+    sf.write(buf, np.asarray(samples), tts.SAMPLE_RATE, format="WAV", subtype="PCM_16")
+    return buf.getvalue()
+
+
+dc = np.full(tts.SAMPLE_RATE, -32768, dtype=np.int16)  # NaN encoded by libsndfile as DC
+nan = np.full(tts.SAMPLE_RATE, np.nan, dtype=np.float32)
+silence = np.zeros(tts.SAMPLE_RATE, dtype=np.float32)
+
+assert tts.audio_is_bad(dc) is True, "constant -32768 (DC) must be flagged bad"
+assert tts.audio_is_bad(nan) is True, "all-NaN must be flagged bad"
+assert tts.audio_is_bad(silence) is True, "silence must be flagged bad"
+assert tts.audio_is_bad(np.zeros(0, dtype=np.float32)) is True, "empty must be flagged bad"
+assert tts.audio_is_bad(speech_like(-20)) is False, "real audio must not be flagged bad"
+
+# A corrupt segment must never reach the disk cache...
+bad_path = tts.gpu_cache_path("guard-test-bad", "indicf5_aarav", 1.0)
+bad_path.unlink(missing_ok=True)
+tts.write_gpu_cache("guard-test-bad", "indicf5_aarav", 1.0, wav_bytes(dc))
+assert not bad_path.exists(), "silent segment was written to the gpu cache"
+
+# ...and an already-cached corrupt segment must be discarded on read.
+bad_path.write_bytes(wav_bytes(dc))
+assert tts.read_gpu_cache("guard-test-bad", "indicf5_aarav", 1.0) is None
+assert not bad_path.exists(), "corrupt cached segment was not discarded"
+
+# A good segment survives the write/read round trip.
+ok_path = tts.gpu_cache_path("guard-test-ok", "indicf5_aarav", 1.0)
+ok_path.unlink(missing_ok=True)
+tts.write_gpu_cache("guard-test-ok", "indicf5_aarav", 1.0, wav_bytes(speech_like(-20, seconds=1.0)))
+assert ok_path.exists(), "a valid segment was not cached"
+assert tts.read_gpu_cache("guard-test-ok", "indicf5_aarav", 1.0) is not None
+ok_path.unlink(missing_ok=True)
+print("Corrupt-audio guards verified: silent/NaN/DC rejected on cache write and read.")
+
 print("Audio chain verified: punctuation-aware pauses, fades, gentle compression,")
 print(f"loudness held to {TARGET_RMS:.0f} dBFS with peaks under {CEILING:.1f} dBFS.")

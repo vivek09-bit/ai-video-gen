@@ -9,6 +9,32 @@ rented, and every offer is filtered against a per-GPU all-in price ceiling
 ($0.40/hr for an RTX 3090, $0.50/hr for an RTX 4090). Override with
 VAST_MAX_DPH_RTX_3090 / VAST_MAX_DPH_RTX_4090, or --max-price.
 
+Setup dominates the cost of a fresh rental, so: the container install is guarded by a
+sentinel (a restarted instance never reinstalls), apt/deps/model-download run
+concurrently, deps install with uv, and fast hosts are preferred. A host that is slow
+rather than broken is stopped and kept, not destroyed, so its install survives.
+
+Tuning knobs:
+  VAST_MIN_INET_DOWN        minimum download Mbps for the strict offer filter (1000)
+  VAST_MIN_DISK_BW          minimum disk MB/s for the strict offer filter (500)
+  VAST_OFFER_WAIT_SECONDS   seconds to wait before re-searching when no offers (15)
+  VAST_OFFER_SEARCH_ATTEMPTS  how many offer searches before giving up (4)
+  VAST_CONTAINER_TIMEOUT    seconds to wait for the container to reach 'running' (600)
+  VAST_SERVER_STALL_TIMEOUT seconds of no install progress before giving up (600)
+  VAST_PROGRESS_MIN_DELTA_GB  minimum disk growth that counts as progress (0.05)
+  VAST_INSTALL_FLOOR_GB       real install growth below this means it never ran (1.5)
+  VAST_INSTALL_GRACE_SECONDS  seconds after the container starts to reach that growth (300)
+  VAST_DEAD_POLLS             consecutive polls confirming a dead container before failing (2)
+  VAST_SERVER_TIMEOUT       hard cap for the whole boot, in seconds (3600)
+  VAST_SERVER_PREFETCH      comma-separated Hugging Face repos to prefetch
+  VAST_UV_TORCH_BACKEND     torch index for `uv pip install --torch-backend` (default: derived from the image tag)
+
+Boot-stall policy (Option B): a stalled-but-alive install is STOPPED and kept (resumable),
+while a host that provably installed nothing (peak disk < VAST_INSTALL_FLOOR_GB) or whose
+image never pulled is treated as broken and destroyed -- a stopped empty install is not
+worth the storage it would keep billing.
+  VAST_SERVER_IMAGE         container image override
+
 Usage:
   # Search cheapest RTX 4090 offers within budget
   python scripts/vast_manager.py search
@@ -25,10 +51,11 @@ Usage:
   # Stop instance to pause billing
   python scripts/vast_manager.py stop <INSTANCE_ID>
 
-  # Destroy broken or over-budget instances
-  python scripts/vast_manager.py prune [--dry-run]
+  # Destroy broken, over-budget or long-idle instances
+  python scripts/vast_manager.py prune [--dry-run] [--idle-hours 4]
 
-  # Show or clear hosts that failed to start
+  # Reapply the pinned server dependencies on an instance whose install is broken
+  python scripts/vast_manager.py repair <INSTANCE_ID>
   python scripts/vast_manager.py hosts [--clear]
 """
 
@@ -38,6 +65,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -75,6 +103,36 @@ def _gpu_slug(gpu_name: str) -> str:
     return slug
 
 
+def _image_torch_version(image: str) -> str:
+    """Extract the torch version a base-image tag pins, e.g. '2.4.0'.
+
+    The image is `pytorch/pytorch:2.4.0-cuda12.4-...`, so the tag names the exact torch
+    build. torchaudio must be pinned to that same version: an unpinned resolution selects a
+    newer torchaudio whose libtorchaudio.so calls torch C++ symbols the image's libtorch
+    does not export, and the failure appears only at first synthesis as an undefined
+    symbol (_ZN2at4_ops...) -- which the client sees as an opaque HTTP 500. Returns ""
+    when the tag carries no usable version.
+    """
+    match = re.search(r"(\d+\.\d+\.\d+)", image or "")
+    return match.group(1) if match else ""
+
+
+def _image_torch_backend(image: str) -> str:
+    """Derive uv's torch backend ('cu124') from an image tag such as 'cuda12.4'.
+
+    The torch family must come from the index matching the image's own CUDA build.
+    Without that, `f5-tts` resolves a `torchaudio` wheel built for a different CUDA
+    version, and it cannot be loaded by the image's torch: the IndicF5 engine then fails
+    at first use with "Could not load .../torchaudio/lib/libtorchaudio.so", which reaches
+    the client as an opaque HTTP 500. Falls back to uv's own detection when the image tag
+    carries no CUDA version.
+    """
+    match = re.search(r"cuda(\d+)\.(\d+)", image or "")
+    if not match:
+        return "auto"
+    return f"cu{match.group(1)}{match.group(2)}"
+
+
 def gpu_budget(gpu_name: str) -> float:
     """Return the maximum $/hr we are willing to pay for this GPU model."""
     env_name = f"VAST_MAX_DPH_{_gpu_slug(gpu_name)}"
@@ -105,8 +163,130 @@ def format_rate(rate: float) -> str:
     return "n/a" if rate == float("inf") else f"${rate:.3f}/hr"
 
 
+def _http_json(req: urllib.request.Request, timeout: int) -> dict:
+    """POST/GET JSON while surfacing the server's own error body.
+
+    The Vast inference server answers handler failures with a 500 plus
+    {"status": "error", "error": "..."}, but urlopen raises before the body can be read,
+    so the reason was being thrown away. Every server-side fault looked identical
+    ("HTTP Error 500: Internal Server Error"), including a missing IndicF5 reference voice
+    which the server names explicitly in that body.
+    """
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as err:
+        body = err.read().decode("utf-8", errors="ignore")
+        detail: Any = body
+        try:
+            parsed = json.loads(body)
+            detail = parsed.get("error") or parsed
+        except Exception:
+            pass
+        raise RuntimeError(f"HTTP {err.code} from {req.full_url}: {str(detail)[:400]}") from err
+
+
 class InstanceBroken(RuntimeError):
     """Raised when a rented instance cannot become healthy (bad host or image pull)."""
+
+
+class InstanceSlow(TimeoutError):
+    """Raised when a healthy instance simply needs longer to finish booting.
+
+    Distinct from InstanceBroken: the host is fine, so the instance is stopped and
+    kept rather than destroyed, preserving the dependency install it already paid for.
+    """
+
+
+# Python packages the inference server needs. Installed with uv (and falling back to
+# pip) at container start; the CUDA build of torch ships in the base image and is left
+# alone on purpose, so no --upgrade here.
+SERVER_DEPENDENCIES: tuple[str, ...] = (
+    "diffusers>=0.33",
+    "accelerate",
+    "transformers",
+    "sentencepiece",
+    "protobuf",
+    "imageio",
+    "imageio-ffmpeg",
+    "soundfile",
+    # torchaudio is deliberately NOT listed here: it is pinned to the image's exact torch
+    # version at install time (see server_onstart_command). Resolving it freely installs a
+    # newer torchaudio than the image's torch, which then fails at import with an
+    # unresolved C++ symbol.
+    "parler-tts",
+    # numpy is pinned to the 1.x side because the image's torch 2.4 / torchaudio 2.4 were
+    # built against it; transformers and parler-tts are happy on the same side.
+    "numpy>=1.26,<2",
+    "huggingface_hub",
+)
+
+# The import surface the server actually needs, including the modules it imports LAZILY
+# inside a request handler. Probing only the top-level packages is not enough, and that gap
+# is exactly how a broken instance was marked healthy: `f5_tts/__init__.py` never touches
+# datasets or pyarrow -- only `f5_tts.infer.utils_infer` does, and the synthesis handler
+# imports that at request time. A pyarrow built for a newer NumPy than the image ships
+# therefore passed every top-level check, had the "deps ready" marker written for it, and
+# still answered HTTP 500 to every synthesis request it ever received.
+SERVER_DEPENDENCY_PROBE: str = (
+    "import numpy, torch, torchaudio, diffusers, transformers, parler_tts"
+)
+
+# Hugging Face repos prefetched during the install so the first request is not stuck
+# on a download. Anything needed by Indic Parler-TTS narration goes here by default.
+DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/indic-parler-tts",)
+
+# Container image. Ships a CUDA build of torch, which the install must not upgrade.
+DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
+
+# Chromium shared libraries Remotion's headless shell needs, plus Noto fonts. The fonts are
+# a correctness requirement, not a nicety: the theme fonts are Windows names (Georgia,
+# Segoe UI) that Linux does not have, so Devanagari captions need a fallback family.
+RENDER_STACK_PACKAGES: tuple[str, ...] = (
+    "ca-certificates",
+    "curl",
+    "libnss3",
+    "libatk1.0-0",
+    "libatk-bridge2.0-0",
+    "libcups2",
+    "libdrm2",
+    "libxkbcommon0",
+    "libxcomposite1",
+    "libxdamage1",
+    "libxfixes3",
+    "libxrandr2",
+    "libgbm1",
+    "libasound2",
+    "fonts-noto-core",
+    "fonts-noto-color-emoji",
+)
+
+
+def _wav_is_bad(wav_bytes: bytes) -> bool:
+    """True when a returned WAV is empty, non-finite, silent or pure DC.
+
+    IndicF5 on fp16 can emit NaN, which libsndfile encodes as a constant -32768 (0x8000)
+    DC WAV that is structurally valid but carries no speech. Rejecting it at the transport
+    boundary stops silent audio from reaching the disk cache and the final render.
+    """
+    try:
+        import io
+
+        import soundfile as sf
+
+        wav_np, _sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
+    except Exception:
+        return True
+    import numpy as np
+
+    x = np.asarray(wav_np, dtype=np.float64).reshape(-1)
+    if x.size == 0 or not np.all(np.isfinite(x)):
+        return True
+    if np.max(np.abs(x)) < 1e-4:  # silence
+        return True
+    if np.std(x) < 1e-5:  # constant / pure DC
+        return True
+    return False
 
 
 class VastManager:
@@ -115,6 +295,8 @@ class VastManager:
     # Machine IDs that failed to start are remembered here so the same broken host
     # is never rented twice (the cheapest offer is often the flakiest one).
     BAD_HOSTS_FILE = ".vast_bad_hosts.json"
+    # When each instance was last stopped, so `prune --idle-hours` can reclaim storage.
+    IDLE_FILE = ".vast_idle.json"
 
     def __init__(self, api_key: str | None = None, server_url: str | None = None) -> None:
         self.api_key = api_key or os.environ.get("VAST_API_KEY") or os.environ.get("VASTAI_API_KEY")
@@ -157,6 +339,178 @@ class VastManager:
         except Exception as e:
             print(f"[Vast Manager Warning] Could not write {path.name}: {e}", file=sys.stderr)
 
+    # Non-interactive SSH. BatchMode stops it prompting for a password, and
+    # accept-new records a first-seen host key without asking. Without these the run
+    # would hang forever on a prompt, which this project has been bitten by before.
+    SSH_OPTIONS: tuple[str, ...] = (
+        "-o", "BatchMode=yes",
+        "-o", "StrictHostKeyChecking=accept-new",
+        "-o", "ConnectTimeout=20",
+        "-o", "ServerAliveInterval=30",
+        "-o", "ServerAliveCountMax=40",
+    )
+
+    @staticmethod
+    def _ssh_binary(name: str) -> str:
+        found = shutil.which(name)
+        if not found:
+            raise RuntimeError(
+                f"'{name}' was not found on PATH. Remote rendering needs the OpenSSH client "
+                f"(Windows 10+ ships it as an optional feature)."
+            )
+        return found
+
+    def ssh_target(self, instance_id: int) -> tuple[str, int, str]:
+        """Resolve (host, port, user) for an instance, preferring Vast's own ssh-url."""
+        try:
+            raw = self.run_cli(["ssh-url", str(instance_id)]).strip()
+        except Exception:
+            raw = ""
+        if raw.startswith("ssh://"):
+            parsed = urllib.parse.urlparse(raw)
+            if parsed.hostname:
+                return parsed.hostname, int(parsed.port or 22), parsed.username or "root"
+        info = self.get_instance_info(instance_id)
+        ip = (info.get("public_ipaddr") or "").strip()
+        mapping = (info.get("ports") or {}).get("22/tcp") or []
+        if ip and mapping:
+            return ip, int(mapping[0]["HostPort"]), "root"
+        raise RuntimeError(
+            f"Could not resolve an SSH address for instance {instance_id}. "
+            "Was it created with --ssh, and is it running?"
+        )
+
+    def run_ssh(self, instance_id: int, command: str, timeout: int = 600) -> str:
+        """Run a shell command on the instance over SSH and return its stdout."""
+        host, port, user = self.ssh_target(instance_id)
+        cmd = [self._ssh_binary("ssh"), *self.SSH_OPTIONS, "-p", str(port), f"{user}@{host}", command]
+        try:
+            res = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
+            )
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError(f"SSH command timed out after {timeout}s on instance {instance_id}: {command[:120]}") from e
+        if res.returncode != 0:
+            tail = (res.stderr or res.stdout or "").strip().splitlines()[-12:]
+            raise RuntimeError(
+                f"SSH command failed on instance {instance_id} (exit {res.returncode}):\n  "
+                + "\n  ".join(tail)
+            )
+        return res.stdout
+
+    def _transfer(self, instance_id: int, local_path: str, remote_path: str, upload: bool) -> None:
+        """Copy one file in either direction with scp (note scp uses -P, not -p)."""
+        host, port, user = self.ssh_target(instance_id)
+        remote = f"{user}@{host}:{remote_path}"
+        source, destination = (local_path, remote) if upload else (remote, local_path)
+        cmd = [self._ssh_binary("scp"), *self.SSH_OPTIONS, "-P", str(port), "-q", source, destination]
+        try:
+            res = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=3600, stdin=subprocess.DEVNULL
+            )
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError(f"File transfer timed out for instance {instance_id}") from e
+        if res.returncode != 0:
+            tail = (res.stderr or res.stdout or "").strip().splitlines()[-6:]
+            raise RuntimeError(
+                f"scp failed on instance {instance_id} (exit {res.returncode}):\n  " + "\n  ".join(tail)
+            )
+
+    def push_file(self, instance_id: int, local_path: str | Path, remote_path: str) -> None:
+        """Upload a local file to the instance."""
+        self._transfer(instance_id, str(local_path), remote_path, upload=True)
+
+    def pull_file(self, instance_id: int, remote_path: str, local_path: str | Path) -> None:
+        """Download a remote file from the instance."""
+        self._transfer(instance_id, str(local_path), remote_path, upload=False)
+
+    def push_reference_voices(self, instance_id: int, local_dir: str | Path | None = None) -> int:
+        """Copy the IndicF5 zero-shot reference voices onto the instance.
+
+        These are generated narration assets rather than code, so a fresh `git clone` of
+        the repo may not carry them -- and without one the server answers HTTP 500 for
+        every synthesis request. Uploading ~2MB makes narration independent of whatever
+        the clone happens to contain, including on a warm instance cloned before the
+        files were committed. Returns the number of files copied.
+        """
+        source = Path(local_dir) if local_dir else ROOT / "public/audio/prompts/indicf5"
+        if not source.is_dir():
+            return 0
+        files = sorted(source.glob("*.wav")) + sorted(source.glob("*.txt"))
+        if not files:
+            return 0
+        remote_dir = "/workspace/tube2dscript/public/audio/prompts/indicf5"
+        self.run_ssh(instance_id, f"mkdir -p {shlex.quote(remote_dir)}", timeout=60)
+        for path in files:
+            self.push_file(instance_id, path, f"{remote_dir}/{path.name}")
+        print(f"[Vast Manager] Uploaded {len(files)} IndicF5 reference file(s) to instance {instance_id}.")
+        return len(files)
+
+    def _safe_destroy(self, instance_id: int) -> None:
+        """Destroy an instance without letting cleanup failure mask the real error."""
+        try:
+            self.destroy_instance(instance_id)
+        except Exception as e:
+            print(f"[Vast Manager Warning] Could not destroy {instance_id}: {e}", file=sys.stderr)
+
+    def _safe_stop(self, instance_id: int) -> None:
+        """Stop an instance, preserving its installed dependencies for a later run."""
+        try:
+            self.stop_instance(instance_id)
+        except Exception as e:
+            print(f"[Vast Manager Warning] Could not stop {instance_id}: {e}", file=sys.stderr)
+
+    @classmethod
+    def _idle_path(cls) -> Path:
+        return ROOT / cls.IDLE_FILE
+
+    def _load_idle(self) -> dict[str, float]:
+        """Load the recorded stop time for each instance."""
+        path = self._idle_path()
+        if not path.is_file():
+            return {}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"[Vast Manager Warning] Ignoring unreadable {path.name}: {e}", file=sys.stderr)
+            return {}
+        stopped = data.get("stopped", {}) if isinstance(data, dict) else {}
+        out: dict[str, float] = {}
+        for key, value in stopped.items():
+            try:
+                out[str(int(key))] = float(value)
+            except (TypeError, ValueError):
+                continue
+        return out
+
+    def _record_idle(self, instance_id: int) -> None:
+        """Record that an instance was just stopped, so idle storage can be reclaimed."""
+        path = self._idle_path()
+        data = self._load_idle()
+        data[str(int(instance_id))] = time.time()
+        try:
+            path.write_text(
+                json.dumps({"stopped": data}, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except Exception as e:
+            print(f"[Vast Manager Warning] Could not write {path.name}: {e}", file=sys.stderr)
+
+    def _forget_idle(self, instance_id: int) -> None:
+        """Drop an instance from the idle ledger once it is running or destroyed."""
+        path = self._idle_path()
+        data = self._load_idle()
+        if str(int(instance_id)) not in data:
+            return
+        data.pop(str(int(instance_id)), None)
+        try:
+            path.write_text(
+                json.dumps({"stopped": data}, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
     def run_cli(self, args: list[str]) -> str:
         """Run a command using the vastai CLI tool."""
         # Look for vastai in the same directory as the python executable
@@ -182,7 +536,73 @@ class VastManager:
             raise RuntimeError(f"Vast.ai CLI command failed: {err}") from e
 
     @staticmethod
-    def server_onstart_command() -> str:
+    def server_dependency_packages(image: str | None = None) -> tuple[str, ...]:
+        """The server's package set, with torchaudio pinned to the image's own torch version.
+
+        Shared by the onstart install and `repair_dependencies` so a repair cannot drift
+        away from the install that produced the problem in the first place.
+        """
+        image = image or os.environ.get("VAST_SERVER_IMAGE", DEFAULT_SERVER_IMAGE)
+        torch_version = _image_torch_version(image)
+        torchaudio_pin = f"torchaudio=={torch_version}" if torch_version else "torchaudio"
+        return (*SERVER_DEPENDENCIES, torchaudio_pin)
+
+    @classmethod
+    def dependency_install_command(cls) -> str:
+        """Shell snippet that installs the pinned server dependencies (uv, pip fallback).
+
+        The torch family is resolved from the index matching the image's CUDA build via
+        `--torch-backend`, and is never *upgraded* (there is no --upgrade here): the backend
+        only decides which wheels are eligible, so the CUDA build of torch in the base image
+        survives. This must stay byte-compatible with what the onstart runs, which is why
+        both call it rather than each spelling out their own install line.
+        """
+        image = os.environ.get("VAST_SERVER_IMAGE", DEFAULT_SERVER_IMAGE)
+        deps = " ".join(shlex.quote(package) for package in cls.server_dependency_packages(image))
+        torch_backend = os.environ.get("VAST_UV_TORCH_BACKEND", "").strip() or _image_torch_backend(image)
+        uv_backend_flag = f" --torch-backend={shlex.quote(torch_backend)}" if torch_backend else ""
+        torch_index = (
+            f"https://download.pytorch.org/whl/{torch_backend}" if torch_backend.startswith("cu") else ""
+        )
+        pip_index_args = (
+            f"--index-url {torch_index} --extra-index-url https://pypi.org/simple " if torch_index else ""
+        )
+        return (
+            "export PATH=\"$HOME/.local/bin:$PATH\"; "
+            f"( uv pip install --system{uv_backend_flag} {deps} "
+            f"|| python -m pip install {pip_index_args}{deps} )"
+        )
+
+    @classmethod
+    def dependency_probe_command(cls, quiet: bool = False) -> str:
+        """A `python -c` probe importing everything the server needs, lazy imports included.
+
+        `quiet` sends stderr to /dev/null so the probe can gate a shell `if` without
+        printing a traceback every time it is asked whether the packages are usable.
+        """
+        suffix = " 2>/dev/null" if quiet else ""
+        return f"python -c {shlex.quote(SERVER_DEPENDENCY_PROBE)}{suffix}"
+
+    @staticmethod
+    def server_onstart_command(prefetch_models: list[str] | None = None) -> str:
+        """Build the container start command.
+
+        Setup dominates a fresh rental's cost, so the expensive work is run concurrently
+        (apt, the Python deps, and the model prefetch are independent) and installed with
+        uv rather than pip. uv is used *without* --upgrade so the CUDA build of torch in
+        the base image is left untouched.
+
+        The install marker lives in the container filesystem, not on the /workspace
+        volume. That matters: if a stopped instance ever comes back with a reset
+        container layer, a marker on the volume would claim the packages exist while
+        site-packages is empty. The marker is also verified with a real import before it
+        is trusted.
+
+        Deliberately does NOT install the Remotion render stack (Node, Chromium libraries
+        and fonts). That costs several minutes, only `--render-on vast` needs it, and
+        keeping it out of this block means a reused instance can still acquire it later --
+        see `render_stack_shell()`.
+        """
         custom = os.environ.get("VAST_SERVER_ONSTART_CMD", "").strip()
         if custom:
             return custom
@@ -194,42 +614,193 @@ class VastManager:
             repo_url = f"https://x-access-token:{token_repo}@github.com/vivek09-bit/ai-video-gen.git"
         else:
             repo_url = repository
+
+        if prefetch_models is None:
+            env_models = os.environ.get("VAST_SERVER_PREFETCH", "").strip()
+            prefetch_models = (
+                [item.strip() for item in env_models.split(",") if item.strip()]
+                if env_models
+                else list(DEFAULT_PREFETCH_MODELS)
+            )
+
+        deps_install = VastManager.dependency_install_command()
+        # The probe covers the modules the server imports LAZILY as well as the top-level
+        # packages; see SERVER_DEPENDENCY_PROBE for why that distinction cost a whole run.
+        probe = VastManager.dependency_probe_command(quiet=True)
+        prefetch = "; ".join(f"snapshot_download({model!r})" for model in prefetch_models)
+        prefetch_cmd = f"python -c \"from huggingface_hub import snapshot_download; {prefetch}\""
+        # torch is imported first and torchaudio second: a version mismatch raises an
+        # unresolved-symbol OSError here, at setup, rather than fifteen minutes later at
+        # synthesis where it is far harder to attribute. parler_tts and transformers are in
+        # here for the same reason, and for a second one: whatever this probe accepts is
+        # what the marker below certifies as "ready".
+        verify_imports = (
+            "python -c \"import numpy, torch, torchaudio, diffusers, transformers, parler_tts; "
+            "assert torchaudio.__version__.split('+')[0] == torch.__version__.split('+')[0], "
+            "'torch and torchaudio versions must match'; "
+            "print('[onstart] imports OK', torch.__version__, torchaudio.__version__, "
+            "'numpy', numpy.__version__, 'transformers', transformers.__version__)\" "
+            "|| echo '[onstart] FAILED: dependency import failed'"
+        )
+        verify_torch = (
+            "python -c \"import torch; print('[onstart] torch', torch.__version__, "
+            "'cuda', torch.version.cuda, 'available', torch.cuda.is_available())\""
+        )
+
+        apt_packages = ["git", "ffmpeg", "libsndfile1", "ca-certificates", "curl"]
+        apt_install = " ".join(apt_packages)
+        # A warm-reused instance keeps whatever clone it was created with, so it would
+        # otherwise run month-old server code and never receive a fix. Best effort: when the
+        # fetch fails the existing checkout simply stays in place.
+        branch_q = shlex.quote(branch)
+        refresh_repo = (
+            "if [ -d tube2dscript/.git ]; then "
+            f"git -C tube2dscript fetch --depth 1 origin {branch_q} >/dev/null 2>&1 "
+            "&& git -C tube2dscript reset --hard FETCH_HEAD >/dev/null 2>&1; "
+            f"else git clone --depth 1 --branch {branch_q} {shlex.quote(repo_url)} tube2dscript; "
+            "fi || true; "
+        )
         return (
-            "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; "
-            "cd /workspace; "
-            "apt-get update && apt-get install -y git ffmpeg libsndfile1 || true; "
-            f"[ -d tube2dscript ] || git clone --depth 1 --branch {shlex.quote(branch)} "
-            f"{shlex.quote(repo_url)} tube2dscript || true; "
+            "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
+            "if [ -f \"$HOME/.tube2dscript_deps_ready\" ] "
+            f"&& {probe}; then "
+            "echo '[onstart] dependencies already present, skipping install'; "
+            "else "
+            f"( apt-get update && apt-get install -y {apt_install} || true ) & APT_PID=$!; "
+            "( curl -LsSf https://astral.sh/uv/install.sh | sh ) || true; "
+            f"( {deps_install} ) & PIP_PID=$!; "
+            f"( {prefetch_cmd} ) & MODEL_PID=$!; "
+            "wait $APT_PID; echo '[onstart] apt done'; "
+            "wait $PIP_PID; echo '[onstart] python deps done'; "
+            "wait $MODEL_PID; echo '[onstart] model prefetch done'; "
+            f"{verify_imports}; "
+            f"{verify_torch}; "
+            f"if {probe}; then "
+            "touch \"$HOME/.tube2dscript_deps_ready\"; "
+            "else echo '[onstart] FAILED: deps unusable, not marking them ready'; fi; "
+            "fi; "
+            f"{refresh_repo} "
             "cd /workspace/tube2dscript; "
-            "python -m pip install --upgrade 'diffusers>=0.33' accelerate transformers "
-            "sentencepiece protobuf imageio imageio-ffmpeg soundfile f5-tts cached-path "
-            "vocos safetensors huggingface_hub || true; "
             "echo 'starting server at $(hostname -i):8000'; "
             "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 & "
-                        "sleep 5; echo '--- server.log after start ---'; tail -30 /workspace/server.log; "
-                        "echo 'onstart done, keeping container alive'; sleep infinity"
-                    )
-    
+            "sleep 5; echo '--- server.log after start ---'; tail -30 /workspace/server.log; "
+            "echo 'onstart done, keeping container alive'; sleep infinity"
+        )
+
+    @staticmethod
+    def render_stack_shell() -> str:
+        """Idempotent shell snippet that makes an instance able to run `npx remotion render`.
+
+        This is separate from `server_onstart_command` on purpose. The onstart only runs at
+        container creation, so anything inside its dependency marker would never be added to
+        an already-created instance -- which is exactly what warm reuse hands back. Running
+        this over SSH before a remote render means the render stack can be added whenever it
+        is needed, to whatever instance is in use.
+
+        Node comes from NodeSource, the Chromium libraries and Noto fonts come from apt, and
+        the Noto fonts matter for correctness rather than looks: the theme fonts are Windows
+        names (Georgia, Segoe UI) that do not exist on Linux, so Devanagari captions would
+        otherwise render as empty boxes.
+        """
+        packages = " ".join(RENDER_STACK_PACKAGES)
+        return (
+            "if command -v node >/dev/null 2>&1 && [ -d /workspace/tube2dscript/node_modules ]; then "
+            "echo '[render] stack already present'; exit 0; fi; "
+            f"apt-get update && apt-get install -y {packages} || echo '[render] WARNING: apt failed'; "
+            "if ! command -v node >/dev/null 2>&1; then "
+            "(curl -fsSL https://deb.nodesource.com/setup_20.x | bash -) && apt-get install -y nodejs "
+            "|| echo '[render] WARNING: node install failed'; fi; "
+            "command -v node >/dev/null 2>&1 || { echo '[render] ERROR: node is unavailable'; exit 1; }; "
+            "cd /workspace/tube2dscript || { echo '[render] ERROR: repo missing'; exit 1; }; "
+            "[ -d node_modules ] || ( npm ci || npm install ) "
+            "|| { echo '[render] ERROR: npm install failed'; exit 1; }; "
+            "npx remotion browser ensure || { echo '[render] ERROR: browser ensure failed'; exit 1; }; "
+            "echo '[render] stack ready'"
+        )
 
     def search_gpu(
         self,
         gpu_name: str,
         max_dph: float | None = None,
         min_disk: int = 40,
+        min_inet_down: int | None = None,
+        min_disk_bw: int | None = None,
     ) -> list[dict]:
-        """Search for a single GPU of the requested model inside the budget ceiling."""
+        """Search for a single GPU of the requested model inside the budget ceiling.
+
+        Setup time is dominated by downloading, so fast hosts are preferred. The speed
+        filter is applied in tiers and relaxed automatically: a strict floor can match
+        zero offers, which would block renting entirely.
+
+        Only the SPEED preference is ever relaxed. One GPU, the disk floor, the RAM floor
+        and the price ceiling are structural and apply to every tier including the
+        last-resort query, because an offer that cannot host the job costs more than no
+        offer at all: the failure would otherwise surface far later, as a confusing
+        start-up error on an instance that was never viable.
+        """
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
+        if min_inet_down is None:
+            min_inet_down = int(os.environ.get("VAST_MIN_INET_DOWN", "1000"))
+        if min_disk_bw is None:
+            min_disk_bw = int(os.environ.get("VAST_MIN_DISK_BW", "500"))
         gpu_filter = gpu_name.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "_")
-        query = f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} disk_space>={min_disk} inet_down>100 cpu_ram>=32"
+
+        tiers: list[tuple[int, int, str]] = []
+        if min_inet_down > 100 or min_disk_bw > 0:
+            tiers.append((min_inet_down, min_disk_bw, "fast host"))
+        tiers.append((100, 0, "any host"))
+
         offers: list[dict] = []
-        try:
-            offers = json.loads(self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"]))
-        except Exception as e:
-            print(f"[Vast Manager Warning] {gpu_name} offer search failed ({e}), trying standard search query...", file=sys.stderr)
+        for index, (inet, disk_bw, label) in enumerate(tiers):
+            bw_clause = f" disk_bw>={disk_bw}" if disk_bw else ""
+            query = (
+                f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
+                f"disk_space>={min_disk} inet_down>{inet} cpu_ram>=32{bw_clause}"
+            )
             try:
-                offers = json.loads(self.run_cli(["search", "offers", f"gpu_name={gpu_filter} rented=False", "-o", "dph+", "--raw"]))
-            except Exception:
+                offers = json.loads(self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"]))
+            except Exception as e:
+                print(f"[Vast Manager Warning] {gpu_name} offer search failed ({e})", file=sys.stderr)
+                offers = []
+            if offers:
+                if index > 0:
+                    print(f"[Vast Manager] Relaxed the speed filter to '{label}' to find a {gpu_name}.")
+                break
+            if index < len(tiers) - 1:
+                print(
+                    f"[Vast Manager] No {gpu_name} offers matched the {label} filter "
+                    f"(>={inet} Mbps, disk >={disk_bw} MB/s); relaxing."
+                )
+
+        if not offers:
+            # Last resort: relax only the speed preference. The structural constraints and
+            # the price ceiling stay in the query, so this cannot hand back an offer that
+            # is too small for the job. Returning nothing lets the caller fail loudly.
+            print(
+                f"[Vast Manager] No {gpu_name} offer matched the speed tiers; retrying "
+                f"without the inet/disk-bandwidth preference."
+            )
+            try:
+                offers = json.loads(
+                    self.run_cli(
+                        [
+                            "search",
+                            "offers",
+                            f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
+                            f"disk_space>={min_disk} cpu_ram>=32",
+                            "-o",
+                            "dph+",
+                            "--raw",
+                        ]
+                    )
+                )
+            except Exception as e:
+                print(
+                    f"[Vast Manager Warning] {gpu_name} fallback offer search failed ({e})",
+                    file=sys.stderr,
+                )
                 return []
+
         # Vast filters on `dph`, which excludes storage and bandwidth. `dph_total`
         # is the rate that actually gets billed, so enforce the ceiling on that too.
         affordable = [
@@ -257,22 +828,67 @@ class VastManager:
         """Search for RTX 3090 24GB offers."""
         return self.search_gpu("RTX 3090", max_dph=max_dph, min_disk=min_disk)
 
+    def _offer_wait(self, seconds: float) -> None:
+        """Sleep between offer searches (seam so tests need not really wait)."""
+        time.sleep(seconds)
+
+    def search_gpu_with_wait(
+        self,
+        gpu_name: str,
+        max_dph: float | None = None,
+        min_disk: int = 40,
+        wait_sec: float | None = None,
+        attempts: int | None = None,
+    ) -> list[dict]:
+        """Search for offers, re-trying while the marketplace momentarily has none.
+
+        A live marketplace can transiently report zero matches -- hosts fill up, or the
+        strict speed tier happens to exclude everything. Aborting on the first empty
+        result would kill a run that would have succeeded seconds later.
+
+        Deliberately NOT part of `search_gpu`: that is also used by the CLI `search`
+        command and by tests, neither of which should block for up to a minute.
+        """
+        if wait_sec is None:
+            wait_sec = float(os.environ.get("VAST_OFFER_WAIT_SECONDS", "15"))
+        if attempts is None:
+            attempts = int(os.environ.get("VAST_OFFER_SEARCH_ATTEMPTS", "4"))
+        attempts = max(1, attempts)
+
+        for attempt in range(1, attempts + 1):
+            offers = self.search_gpu(gpu_name, max_dph=max_dph, min_disk=min_disk)
+            if offers:
+                if attempt > 1:
+                    print(f"[Vast Manager] Found {len(offers)} {gpu_name} offer(s) on attempt {attempt}.")
+                return offers
+            if attempt < attempts:
+                print(
+                    f"[Vast Manager] No {gpu_name} offer available right now; waiting "
+                    f"{wait_sec:g}s before re-searching (attempt {attempt}/{attempts})..."
+                )
+                self._offer_wait(wait_sec)
+        print(f"[Vast Manager] Still no {gpu_name} offers after {attempts} attempt(s).", file=sys.stderr)
+        return []
+
     def create_instance(
         self,
         offer_id: int | None = None,
         disk_gb: int = 50,
-        image: str = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime",
         onstart_cmd: str | None = None,
         gpu_name: str = "RTX 4090",
         max_dph: float | None = None,
         offer_rate: float | None = None,
+        prefetch_models: list[str] | None = None,
+        image: str | None = None,
     ) -> int:
         """Create a one-GPU Vast.ai instance of the requested model inside the budget."""
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
+        if image is None:
+            image = os.environ.get("VAST_SERVER_IMAGE", DEFAULT_SERVER_IMAGE)
         rate: float | None = None
         explicit_offer = offer_id is not None
         if offer_id is None:
-            offers = self.search_gpu(gpu_name, max_dph=limit, min_disk=disk_gb)
+            offers = self.search_gpu_with_wait(gpu_name, max_dph=limit, min_disk=disk_gb)
             if not offers:
                 raise RuntimeError(
                     f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB disk."
@@ -312,7 +928,7 @@ class VastManager:
             "--ssh",
             "--direct",
             "--onstart-cmd",
-            onstart_cmd or self.server_onstart_command(),
+            onstart_cmd or self.server_onstart_command(prefetch_models),
             "--raw",
         ]
 
@@ -347,18 +963,22 @@ class VastManager:
         disk_gb: int = 50,
         attempts: int = 3,
         max_dph: float | None = None,
+        prefetch_models: list[str] | None = None,
     ) -> tuple[int, str]:
         """Rent a GPU, moving to the next offer when a host cannot pull the image.
 
-        The cheapest in-budget offers are tried in turn. An instance that reports a
-        fatal start-up error (e.g. a Docker registry TLS timeout) is destroyed so it
-        stops billing storage before the next offer is attempted.
+        The cheapest in-budget offers are tried in turn. A host that reports a fatal
+        start-up error (e.g. a Docker registry TLS timeout) is destroyed and blacklisted.
+        A host that is merely *slow* is stopped and kept instead, because destroying it
+        would throw away the dependency install it has already paid for; the caller gets a
+        resume hint rather than quietly burning a second setup.
         """
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
-        offers = self.search_gpu(gpu_name, max_dph=limit, min_disk=disk_gb)
+        offers = self.search_gpu_with_wait(gpu_name, max_dph=limit, min_disk=disk_gb)
         if not offers:
             raise RuntimeError(
-                f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB disk."
+                f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB "
+                f"disk after repeated searches."
             )
         total = min(attempts, len(offers))
         last_error: Exception | None = None
@@ -376,19 +996,32 @@ class VastManager:
                 gpu_name=gpu_name,
                 max_dph=limit,
                 offer_rate=rate,
+                prefetch_models=prefetch_models,
             )
             try:
                 return instance_id, self.wait_until_ready(instance_id)
-            except Exception as error:
+            except InstanceBroken as error:
                 last_error = error
-                print(f"[Vast Manager Warning] Instance {instance_id} did not come up: {error}", file=sys.stderr)
+                print(f"[Vast Manager Warning] Instance {instance_id} is broken: {error}", file=sys.stderr)
                 print(f"[Vast Manager] Destroying instance {instance_id} to stop storage charges...")
-                try:
-                    self.destroy_instance(instance_id)
-                except Exception as destroy_err:
-                    print(f"[Vast Manager Warning] Could not destroy {instance_id}: {destroy_err}", file=sys.stderr)
+                self._safe_destroy(instance_id)
                 if machine_id is not None:
                     self.mark_bad_host(machine_id, str(error))
+            except InstanceSlow as error:
+                last_error = error
+                print(f"[Vast Manager Warning] Instance {instance_id} is still installing: {error}", file=sys.stderr)
+                print(f"[Vast Manager] Stopping instance {instance_id} instead of destroying it, so the")
+                print(f"[Vast Manager] dependencies it already installed are preserved for reuse.")
+                self._safe_stop(instance_id)
+                raise RuntimeError(
+                    f"Instance {instance_id} needs longer to finish its setup. It has been "
+                    f"stopped (not destroyed) and its install is intact. Re-run the same "
+                    f"command with --vast-instance {instance_id} to resume it."
+                ) from error
+            except Exception:
+                # Anything else is likely our own bug; do not destroy capacity over it.
+                print(f"[Vast Manager Warning] Unexpected error waiting on instance {instance_id}.", file=sys.stderr)
+                raise
         raise RuntimeError(
             f"Could not rent a working {gpu_name} instance after {total} attempt(s): {last_error}"
         ) from last_error
@@ -397,7 +1030,42 @@ class VastManager:
         """Start an existing stopped instance."""
         print(f"[Vast Manager] Starting instance {instance_id}...")
         self.run_cli(["start", "instance", str(instance_id)])
+        self._forget_idle(instance_id)
         return True
+
+    def list_instances(self) -> list[dict]:
+        """Return every instance this account owns, or [] if the query fails."""
+        try:
+            return json.loads(self.run_cli(["show", "instances", "--raw"]))
+        except Exception as e:
+            print(f"[Vast Manager Warning] Failed to list instances: {e}", file=sys.stderr)
+            return []
+
+    def conflicting_instances(self, expected_gpu: str) -> list[dict]:
+        """Return reusable instances of a DIFFERENT GPU model that we already own.
+
+        Vast cannot change an instance's GPU type, so a leftover instance of the wrong
+        model both blocks a clean reuse and keeps billing storage while a second instance
+        is rented. Reporting them lets the caller decide instead of silently paying twice.
+        """
+        wanted = expected_gpu.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "")
+        conflicts: list[dict] = []
+        for inst in self.list_instances():
+            status = str(inst.get("actual_status") or inst.get("status") or "").lower()
+            if status not in ("running", "stopped", "created", "exited"):
+                continue
+            gpu_name = str(inst.get("gpu_name") or "unknown").upper().replace("NVIDIA GEFORCE ", "")
+            if wanted in gpu_name.replace(" ", ""):
+                continue
+            conflicts.append(
+                {
+                    "id": int(inst.get("id") or 0),
+                    "gpu_name": gpu_name,
+                    "status": status,
+                    "disk_space": int(float(inst.get("disk_space") or 0)),
+                }
+            )
+        return conflicts
 
     def find_existing_instance(
         self,
@@ -469,6 +1137,7 @@ class VastManager:
         """Stop an instance to halt GPU compute billing."""
         print(f"[Vast Manager] Stopping instance {instance_id} to prevent idle charges...")
         self.run_cli(["stop", "instance", str(instance_id)])
+        self._record_idle(instance_id)
         return True
 
     def destroy_instance(self, instance_id: int) -> bool:
@@ -478,8 +1147,44 @@ class VastManager:
         self.run_cli(["destroy", "instance", str(instance_id), "-y"])
         return True
 
-    def prune_instances(self, dry_run: bool = False) -> list[int]:
-        """Destroy rented instances that can never be reused (broken hosts, over budget)."""
+    def repair_dependencies(self, instance_id: int, timeout: int = 2700) -> str:
+        """Reapply the pinned dependency install on an existing instance, over SSH.
+
+        A warm-reused instance short-circuits its install behind the marker, so when that
+        install turns out to be broken -- a wheel resolved against the wrong NumPy, say --
+        the instance can never repair itself: the marker keeps claiming the packages are
+        fine while every request fails. This clears the marker, reinstalls with the very
+        same pinned set the onstart uses, and only restores the marker once the probe
+        passes. Destroying and re-renting would also work, but this preserves an install
+        that has already been paid for.
+
+        Needs working SSH to the instance. Note that this cannot be done by hand either:
+        the onstart command is baked in when an instance is CREATED, so a client-side fix
+        to it -- including the pinned dependency list -- never reaches an existing
+        instance. Only a repair over SSH, or a fresh rental, changes its environment.
+        """
+        install = VastManager.dependency_install_command()
+        probe = VastManager.dependency_probe_command()
+        command = (
+            "cd /workspace/tube2dscript 2>/dev/null || cd /workspace; "
+            "rm -f \"$HOME/.tube2dscript_deps_ready\"; "
+            f"( {install} ) && {probe} "
+            "&& touch \"$HOME/.tube2dscript_deps_ready\" "
+            "&& echo '[repair] dependencies verified and marked ready'"
+        )
+        print(f"[Vast Manager] Repairing dependencies on instance {instance_id} over SSH...")
+        output = self.run_ssh(instance_id, command, timeout=timeout)
+        print(output.strip() or "[Vast Manager] Repair produced no output.")
+        return output
+
+    def prune_instances(self, dry_run: bool = False, idle_hours: float | None = None) -> list[int]:
+        """Destroy rented instances that can never be reused.
+
+        Always removes broken hosts and over-budget instances. When `idle_hours` is given,
+        also removes instances that have been stopped for longer than that, because a
+        stopped instance still bills storage ($0.77/day for a 50GB disk) while its
+        finished install sits unused.
+        """
         try:
             instances = json.loads(self.run_cli(["show", "instances", "--raw"]))
         except Exception as e:
@@ -491,6 +1196,8 @@ class VastManager:
             print("[Vast Manager] No rented instances to prune.")
             return removed
 
+        idle_ledger = self._load_idle()
+        now = time.time()
         for inst in instances:
             instance_id = int(inst.get("id") or 0)
             status = str(inst.get("actual_status") or inst.get("status") or "").lower()
@@ -500,10 +1207,25 @@ class VastManager:
             limit = gpu_budget(gpu_name)
             broken = status in ("error", "offline") or "error response from daemon" in status_msg.lower()
             over_budget = rate > limit
-            if not broken and not over_budget:
-                print(f"  Keeping {instance_id} ({gpu_name}, {status or 'unknown'}, {format_rate(rate)})")
+
+            idle_for: float | None = None
+            stopped_at = idle_ledger.get(str(instance_id))
+            if stopped_at is not None and status in ("stopped", "exited"):
+                idle_for = (now - stopped_at) / 3600.0
+            is_idle = idle_hours is not None and idle_for is not None and idle_for >= idle_hours
+
+            if not broken and not over_budget and not is_idle:
+                detail = f", idle {idle_for:.1f}h" if idle_for is not None else ""
+                print(f"  Keeping {instance_id} ({gpu_name}, {status or 'unknown'}, {format_rate(rate)}{detail})")
                 continue
-            reason = "broken host / image pull failure" if broken else f"{format_rate(rate)} is above the ${limit:.2f}/hr budget"
+
+            if broken:
+                reason = "broken host / image pull failure"
+            elif over_budget:
+                reason = f"{format_rate(rate)} is above the ${limit:.2f}/hr budget"
+            else:
+                reason = f"stopped for {idle_for:.1f}h (limit {idle_hours}h), still billing storage"
+
             if dry_run:
                 print(f"  [dry-run] Would destroy {instance_id} ({gpu_name}): {reason}")
                 continue
@@ -511,8 +1233,19 @@ class VastManager:
             try:
                 self.destroy_instance(instance_id)
                 removed.append(instance_id)
+                idle_ledger.pop(str(instance_id), None)
             except Exception as e:
                 print(f"  [Vast Manager Warning] Could not destroy {instance_id}: {e}", file=sys.stderr)
+
+        if removed and not dry_run:
+            path = self._idle_path()
+            try:
+                path.write_text(
+                    json.dumps({"stopped": idle_ledger}, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+            except Exception:
+                pass
         return removed
 
     def get_instance_info(self, instance_id: int) -> dict[str, Any]:
@@ -538,64 +1271,277 @@ class VastManager:
     def wait_until_ready(
         self,
         instance_id: int,
-        timeout_sec: int = 1800,
+        timeout_sec: int | None = None,
         container_timeout_sec: int | None = None,
     ) -> str:
         """Wait until the inference server answers /health.
 
-        Two phases. The container must reach 'running' within `container_timeout_sec`
-        (a host that never pulls the image, or stalls with no disk allocated, is
-        treated as broken). The onstart script then has the rest of `timeout_sec`
-        to boot the inference server, which legitimately takes 10-20 min.
+        Three phases. The container must reach 'running' within `container_timeout_sec`,
+        otherwise the host is treated as broken. The onstart install then has until the
+        hard cap (`timeout_sec`) to boot the server.
+
+        Inside that budget the wait is *progress*-based rather than a flat wall clock: as
+        long as the instance is visibly still doing work (its disk usage keeps growing)
+        the deadline is extended, and only `VAST_SERVER_STALL_TIMEOUT` seconds of no
+        progress aborts. A fixed 30-minute cutoff used to destroy healthy machines that
+        simply had a slow package index.
         """
+        if timeout_sec is None:
+            timeout_sec = int(os.environ.get("VAST_SERVER_TIMEOUT", "3600"))
         if container_timeout_sec is None:
             container_timeout_sec = int(os.environ.get("VAST_CONTAINER_TIMEOUT", "600"))
+        stall_timeout = int(os.environ.get("VAST_SERVER_STALL_TIMEOUT", "600"))
+        # A real install moves gigabytes. Log files and overlay churn move a few megabytes,
+        # so progress needs a floor: without one, jitter resets the stall timer and a host
+        # that installed nothing looks merely slow.
+        min_progress_gb = float(os.environ.get("VAST_PROGRESS_MIN_DELTA_GB", "0.05"))
+        # Growth below this across the whole wait means the onstart never installed anything.
+        install_floor_gb = float(os.environ.get("VAST_INSTALL_FLOOR_GB", "1.5"))
+        # How long a host gets to move that much *after its container starts* before it is
+        # written off. Measured from container start on purpose: image-pull time is not
+        # install time, and counting it here declared a working host dead at 303s.
+        install_grace_sec = int(os.environ.get("VAST_INSTALL_GRACE_SECONDS", "300"))
+        # Consecutive polls that must report the container dead before the host is written
+        # off, so one blip in the status API cannot destroy a rented instance.
+        dead_polls_needed = int(os.environ.get("VAST_DEAD_POLLS", "2"))
         print(
             f"[Vast Manager] Waiting for instance {instance_id} and its inference server "
-            f"(container up to {container_timeout_sec}s, server up to {timeout_sec}s)..."
+            f"(container up to {container_timeout_sec}s, stall {stall_timeout}s, cap {timeout_sec}s)..."
         )
         start_t, container_up_at, last_msg = time.time(), None, ""
+        last_progress_at = start_t
+        last_disk: float | None = None
+        peak_disk: float | None = None
+        # The image pull happens before the container exists, so it gets its own deadline:
+        # extended while docker's status text keeps changing, bounded by the overall cap.
+        pull_deadline = start_t + container_timeout_sec
+        last_status_msg = ""
+        # True once a real (non-negative) disk reading has been seen. Deliberately NOT
+        # latched during the unknown phase: Vast reports -1.0 until the container is up, so
+        # latching "no signal" there would disable stall detection for the entire run.
+        progress_signal = False
+        stall_note = ""
+        dead_polls = 0
         while True:
-            elapsed = time.time() - start_t
+            now = time.time()
+            elapsed = now - start_t
             if elapsed > timeout_sec:
-                raise TimeoutError(
-                    f"Instance {instance_id} not healthy after {timeout_sec}s. "
-                    "SSH in and run: tail -50 /workspace/onstart.log"
+                self._diagnose_boot(instance_id, f"still installing after the {timeout_sec}s cap")
+                raise InstanceSlow(
+                    f"instance {instance_id} was still installing after the {timeout_sec}s cap "
+                    f"(last status {last_msg or 'unknown'}). The log is printed above."
                 )
             info = self.get_instance_info(instance_id)
             status = info.get("actual_status") or ""
             status_msg = str(info.get("status_msg") or "")
+            disk_used = self._disk_used_gb(info)
+            if disk_used is not None:
+                if not progress_signal:
+                    progress_signal = True
+                    stall_note = ""  # a real reading arrived, so stall detection is live
+            elif container_up_at is not None and not stall_note:
+                stall_note = " (this API does not report disk usage, so stalls cannot be detected)"
             # A host that cannot pull the image will never become healthy; fail fast
-            # so the caller can destroy it and try a different offer.
-            if status in ("error", "offline") or "error response from daemon" in status_msg.lower():
+            # so the caller can destroy it and try a different offer. "No such container"
+            # is excluded on purpose: Vast reports it transiently while (re)creating a
+            # container, and treating it as fatal would destroy a healthy host.
+            fatal_status = status in ("error", "offline") or (
+                "error response from daemon" in status_msg.lower()
+                and "no such container" not in status_msg.lower()
+            )
+            if fatal_status:
                 raise InstanceBroken(
                     f"instance {instance_id} failed to start [{status or 'error'}]: {status_msg or 'no status message'}"
                 )
+            # The pull is visible only through docker's progress text, which changes as
+            # layers complete (observed at 49s, 173s, 186s, 211s on a 291s pull). Extend the
+            # container deadline while that keeps happening, bounded by the overall cap, so
+            # a slow-but-working registry is not written off mid-pull. Vast reports no
+            # usable disk figure until the container exists, so this is the only liveness
+            # signal available during this phase.
+            if container_up_at is None and status_msg and status_msg != last_status_msg:
+                pull_deadline = min(max(pull_deadline, now + stall_timeout), start_t + timeout_sec)
+                last_status_msg = status_msg
+            # A container that reached 'running' and then died will never serve the API: its
+            # onstart crashed. Waiting out the stall budget here wastes ten minutes and then
+            # re-admits the failure as "slow", so the host gets stopped and kept instead of
+            # destroyed. Two consecutive polls guard against a transient API blip.
+            if status in ("exited", "stopped") and container_up_at is not None:
+                dead_polls += 1
+                if dead_polls >= dead_polls_needed:
+                    raise InstanceBroken(
+                        f"instance {instance_id} container was running and then went {status!r} "
+                        f"{int(now - container_up_at)}s after it first came up, so its onstart "
+                        f"crashed and the inference server can never answer "
+                        f"(last status {last_msg or 'unknown'}; {status_msg or 'no status message'})."
+                    )
+            else:
+                dead_polls = 0
             if status == "running":
-                container_up_at = container_up_at or time.time()
-            elif container_up_at is None and elapsed > container_timeout_sec:
-                # Still created/loading with no container after the grace period, e.g.
-                # a host whose registry is unreachable and reports no error at all.
+                if container_up_at is None:
+                    container_up_at = now
+                    # The install clock starts here, not at create time: a cold pull of
+                    # pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime measured 291s, which
+                    # alone exhausted a 300s install grace and made a working host look
+                    # dead. Reset the baseline too, so the pull's own bytes are not counted
+                    # as install progress.
+                    last_progress_at = now
+                    last_disk = None
+                    peak_disk = None
+            elif container_up_at is None and now > pull_deadline:
+                # Still created/loading with no container after the (progress-extended)
+                # deadline, e.g. a host whose registry is unreachable and reports no error.
                 raise InstanceBroken(
                     f"instance {instance_id} container never reached 'running' within "
                     f"{container_timeout_sec}s (stuck at {status or 'unknown'!r}): "
                     f"{status_msg or 'no status message'}"
                 )
+            # Progress must be *meaningful*. Counting any increase let a few megabytes of
+            # log-file churn reset the stall timer indefinitely: a host that had installed
+            # nothing kept a run alive for 22 minutes on a 600s budget.
+            if disk_used is not None:
+                if peak_disk is None or disk_used > peak_disk:
+                    peak_disk = disk_used
+                if last_disk is None or disk_used >= last_disk + min_progress_gb:
+                    last_progress_at = now
+                    last_disk = disk_used
+            # Both verdicts below are gated on the container having started: during the image
+            # pull there is no install yet, so "no install progress" carries no information.
+            if container_up_at is not None and progress_signal and now - last_progress_at > stall_timeout:
+                machine_id = info.get("machine_id")
+                self._diagnose_boot(instance_id, f"no install progress for {stall_timeout}s")
+                if (peak_disk is None or peak_disk < install_floor_gb) and machine_id is not None:
+                    # The disk never moved beyond log-file noise, so nothing was installed.
+                    # Stopping this instance would preserve an empty install and keep billing
+                    # storage for it, so treat the host as broken instead of merely slow.
+                    self.mark_bad_host(machine_id, "onstart installed nothing")
+                    raise InstanceBroken(
+                        f"instance {instance_id} installed nothing in {int(elapsed)}s "
+                        f"(peak disk {peak_disk}GB). Host {machine_id} blacklisted; the "
+                        "install log is printed above."
+                    )
+                raise InstanceSlow(
+                    f"instance {instance_id} made no install progress for {stall_timeout}s "
+                    f"(disk stuck at {last_disk}GB, last status {last_msg or 'unknown'}). "
+                    "Its install is intact; re-run with --vast-instance "
+                    f"{instance_id} to resume it. The log is printed above."
+                )
+            # Fail fast instead of waiting out the stall budget. A host whose disk has barely
+            # moved after the grace period never started installing: the onstart swallows
+            # every failure with `|| true`, so this is the only signal that it ran at all.
+            if (
+                container_up_at is not None
+                and progress_signal
+                and now - container_up_at > install_grace_sec
+                and (peak_disk is None or peak_disk < install_floor_gb)
+            ):
+                machine_id = info.get("machine_id")
+                self._diagnose_boot(
+                    instance_id,
+                    f"installed {peak_disk}GB in {int(now - container_up_at)}s after the container started",
+                )
+                if machine_id is not None:
+                    self.mark_bad_host(machine_id, "onstart installed nothing")
+                raise InstanceBroken(
+                    f"instance {instance_id} installed nothing in {int(now - container_up_at)}s "
+                    f"after its container started (peak disk {peak_disk}GB, last status {last_msg or 'unknown'}). The "
+                    "onstart never completed, and it hides failures, so the install log is "
+                    "printed above to show which step broke."
+                    + (f" Host {machine_id} blacklisted." if machine_id is not None else "")
+                )
             url = self._resolve_server_url(info) if status == "running" else ""
             msg = f"status={status!r} url={url or 'port 8000 not mapped yet'} elapsed={int(elapsed)}s"
+            if disk_used is not None:
+                msg = f"{msg} disk={disk_used}GB"
             if status_msg:
                 msg = f"{msg} msg={status_msg}"
             if msg != last_msg:
-                print(f"[Vast Manager] {msg}")
+                print(f"[Vast Manager] {msg}{stall_note}")
                 last_msg = msg
             if url:
                 try:
                     if self.check_health(url).get("status") == "healthy":
                         self.server_url = url
+                        self._forget_idle(instance_id)
                         return url
                 except Exception as e:
                     print(f"[Vast Manager]   server not up yet: {type(e).__name__}")
             time.sleep(10)
+
+    def fetch_instance_logs(self, instance_id: int, tail: int = 80) -> str:
+        """Fetch the container's stdout from the Vast agent.
+
+        `run_ssh` is useless exactly when it matters most: if the container exited there is
+        nothing to SSH into, so every SSH probe reports "unavailable" and the real cause is
+        lost -- which is how the last two failures became undiagnosable. The agent on the
+        host still holds the container log, so ask the API instead. Raises when this CLI
+        build has no `logs` subcommand, so callers must treat it as best effort.
+        """
+        raw = self.run_cli(["logs", str(instance_id)])
+        lines = (raw or "").splitlines()
+        return "\n".join(lines[-tail:])
+
+    def _diagnose_boot(self, instance_id: int, reason: str) -> None:
+        """Reach into a stuck instance and print why its install never completed.
+
+        Without this the caller only sees a stall timeout, and a host that silently failed
+        to install is indistinguishable from one that is merely slow. Best effort by design:
+        a diagnosis failure must never mask the original error.
+        """
+        print(f"[Vast Manager] Diagnosing instance {instance_id}: {reason}", file=sys.stderr)
+        # Ask the API first: it is the only probe that still works once the container has
+        # exited, which is precisely when a diagnosis is wanted.
+        try:
+            api_log = self.fetch_instance_logs(instance_id)
+            if api_log.strip():
+                print("[Vast Manager]   --- container log (vastai logs) ---", file=sys.stderr)
+                for line in api_log.splitlines()[-40:]:
+                    print(f"[Vast Manager]   {line}", file=sys.stderr)
+            else:
+                print("[Vast Manager]   container log: (empty)", file=sys.stderr)
+        except Exception as err:  # noqa: BLE001 - diagnosis must never mask the cause
+            print(f"[Vast Manager]   container log: unavailable ({type(err).__name__})", file=sys.stderr)
+        probes = (
+            ("onstart.log", "tail -40 /workspace/onstart.log 2>&1"),
+            ("onstart failures", "grep -n 'FAILED' /workspace/onstart.log 2>/dev/null | tail -10"),
+            ("server.log", "tail -20 /workspace/server.log 2>&1"),
+            ("site-packages", "du -sh /usr/local/lib/python*/site-packages 2>/dev/null || echo absent"),
+            (
+                "outbound network",
+                "timeout 8 python -c \"import urllib.request as u; "
+                "print(u.urlopen('https://pypi.org/simple/', timeout=6).status)\" 2>&1 | tail -1",
+            ),
+        )
+        for label, command in probes:
+            try:
+                output = self.run_ssh(instance_id, command, timeout=45)
+            except Exception as err:  # noqa: BLE001 - diagnosis must never mask the cause
+                print(f"[Vast Manager]   {label}: unavailable ({type(err).__name__})", file=sys.stderr)
+                continue
+            text = (output or "").strip()
+            if not text:
+                print(f"[Vast Manager]   {label}: (empty)", file=sys.stderr)
+                continue
+            print(f"[Vast Manager]   --- {label} ---", file=sys.stderr)
+            for line in text.splitlines()[-40:]:
+                print(f"[Vast Manager]   {line}", file=sys.stderr)
+
+    @staticmethod
+    def _disk_used_gb(info: dict) -> float | None:
+        """Best-effort disk usage for an instance, used as a boot-progress signal.
+
+        The field name has varied across Vast API versions, so probe the known spellings
+        and return None when none is present rather than guessing zero. Vast reports -1.0
+        while there is no reading yet (the whole image-pull phase), and taking that at face
+        value poisoned every downstream comparison: peak_disk became -1.0, which is below
+        any install floor, so a host that was merely pulling the image was declared to have
+        "installed nothing" and destroyed.
+        """
+        for key in ("disk_util", "disk_utilization", "disk_usage", "disk_util_gb", "cur_disk_util"):
+            value = info.get(key)
+            if isinstance(value, (int, float)) and value >= 0:
+                return float(value)
+        return None
 
     def check_health(self, url: str | None = None) -> dict[str, Any]:
         """Query the remote /health endpoint."""
@@ -604,8 +1550,22 @@ class VastManager:
         with urllib.request.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
-    def require_gpu(self, expected_gpu: str, url: str | None = None) -> dict[str, Any]:
-        """Reject a server whose reported device does not match this generation mode."""
+    def require_gpu(
+        self,
+        expected_gpu: str,
+        url: str | None = None,
+        require_tts: bool = False,
+    ) -> dict[str, Any]:
+        """Reject a server whose reported device does not match this generation mode.
+
+        With `require_tts`, a server whose IndicF5 import path is broken is rejected too.
+        That state is invisible to a liveness check but makes every synthesis request
+        answer HTTP 500, so without this the failure only surfaces after the rental has
+        been paid for and narration has already started.
+
+        A server that reports no `tts_ready` field at all is accepted: instances cloned
+        before this check existed cannot answer it, and refusing them would strand them.
+        """
         last_err = None
         for attempt in range(3):
             try:
@@ -623,6 +1583,13 @@ class VastManager:
             raise RuntimeError(
                 f"Vast server GPU mismatch: expected {expected_gpu}, got "
                 f"{health.get('vram', {}).get('device_name', 'unknown')}"
+            )
+        if require_tts and health.get("tts_ready") is False:
+            detail = health.get("tts_error") or "the Indic Parler-TTS import path is unusable on this instance"
+            raise RuntimeError(
+                f"Vast server {url or self.server_url} cannot synthesise Indic Parler-TTS: {detail}. "
+                "Repair the instance in place (python scripts/vast_manager.py repair "
+                "<instance-id>), or destroy it and rent a fresh one."
             )
         return health
 
@@ -650,11 +1617,10 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=600) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-            if res.get("status") != "success":
-                raise RuntimeError(f"Remote FLUX generation failed: {res.get('error')}")
-            return base64.b64decode(res["image_base64"])
+        res = _http_json(req, timeout=600)
+        if res.get("status") != "success":
+            raise RuntimeError(f"Remote FLUX generation failed: {res.get('error')}")
+        return base64.b64decode(res["image_base64"])
 
     def generate_video(
         self,
@@ -686,11 +1652,10 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=900) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-            if res.get("status") != "success":
-                raise RuntimeError(f"Remote LTX-Video generation failed: {res.get('error')}")
-            return base64.b64decode(res["video_base64"])
+        res = _http_json(req, timeout=900)
+        if res.get("status") != "success":
+            raise RuntimeError(f"Remote LTX-Video generation failed: {res.get('error')}")
+        return base64.b64decode(res["video_base64"])
 
     def synthesize_tts(
         self,
@@ -712,13 +1677,14 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=600) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-            if res.get("status") != "success":
-                raise RuntimeError(f"Remote IndicF5 TTS failed: {res.get('error')}")
-            audio_bytes = base64.b64decode(res["audio_base64"])
-            dur = float(res.get("audio_duration_sec", 0.0))
-            return audio_bytes, dur
+        res = _http_json(req, timeout=600)
+        if res.get("status") != "success":
+            raise RuntimeError(f"Remote IndicF5 TTS failed: {res.get('error')}")
+        audio_bytes = base64.b64decode(res["audio_base64"])
+        if _wav_is_bad(audio_bytes):
+            raise RuntimeError("Remote IndicF5 TTS returned silent/non-finite audio")
+        dur = float(res.get("audio_duration_sec", 0.0))
+        return audio_bytes, dur
 
     def synthesize_tts_batch(
         self,
@@ -744,8 +1710,7 @@ class VastManager:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
+        res = _http_json(req, timeout=timeout)
         if res.get("status") != "success":
             raise RuntimeError(f"Remote IndicF5 batch synthesis failed: {res.get('error')}")
 
@@ -758,8 +1723,12 @@ class VastManager:
             audio_b64 = entry.get("audio_base64")
             if not audio_b64:
                 continue
+            audio_bytes = base64.b64decode(audio_b64)
+            if _wav_is_bad(audio_bytes):
+                errors.append(f"{entry.get('id')}: silent/non-finite audio")
+                continue
             out[str(entry.get("id"))] = (
-                base64.b64decode(audio_b64),
+                audio_bytes,
                 float(entry.get("audio_duration_sec", 0.0)),
             )
         if errors:
@@ -788,8 +1757,14 @@ def main() -> int:
     p_create.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
 
     # Prune
-    p_prune = subparsers.add_parser("prune", help="Destroy broken or over-budget instances")
+    p_prune = subparsers.add_parser("prune", help="Destroy broken, over-budget or long-idle instances")
     p_prune.add_argument("--dry-run", action="store_true", help="List what would be destroyed and exit")
+    p_prune.add_argument(
+        "--idle-hours",
+        type=float,
+        default=None,
+        help="also destroy instances stopped for at least this many hours (they still bill storage)",
+    )
 
     # Hosts
     p_hosts = subparsers.add_parser("hosts", help="Show or clear the blacklisted-machine list")
@@ -810,6 +1785,13 @@ def main() -> int:
     # Health
     p_health = subparsers.add_parser("health", help="Check server health")
     p_health.add_argument("--url", help="Vast server URL")
+
+    # Repair
+    p_repair = subparsers.add_parser(
+        "repair", help="Reapply the pinned server dependencies on an existing instance"
+    )
+    p_repair.add_argument("instance_id", type=int, help="Instance ID")
+    p_repair.add_argument("--timeout", type=int, default=2700, help="SSH timeout in seconds")
 
     args = parser.parse_args()
     mgr = VastManager()
@@ -850,7 +1832,7 @@ def main() -> int:
         return 0
 
     elif args.action == "prune":
-        removed = mgr.prune_instances(dry_run=args.dry_run)
+        removed = mgr.prune_instances(dry_run=args.dry_run, idle_hours=args.idle_hours)
         if removed:
             print(f"Destroyed {len(removed)} instance(s): {', '.join(map(str, removed))}")
         return 0
@@ -888,6 +1870,28 @@ def main() -> int:
     elif args.action == "health":
         h = mgr.check_health(args.url)
         print(json.dumps(h, indent=2))
+        return 0
+
+    elif args.action == "repair":
+        info = mgr.get_instance_info(args.instance_id)
+        status = str(info.get("actual_status") or info.get("status") or "").lower()
+        if status not in ("running",):
+            print(f"[Vast Manager] Instance {args.instance_id} is {status or 'not running'}; starting it...")
+            mgr.start_instance(args.instance_id)
+            mgr.wait_until_ready(args.instance_id)
+        try:
+            mgr.repair_dependencies(args.instance_id, timeout=args.timeout)
+        except Exception as err:
+            print(f"[Vast Manager Error] Could not repair instance {args.instance_id}: {err}", file=sys.stderr)
+            print(
+                "  Repair needs working SSH. If this account has no SSH key attached\n"
+                "  (check with `vastai show ssh-keys`), the only way forward is a fresh\n"
+                "  rental, which runs the current onstart with the pinned dependencies:\n"
+                "    python scripts/vast_manager.py prune --idle-hours 0\n"
+                '    python scripts/vast_manager.py create --gpu "RTX 3090"\n',
+                file=sys.stderr,
+            )
+            return 1
         return 0
 
     else:

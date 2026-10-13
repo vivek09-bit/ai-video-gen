@@ -515,6 +515,18 @@
 			],
 			"problemMatcher": [],
 			"group": "none"
+		},
+		{
+			"label": "batch-dry-run",
+			"type": "shell",
+			"command": ".venv\\Scripts\\python.exe",
+			"args": [
+				"scripts\\batch.py",
+				"--jobs",
+				"examples\\jobs.json",
+				"--dry-run"
+			],
+			"group": "test"
 		}
 	]
 }

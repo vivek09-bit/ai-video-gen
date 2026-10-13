@@ -65,6 +65,62 @@ STYLE_PROMPT_SUFFIX = (
 )
 
 
+# ---------------------------------------------------------------------------
+# Theme -> prompt styling (Phase 5). The theme already drives the render palette;
+# these fragments push the same colour/mood into the generated or retrieved visuals.
+# ---------------------------------------------------------------------------
+THEME_PROMPT_STYLE: dict[str, str] = {
+    "blood_red": "crimson red color grading, blood-red glow, gothic horror palette",
+    "amber_ember": "warm amber and ember tones, glowing firelight, orange haze",
+    "cyber_neon": "cyberpunk neon palette, cyan and magenta glow, holographic light",
+    "golden_radiance": "golden radiant glow, divine saffron light, sacred warmth",
+    "amethyst_dream": "amethyst and violet palette, enchanted purple mist, dreamy glow",
+    "emerald_forest": "emerald green palette, lush forest tones, jade light",
+    "midnight_blue": "deep midnight blue palette, cold sapphire tones, moonlit ocean",
+    "sunset_glow": "sunset rose and coral warmth, dusk glow, soft pink light",
+    "monochrome_noir": "monochrome film-noir palette, high-contrast black and white",
+    "toxic_lime": "toxic lime-green palette, acidic glow, radioactive haze",
+    "solar_flare": "blazing solar flare palette, intense yellow-white light",
+    "synthwave": "retro synthwave palette, neon pink and purple, 80s glow",
+    "ice_glacier": "icy glacier palette, pale blue-white tones, frozen light",
+    "royal_velvet": "royal velvet palette, regal purple and gold, opulent tones",
+    "sepia_vintage": "sepia vintage palette, aged photograph tones, nostalgic grain",
+    "pastel_whimsy": "soft pastel palette, gentle whimsical tones, airy light",
+    "matrix_green": "matrix green palette, phosphor terminal glow, digital rain",
+    "desert_dusk": "desert dusk palette, warm sand and bronze tones, twilight haze",
+    "crimson_gothic": "crimson gothic palette, dark cathedral reds, ominous glow",
+    "citrus_burst": "bright citrus palette, vivid orange and yellow, energetic light",
+    "nordic_frost": "nordic frost palette, cool grey-blue tones, crisp icy light",
+}
+
+_THEME_SENTINELS = {"", "auto", "random", "none"}
+
+
+def theme_style_fragment(theme: dict | str | None) -> str:
+    """Return a short colour/mood fragment for a theme, or '' when unset/auto/random.
+
+    Accepts either the theme dict stored in script.json or a bare theme key/alias.
+    """
+    if not theme:
+        return ""
+    if isinstance(theme, dict):
+        key = str(theme.get("key") or theme.get("name") or "").strip().lower()
+        accent = str(theme.get("accent") or "").strip()
+    else:
+        key = str(theme).strip().lower()
+        accent = ""
+    if key in _THEME_SENTINELS or key.startswith("#"):
+        return ""
+    fragment = THEME_PROMPT_STYLE.get(key)
+    if fragment:
+        return fragment
+    # Unknown/custom theme: fall back to the human name and accent hex.
+    human = key.replace("_", " ").strip()
+    if accent:
+        return f"{human} color grading, {accent} accent tones"
+    return f"{human} color grading" if human else ""
+
+
 def normalize_provider_name(name: str | None) -> str:
     """Normalize provider aliases to canonical names."""
     if not name:
@@ -508,8 +564,18 @@ HINDI_VISUAL_MAP: dict[str, str] = {
 }
 
 
-def extract_script_visual_keywords(scene: dict, topic: str = "", genre: str | None = None) -> list[str]:
-    """Extract script-specific visual entities prioritizing THIS SCENE's unique content."""
+def extract_script_visual_keywords(
+    scene: dict,
+    topic: str = "",
+    genre: str | None = None,
+    script_keywords: list[str] | None = None,
+) -> list[str]:
+    """Extract script-specific visual entities prioritizing THIS SCENE's unique content.
+
+    `script_keywords` are run-level research terms (Phase 1): they are added only as a light
+    topical bias for scenes the writer gave no explicit visual keywords to, so a
+    scene-specific description always wins.
+    """
     try:
         import beats
         gp = beats.detect_genre(topic, genre or scene.get("genre"))
@@ -597,6 +663,14 @@ def extract_script_visual_keywords(scene: dict, topic: str = "", genre: str | No
     if topic_ascii:
         scene_keywords.append(" ".join(topic_ascii[:3]))
 
+    # 4. PRIORITY 4: run-level research keywords. Only a light topical bias, and only for
+    #    scenes the writer did not give explicit visual keywords to, so scene intent wins.
+    if script_keywords and not llm_visual:
+        for keyword in script_keywords[:5]:
+            text = str(keyword).strip()
+            if text and text not in scene_keywords:
+                scene_keywords.append(text)
+
     # Default fallback if empty
     if not scene_keywords:
         if gp:
@@ -607,7 +681,12 @@ def extract_script_visual_keywords(scene: dict, topic: str = "", genre: str | No
     return scene_keywords
 
 
-def build_search_queries(scene: dict, topic: str = "", genre: str | None = None) -> list[str]:
+def build_search_queries(
+    scene: dict,
+    topic: str = "",
+    genre: str | None = None,
+    script_keywords: list[str] | None = None,
+) -> list[str]:
     """Build a prioritized list of diverse search queries tailored to THIS scene."""
     try:
         import beats
@@ -615,7 +694,7 @@ def build_search_queries(scene: dict, topic: str = "", genre: str | None = None)
     except Exception:
         gp = None
 
-    raw_keywords = extract_script_visual_keywords(scene, topic, genre)
+    raw_keywords = extract_script_visual_keywords(scene, topic, genre, script_keywords)
     genre_name = gp.key if gp else "cinematic"
     beat = scene.get("beat", "")
     emotion = scene.get("emotion", "")
@@ -646,9 +725,14 @@ def build_search_queries(scene: dict, topic: str = "", genre: str | None = None)
     return list(dict.fromkeys(queries))
 
 
-def make_search_keywords(scene: dict, topic: str = "", genre: str | None = None) -> str:
+def make_search_keywords(
+    scene: dict,
+    topic: str = "",
+    genre: str | None = None,
+    script_keywords: list[str] | None = None,
+) -> str:
     """Build clean, targeted English search keywords for stock/related image retrieval."""
-    queries = build_search_queries(scene, topic, genre)
+    queries = build_search_queries(scene, topic, genre, script_keywords)
     return queries[0] if queries else "cinematic atmospheric background"
 
 
@@ -658,6 +742,8 @@ def make_prompt(
     genre: str | None = None,
     visual_style: str | None = None,
     index: int = 0,
+    script_keywords: list[str] | None = None,
+    theme: dict | str | None = None,
 ) -> str:
     """Construct an evocative visual prompt in English tailored uniquely to this scene."""
     try:
@@ -671,7 +757,7 @@ def make_prompt(
     headline = scene.get("headline", "").strip()
 
     # Extract scene-specific visual cues
-    extracted_keywords = extract_script_visual_keywords(scene, topic, genre)
+    extracted_keywords = extract_script_visual_keywords(scene, topic, genre, script_keywords)
     scene_entities = list(dict.fromkeys(" ".join(extracted_keywords).split()))[:7]
     scene_subject = " ".join(scene_entities) if scene_entities else "atmospheric environment"
 
@@ -700,6 +786,10 @@ def make_prompt(
         context_parts.append(f"{beat} scene")
     if emotion:
         context_parts.append(f"{emotion} mood")
+
+    theme_fragment = theme_style_fragment(theme)
+    if theme_fragment:
+        context_parts.append(theme_fragment)
 
     core = ", ".join(context_parts)
     prefix = visual_style or (gp.visual_style_prefix if gp else STYLE_PROMPT_PREFIX)
@@ -772,9 +862,15 @@ def save_image_data(result: str | bytes, dest: Path) -> None:
         dest.write_bytes(base64.b64decode(result_str))
 
 
-def fetch_free_related_image(scene: dict, topic: str = "", index: int = 0, genre: str | None = None) -> bytes:
+def fetch_free_related_image(
+    scene: dict,
+    topic: str = "",
+    index: int = 0,
+    genre: str | None = None,
+    script_keywords: list[str] | None = None,
+) -> bytes:
     """Fetch matching high-res related image for free via Lexica / Unsplash / Wikimedia / Openverse with Pollinations fallback."""
-    queries = build_search_queries(scene, topic, genre=genre)
+    queries = build_search_queries(scene, topic, genre=genre, script_keywords=script_keywords)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 tube2dscript/1.0",
         "Accept": "application/json,image/*,*/*",
@@ -1638,6 +1734,11 @@ def generate_images_for_script(
     topic = script_data.get("topic", script_data.get("title", ""))
     genre = script_data.get("genre")
     visual_style = script_data.get("visualStyle")
+    # Research keywords gathered upstream (Phase 1) bias prompts for scenes the writer left
+    # without explicit visual keywords.
+    script_keywords = script_data.get("keywords") or None
+    # Theme (Phase 5) pushes the palette/mood into the visual prompt.
+    theme = script_data.get("theme")
     scenes = script_data.get("scenes", [])
     total_scenes = len(scenes)
 
@@ -1674,7 +1775,10 @@ def generate_images_for_script(
         if not shots:
             continue
 
-        prompt = make_prompt(scene, topic, genre=genre, visual_style=visual_style, index=i)
+        prompt = make_prompt(
+            scene, topic, genre=genre, visual_style=visual_style, index=i,
+            script_keywords=script_keywords, theme=theme,
+        )
         image_filename = f"{scene_id}.png"
         image_dest = out_path / image_filename
         rel_static_path = f"images/{image_filename}"
@@ -1684,14 +1788,14 @@ def generate_images_for_script(
         else:
             scene_label = scene.get("headline", "") or f"Scene {i+1}"
             if resolved_provider == "fetch":
-                query_preview = make_search_keywords(scene, topic, genre=genre)
+                query_preview = make_search_keywords(scene, topic, genre=genre, script_keywords=script_keywords)
                 print(f"  [{i+1}/{total_scenes}] Fetching matching image for {scene_label[:30]} (query: '{query_preview[:45]}')...")
             else:
                 print(f"  [{i+1}/{total_scenes}] Generating image for {scene_label[:30]} ({aspect_ratio})...")
 
             try:
                 if resolved_provider == "fetch":
-                    img_data = fetch_free_related_image(scene, topic, index=i, genre=genre)
+                    img_data = fetch_free_related_image(scene, topic, index=i, genre=genre, script_keywords=script_keywords)
                 elif resolved_provider == "local":
                     # Deterministic scene seed
                     scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
@@ -1747,7 +1851,7 @@ def generate_images_for_script(
                                 )
                             except Exception as turbo_err:
                                 print(f"  [Failover to Stock Search] Local generation failed ({turbo_err}). Using free related image search...")
-                                img_data = fetch_free_related_image(scene, topic, index=i, genre=genre)
+                                img_data = fetch_free_related_image(scene, topic, index=i, genre=genre, script_keywords=script_keywords)
                 elif resolved_provider == "fireworks":
                     img_data = generate_fireworks(prompt, api_key, model)
                 elif resolved_provider == "together":

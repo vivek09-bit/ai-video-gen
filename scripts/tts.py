@@ -40,6 +40,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -79,7 +80,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 11
+AUDIO_PIPELINE_VERSION = 12
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -885,172 +886,185 @@ CARTESIA_VOICES: dict[str, dict] = {
     },
 }
 
-# AI4Bharat IndicF5 zero-shot multilingual DiT voice catalog
-INDICF5_VOICES: dict[str, dict] = {
-    "indicf5_aarav": {
-        "id": "indicf5_aarav",
+# AI4Bharat "Indic Parler-TTS" description-conditioned multilingual voice catalog.
+#
+# Unlike the zero-shot cloner it replaces, Parler-TTS has no reference clip: the voice is
+# steered entirely by a natural-language *description* of the speaker (gender, timbre,
+# pace, recording quality). That is far more stable than ref-audio alignment and removes
+# the need to ship or upload reference voices.
+INDIC_PARLER_MODEL = os.environ.get("INDIC_PARLER_MODEL", "ai4bharat/indic-parler-tts")
+INDIC_PARLER_VOICES: dict[str, dict] = {
+    "indic_parler_aarav": {
+        "id": "indic_parler_aarav",
         "name": "Aarav",
         "lang": "hi",
         "lang_name": "Hindi / Hinglish",
         "gender": "male",
-        "style": "Deep, resonant & authoritative (zero-shot DiT, ideal for history, mythology, epics)",
-        "prompt_wav": "public/audio/prompts/indicf5/aarav.wav",
-        "prompt_text": "public/audio/prompts/indicf5/aarav.txt",
+        "style": "Deep, resonant & authoritative (ideal for history, mythology, epics)",
+        "description": (
+            "A male speaker with a deep, resonant and authoritative voice speaks with a "
+            "moderate pace in a very clear, close-sounding recording with no background noise."
+        ),
         "fallback_kokoro": "hm_omega",
-        "aliases": ["indicf5", "indicf5_male", "indicf5_deep", "indic_aarav"],
+        # `indicf5_*` aliases are retained so existing script.json files keep resolving.
+        "aliases": [
+            "indicf5", "indicf5_aarav", "indicf5_male", "indicf5_deep",
+            "indic_parler", "indic_parler_male", "indic_aarav",
+        ],
     },
-    "indicf5_kabir": {
-        "id": "indicf5_kabir",
+    "indic_parler_kabir": {
+        "id": "indic_parler_kabir",
         "name": "Kabir",
         "lang": "hi",
         "lang_name": "Hindi / Hinglish",
         "gender": "male",
-        "style": "Calm, natural & conversational (zero-shot DiT, ideal for documentary, explainer)",
-        "prompt_wav": "public/audio/prompts/indicf5/kabir.wav",
-        "prompt_text": "public/audio/prompts/indicf5/kabir.txt",
+        "style": "Calm, natural & conversational (ideal for documentary, explainer)",
+        "description": (
+            "A male speaker with a calm, natural and conversational voice speaks with a "
+            "moderate pace in a very clear, close-sounding recording with no background noise."
+        ),
         "fallback_kokoro": "hm_psi",
-        "aliases": ["indicf5_calm", "indicf5_doc", "indic_kabir"],
+        "aliases": [
+            "indicf5_kabir", "indicf5_calm", "indicf5_doc", "indic_parler_calm", "indic_kabir",
+        ],
     },
-    "indicf5_rohan": {
-        "id": "indicf5_rohan",
+    "indic_parler_rohan": {
+        "id": "indic_parler_rohan",
         "name": "Rohan",
         "lang": "hi",
         "lang_name": "Hindi / Hinglish",
         "gender": "male",
-        "style": "Direct & serious (zero-shot DiT, ideal for mysteries)",
-        "prompt_wav": "public/audio/prompts/indicf5/rohan.wav",
-        "prompt_text": "public/audio/prompts/indicf5/rohan.txt",
+        "style": "Direct & serious (ideal for mysteries)",
+        "description": (
+            "A male speaker with a direct, serious and slightly dry voice speaks with a "
+            "moderate pace in a very clear, close-sounding recording with no background noise."
+        ),
         "fallback_kokoro": "hm_omega",
-        "aliases": ["indicf5_mystery", "indic_rohan"],
+        "aliases": [
+            "indicf5_rohan", "indicf5_mystery", "indic_parler_mystery", "indic_rohan",
+        ],
     },
-    "indicf5_priya": {
-        "id": "indicf5_priya",
+    "indic_parler_priya": {
+        "id": "indic_parler_priya",
         "name": "Priya",
         "lang": "hi",
         "lang_name": "Hindi / Hinglish",
         "gender": "female",
-        "style": "Warm, expressive & engaging (zero-shot DiT, ideal for drama, storytelling)",
-        "prompt_wav": "public/audio/prompts/indicf5/priya.wav",
-        "prompt_text": "public/audio/prompts/indicf5/priya.txt",
+        "style": "Warm, expressive & engaging (ideal for drama, storytelling)",
+        "description": (
+            "A female speaker with a warm, expressive and engaging voice speaks with a "
+            "moderate pace in a very clear, close-sounding recording with no background noise."
+        ),
         "fallback_kokoro": "hf_alpha",
-        "aliases": ["indicf5_female", "indicf5_warm", "indic_priya"],
+        "aliases": [
+            "indicf5_priya", "indicf5_female", "indicf5_warm", "indic_parler_female", "indic_priya",
+        ],
     },
-    "indicf5_ananya": {
-        "id": "indicf5_ananya",
+    "indic_parler_ananya": {
+        "id": "indic_parler_ananya",
         "name": "Ananya",
         "lang": "hi",
         "lang_name": "Hindi / Hinglish",
         "gender": "female",
-        "style": "Soft, cheerful & pleasant (zero-shot DiT, ideal for lifestyle, casual)",
-        "prompt_wav": "public/audio/prompts/indicf5/ananya.wav",
-        "prompt_text": "public/audio/prompts/indicf5/ananya.txt",
+        "style": "Soft, cheerful & pleasant (ideal for lifestyle, casual)",
+        "description": (
+            "A female speaker with a soft, cheerful and pleasant voice speaks with a "
+            "moderate pace in a very clear, close-sounding recording with no background noise."
+        ),
         "fallback_kokoro": "hf_beta",
-        "aliases": ["indicf5_soft", "indicf5_cheerful", "indic_ananya"],
+        "aliases": [
+            "indicf5_ananya", "indicf5_soft", "indicf5_cheerful", "indic_parler_soft", "indic_ananya",
+        ],
     },
 }
 
-_INDICF5_ENGINE = None
+_INDIC_ENGINE = None
 
 
-class IndicF5Engine:
-    """AI4Bharat IndicF5 DiT flow-matching zero-shot TTS engine with Vocos vocoder."""
+def resample_audio(audio, src_rate: int, dst_rate: int):
+    """Resample mono float32 audio to ``dst_rate`` (torchaudio, numpy fallback).
+
+    The narration pipeline assumes a single 24 kHz sample rate end to end, but Parler-TTS
+    natively emits 44.1 kHz, so everything it returns is brought back to ``SAMPLE_RATE``.
+    """
+    import numpy as np
+
+    x = np.asarray(audio, dtype=np.float32).reshape(-1)
+    if src_rate == dst_rate or x.size == 0:
+        return x
+    try:
+        import torch
+        import torchaudio.functional as AF
+
+        return AF.resample(torch.from_numpy(x), src_rate, dst_rate).numpy().astype(np.float32)
+    except Exception:  # noqa: BLE001 - linear interpolation is a safe last resort
+        n = max(1, int(round(x.size * dst_rate / src_rate)))
+        return np.interp(np.linspace(0.0, x.size - 1, n), np.arange(x.size), x).astype(np.float32)
+
+
+def _pace_word(speed: float) -> str:
+    """Map a numeric speed multiplier onto the pace phrase Parler-TTS understands."""
+    if speed <= 0.92:
+        return "a slow, deliberate pace"
+    if speed >= 1.12:
+        return "a fast, urgent pace"
+    return "a moderate pace"
+
+
+class IndicParlerEngine:
+    """AI4Bharat Indic Parler-TTS: description-conditioned multilingual TTS.
+
+    Unlike the zero-shot cloner this replaces, Parler-TTS needs no reference clip -- the
+    voice is a natural-language description of the speaker. It is loaded in float32, which
+    keeps the decoder numerically stable and avoids the fp16 NaN class of bug entirely.
+    """
 
     def __init__(self) -> None:
-        import sys, torch, torchaudio, soundfile as sf
-        from cached_path import cached_path
-        from f5_tts.model import CFM, DiT
-        from f5_tts.model.utils import get_tokenizer
-        from vocos import Vocos
-        from safetensors.torch import load_file
-
-        def _soundfile_load(filepath, *args, **kwargs):
-            wav_np, sr = sf.read(str(filepath), dtype="float32")
-            if wav_np.ndim == 1:
-                t = torch.from_numpy(wav_np).unsqueeze(0)
-            else:
-                t = torch.from_numpy(wav_np.T)
-            return t, sr
-
-        torchaudio.load = _soundfile_load
-        torch._dynamo.config.suppress_errors = True
-        torch.compiler.disable()
+        import torch
+        from parler_tts import ParlerTTSForConditionalGeneration
+        from transformers import AutoTokenizer
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.dtype = torch.float32 if self.device == "cpu" else torch.float16
-
-        print(f"[IndicF5 TTS] Initializing AI4Bharat IndicF5 zero-shot engine on {self.device}...")
-        vocab_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/checkpoints/vocab.txt"))
-        model_path = str(cached_path("hf://rsolanki1822/IndicF5-mirror/model.safetensors"))
-
-        vocab_char_map, vocab_size = get_tokenizer(vocab_path, tokenizer="custom")
-        transformer = DiT(
-            dim=1024,
-            depth=22,
-            heads=16,
-            ff_mult=2,
-            text_dim=512,
-            conv_layers=4,
-            text_num_embeds=vocab_size,
-            mel_dim=100,
-        )
-        state_dict = load_file(model_path, device="cpu")
-        clean_sd = {k.replace("ema_model._orig_mod.", "").replace("ema_model.", ""): v for k, v in state_dict.items() if "vocoder" not in k}
-
-        self.model = CFM(
-            transformer=transformer,
-            mel_spec_kwargs=dict(
-                target_sample_rate=24000,
-                n_mel_channels=100,
-                hop_length=256,
-                win_length=1024,
-                n_fft=1024,
-                mel_spec_type="vocos",
-            ),
-            odeint_kwargs=dict(method="euler"),
-            vocab_char_map=vocab_char_map,
-        )
-        self.model.load_state_dict(clean_sd, strict=False)
-        self.model.to(device=self.device, dtype=self.dtype).eval()
-        self.vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
-        voc_sd = {k.replace("vocoder._orig_mod.", "").replace("vocoder.", ""): v for k, v in state_dict.items() if "vocoder" in k}
-        if voc_sd:
-            self.vocos.load_state_dict(voc_sd, strict=True)
-        self.vocos.to(device=self.device).eval()
-        print("[IndicF5 TTS] IndicF5 model & finetuned Vocos vocoder loaded successfully.")
-
-    def synthesize(self, text: str, ref_audio_path, ref_text: str, speed: float = 1.0, nfe_step: int | None = None):
-        import torch, numpy as np, os
-        from f5_tts.infer.utils_infer import infer_process
-        if nfe_step is None:
-            nfe_step = int(os.environ.get("INDICF5_NFE_STEPS", 16 if self.device == "cpu" else 32))
-        with torch.no_grad():
-            wav, sr, _ = infer_process(
-                ref_audio=str(ref_audio_path),
-                ref_text=ref_text,
-                gen_text=text,
-                model_obj=self.model,
-                vocoder=self.vocos,
-                mel_spec_type="vocos",
-                target_rms=0.1,
-                cross_fade_duration=0.15,
-                nfe_step=nfe_step,
-                cfg_strength=2.0,
-                speed=speed,
-                device=self.device,
+        self.dtype = torch.float32
+        print(f"[Indic Parler-TTS] Loading {INDIC_PARLER_MODEL} on {self.device}...")
+        self.model = (
+            ParlerTTSForConditionalGeneration.from_pretrained(
+                INDIC_PARLER_MODEL, torch_dtype=self.dtype
             )
-        if isinstance(wav, torch.Tensor):
-            wav = wav.squeeze().cpu().numpy()
-        wav = np.asarray(wav, dtype=np.float32)
+            .to(self.device)
+            .eval()
+        )
+        self.description_tokenizer = AutoTokenizer.from_pretrained(
+            self.model.config.text_encoder._name_or_path
+        )
+        self.prompt_tokenizer = AutoTokenizer.from_pretrained(INDIC_PARLER_MODEL)
+        self.sample_rate = int(getattr(self.model.config, "sampling_rate", 44100))
+        print(
+            f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
+        )
+
+    def synthesize(self, text: str, description: str, speed: float = 1.0):
+        import numpy as np
+        import torch
+
+        input_ids = self.description_tokenizer(
+            description.strip(), return_tensors="pt"
+        ).input_ids.to(self.device)
+        prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
+        with torch.no_grad():
+            generation = self.model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
+        wav = generation.cpu().numpy().squeeze().astype(np.float32)
         if wav.ndim > 1:
-            wav = wav.squeeze()
-        return wav
+            wav = wav.mean(axis=0)
+        return resample_audio(wav, self.sample_rate, SAMPLE_RATE)
 
 
-def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndarray | None:
-    global _INDICF5_ENGINE
-    vinfo = INDICF5_VOICES.get(voice_key.lower())
+def synthesize_indic_parler(text: str, voice_key: str, speed: float = 1.0) -> np.ndarray | None:
+    """Synthesise one sentence with Indic Parler-TTS (Vast.ai GPU first, else local CPU)."""
+    global _INDIC_ENGINE
+    vinfo = INDIC_PARLER_VOICES.get(voice_key.lower())
     if not vinfo:
-        for vk, vi in INDICF5_VOICES.items():
+        for vk, vi in INDIC_PARLER_VOICES.items():
             if voice_key.lower() == vk.lower() or voice_key.lower() in [a.lower() for a in vi.get("aliases", [])]:
                 vinfo = vi
                 break
@@ -1065,52 +1079,86 @@ def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndar
         cached = _VAST_AUDIO_CACHE.get(cache_key)
         if cached is not None:
             return cached  # type: ignore[return-value]
+        # The GPU already produced this segment on an earlier run. Serving it from disk
+        # costs nothing and is the whole point of persisting batch results.
+        disk_cached = read_gpu_cache(norm_text, voice_key, speed)
+        if disk_cached is not None:
+            _VAST_AUDIO_CACHE[cache_key] = disk_cached
+            return disk_cached  # type: ignore[return-value]
         if not is_devanagari(norm_text):
             print(
-                f"[IndicF5 TTS Notice] Input text is in Roman script. IndicF5 is trained on native Devanagari script. "
-                f"For best natural voice generation, provide Devanagari Hindi (e.g., 'चार हज़ार बार...').",
+                "[Indic Parler-TTS Notice] Input text is in Roman script. Indic Parler-TTS "
+                "is trained on native Devanagari script; provide Devanagari for best results.",
                 file=sys.stderr,
             )
+
+        # Parler-TTS has no speed knob, so the requested pace is folded into the description.
+        description = vinfo["description"].replace("a moderate pace", _pace_word(speed))
 
         # Check if Vast.ai remote GPU is configured
         vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
         use_vast = os.environ.get("USE_VAST", "0") == "1" or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
         if (use_vast or vast_url) and vast_url:
-            try:
-                from vast_manager import VastManager
-                import io
-                import soundfile as sf
-                mgr = VastManager(server_url=vast_url or None)
-                audio_bytes, dur = mgr.synthesize_tts(
-                    text=norm_text,
-                    voice=voice_key,
-                    speed=speed,
-                )
-                wav_np, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
-                _VAST_AUDIO_CACHE[cache_key] = wav_np
-                return wav_np
-            except Exception as vast_err:
-                if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
-                    raise RuntimeError(f"Required Vast.ai IndicF5 synthesis failed: {vast_err}") from vast_err
-                print(f"[IndicF5 Remote Vast Warning] Remote Vast.ai synthesis failed ({vast_err}), falling back to local...", file=sys.stderr)
+            last_err: Exception | None = None
+            for attempt in range(1, VAST_AUDIO_ATTEMPTS + 1):
+                try:
+                    from vast_manager import VastManager
+                    import io
+                    import soundfile as sf
+                    mgr = VastManager(server_url=vast_url or None)
+                    audio_bytes, dur = mgr.synthesize_tts(
+                        text=norm_text,
+                        voice=voice_key,
+                        speed=speed,
+                    )
+                    wav_np, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
+                    wav_np = resample_audio(wav_np, sr or SAMPLE_RATE, SAMPLE_RATE)
+                    if audio_is_bad(wav_np):
+                        # A structurally-valid but silent/DC payload. Treat it as a failed
+                        # attempt (never cache it) so the retry/fallback logic runs.
+                        raise RuntimeError(
+                            "remote Indic Parler-TTS returned silent/non-finite audio (corrupt WAV)"
+                        )
+                    write_gpu_cache(norm_text, voice_key, speed, audio_bytes)
+                    _VAST_AUDIO_CACHE[cache_key] = wav_np
+                    return wav_np
+                except Exception as vast_err:
+                    last_err = vast_err
+                    print(
+                        f"[Indic Parler Remote] attempt {attempt}/{VAST_AUDIO_ATTEMPTS} failed: "
+                        f"{type(vast_err).__name__}: {vast_err}",
+                        file=sys.stderr,
+                    )
+                    if is_permanent_remote_tts_error(vast_err):
+                        print(
+                            "[Indic Parler Remote] that is an environment fault on the remote "
+                            "instance, not a transient one; retrying cannot change it. "
+                            "Repair it (python scripts/vast_manager.py repair <instance-id>) "
+                            "or destroy it and rent a fresh GPU.",
+                            file=sys.stderr,
+                        )
+                        break
+                    if attempt < VAST_AUDIO_ATTEMPTS:
+                        time.sleep(VAST_AUDIO_RETRY_WAIT)
+            if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
+                raise RuntimeError(f"Required Vast.ai Indic Parler-TTS synthesis failed: {last_err}") from last_err
+            print(
+                f"[Indic Parler Remote Vast Warning] Remote synthesis failed after "
+                f"{VAST_AUDIO_ATTEMPTS} attempts ({last_err}), falling back to local...",
+                file=sys.stderr,
+            )
         elif use_vast and not vast_url:
-            print("[IndicF5 TTS Warning] Vast.ai requested but VAST_SERVER_URL is empty, falling back to local...", file=sys.stderr)
+            print("[Indic Parler-TTS Warning] Vast.ai requested but VAST_SERVER_URL is empty, falling back to local...", file=sys.stderr)
 
-        ref_wav = ROOT / vinfo["prompt_wav"]
-        ref_txt = ROOT / vinfo["prompt_text"]
-        if not ref_wav.exists() or not ref_txt.exists():
-            print(f"[IndicF5 TTS Warning] Prompt files missing for {voice_key} ({ref_wav}), falling back to Kokoro...", file=sys.stderr)
-            return None
-
-        ref_text_content = ref_txt.read_text(encoding="utf-8").strip()
-        if _INDICF5_ENGINE is None:
-            _INDICF5_ENGINE = IndicF5Engine()
-        audio = _INDICF5_ENGINE.synthesize(norm_text, ref_wav, ref_text_content, speed=speed)
+        # Local engine (CPU or a local GPU). No reference files are needed for Parler-TTS.
+        if _INDIC_ENGINE is None:
+            _INDIC_ENGINE = IndicParlerEngine()
+        audio = _INDIC_ENGINE.synthesize(norm_text, description, speed=speed)
         return audio
     except Exception as e:
         if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
             raise
-        print(f"[IndicF5 TTS Warning] IndicF5 generation failed ({e}), falling back to Kokoro...", file=sys.stderr)
+        print(f"[Indic Parler-TTS Warning] generation failed ({e}), falling back to Kokoro...", file=sys.stderr)
         return None
 
 
@@ -1225,7 +1273,7 @@ for vid, vinfo in VOICE_CATALOG.items():
     for alias in vinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = vid
 
-for ivid, ivinfo in INDICF5_VOICES.items():
+for ivid, ivinfo in INDIC_PARLER_VOICES.items():
     VOICE_ALIASES[ivid.lower()] = ivid
     for alias in ivinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = ivid
@@ -1348,7 +1396,7 @@ def resolve_voice(
 def list_voices(lang_filter: str | None = None) -> list[dict]:
     """Return structured voice catalog items, optionally filtered by language."""
     items = []
-    for ivid, ivinfo in INDICF5_VOICES.items():
+    for ivid, ivinfo in INDIC_PARLER_VOICES.items():
         if lang_filter:
             filt = lang_filter.lower().strip()
             if filt in ("hi", "hindi", "hinglish"):
@@ -1385,11 +1433,11 @@ def format_voices_table() -> str:
 
     lines = [
         "=" * 74,
-        "INDICF5 ZERO-SHOT HINDI VOICES (AI4Bharat DiT Flow-Matching TTS)",
+        "INDIC PARLER-TTS HINDI VOICES (AI4Bharat, description-conditioned multilingual TTS)",
         "=" * 74,
-        "  * Native Hindi pronunciation, intonation & timbre via reference voice prompts.",
+        "  * Native Hindi pronunciation steered by a natural-language speaker description.",
     ]
-    for ikey, iinfo in INDICF5_VOICES.items():
+    for ikey, iinfo in INDIC_PARLER_VOICES.items():
         aliases_str = f" [Aliases: {', '.join(iinfo['aliases'])}]" if iinfo.get("aliases") else ""
         lines.append(f"  {ikey:<24} : {iinfo['name']:<15} | {iinfo['gender']:<6} | {iinfo['style']}")
         lines.append(f"                           Fallback: {iinfo['fallback_kokoro']}{aliases_str}")
@@ -1615,6 +1663,140 @@ def phoneme_weight(phonemes: str) -> float:
 # synthesize_indicf5(), so the per-sentence path costs nothing extra.
 _VAST_AUDIO_CACHE: dict[tuple[str, str, float], object] = {}
 
+# Content-addressed local store for audio the GPU has already produced. Each segment is
+# written here the moment it arrives, so a crash later in the run cannot throw away GPU
+# time that has been paid for: the next run reads it straight off disk.
+GPU_CACHE_DIR = ROOT / "out" / "gpu_audio_cache"
+
+# Retry policy for a remote synthesis call. A single dropped connection used to fall
+# straight through to local CPU IndicF5, which is hours of work for a long script.
+VAST_AUDIO_ATTEMPTS = int(os.environ.get("VAST_AUDIO_ATTEMPTS", "3"))
+VAST_AUDIO_RETRY_WAIT = float(os.environ.get("VAST_AUDIO_RETRY_WAIT", "15"))
+
+# Failures no amount of retrying can fix: the remote interpreter itself is broken, so the
+# next attempt asks the same broken environment the same question. Observed as an HTTP 500
+# whose body reads "ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4".
+PERMANENT_REMOTE_TTS_ERRORS: tuple[str, ...] = (
+    "ImportError",
+    "ModuleNotFoundError",
+    "No module named",
+    "cannot import name",
+    "requires NumPy",
+)
+
+
+def is_permanent_remote_tts_error(err: object) -> bool:
+    """True when retrying a remote IndicF5 request cannot possibly succeed.
+
+    A dependency or ABI problem inside the server's environment is stable for the life of
+    the instance, so the retry loop only adds waiting on top of an already-failed run. It
+    has to be repaired (scripts/vast_manager.py repair <instance-id>) or replaced.
+    """
+    text = f"{type(err).__name__}: {err}"
+    return any(marker in text for marker in PERMANENT_REMOTE_TTS_ERRORS)
+
+
+def audio_is_bad(wav) -> bool:
+    """True when a waveform is empty, non-finite, silent or pure DC.
+
+    Guards the whole narration path. The Vast.ai IndicF5 server can return a WAV that is
+    structurally valid but made of constant -32768 (0x8000) -- a NaN encoded by libsndfile
+    as DC. Without this check that silent audio gets cached on disk and, because the cache
+    is content-addressed, served again by every later run.
+    """
+    import numpy as np
+
+    x = np.asarray(wav, dtype=np.float64).reshape(-1)
+    if x.size == 0 or not np.all(np.isfinite(x)):
+        return True
+    if np.max(np.abs(x)) < 1e-4:  # silence
+        return True
+    if np.std(x) < 1e-5:  # constant / pure DC
+        return True
+    return False
+
+
+def purge_audio_cache() -> int:
+    """Delete every cached GPU segment and scene sidecar.
+
+    A corrupt segment is content-addressed, so it would be served again by every later run.
+    Purging (or bumping AUDIO_PIPELINE_VERSION) is the only way to force a clean rebuild.
+    """
+    removed = 0
+    for path in list(GPU_CACHE_DIR.glob("*.wav")) + list(AUDIO_DIR.glob("*.json")):
+        try:
+            path.unlink()
+            removed += 1
+        except OSError:
+            pass
+    print(
+        f"purged audio cache: {removed} file(s) removed from {GPU_CACHE_DIR} and {AUDIO_DIR}"
+    )
+    return 0
+
+
+def gpu_cache_key(text: str, voice: str, speed: float) -> str:
+    """Stable hash of everything that changes the audio, and nothing else."""
+    payload = [AUDIO_PIPELINE_VERSION, voice.lower(), round(speed, 3), text]
+    return hashlib.sha256(json.dumps(payload).encode("utf-8")).hexdigest()
+
+
+def gpu_cache_path(text: str, voice: str, speed: float) -> Path:
+    return GPU_CACHE_DIR / f"{gpu_cache_key(text, voice, speed)}.wav"
+
+
+def read_gpu_cache(text: str, voice: str, speed: float):
+    """Return the cached float32 waveform for this segment, or None."""
+    path = gpu_cache_path(text, voice, speed)
+    if not path.exists():
+        return None
+    try:
+        import soundfile as sf
+
+        wav_np, _sr = sf.read(str(path), dtype="float32")
+        if audio_is_bad(wav_np):
+            print(
+                f"[IndicF5 Cache Warning] Discarding silent/non-finite cached "
+                f"segment {path.name}",
+                file=sys.stderr,
+            )
+            path.unlink(missing_ok=True)
+            return None
+        return wav_np
+    except Exception as err:  # noqa: BLE001 - a corrupt entry must never be fatal
+        print(f"[IndicF5 Cache Warning] Ignoring unreadable {path.name}: {err}", file=sys.stderr)
+        return None
+
+
+def write_gpu_cache(text: str, voice: str, speed: float, wav_bytes: bytes) -> None:
+    """Persist one GPU segment. Best effort: caching must never break synthesis.
+
+    A structurally-valid but silent/DC segment is refused here so corrupt audio can never
+    enter the on-disk cache and be reused by a later run.
+    """
+    try:
+        import io
+
+        import soundfile as sf
+
+        wav_np, _sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
+    except Exception as err:  # noqa: BLE001
+        print(f"[IndicF5 Cache Warning] Refusing to cache undecodable segment: {err}", file=sys.stderr)
+        return
+    if audio_is_bad(wav_np):
+        print(
+            f"[IndicF5 Cache Warning] Refusing to cache silent/non-finite segment "
+            f"({voice} @ {round(speed, 3)}x)",
+            file=sys.stderr,
+        )
+        return
+    try:
+        path = gpu_cache_path(text, voice, speed)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(wav_bytes)
+    except Exception as err:  # noqa: BLE001
+        print(f"[IndicF5 Cache Warning] Could not persist GPU audio: {err}", file=sys.stderr)
+
 
 def prepare_tts_text(text: str) -> str:
     """Normalise text exactly the way every engine receives it before synthesis.
@@ -1684,6 +1866,7 @@ def prebuild_vast_batch(
 
     # (voice, speed) -> ordered unique sentences
     requests: dict[tuple[str, float], list[str]] = {}
+    reused = 0
     for scene in scenes:
         for line in scene.get("lines") or []:
             text = " ".join(str(line.get("text") or "").split())
@@ -1696,11 +1879,22 @@ def prebuild_vast_batch(
             bucket = requests.setdefault((primary, round(line_speed, 3)), [])
             for sentence in split_sentences(text):
                 remote_text = prepare_remote_text(sentence)
-                if remote_text.strip() and remote_text not in bucket:
-                    bucket.append(remote_text)
+                if not remote_text.strip() or remote_text in bucket:
+                    continue
+                # Already downloaded on an earlier run. Asking the GPU again would pay
+                # for work the disk cache can serve for free.
+                if gpu_cache_path(remote_text, primary, line_speed).exists():
+                    reused += 1
+                    continue
+                bucket.append(remote_text)
 
+    # A setdefault above creates a bucket even when every sentence in it was reused, so
+    # drop the empties before deciding whether anything needs to be requested.
+    requests = {key: value for key, value in requests.items() if value}
+    if reused:
+        print(f"[IndicF5 Vast Batch] {reused} segment(s) already on disk; requesting only the rest.")
     if not requests:
-        return 0
+        return reused
 
     from vast_manager import VastManager
 
@@ -1722,19 +1916,44 @@ def prebuild_vast_batch(
         import io as _io
         import soundfile as sf
 
+        missing: list[str] = []
         for index, sentence in enumerate(sentences):
             entry = results.get(str(index))
             if not entry:
+                missing.append(sentence)
                 continue
             wav_bytes, _duration = entry
             try:
                 wav_np, _sr = sf.read(_io.BytesIO(wav_bytes), dtype="float32")
             except Exception:
+                missing.append(sentence)
                 continue
+            if audio_is_bad(wav_np):
+                print(
+                    f"[IndicF5 Vast Batch] segment {index + 1} came back silent/non-finite; "
+                    "retrying it individually.",
+                    file=sys.stderr,
+                )
+                missing.append(sentence)
+                continue
+            # Persist only after the audio proved usable: a corrupt segment must never
+            # reach the disk cache, or the next run would reuse it for free.
+            write_gpu_cache(sentence, primary, line_speed, wav_bytes)
             _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
             cached_count += 1
         print(f"[IndicF5 Vast Batch] cached {cached_count} segment(s) so far")
-    return cached_count
+
+        # Items the server omitted are retried individually rather than dropped, which is
+        # what the batch endpoint's contract expects of the caller.
+        if missing:
+            print(
+                f"[IndicF5 Vast Batch] {len(missing)} segment(s) missing from the batch "
+                "response; retrying them individually."
+            )
+            for sentence in missing:
+                if synthesize_indic_parler(sentence, primary, line_speed) is not None:
+                    cached_count += 1
+    return reused + cached_count
 
 
 class Voice:
@@ -1768,16 +1987,16 @@ class Voice:
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
 
-        # Check if voice is IndicF5 (AI4Bharat zero-shot DiT Hindi TTS)
-        is_indicf5 = primary.lower().startswith("indic") or primary.lower() in INDICF5_VOICES or any(
-            primary.lower() in [a.lower() for a in vi.get("aliases", [])] for vi in INDICF5_VOICES.values()
+        # Check if the voice is Indic Parler-TTS (AI4Bharat description-conditioned TTS)
+        is_indic = primary.lower().startswith("indic") or primary.lower() in INDIC_PARLER_VOICES or any(
+            primary.lower() in [a.lower() for a in vi.get("aliases", [])] for vi in INDIC_PARLER_VOICES.values()
         )
-        if is_indicf5:
-            indic_audio = synthesize_indicf5(clean_text, primary, speed=speed)
+        if is_indic:
+            indic_audio = synthesize_indic_parler(clean_text, primary, speed=speed)
             if indic_audio is not None and len(indic_audio) > 0:
                 return apply_fades(trim_edge_silence(indic_audio, threshold=0.005, padding=0.005))
-            # Fallback if indicf5 fails
-            vinfo = INDICF5_VOICES.get(primary.lower())
+            # Fallback if Indic Parler-TTS fails
+            vinfo = INDIC_PARLER_VOICES.get(primary.lower())
             fallback = vinfo["fallback_kokoro"] if vinfo else "hm_omega"
             resolved_voice = fallback
             primary = resolved_voice.split(",")[0].strip()
@@ -2228,8 +2447,12 @@ def main() -> int:
     parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 synthesis fails")
     parser.add_argument("--no-vast-batch", action="store_true", help="skip the one-shot bulk Vast.ai narration pre-fetch")
     parser.add_argument("--vast-batch", dest="no_vast_batch", action="store_false", help="(default) pre-fetch all narration in one Vast.ai round trip")
+    parser.add_argument("--purge-audio-cache", action="store_true", help="delete cached GPU narration segments and scene sidecars, then exit")
     parser.set_defaults(no_vast_batch=False)
     args = parser.parse_args()
+
+    if args.purge_audio_cache:
+        return purge_audio_cache()
 
     if args.vast:
         os.environ["USE_VAST"] = "1"

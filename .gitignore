@@ -15,6 +15,8 @@ tools/
 youtube_token.json
 # Vast.ai machines that failed to start; kept locally so they are not re-rented
 .vast_bad_hosts.json
+# When each Vast.ai instance was last stopped, for `prune --idle-hours`
+.vast_idle.json
 # Generated narration audio (re-created by `npm run voice`)
 # Keep the small IndicF5 zero-shot reference voices so a fresh Vast.ai clone
 # still has the prompt audio the remote TTS server needs.

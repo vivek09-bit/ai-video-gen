@@ -7,6 +7,7 @@
     "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
     "assets": ".venv\\Scripts\\python.exe scripts\\make_assets.py",
     "new": ".venv\\Scripts\\python.exe scripts\\new_video.py",
+    "batch": ".venv\\Scripts\\python.exe scripts\\batch.py",
     "images": ".venv\\Scripts\\python.exe scripts\\generate_images.py",
     "voice": ".venv\\Scripts\\python.exe scripts\\tts.py",
     "voices": ".venv\\Scripts\\python.exe scripts\\tts.py --voices",
