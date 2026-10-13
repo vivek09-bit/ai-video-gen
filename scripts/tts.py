@@ -1082,8 +1082,10 @@ class IndicParlerEngine:
         self.prompt_tokenizer = AutoTokenizer.from_pretrained(loaded_repo)
         self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
         # Parler-TTS samples a fresh speaker at generation time (do_sample=True in its
-        # generation_config). Re-applying one seed for every segment keeps a single voice.
+        # generation_config). Greedy decoding (the default) plus a fixed seed pins ONE
+        # speaker across every sentence. Set INDIC_PARLER_GREEDY=0 to restore sampling.
         self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
+        self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "1") != "1"
         print(
             f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
         )
@@ -1096,12 +1098,18 @@ class IndicParlerEngine:
             description.strip(), return_tensors="pt"
         ).input_ids.to(self.device)
         prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
-        # Fix the speaker: without this, each segment is a different random voice.
+        # Pin the speaker: seed + greedy decoding. Without both, each sentence is a
+        # different random voice and the narration sounds like several people in a row.
         torch.manual_seed(self.seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(self.seed)
         with torch.no_grad():
-            generation = self.model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
+            generation = self.model.generate(
+                input_ids=input_ids,
+                prompt_input_ids=prompt_ids,
+                do_sample=self.do_sample,
+                num_beams=1,
+            )
         wav = generation.cpu().numpy().squeeze().astype(np.float32)
         if wav.ndim > 1:
             wav = wav.mean(axis=0)
