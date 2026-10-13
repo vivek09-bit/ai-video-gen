@@ -1,123 +1,111 @@
 1
-00:00:00,000 --> 00:00:01,478
-raat ke thik tin baje,
+00:00:00,000 --> 00:00:01,490
+raat ke thik tin baje
 
 2
-00:00:01,478 --> 00:00:03,088
-jab pura shahar so raha
+00:00:01,490 --> 00:00:03,374
+us purani haveli se aawaz
 
 3
-00:00:03,088 --> 00:00:05,045
-tha, mujhe haveli ki divaron
+00:00:03,374 --> 00:00:04,870
+aati hai. kisi ki hnsi,
 
 4
-00:00:05,045 --> 00:00:06,725
-se apna nam sunaee diya.
+00:00:04,870 --> 00:00:06,528
+kisi ka rona, aur phir...
 
 5
-00:00:06,753 --> 00:00:07,976
-main to bas dada ji
+00:00:06,556 --> 00:00:08,191
+aapka nam. main vahan apne
 
 6
-00:00:07,976 --> 00:00:09,430
-ki virasat mein mili ye
+00:00:08,191 --> 00:00:09,620
+doston ke saath gaya tha.
 
 7
-00:00:09,430 --> 00:00:11,498
-purani haveli bechane aaya tha.
+00:00:09,648 --> 00:00:11,250
+lekin jaise hi hum andar
 
 8
-00:00:11,526 --> 00:00:13,771
-lekin pehli raat hi divaron
+00:00:11,250 --> 00:00:13,193
+ghuse, divar par taza khun
 
 9
-00:00:13,771 --> 00:00:16,106
-par ubharin ungaliyon ke nishan
+00:00:13,193 --> 00:00:14,680
+se likha ek nam dikha.
 
 10
-00:00:16,106 --> 00:00:18,619
-mujhe kamare ke bilkul bichon-bich
+00:00:14,709 --> 00:00:16,223
+aur woh nam tha... mera.
 
 11
-00:00:18,619 --> 00:00:20,276
-khinch lae. aur jaise hi
+00:00:16,252 --> 00:00:17,520
+mere doston ne dar ke
 
 12
-00:00:20,276 --> 00:00:22,321
-mainne kan sataya, andar se
+00:00:17,520 --> 00:00:19,095
+mare vahin se bhagana shuru
 
 13
-00:00:22,321 --> 00:00:24,428
-koee phusaphusaya, "tu bhi ab
+00:00:19,095 --> 00:00:19,602
+kar diya.
 
 14
-00:00:24,428 --> 00:00:25,515
-yahin rahega."
+00:00:19,641 --> 00:00:21,270
+hairani ki baat ye thi
 
 15
-00:00:25,555 --> 00:00:26,938
-main ghabara kar tahakhane ki
+00:00:21,270 --> 00:00:23,128
+ki haveli ka ek kamra
 
 16
-00:00:26,938 --> 00:00:28,328
-taraph bhaga, jise dada ji
+00:00:23,128 --> 00:00:24,571
+sau sal se bnd tha.
 
 17
-00:00:28,328 --> 00:00:29,608
-ne hamesha bnd rakhane ko
+00:00:24,600 --> 00:00:26,140
+jo bhi use kholane gaya,
 
 18
-00:00:29,608 --> 00:00:30,820
-kaha tha. lekin jaise hi
+00:00:26,140 --> 00:00:27,840
+woh kabhi lautakar nahi aaya.
 
 19
-00:00:30,820 --> 00:00:32,051
-mainne woh jng laga tala
+00:00:27,868 --> 00:00:29,402
+lekin us raat divar par
 
 20
-00:00:32,051 --> 00:00:33,254
-khola, andar se jo chikh
+00:00:29,402 --> 00:00:31,119
+likhe nam ne mujhe andar
 
 21
-00:00:33,254 --> 00:00:34,412
-nikali, woh kisi insan ki
+00:00:31,119 --> 00:00:32,895
+khinch liya. jaise hi mainne
 
 22
-00:00:34,412 --> 00:00:35,701
-nahi thi. divaron par bane
+00:00:32,895 --> 00:00:35,102
+woh darwaza khola, saamne ek
 
 23
-00:00:35,701 --> 00:00:37,060
-nishan ab daravaze ki taraph
+00:00:35,102 --> 00:00:37,075
+purana aaeena tha. aur aaeene
 
 24
-00:00:37,060 --> 00:00:38,100
-ishara kar rahe the. tabhi
+00:00:37,075 --> 00:00:39,132
+mein mera chehara nahi, balki
 
 25
-00:00:38,100 --> 00:00:38,579
-mujhe ehasas huaa, haveli mujhe
+00:00:39,132 --> 00:00:40,607
+meri lash dikh rahi thi.
 
 26
-00:00:38,579 --> 00:00:39,048
-bechane nahi, balki apni divaron
+00:00:40,636 --> 00:00:42,360
+tabhi peeche se aawaz aaee...
 
 27
-00:00:39,048 --> 00:00:39,375
-mein hamesha ke lie bnd
+00:00:42,389 --> 00:00:44,369
+tumhara nam mitane ka taim
 
 28
-00:00:39,375 --> 00:00:39,889
-karane aaee thi. aur aaj
-
-29
-00:00:39,889 --> 00:00:40,960
-bhi, raat ke tin baje,
-
-30
-00:00:40,960 --> 00:00:42,063
-woh divaren kisi aur ka
-
-31
-00:00:42,063 --> 00:00:42,867
-nam pukarati hain.
+00:00:44,369 --> 00:00:45,079
+aa gaya hai.

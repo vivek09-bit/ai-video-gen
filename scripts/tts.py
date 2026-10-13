@@ -926,8 +926,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Deep, resonant & authoritative (ideal for history, mythology, epics)",
         "description": (
-            "A male speaker with a deep, resonant and authoritative voice speaks with a "
-            "moderate pace in a very clear, close-sounding recording with no background noise."
+            "A male speaker with a deep, resonant and authoritative voice speaks in native "
+            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
+            "close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_omega",
         # `indicf5_*` aliases are retained so existing script.json files keep resolving.
@@ -944,8 +945,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Calm, natural & conversational (ideal for documentary, explainer)",
         "description": (
-            "A male speaker with a calm, natural and conversational voice speaks with a "
-            "moderate pace in a very clear, close-sounding recording with no background noise."
+            "A male speaker with a calm, natural and conversational voice speaks in native "
+            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
+            "close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_psi",
         "aliases": [
@@ -960,8 +962,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Direct & serious (ideal for mysteries)",
         "description": (
-            "A male speaker with a direct, serious and slightly dry voice speaks with a "
-            "moderate pace in a very clear, close-sounding recording with no background noise."
+            "A male speaker with a direct, serious and slightly dry voice speaks in native "
+            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
+            "close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_omega",
         "aliases": [
@@ -976,8 +979,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "female",
         "style": "Warm, expressive & engaging (ideal for drama, storytelling)",
         "description": (
-            "A female speaker with a warm, expressive and engaging voice speaks with a "
-            "moderate pace in a very clear, close-sounding recording with no background noise."
+            "A female speaker with a warm, expressive and engaging voice speaks in native "
+            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
+            "close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hf_alpha",
         "aliases": [
@@ -992,8 +996,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "female",
         "style": "Soft, cheerful & pleasant (ideal for lifestyle, casual)",
         "description": (
-            "A female speaker with a soft, cheerful and pleasant voice speaks with a "
-            "moderate pace in a very clear, close-sounding recording with no background noise."
+            "A female speaker with a soft, cheerful and pleasant voice speaks in native "
+            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
+            "close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hf_beta",
         "aliases": [
@@ -1076,6 +1081,9 @@ class IndicParlerEngine:
         )
         self.prompt_tokenizer = AutoTokenizer.from_pretrained(loaded_repo)
         self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
+        # Parler-TTS samples a fresh speaker at generation time (do_sample=True in its
+        # generation_config). Re-applying one seed for every segment keeps a single voice.
+        self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
         print(
             f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
         )
@@ -1088,6 +1096,10 @@ class IndicParlerEngine:
             description.strip(), return_tensors="pt"
         ).input_ids.to(self.device)
         prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
+        # Fix the speaker: without this, each segment is a different random voice.
+        torch.manual_seed(self.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(self.seed)
         with torch.no_grad():
             generation = self.model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
         wav = generation.cpu().numpy().squeeze().astype(np.float32)
@@ -2574,6 +2586,10 @@ def main() -> int:
     script["speed"] = speed
     voice_default = script["voice"]
     pause = float(script["sentencePauseSeconds"])
+    # Parler-TTS joins sentences very tightly; give the Indic narrator a clearer breath
+    # between sentences so adjacent lines do not run together as one continuous stream.
+    if is_indic_voice(voice_default) and pause < 0.18:
+        pause = 0.18
     master = script.get("master") or {}
     characters = script.get("characters") or {}
 
@@ -2583,6 +2599,12 @@ def main() -> int:
         return 1
 
     scenes = [merge(DEFAULT_SCENE, s) for s in scenes_in]
+    if is_indic_voice(voice_default):
+        # A clear breath at every scene boundary, so one scene's closing line does not
+        # run straight into the next scene's opening line.
+        for scene in scenes:
+            scene["padBefore"] = max(float(scene.get("padBefore") or 0.0), 0.12)
+            scene["padAfter"] = max(float(scene.get("padAfter") or 0.0), 0.35)
     for index, scene in enumerate(scenes):
         scene["id"] = slugify(scene.get("id") or "", f"scene-{index + 1}")
         if is_hinglish_captions and is_devanagari(scene.get("headline", "")):

@@ -160,8 +160,9 @@ def _resolve_indic_description(voice: str, speed: float = 1.0) -> str:
     except Exception:
         pass
     return (
-        "A male speaker with a deep, resonant and authoritative voice speaks with a "
-        f"{_pace_word(speed)} in a very clear, close-sounding recording with no background noise."
+        "A male speaker with a deep, resonant and authoritative voice speaks in native "
+        f"Hindi with a clear Indian accent at {_pace_word(speed)} in a very clear, "
+        "close-sounding recording with no background noise."
     )
 
 
@@ -295,12 +296,17 @@ def load_indic_parler_engine():
                 self.prompt_tokenizer = AutoTokenizer.from_pretrained(loaded_repo)
                 self.sample_rate = int(getattr(self.model.config, "sampling_rate", None) or 44100)
                 self.resampler = torchaudio.transforms.Resample(self.sample_rate, 24000)
+                self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
 
             def synthesize(self, text, description, speed=1.0):
                 input_ids = self.description_tokenizer(
                     description.strip(), return_tensors="pt"
                 ).input_ids.to(self.device)
                 prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
+                # One seed for every segment keeps a single, consistent speaker.
+                torch.manual_seed(self.seed)
+                if torch.cuda.is_available():
+                    torch.cuda.manual_seed_all(self.seed)
                 with torch.no_grad():
                     generation = self.model.generate(input_ids=input_ids, prompt_input_ids=prompt_ids)
                 wav = generation.cpu().numpy().squeeze().astype(np.float32)
