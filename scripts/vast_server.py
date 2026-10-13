@@ -168,6 +168,38 @@ def _resolve_indic_description(voice: str, speed: float = 1.0) -> str:
     )
 
 
+# How many fresh-seed draws to try before giving up on a segment. Parler-TTS can draw a
+# degenerate (near-silent) sample for one seed, and because the seed is fixed for voice
+# consistency, a plain retry reproduces the same silence -- so each attempt advances it.
+INDIC_PARLER_ATTEMPTS = int(os.environ.get("INDIC_PARLER_ATTEMPTS", "5"))
+
+
+def _synthesize_with_retries(engine, text: str, description: str, speed: float):
+    """Generate audio, re-rolling the seed until the result is usable.
+
+    Returns (audio_np, generation_time_sec), or (None, 0.0) when every draw was bad.
+    """
+    import numpy as np
+
+    base = int(getattr(engine, "seed", 1234))
+    for attempt in range(INDIC_PARLER_ATTEMPTS):
+        t0 = time.time()
+        try:
+            audio = engine.synthesize(text, description, speed=speed, seed=base + attempt)
+        except TypeError:  # an engine without a seed parameter
+            audio = engine.synthesize(text, description, speed=speed)
+        gen_time = round(time.time() - t0, 3)
+        arr = np.asarray(audio, dtype=np.float32)
+        if not _audio_is_bad(arr):
+            return arr, gen_time
+        peak = float(np.max(np.abs(arr))) if arr.size else 0.0
+        print(
+            f"[Vast Server] silent draw (seed={base + attempt}, peak={peak:.4f}); retrying",
+            file=sys.stderr,
+        )
+    return None, 0.0
+
+
 def get_vram_info() -> dict[str, Any]:
     """Return current GPU VRAM utilization if CUDA is available."""
     try:
@@ -301,15 +333,16 @@ def load_indic_parler_engine():
                 self.seed = int(os.environ.get("INDIC_PARLER_SEED", "1234"))
                 self.do_sample = os.environ.get("INDIC_PARLER_GREEDY", "0") != "1"
 
-            def synthesize(self, text, description, speed=1.0):
+            def synthesize(self, text, description, speed=1.0, seed=None):
                 input_ids = self.description_tokenizer(
                     description.strip(), return_tensors="pt"
                 ).input_ids.to(self.device)
                 prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
                 # One seed + greedy decoding for every segment keeps a single speaker.
-                torch.manual_seed(self.seed)
+                use_seed = self.seed if seed is None else int(seed)
+                torch.manual_seed(use_seed)
                 if torch.cuda.is_available():
-                    torch.cuda.manual_seed_all(self.seed)
+                    torch.cuda.manual_seed_all(use_seed)
                 with torch.no_grad():
                     generation = self.model.generate(
                         input_ids=input_ids,
@@ -351,6 +384,7 @@ class VastHandler(BaseHTTPRequestHandler):
                 "flux_loaded": _FLUX_PIPE is not None,
                 "ltx_loaded": _LTX_PIPE is not None,
                 "tts_loaded": _INDIC_PARLER_ENGINE is not None,
+                "tts_greedy": getattr(_INDIC_PARLER_ENGINE, "do_sample", True) is False,
                 "tts_ready": tts_error is None,
                 "tts_error": tts_error,
             })
@@ -514,16 +548,12 @@ class VastHandler(BaseHTTPRequestHandler):
         engine = load_indic_parler_engine()
         description = _resolve_indic_description(voice, speed)
 
-        t0 = time.time()
-        audio_np = engine.synthesize(text, description, speed=speed)
-        gen_time = round(time.time() - t0, 3)
-
-        audio_np = np.asarray(audio_np, dtype=np.float32)
-        if _audio_is_bad(audio_np):
+        audio_np, gen_time = _synthesize_with_retries(engine, text, description, speed)
+        if audio_np is None:
             self._send_json(
                 {
                     "status": "error",
-                    "error": "Indic Parler-TTS produced non-finite/constant audio",
+                    "error": "Indic Parler-TTS produced silent/non-finite audio after retries",
                 },
                 status=500,
             )
@@ -570,14 +600,12 @@ class VastHandler(BaseHTTPRequestHandler):
                 continue
             t0 = time.time()
             try:
-                audio_np = engine.synthesize(text, description, speed=speed)
+                audio_np, _gen = _synthesize_with_retries(engine, text, description, speed)
             except Exception as err:  # noqa: BLE001 - report per-item failure to the client
                 results.append({"id": entry_id, "error": f"{type(err).__name__}: {err}"})
                 continue
-            if _audio_is_bad(audio_np):
-                results.append(
-                    {"id": entry_id, "error": "non-finite/constant audio"}
-                )
+            if audio_np is None:
+                results.append({"id": entry_id, "error": "silent/non-finite audio"})
                 continue
             buf = io.BytesIO()
             sf.write(buf, audio_np, 24000, format="WAV", subtype="PCM_16")
@@ -632,7 +660,9 @@ class VastHandler(BaseHTTPRequestHandler):
 
             if narration_text:
                 engine = load_indic_parler_engine()
-                audio_np = engine.synthesize(narration_text, description, speed=speed)
+                audio_np, _gen = _synthesize_with_retries(engine, narration_text, description, speed)
+                if audio_np is None:
+                    continue
                 buf_a = io.BytesIO()
                 sf.write(buf_a, audio_np, 24000, format="WAV", subtype="PCM_16")
                 res_entry["audio_base64"] = base64.b64encode(buf_a.getvalue()).decode("ascii")

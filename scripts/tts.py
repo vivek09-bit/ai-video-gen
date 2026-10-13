@@ -1092,7 +1092,7 @@ class IndicParlerEngine:
             f"[Indic Parler-TTS] Model loaded (native {self.sample_rate} Hz -> {SAMPLE_RATE} Hz)."
         )
 
-    def synthesize(self, text: str, description: str, speed: float = 1.0):
+    def synthesize(self, text: str, description: str, speed: float = 1.0, seed: int | None = None):
         import numpy as np
         import torch
 
@@ -1102,9 +1102,10 @@ class IndicParlerEngine:
         prompt_ids = self.prompt_tokenizer(text, return_tensors="pt").input_ids.to(self.device)
         # Pin the speaker: seed + greedy decoding. Without both, each sentence is a
         # different random voice and the narration sounds like several people in a row.
-        torch.manual_seed(self.seed)
+        use_seed = self.seed if seed is None else int(seed)
+        torch.manual_seed(use_seed)
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(self.seed)
+            torch.cuda.manual_seed_all(use_seed)
         with torch.no_grad():
             generation = self.model.generate(
                 input_ids=input_ids,

@@ -1,6 +1,6 @@
 {
-  "title": "चीन की खुदाई में मिला चार हज़ार साल पुराना डरावना सच",
-  "topic": "4000 saal puri china ki khudai ka raz़",
+  "title": "चीन की चार हजार साल पुरानी खुदाई का अनसुलझा रहस्य",
+  "topic": "4000 saal purani china ki khudai ka raaz",
   "language": "hi",
   "genre": "ancient_history",
   "visualStyle": null,
@@ -14,7 +14,7 @@
   "speed": 0.94,
   "sentencePauseSeconds": 0.06,
   "ambience": {
-    "src": "amb_ancient_sanctum",
+    "src": "amb_temple",
     "volume": 0.2
   },
   "captions": {
@@ -32,15 +32,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "amber_ember",
-    "name": "Amber Ember",
-    "accent": "#f97316",
-    "text": "#fff7ed",
-    "muted": "#fdba74",
-    "panel": "rgba(35, 18, 10, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0a0502"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavation pit, archaeologists with torches, ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dusty excavation site, ancient bronze mask, dim, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, deep midnight blue palette, cold sapphire tones, moonlit ocean, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -78,7 +78,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavation pit, archaeologists with torches, ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dusty excavation site, ancient bronze mask, dim, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, deep midnight blue palette, cold sapphire tones, moonlit ocean, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -101,13 +101,13 @@
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_bell",
+          "sfx": "sfx_chisel_echo",
           "volume": 0.16
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0502"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -123,10 +123,10 @@
       "lines": [
         {
           "character": null,
-          "text": "चीन के शान्शी प्रांत में, चार हज़ार साल पुरानी एक खुदाई के दौरान, मज़दूरों को ज़मीन के नीचे कुछ ऐसा मिला, जिसने पूरी दुनिया के इतिहासकारों की नींद उड़ा दी। ये कोई साधारण क़ब्र नहीं थी... ये एक ऐसा सील किया हुआ कमरा था, जिसका दरवाज़ा खोलने पर अंदर से एक अजीब सी गूँज निकली... जैसे चार हज़ार साल पुरानी कोई आवाज़ आज भी वहाँ क़ैद हो... और बाहर निकलने के लिए छटपटा रही हो।"
+          "text": "चीन की मिट्टी के नीचे चार हजार साल पुरानी एक ऐसी खुदाई हुई, जिसने इतिहास के तमाम दावों को हिला दिया। हैरानी की बात यह थी कि उस प्राचीन शहर में ऐसी तकनीक के सबूत मिले, जो कथित तौर पर उस ज़माने में होनी ही नहीं चाहिए थी। और सबसे डरावना सच तो अभी सामने आया है।"
         }
       ],
-      "visualKeywords": "dark excavation pit, archaeologists with torches, ancient sealed tomb entrance, dust particles floating"
+      "visualKeywords": "dusty excavation site, ancient bronze mask, dim golden light"
     },
     {
       "id": "scene-002",
@@ -142,7 +142,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: cracked ancient artifact, historian shocked, dark museum, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, deep midnight blue palette, cold sapphire tones, moonlit ocean, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -163,7 +163,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: cracked ancient artifact, historian shocked, dark museum, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, deep midnight blue palette, cold sapphire tones, moonlit ocean, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -185,7 +185,7 @@
             "src": "images/scene-002.png",
             "kenBurns": "right",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: bronze vessel glowing under torchlight, sub-millimeter precision, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, warm amber and ember tones, glowing firelight, orange haze, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: cracked ancient artifact, historian shocked, dark museum, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, deep midnight blue palette, cold sapphire tones, moonlit ocean, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -203,24 +203,24 @@
         }
       ],
       "ambience": {
-        "src": "amb_tension",
+        "src": "amb_vedic_resonance",
         "volume": 0.25
       },
       "soundCues": [
         {
           "at": 0.15,
-          "sfx": "sfx_impact",
+          "sfx": "sfx_boom",
           "volume": 0.25
         },
         {
           "at": 16.8,
-          "sfx": "sfx_mystic_reveal",
+          "sfx": "sfx_cinematic_hit",
           "volume": 0.25
         }
       ],
       "background": {
         "type": "color",
-        "color": "#0a0502"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -236,19 +236,19 @@
       "lines": [
         {
           "character": null,
-          "text": "लेकिन जैसे ही पुरातत्वविदों ने अंदर क़दम रखा, हैरानी की बात ये थी कि वहाँ कोई सोना या हीरा नहीं था... बल्कि एक ऐसा कांस्य का बर्तन रखा था, जिसकी दीवारें इतनी पतली और सटीक थीं, कि आज की मशीनें भी उसे बना नहीं सकतीं। और उस बर्तन के अंदर से, आज भी एक गहरी गूँज निकल रही थी... जिसकी आवाज़ सुनकर वैज्ञानिकों के पसीने छूट गए। तभी अचानक, वहाँ मौजूद एक वैज्ञानिक ने देखा कि दीवार पर कुछ लिखा था... और वो लिखावट आज की भाषा से मेल खा रही थी... जो चार हज़ार साल पहले असंभव था।"
+          "text": "वैज्ञानिकों ने जब उन अवशेषों की जांच की, तो पता चला कि यह सभ्यता तो अपने समय से कई सौ साल आगे थी। लेकिन तभी अचानक सारे शोध रोक दिए गए, और उस पूरी खुदाई को गुप्त बना दिया गया। लगता है कोई चार हजार साल पुराना राज़ आज भी दबाया जा रहा है।"
         }
       ],
-      "visualKeywords": "bronze vessel glowing under torchlight, sub-millimeter precision jade artifact, shocked archaeologist face, dim underground chamber"
+      "visualKeywords": "cracked ancient artifact, historian shocked, dark museum room"
     }
   ],
   "audioModel": "indicf5",
   "visualMode": "image",
   "research": {
-    "seed": "4000 saal puri china ki khudai ka raz़",
+    "seed": "4000 saal purani china ki khudai ka raaz",
     "genre": "ancient_history",
     "keywords": {
-      "seed": "4000 saal puri china ki khudai ka raz़",
+      "seed": "4000 saal purani china ki khudai ka raaz",
       "youtube_trending": [],
       "google_search": [],
       "questions_and_curiosity": [],
@@ -257,59 +257,59 @@
     "ai_synthesis": {
       "concepts": [
         {
-          "title": "4000 साल पुरानी चीन की खुदाई में मिला डरावना सच!",
-          "hook": "4000 साल पुरानी चीन की खुदाई में एक ऐसी चीज़ मिली जिसने पूरी दुनिया को हिला दिया!",
-          "core_angle": "The excavation revealed a perfectly preserved mummy that seemed to whisper a warning about an ancient curse, challenging everything we know about Chinese history.",
-          "recommended_topic_arg": "4000 saal purani china ki khudai ka raaz: ek mummy aur shraap ki kahani",
-          "target_emotion": "dread"
-        },
-        {
-          "title": "चीन की खुदाई में मिली 4000 साल पुरानी तकनीक जो आज भी है रहस्य!",
-          "hook": "4000 साल पहले चीन में ऐसी तकनीक थी जो आज के वैज्ञानिकों को भी चौंका दे!",
-          "core_angle": "Archaeologists unearthed a device that suggests ancient Chinese had advanced technology far beyond their time, possibly of extraterrestrial origin.",
-          "recommended_topic_arg": "प्राचीन चीन की खुदाई में मिली अत्याधुनिक तकनीक: रहस्यमय यंत्र",
-          "target_emotion": "wonder"
-        },
-        {
-          "title": "4000 साल पुरानी चीन की खुदाई में मिला इंसानी इतिहास का सबसे बड़ा रहस्य!",
-          "hook": "चीन की खुदाई में मिली 4000 साल पुरानी किताब, जिसमें लिखी हैं ऐसी बातें जो आपको हैरान कर देंगी!",
-          "core_angle": "A sealed book found in the tomb contains prophecies that accurately predict modern events, making experts question the timeline of human civilization.",
-          "recommended_topic_arg": "4000 saal purani china ki khudai mein mili bhavishyavani karne wali kitab",
-          "target_emotion": "curiosity"
-        },
-        {
-          "title": "चीन की खुदाई में मिली 4000 साल पुरानी सभ्यता, जो अचानक क्यों हुई गायब?",
-          "hook": "4000 साल पहले चीन में एक पूरी सभ्यता रहस्यमय तरीके से गायब हो गई, और अब खुदाई में मिले सबूत!",
-          "core_angle": "The excavation reveals evidence of a sudden mass disappearance, possibly due to an ancient experiment gone wrong, leaving behind cryptic clues.",
-          "recommended_topic_arg": "प्राचीन चीन की गायब हुई सभ्यता: खुदाई में मिले रहस्यमय सबूत",
+          "title": "China Ki Khudai: 4000 Saal Purana Raaz",
+          "hook": "China mein 4000 saal purani khudai ne ek aisa raaz khola jo itihas badal dega!",
+          "core_angle": "The excavation reveals an advanced ancient civilization that contradicts mainstream history, sparking a global cover-up conspiracy.",
+          "recommended_topic_arg": "Explore the mysterious 4000-year-old excavation in China that challenges historical narratives and hints at a lost civilization.",
           "target_emotion": "shock"
         },
         {
-          "title": "4000 साल पुरानी चीन की खुदाई में मिला ऐसा खजाना, जिसने बदल दिया इतिहास!",
-          "hook": "चीन की खुदाई में मिला 4000 साल पुराना खजाना, जो बताता है कि प्राचीन चीनियों के पास थी अद्भुत शक्ति!",
-          "core_angle": "The treasure includes artifacts that suggest ancient Chinese possessed supernatural abilities or advanced knowledge, rewriting history books.",
-          "recommended_topic_arg": "4000 saal purani china ki khudai mein mila adbhut khazana",
+          "title": "4000 Saal Purana China Ka Khazana",
+          "hook": "Yeh khazana 4000 saal se chhupa tha, lekin iske andar kya mila? Aap hairan reh jayenge!",
+          "core_angle": "A hidden treasure found in the excavation contains advanced technology that could rewrite ancient Chinese history.",
+          "recommended_topic_arg": "Uncover the secrets of a 4000-year-old treasure trove discovered in China and its implications for ancient technology.",
+          "target_emotion": "curiosity"
+        },
+        {
+          "title": "China Ki Khudai: Itihas Ka Sabse Bada Jhooth?",
+          "hook": "Kya China ki 4000 saal purani khudai ne itihas ka sabse bada jhooth expose kiya?",
+          "core_angle": "The excavation uncovers evidence that ancient Chinese history was fabricated to hide a dark secret about their origins.",
+          "recommended_topic_arg": "Investigate the theory that the 4000-year-old Chinese excavation exposes a massive historical cover-up.",
+          "target_emotion": "dread"
+        },
+        {
+          "title": "4000 Saal Purani China Ki Khudai: Kya Chhupa Hai?",
+          "hook": "4000 saal purani khudai mein kya chhupa hai? Yeh raaz aapki neend uda dega!",
+          "core_angle": "The excavation contains artifacts that suggest ancient Chinese had contact with extraterrestrial beings.",
+          "recommended_topic_arg": "Delve into the possibility that the 4000-year-old Chinese excavation holds evidence of alien contact in ancient times.",
           "target_emotion": "excitement"
+        },
+        {
+          "title": "China Ki Khudai: 4000 Saal Purana Shraap",
+          "hook": "4000 saal purani khudai ne ek shraap ko janm diya, jisne aaj tak China ko hila diya hai!",
+          "core_angle": "The excavation unleashes an ancient curse that has haunted China for millennia, explaining mysterious events.",
+          "recommended_topic_arg": "Explore the legend of an ancient curse unleashed by the 4000-year-old Chinese excavation and its lasting impact.",
+          "target_emotion": "wonder"
         }
       ],
       "seo_tags": [
-        "प्राचीन चीन खुदाई",
-        "4000 साल पुरानी खोज",
-        "चीन का रहस्य",
-        "पुरातत्व रहस्य",
-        "प्राचीन सभ्यता",
-        "खुदाई में मिली चीजें",
-        "इतिहास के रहस्य",
-        "चीन की खोज",
-        "प्राचीन तकनीक",
-        "रहस्यमय खजाना"
+        "china ki khudai",
+        "4000 saal purani khudai",
+        "ancient history in hindi",
+        "china ka raaz",
+        "khudai ka raaz",
+        "ancient china secrets",
+        "history mystery",
+        "purani khudai",
+        "china history",
+        "raaz"
       ],
       "recommended_hashtags": [
-        "#प्राचीनचीन",
-        "#खुदाईकरहस्य",
-        "#इतिहास",
-        "#रहस्य",
-        "#पुरातत्व"
+        "#ChinaKiKhudai",
+        "#AncientHistory",
+        "#Hindi",
+        "#Mystery",
+        "#Secrets"
       ]
     }
   }

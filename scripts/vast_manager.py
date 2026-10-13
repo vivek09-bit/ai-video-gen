@@ -1780,6 +1780,15 @@ def main() -> int:
     p_stop = subparsers.add_parser("stop", help="Stop instance")
     p_stop.add_argument("instance_id", type=int, help="Instance ID")
 
+    # Restart: stop then start, so the container's onstart re-runs and re-fetches the repo
+    # code. A running instance keeps the code it booted with, so a pushed fix never reaches
+    # its inference server until it is restarted.
+    p_restart = subparsers.add_parser(
+        "restart",
+        help="Stop then start an instance so its onstart re-fetches the latest repo code",
+    )
+    p_restart.add_argument("instance_id", type=int, help="Instance ID")
+
     # Status
     p_status = subparsers.add_parser("status", help="Get instance details")
     p_status.add_argument("instance_id", type=int, help="Instance ID")
@@ -1862,6 +1871,17 @@ def main() -> int:
 
     elif args.action == "stop":
         mgr.stop_instance(args.instance_id)
+        return 0
+
+    elif args.action == "restart":
+        mgr.stop_instance(args.instance_id)
+        if not mgr.start_instance(args.instance_id):
+            print(f"[Vast Manager] could not restart instance {args.instance_id}", file=sys.stderr)
+            return 1
+        print(
+            f"[Vast Manager] instance {args.instance_id} restarting; its onstart will "
+            "git-fetch the latest repo code and relaunch the inference server."
+        )
         return 0
 
     elif args.action == "status":
