@@ -10,7 +10,9 @@ Endpoints:
   GET  /health              -> System, GPU VRAM & model status
   POST /v1/images/generate  -> FLUX.1 image generation
   POST /v1/videos/generate  -> LTX-Video MP4 generation
-  POST /v1/audio/synthesize -> IndicF5 audio generation + word timings
+  POST /v1/audio/synthesize -> IndicF5 audio generation (WAV + duration)
+  POST /v1/audio/synthesize_batch -> many IndicF5 segments in one round trip
+  POST /v1/batch            -> images + audio for a scene list in one round trip
   POST /v1/shutdown         -> Gracefully shutdown server / instance
 """
 
@@ -78,6 +80,22 @@ def _release_other_models(active: str) -> None:
             torch.cuda.empty_cache()
     except ImportError:
         pass
+
+
+def _resolve_indicf5_reference(voice: str) -> tuple[Path | None, str]:
+    """Map a voice name onto its zero-shot reference wav plus reference transcript."""
+    ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
+    speaker = "aarav"
+    lowered = (voice or "").lower()
+    for candidate in ("priya", "kabir", "rohan", "ananya"):
+        if candidate in lowered:
+            speaker = candidate
+            break
+    ref_wav = ref_dir / f"{speaker}.wav"
+    ref_txt = ref_dir / f"{speaker}.txt"
+    fallback_text = "मौर्यन एम्पायर की हर डेट सिर्फ़ रटो मत।"
+    ref_text = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else fallback_text
+    return (ref_wav if ref_wav.exists() else None), ref_text
 
 
 def get_vram_info() -> dict[str, Any]:
@@ -293,6 +311,8 @@ class VastHandler(BaseHTTPRequestHandler):
                 self.handle_video_generate(req)
             elif self.path == "/v1/audio/synthesize":
                 self.handle_audio_synthesize(req)
+            elif self.path == "/v1/audio/synthesize_batch":
+                self.handle_audio_synthesize_batch(req)
             elif self.path == "/v1/batch":
                 self.handle_batch(req)
             elif self.path == "/v1/shutdown":
@@ -429,26 +449,13 @@ class VastHandler(BaseHTTPRequestHandler):
         engine = load_indicf5_engine()
 
         # Resolve prompt reference (absolute, so it works regardless of CWD)
-        ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
-        speaker = "aarav"
-        if "priya" in voice:
-            speaker = "priya"
-        elif "kabir" in voice:
-            speaker = "kabir"
-        elif "rohan" in voice:
-            speaker = "rohan"
-        elif "ananya" in voice:
-            speaker = "ananya"
-
-        ref_wav = ref_dir / f"{speaker}.wav"
-        ref_txt = ref_dir / f"{speaker}.txt"
-        if not ref_wav.exists():
+        ref_wav, ref_text_content = _resolve_indicf5_reference(voice)
+        if ref_wav is None:
             self._send_json(
-                {"status": "error", "error": f"Missing IndicF5 reference voice: {ref_wav}"},
+                {"status": "error", "error": f"Missing IndicF5 reference voice for {voice!r}"},
                 status=500,
             )
             return
-        ref_text_content = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else "मौर्यन एम्पायर की हर डेट सिर्फ़ रटो मत।"
 
         t0 = time.time()
         audio_np = engine.synthesize(text, ref_wav, ref_text_content, speed=speed, nfe_step=32)
@@ -467,13 +474,80 @@ class VastHandler(BaseHTTPRequestHandler):
             "generation_time_sec": gen_time,
         })
 
+    def handle_audio_synthesize_batch(self, req: dict):
+        """Synthesize many narration segments in one round trip.
+
+        The IndicF5 engine stays resident on the GPU, so a long script only pays the
+        HTTP round-trip cost once instead of once per sentence.
+        """
+        items = req.get("items") or []
+        if not items:
+            self._send_json({"error": "Missing items"}, status=400)
+            return
+
+        voice = str(req.get("voice", "indicf5_aarav"))
+        speed = float(req.get("speed", 1.0))
+        nfe_step = int(req.get("nfe_step", 32))
+
+        import soundfile as sf
+
+        ref_wav, ref_text = _resolve_indicf5_reference(voice)
+        if ref_wav is None:
+            self._send_json(
+                {"status": "error", "error": f"Missing IndicF5 reference voice for {voice!r}"},
+                status=500,
+            )
+            return
+
+        engine = load_indicf5_engine()
+        results = []
+        started = time.time()
+        for index, item in enumerate(items):
+            entry_id = item.get("id")
+            text = str(item.get("text") or "").strip()
+            if not text:
+                results.append({"id": entry_id, "error": "empty text"})
+                continue
+            t0 = time.time()
+            try:
+                audio_np = engine.synthesize(text, ref_wav, ref_text, speed=speed, nfe_step=nfe_step)
+            except Exception as err:  # noqa: BLE001 - report per-item failure to the client
+                results.append({"id": entry_id, "error": f"{type(err).__name__}: {err}"})
+                continue
+            buf = io.BytesIO()
+            sf.write(buf, audio_np, 24000, format="WAV", subtype="PCM_16")
+            results.append({
+                "id": entry_id,
+                "audio_base64": base64.b64encode(buf.getvalue()).decode("ascii"),
+                "sample_rate": 24000,
+                "audio_duration_sec": round(len(audio_np) / 24000, 3),
+                "generation_time_sec": round(time.time() - t0, 3),
+            })
+            print(
+                f"[Vast Server] audio batch {index + 1}/{len(items)} id={entry_id} "
+                f"({round(time.time() - t0, 2)}s)",
+                file=sys.stderr,
+            )
+
+        self._send_json({
+            "status": "success",
+            "sample_rate": 24000,
+            "total_generation_time_sec": round(time.time() - started, 3),
+            "results": results,
+        })
+
     def handle_batch(self, req: dict):
-        """Process batch of scenes: generate images and audio in one roundtrip."""
+        """Process a scene list: generate images and audio in one round trip."""
+        import torch
+        import soundfile as sf
+
         scenes = req.get("scenes", [])
         voice = req.get("voice", "indicf5_aarav")
         speed = float(req.get("speed", 1.0))
         width = int(req.get("width", 1080))
         height = int(req.get("height", 1920))
+
+        ref_wav, ref_text = _resolve_indicf5_reference(voice)
 
         results = []
         for i, sc in enumerate(scenes):
@@ -491,13 +565,9 @@ class VastHandler(BaseHTTPRequestHandler):
                 img.save(buf, format="PNG")
                 res_entry["image_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")
 
-            if narration_text:
+            if narration_text and ref_wav is not None:
                 engine = load_indicf5_engine()
-                ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
-                ref_wav = ref_dir / "aarav.wav"
-                ref_txt = ref_dir / "aarav.txt"
-                ref_t = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else "मौर्यन एम्पायर"
-                audio_np = engine.synthesize(narration_text, ref_wav, ref_t, speed=speed, nfe_step=32)
+                audio_np = engine.synthesize(narration_text, ref_wav, ref_text, speed=speed, nfe_step=32)
                 buf_a = io.BytesIO()
                 sf.write(buf_a, audio_np, 24000, format="WAV", subtype="PCM_16")
                 res_entry["audio_base64"] = base64.b64encode(buf_a.getvalue()).decode("ascii")

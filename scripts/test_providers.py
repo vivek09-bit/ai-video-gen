@@ -612,7 +612,8 @@ def test_vast_gpu_routing() -> None:
     def fake_run_cli(args: list[str]) -> str:
         commands.append(args)
         if args[0] == "search":
-            return json.dumps([{"id": 123}])
+            # A real offer always carries an all-in price, which the budget ceiling filters on.
+            return json.dumps([{"id": 123, "dph_total": 0.25, "machine_id": 1, "disk_space": 100}])
         return json.dumps({"new_contract": 456})
 
     manager.run_cli = fake_run_cli  # type: ignore[method-assign]
@@ -621,8 +622,11 @@ def test_vast_gpu_routing() -> None:
     assert "num_gpus=1" in commands[-1][2]
 
     assert manager.create_instance(offer_id=123, gpu_name="RTX 4090") == 456
-    create_args = commands[-1]
-    assert "--ports" in create_args and create_args[create_args.index("--ports") + 1] == "8000/http"
+    # create_instance also reads the instance back to verify the billed rate, so locate
+    # the create call rather than assuming it is the most recent command.
+    create_args = next(cmd for cmd in commands if cmd[:2] == ["create", "instance"])
+    # Port 8000 is published through --env, which is how `vastai create instance` maps ports.
+    assert "--env" in create_args and create_args[create_args.index("--env") + 1] == "-p 8000:8000"
     assert "--onstart-cmd" in create_args
     assert "vast_server.py" in create_args[create_args.index("--onstart-cmd") + 1]
 
@@ -671,11 +675,13 @@ def test_voices() -> None:
     assert len(cmn_voices) >= 4
 
     # 2. Test list_voices and filtering
+    # list_voices() reports every selectable voice, which includes the IndicF5 family.
+    # That family lives in INDICF5_VOICES, not VOICE_CATALOG, so the totals are the union.
     all_v = tts.list_voices()
-    assert len(all_v) == len(catalog)
+    assert len(all_v) == len(catalog) + len(tts.INDICF5_VOICES)
 
     hi_v = tts.list_voices(lang_filter="hi")
-    assert len(hi_v) == len(hindi_voices)
+    assert len(hi_v) == len(hindi_voices) + len(tts.INDICF5_VOICES)
     assert all(v["lang"] == "hi" for v in hi_v)
 
     # 3. Test format_voices_table

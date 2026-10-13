@@ -27,6 +27,9 @@ Usage:
 
   # Destroy broken or over-budget instances
   python scripts/vast_manager.py prune [--dry-run]
+
+  # Show or clear hosts that failed to start
+  python scripts/vast_manager.py hosts [--clear]
 """
 
 from __future__ import annotations
@@ -109,9 +112,50 @@ class InstanceBroken(RuntimeError):
 class VastManager:
     """Manages Vast.ai GPU instance lifecycle and remote inference."""
 
+    # Machine IDs that failed to start are remembered here so the same broken host
+    # is never rented twice (the cheapest offer is often the flakiest one).
+    BAD_HOSTS_FILE = ".vast_bad_hosts.json"
+
     def __init__(self, api_key: str | None = None, server_url: str | None = None) -> None:
         self.api_key = api_key or os.environ.get("VAST_API_KEY") or os.environ.get("VASTAI_API_KEY")
         self.server_url = (server_url or os.environ.get("VAST_SERVER_URL", "")).rstrip("/")
+        self.bad_hosts = self._load_bad_hosts()
+
+    @classmethod
+    def _bad_hosts_path(cls) -> Path:
+        return ROOT / cls.BAD_HOSTS_FILE
+
+    def _load_bad_hosts(self) -> dict[str, str]:
+        """Load machine IDs previously blacklisted as reasons for the blacklist."""
+        path = self._bad_hosts_path()
+        if not path.is_file():
+            return {}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"[Vast Manager Warning] Ignoring unreadable {path.name}: {e}", file=sys.stderr)
+            return {}
+        machines = data.get("machines", {}) if isinstance(data, dict) else {}
+        return {str(key): str(value) for key, value in machines.items()}
+
+    def mark_bad_host(self, machine_id: Any, reason: str) -> None:
+        """Persist a host that cannot start so no future run rents it again."""
+        try:
+            key = str(int(machine_id))
+        except (TypeError, ValueError):
+            return
+        if key in self.bad_hosts:
+            return
+        self.bad_hosts[key] = reason[:200]
+        path = self._bad_hosts_path()
+        try:
+            path.write_text(
+                json.dumps({"machines": self.bad_hosts}, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            print(f"[Vast Manager] Blacklisted machine {key}: no future run will rent it ({reason[:120]})")
+        except Exception as e:
+            print(f"[Vast Manager Warning] Could not write {path.name}: {e}", file=sys.stderr)
 
     def run_cli(self, args: list[str]) -> str:
         """Run a command using the vastai CLI tool."""
@@ -129,7 +173,9 @@ class VastManager:
             os.environ["VAST_API_KEY"] = self.api_key
 
         try:
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            # stdin is closed so a command that unexpectedly prompts for confirmation
+            # fails fast instead of blocking the whole run forever.
+            res = subprocess.run(cmd, capture_output=True, text=True, check=True, stdin=subprocess.DEVNULL)
             return res.stdout.strip()
         except subprocess.CalledProcessError as e:
             err = e.stderr.strip() or e.stdout.strip()
@@ -186,12 +232,20 @@ class VastManager:
                 return []
         # Vast filters on `dph`, which excludes storage and bandwidth. `dph_total`
         # is the rate that actually gets billed, so enforce the ceiling on that too.
-        affordable = [offer for offer in offers if hourly_rate(offer) <= limit]
-        if len(affordable) != len(offers):
+        affordable = [
+            offer
+            for offer in offers
+            if hourly_rate(offer) <= limit and str(int(offer.get("machine_id") or 0)) not in self.bad_hosts
+        ]
+        priced_out = len(offers) - len([o for o in offers if hourly_rate(o) <= limit])
+        if priced_out:
             print(
-                f"[Vast Manager] Dropped {len(offers) - len(affordable)} {gpu_name} offer(s) priced above "
+                f"[Vast Manager] Dropped {priced_out} {gpu_name} offer(s) priced above "
                 f"the ${limit:.2f}/hr all-in ceiling."
             )
+        blocked = len([o for o in offers if hourly_rate(o) <= limit]) - len(affordable)
+        if blocked:
+            print(f"[Vast Manager] Skipped {blocked} {gpu_name} offer(s) on blacklisted machines.")
         affordable.sort(key=hourly_rate)
         return affordable
 
@@ -211,9 +265,12 @@ class VastManager:
         onstart_cmd: str | None = None,
         gpu_name: str = "RTX 4090",
         max_dph: float | None = None,
+        offer_rate: float | None = None,
     ) -> int:
         """Create a one-GPU Vast.ai instance of the requested model inside the budget."""
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
+        rate: float | None = None
+        explicit_offer = offer_id is not None
         if offer_id is None:
             offers = self.search_gpu(gpu_name, max_dph=limit, min_disk=disk_gb)
             if not offers:
@@ -222,18 +279,18 @@ class VastManager:
                 )
             best = offers[0]
             offer_id = int(best["id"])
+            rate = hourly_rate(best)
             print(
                 f"[Vast Manager] Selected cheapest {gpu_name} offer: {offer_id} "
-                f"({format_rate(hourly_rate(best))}, budget ${limit:.2f}/hr)"
+                f"({format_rate(rate)}, budget ${limit:.2f}/hr)"
             )
         else:
-            rate = self._offer_rate(offer_id)
-            if rate == float("inf"):
-                print(
-                    f"[Vast Manager Warning] Could not price offer {offer_id}; proceeding because "
-                    "it was requested explicitly.",
-                    file=sys.stderr,
-                )
+            rate = offer_rate
+            if rate is None:
+                # Vast's offer search has no `id=` field, and an offer already rented by
+                # this account disappears from results, so an explicit offer cannot be
+                # priced up front. The billed rate is verified once it exists instead.
+                print(f"[Vast Manager] Offer {offer_id} cannot be priced up front; verifying after creation...")
             elif rate > limit:
                 raise RuntimeError(
                     f"Offer {offer_id} costs ${rate:.3f}/hr, above the ${limit:.2f}/hr {gpu_name} budget."
@@ -261,20 +318,28 @@ class VastManager:
 
         raw = self.run_cli(args)
         res = json.loads(raw)
-        instance_id = res.get("new_contract") or res.get("id")
+        instance_id = int(res.get("new_contract") or res.get("id"))
         print(f"[Vast Manager] Instance created successfully. ID: {instance_id}")
-        return int(instance_id)
 
-    def _offer_rate(self, offer_id: int) -> float:
-        """Look up the all-in $/hr for a specific offer (inf when unavailable)."""
-        try:
-            offers = json.loads(self.run_cli(["search", "offers", f"id={offer_id}", "--raw"]))
-        except Exception:
-            return float("inf")
-        for offer in offers:
-            if int(offer.get("id", 0)) == int(offer_id):
-                return hourly_rate(offer)
-        return float("inf")
+        if explicit_offer and rate is None:
+            # Could not price the offer before renting, so check the billed rate now and
+            # undo the rental if it turns out to be over budget.
+            billed = hourly_rate(self.get_instance_info(instance_id))
+            if billed == float("inf"):
+                print(
+                    f"[Vast Manager Warning] Vast reported no price for instance {instance_id}; "
+                    f"could not verify it against the ${limit:.2f}/hr budget.",
+                    file=sys.stderr,
+                )
+            elif billed > limit:
+                self.destroy_instance(instance_id)
+                raise RuntimeError(
+                    f"Instance {instance_id} bills at ${billed:.3f}/hr, above the ${limit:.2f}/hr "
+                    f"{gpu_name} budget; it has been destroyed."
+                )
+            else:
+                print(f"[Vast Manager] Instance {instance_id} bills at ${billed:.3f}/hr (budget ${limit:.2f}/hr)")
+        return instance_id
 
     def provision_instance(
         self,
@@ -299,12 +364,18 @@ class VastManager:
         last_error: Exception | None = None
         for index, offer in enumerate(offers[:total], start=1):
             offer_id = int(offer["id"])
-            print(f"[Vast Manager] Attempt {index}/{total}: offer {offer_id} ({format_rate(hourly_rate(offer))})")
+            machine_id = offer.get("machine_id")
+            rate = hourly_rate(offer)
+            print(
+                f"[Vast Manager] Attempt {index}/{total}: offer {offer_id} "
+                f"({format_rate(rate)}, machine {machine_id})"
+            )
             instance_id = self.create_instance(
                 offer_id=offer_id,
                 disk_gb=disk_gb,
                 gpu_name=gpu_name,
                 max_dph=limit,
+                offer_rate=rate,
             )
             try:
                 return instance_id, self.wait_until_ready(instance_id)
@@ -316,6 +387,8 @@ class VastManager:
                     self.destroy_instance(instance_id)
                 except Exception as destroy_err:
                     print(f"[Vast Manager Warning] Could not destroy {instance_id}: {destroy_err}", file=sys.stderr)
+                if machine_id is not None:
+                    self.mark_bad_host(machine_id, str(error))
         raise RuntimeError(
             f"Could not rent a working {gpu_name} instance after {total} attempt(s): {last_error}"
         ) from last_error
@@ -359,6 +432,11 @@ class VastManager:
             if wanted not in gpu_name.replace(" ", ""):
                 continue
 
+            machine_key = str(int(inst.get("machine_id") or 0))
+            if machine_key in self.bad_hosts:
+                print(f"  Skipping instance {instance_id}: machine {machine_key} is blacklisted.")
+                continue
+
             if status in ("error", "offline") or "error response from daemon" in status_msg.lower():
                 print(f"  Instance {instance_id} ({gpu_name}) is unusable [{status or 'error'}]: {status_msg or 'no status message'}")
                 if destroy_broken:
@@ -396,7 +474,8 @@ class VastManager:
     def destroy_instance(self, instance_id: int) -> bool:
         """Permanently delete an instance and release its disk."""
         print(f"[Vast Manager] Destroying instance {instance_id}...")
-        self.run_cli(["destroy", "instance", str(instance_id)])
+        # -y is required: without it the CLI waits for a confirmation prompt.
+        self.run_cli(["destroy", "instance", str(instance_id), "-y"])
         return True
 
     def prune_instances(self, dry_run: bool = False) -> list[int]:
@@ -456,11 +535,33 @@ class VastManager:
             return f"http://{ip}:{mapping[0]['HostPort']}"
         return ""
 
-    def wait_until_ready(self, instance_id: int, timeout_sec: int = 1800) -> str:
-        """Wait until the inference server answers /health (setup takes 10-20 min)."""
-        print(f"[Vast Manager] Waiting for instance {instance_id} and its inference server...")
-        start_t, last_msg = time.time(), ""
-        while time.time() - start_t < timeout_sec:
+    def wait_until_ready(
+        self,
+        instance_id: int,
+        timeout_sec: int = 1800,
+        container_timeout_sec: int | None = None,
+    ) -> str:
+        """Wait until the inference server answers /health.
+
+        Two phases. The container must reach 'running' within `container_timeout_sec`
+        (a host that never pulls the image, or stalls with no disk allocated, is
+        treated as broken). The onstart script then has the rest of `timeout_sec`
+        to boot the inference server, which legitimately takes 10-20 min.
+        """
+        if container_timeout_sec is None:
+            container_timeout_sec = int(os.environ.get("VAST_CONTAINER_TIMEOUT", "600"))
+        print(
+            f"[Vast Manager] Waiting for instance {instance_id} and its inference server "
+            f"(container up to {container_timeout_sec}s, server up to {timeout_sec}s)..."
+        )
+        start_t, container_up_at, last_msg = time.time(), None, ""
+        while True:
+            elapsed = time.time() - start_t
+            if elapsed > timeout_sec:
+                raise TimeoutError(
+                    f"Instance {instance_id} not healthy after {timeout_sec}s. "
+                    "SSH in and run: tail -50 /workspace/onstart.log"
+                )
             info = self.get_instance_info(instance_id)
             status = info.get("actual_status") or ""
             status_msg = str(info.get("status_msg") or "")
@@ -470,8 +571,18 @@ class VastManager:
                 raise InstanceBroken(
                     f"instance {instance_id} failed to start [{status or 'error'}]: {status_msg or 'no status message'}"
                 )
+            if status == "running":
+                container_up_at = container_up_at or time.time()
+            elif container_up_at is None and elapsed > container_timeout_sec:
+                # Still created/loading with no container after the grace period, e.g.
+                # a host whose registry is unreachable and reports no error at all.
+                raise InstanceBroken(
+                    f"instance {instance_id} container never reached 'running' within "
+                    f"{container_timeout_sec}s (stuck at {status or 'unknown'!r}): "
+                    f"{status_msg or 'no status message'}"
+                )
             url = self._resolve_server_url(info) if status == "running" else ""
-            msg = f"status={status!r} url={url or 'port 8000 not mapped yet'}"
+            msg = f"status={status!r} url={url or 'port 8000 not mapped yet'} elapsed={int(elapsed)}s"
             if status_msg:
                 msg = f"{msg} msg={status_msg}"
             if msg != last_msg:
@@ -485,10 +596,6 @@ class VastManager:
                 except Exception as e:
                     print(f"[Vast Manager]   server not up yet: {type(e).__name__}")
             time.sleep(10)
-        raise TimeoutError(
-            f"Instance {instance_id} not healthy after {timeout_sec}s. "
-            "SSH in and run: tail -50 /workspace/onstart.log"
-        )
 
     def check_health(self, url: str | None = None) -> dict[str, Any]:
         """Query the remote /health endpoint."""
@@ -613,6 +720,55 @@ class VastManager:
             dur = float(res.get("audio_duration_sec", 0.0))
             return audio_bytes, dur
 
+    def synthesize_tts_batch(
+        self,
+        items: list[dict],
+        voice: str = "indicf5_aarav",
+        speed: float = 1.0,
+        url: str | None = None,
+        timeout: int = 3600,
+    ) -> dict[str, tuple[bytes, float]]:
+        """Synthesise many narration segments in one round trip.
+
+        A 10-minute script is hundreds of sentences, so per-sentence HTTP requests waste
+        the round-trip cost. Returns {item_id: (wav_bytes, duration_sec)}; items that
+        failed are omitted so the caller can retry them individually.
+        """
+        if not items:
+            return {}
+        target = (url or self.server_url or "").rstrip("/") + "/v1/audio/synthesize_batch"
+        payload = {"items": items, "voice": voice, "speed": speed}
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            target,
+            data=data,
+            headers={"Content-Type": "application/json", "User-Agent": "tube2dscript/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+        if res.get("status") != "success":
+            raise RuntimeError(f"Remote IndicF5 batch synthesis failed: {res.get('error')}")
+
+        out: dict[str, tuple[bytes, float]] = {}
+        errors: list[str] = []
+        for entry in res.get("results") or []:
+            if entry.get("error"):
+                errors.append(f"{entry.get('id')}: {entry['error']}")
+                continue
+            audio_b64 = entry.get("audio_base64")
+            if not audio_b64:
+                continue
+            out[str(entry.get("id"))] = (
+                base64.b64decode(audio_b64),
+                float(entry.get("audio_duration_sec", 0.0)),
+            )
+        if errors:
+            print(
+                f"[Vast Manager Warning] {len(errors)} batch segment(s) failed: {'; '.join(errors[:5])}",
+                file=sys.stderr,
+            )
+        return out
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Vast.ai GPU Cloud Manager")
@@ -634,6 +790,10 @@ def main() -> int:
     # Prune
     p_prune = subparsers.add_parser("prune", help="Destroy broken or over-budget instances")
     p_prune.add_argument("--dry-run", action="store_true", help="List what would be destroyed and exit")
+
+    # Hosts
+    p_hosts = subparsers.add_parser("hosts", help="Show or clear the blacklisted-machine list")
+    p_hosts.add_argument("--clear", action="store_true", help="Forget every blacklisted machine")
 
     # Start
     p_start = subparsers.add_parser("start", help="Start existing instance")
@@ -693,6 +853,23 @@ def main() -> int:
         removed = mgr.prune_instances(dry_run=args.dry_run)
         if removed:
             print(f"Destroyed {len(removed)} instance(s): {', '.join(map(str, removed))}")
+        return 0
+
+    elif args.action == "hosts":
+        if args.clear:
+            path = mgr._bad_hosts_path()
+            if path.is_file():
+                path.unlink()
+                print(f"Cleared {path.name}; previously blocked machines may be rented again.")
+            else:
+                print("No blacklist file to clear.")
+            return 0
+        if not mgr.bad_hosts:
+            print("No blacklisted machines.")
+            return 0
+        print(f"Blacklisted machines ({len(mgr.bad_hosts)}):")
+        for machine, reason in sorted(mgr.bad_hosts.items(), key=lambda kv: int(kv[0])):
+            print(f"  machine {machine}: {reason}")
         return 0
 
     elif args.action == "start":

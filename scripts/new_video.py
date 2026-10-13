@@ -93,6 +93,7 @@ def build_prompt(
     planned: dict,
     voice_style: str | None = None,
     genre_profile: beats.GenreProfile | None = None,
+    research: dict | None = None,
 ) -> str:
     """The instruction sent to a model when it writes the narration.
 
@@ -252,6 +253,36 @@ def build_prompt(
                 "   - High-payoff climax followed by a lingering psychological or emotional takeaway.",
                 "",
             ]
+
+    if research:
+        concepts = ((research.get("ai_synthesis") or {}).get("concepts")) or []
+        clusters = research.get("keywords") or {}
+        seo_tags = (research.get("ai_synthesis") or {}).get("seo_tags") or []
+        search_terms: list[str] = []
+        for key in ("youtube_trending", "questions_and_curiosity", "long_tail_keywords"):
+            for item in clusters.get(key) or []:
+                text = str(item).strip()
+                if text and text not in search_terms:
+                    search_terms.append(text)
+        if concepts or search_terms:
+            lines += [
+                "LIVE SEARCH-DEMAND RESEARCH (steer the story with this; never mention it on air):",
+            ]
+            for index, concept in enumerate(concepts[:3], start=1):
+                title = str(concept.get("title") or "").strip()
+                hook = str(concept.get("hook") or "").strip()
+                angle = str(concept.get("core_angle") or "").strip()
+                if title:
+                    lines.append(f"  {index}. {title}")
+                if hook:
+                    lines.append(f"     hook angle: {hook}")
+                if angle:
+                    lines.append(f"     core tension: {angle}")
+            if search_terms:
+                lines.append("  Search terms real viewers use: " + ", ".join(search_terms[:12]))
+            if seo_tags:
+                lines.append("  Echo these in the title and headlines: " + ", ".join(str(tag) for tag in seo_tags[:8]))
+            lines.append("")
 
     lines += [
         "MANDATORY NARRATIVE CONTINUITY & STORYTELLING RULES:",
@@ -848,6 +879,12 @@ def main() -> int:
         action="store_true",
         help="display live search keywords and viral video concepts for the topic, then exit without generating",
     )
+    parser.add_argument(
+        "--no-research",
+        dest="no_research",
+        action="store_true",
+        help="skip the live search-demand analysis and SEO research step",
+    )
     parser.add_argument("--minutes", type=float, default=1.0, help="target length in minutes (default 1.0)")
     parser.add_argument(
         "--seconds",
@@ -1205,6 +1242,18 @@ def main() -> int:
         help="direct URL of running Vast.ai GPU server (e.g. http://ip:8000)",
     )
     parser.add_argument(
+        "--vast-strict",
+        dest="vast_strict",
+        action="store_true",
+        help="abort if the Vast.ai GPU cannot be rented (default: fall back to local IndicF5)",
+    )
+    parser.add_argument(
+        "--no-vast",
+        dest="no_vast",
+        action="store_true",
+        help="never rent a GPU; run IndicF5 narration locally on the CPU",
+    )
+    parser.add_argument(
         "--vast-autostop",
         dest="vast_autostop",
         action="store_true",
@@ -1226,6 +1275,8 @@ def main() -> int:
 
     if args.visual_mode == "video" and args.no_images:
         parser.error("--no-images cannot be used with video generation.")
+    if getattr(args, "no_vast", False) and args.visual_mode == "video":
+        parser.error("--no-vast cannot be used with --visual-mode video (video clips are GPU-generated).")
     if args.visual_mode == "video" and (
         args.image_provider
         or args.image_model
@@ -1276,6 +1327,7 @@ def main() -> int:
         return 0
 
     # Auto Keyword & Topic Discovery Flow
+    research_report = None
     if args.auto_topic is not None or (args.topic and args.research_only):
         raw_seed = args.topic if (args.topic and args.research_only) else (args.auto_topic if (args.auto_topic and args.auto_topic != "auto") else None)
         res_genre = args.genre or (beats.detect_genre(raw_seed).key if raw_seed else "horror")
@@ -1286,9 +1338,10 @@ def main() -> int:
             genre=res_genre,
             format_type=args.video_format or "reel",
             lang=args.language or "hindi",
-            model=args.model or "omniroute",
+            model=args.model,
         )
         print(research.format_research_report(res_report))
+        research_report = res_report
 
         if args.research_only:
             return 0
@@ -1315,6 +1368,27 @@ def main() -> int:
     # Determine genre profile early for speed & wpm calculations
     target_genre = args.genre or beats.detect_genre(args.topic).key
     gp = beats.get_genre(target_genre)
+
+    # ---- analysis + SEO research ------------------------------------------
+    # Runs by default so one command covers trend analysis and SEO, not just writing.
+    # Best effort: a missing LLM key or an offline network never blocks the run.
+    if research_report is None and not getattr(args, "no_research", False):
+        try:
+            print(f"\n[RESEARCH ENGINE] Analysing live search demand for '{args.topic}'...")
+            target_sec_guess = args.seconds or (args.minutes * 60.0)
+            research_report = research.research_viral_angles(
+                seed=args.topic,
+                genre=target_genre,
+                format_type=args.video_format or ("reel" if target_sec_guess <= 90.0 else "long-form"),
+                lang=args.language or "hindi",
+                # Passing None lets call_llm auto-detect the provider, which prefers the
+                # direct keys (DeepSeek, Fireworks, ...) over a local OmniRoute proxy.
+                model=args.model,
+            )
+            print(research.format_research_report(research_report))
+        except Exception as research_err:
+            print(f"note: research skipped ({research_err})", file=sys.stderr)
+            research_report = None
 
     # Resolve primary voice (resolves aliases, blends, or genre/language fallback)
     from tts import resolve_voice
@@ -1401,6 +1475,7 @@ def main() -> int:
         planned,
         voice_style=args.tone or gp.tone,
         genre_profile=gp,
+        research=research_report,
     )
 
     if args.show_prompt:
@@ -1553,19 +1628,36 @@ def main() -> int:
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
     
-    # Only use Vast if explicitly requested, or if video mode requires it,
-    # or if IndicF5 is requested AND we are not forcing local-only audio.
-    # The user can now opt-out of Vast for images by setting IMAGE_PROVIDER=local
-    # and NOT passing --vast.
-    needs_vast = (
+    # A GPU is rented when the visuals need one (video mode, or Vast images), or when an
+    # IndicF5 voice is selected: picking IndicF5 *is* the request for GPU narration.
+    # --no-vast keeps everything local on the CPU.
+    no_vast = getattr(args, "no_vast", False)
+    needs_vast = not no_vast and (
         args.visual_mode == "video"
         or args.vast
         or args.vast_instance is not None
         or args.vast_url is not None
-        or (audio_model == "indicf5" and (args.vast or args.vast_instance or args.vast_url))
         or (not args.no_images and detected_image_provider == "vast")
+        or audio_model == "indicf5"
     )
-    
+    # Visuals that cannot be produced without the GPU must fail loudly; narration has a
+    # slow local CPU path and so degrades instead.
+    vast_required_early = not no_vast and (
+        args.visual_mode == "video" or (not args.no_images and detected_image_provider == "vast")
+    )
+    auto_rented_for_audio = (
+        needs_vast
+        and audio_model == "indicf5"
+        and not vast_required_early
+        and not args.vast
+        and args.vast_instance is None
+        and args.vast_url is None
+    )
+
+    if no_vast and not args.no_images and detected_image_provider == "vast":
+        print("  error: --no-vast cannot be combined with IMAGE_PROVIDER=vast.", file=sys.stderr)
+        return 1
+
     if args.visual_mode == "video":
         expected_gpu = "RTX 4090"
     else:
@@ -1580,25 +1672,35 @@ def main() -> int:
             except Exception as stop_err:
                 print(f"  [Vast Manager Warning] Failed to stop instance {vast_instance_id}: {stop_err}", file=sys.stderr)
 
-    if needs_vast:
+    def start_vast() -> bool:
+        """Rent or connect to a GPU once. Returns True when an inference server is ready.
+
+        Idempotent: a second call after a successful first one is a no-op, which lets the
+        rental be deferred to whichever step actually needs the GPU.
+        """
+        nonlocal vast_mgr, vast_instance_id
+        if not needs_vast:
+            return False
+        if vast_mgr is not None and os.environ.get("VAST_SERVER_URL"):
+            return True
         print()
         print("=" * 74)
         print(f"VAST.AI CLOUD GPU INITIALIZATION ({expected_gpu} 24GB)")
         print("=" * 74)
+        if auto_rented_for_audio:
+            print("  (IndicF5 narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
         try:
             from vast_manager import VastManager
             vast_mgr = VastManager()
             if getattr(args, "vast_url", None):
                 server_url = args.vast_url
                 vast_mgr.server_url = server_url.rstrip("/")
-                os.environ["VAST_SERVER_URL"] = server_url
                 print(f"  Connected to provided Vast server: {server_url}")
             elif getattr(args, "vast_instance", None):
                 vast_instance_id = args.vast_instance
                 print(f"  Starting existing Vast instance {vast_instance_id}...")
                 vast_mgr.start_instance(vast_instance_id)
                 server_url = vast_mgr.wait_until_ready(vast_instance_id)
-                os.environ["VAST_SERVER_URL"] = server_url
             else:
                 # Reuse an already-rented instance of the right GPU before paying for a
                 # new one. Broken instances (bad host / failed image pull) are destroyed
@@ -1610,20 +1712,30 @@ def main() -> int:
                         print(f"  Found existing Vast instance {vast_instance_id}. Starting it...")
                         vast_mgr.start_instance(vast_instance_id)
                     server_url = vast_mgr.wait_until_ready(vast_instance_id)
-                    os.environ["VAST_SERVER_URL"] = server_url
                 else:
                     # Nothing reusable: rent the cheapest in-budget GPU, moving to the
                     # next offer if a host cannot pull the image.
                     print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
                     vast_instance_id, server_url = vast_mgr.provision_instance(gpu_name=expected_gpu, disk_gb=50)
-                    os.environ["VAST_SERVER_URL"] = server_url
             health = vast_mgr.require_gpu(expected_gpu, server_url)
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
+            os.environ["VAST_SERVER_URL"] = server_url
             os.environ["USE_VAST"] = "1"
+            return True
         except Exception as vast_init_err:
-            print(f"  [Vast Manager Error] Failed to initialize the required Vast GPU: {vast_init_err}", file=sys.stderr)
+            print(f"  [Vast Manager Error] Failed to initialize the Vast GPU: {vast_init_err}", file=sys.stderr)
             stop_vast_instance()
-            return 1
+            vast_mgr = None
+            vast_instance_id = None
+            os.environ.pop("VAST_SERVER_URL", None)
+            os.environ.pop("USE_VAST", None)
+            return False
+
+    # Rent before the visuals only when the visuals themselves need the GPU. With local
+    # images the rental is deferred to the narration step, so the instance never bills
+    # while the CPU grinds through the image set.
+    if vast_required_early and not start_vast():
+        return 1
 
     # ---- generate exactly one visual type --------------------------------
     # Priority: explicit CLI flag > IMAGE_PROVIDER env > mode defaults.
@@ -1686,13 +1798,41 @@ def main() -> int:
     tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
     if not args.dynamic_speed:
         tts_cmd.append("--flat-speed")
+
+    # Narration is the only remaining reason to hold a GPU at this point.
+    if needs_vast and not start_vast():
+        if getattr(args, "vast_strict", False):
+            print(
+                "  [Vast Manager Error] --vast-strict is set; aborting instead of falling back to local synthesis.",
+                file=sys.stderr,
+            )
+            return 1
+        if audio_model == "indicf5":
+            print(
+                "  Continuing without Vast.ai: IndicF5 narration will run locally on the CPU\n"
+                "  (much slower). Pass --vast-strict to abort instead.",
+                file=sys.stderr,
+            )
+        else:
+            print("  Continuing without Vast.ai; narration runs locally with Kokoro.", file=sys.stderr)
+
+    vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
     if audio_model == "indicf5":
-        tts_cmd.append("--vast")
-        if os.environ.get("VAST_SERVER_URL"):
-            tts_cmd.extend(["--vast-url", os.environ["VAST_SERVER_URL"]])
-        tts_cmd.append("--require-vast")
+        if vast_server:
+            tts_cmd.extend(["--vast", "--vast-url", vast_server])
+            if getattr(args, "vast_strict", False):
+                tts_cmd.append("--require-vast")
+        else:
+            print(
+                "  [IndicF5] No Vast.ai server available; synthesising locally on the CPU (slow).",
+                file=sys.stderr,
+            )
+    if audio_model == "indicf5":
+        tts_label = "IndicF5 on Vast.ai" if vast_server else "IndicF5 (local CPU)"
+    else:
+        tts_label = "Kokoro"
     tts_succeeded = run_step(
-        f"narration and lip sync ({'IndicF5 on Vast.ai' if audio_model == 'indicf5' else 'Kokoro'} + Rhubarb)",
+        f"narration and lip sync ({tts_label} + Rhubarb)",
         tts_cmd,
     )
 

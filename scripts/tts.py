@@ -1059,6 +1059,12 @@ def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndar
 
     try:
         norm_text = normalize_hindi_phonetics(text)
+        # Served from the one-shot Vast.ai batch pre-fetch when it already produced this
+        # exact (text, voice, speed) segment.
+        cache_key = (norm_text, voice_key.lower(), round(speed, 3))
+        cached = _VAST_AUDIO_CACHE.get(cache_key)
+        if cached is not None:
+            return cached  # type: ignore[return-value]
         if not is_devanagari(norm_text):
             print(
                 f"[IndicF5 TTS Notice] Input text is in Roman script. IndicF5 is trained on native Devanagari script. "
@@ -1081,6 +1087,7 @@ def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndar
                     speed=speed,
                 )
                 wav_np, sr = sf.read(io.BytesIO(audio_bytes), dtype="float32")
+                _VAST_AUDIO_CACHE[cache_key] = wav_np
                 return wav_np
             except Exception as vast_err:
                 if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
@@ -1603,6 +1610,133 @@ def phoneme_weight(phonemes: str) -> float:
 # --------------------------------------------------------------------------
 
 
+# Narration text already returned by a remote Vast.ai batch call, keyed by
+# (spoken text, voice, speed). Filled by prebuild_vast_batch() and consumed by
+# synthesize_indicf5(), so the per-sentence path costs nothing extra.
+_VAST_AUDIO_CACHE: dict[tuple[str, str, float], object] = {}
+
+
+def prepare_tts_text(text: str) -> str:
+    """Normalise text exactly the way every engine receives it before synthesis.
+
+    Shared by ``Voice.say`` and the Vast.ai batch pre-fetch so their cache keys agree.
+    """
+    clean_text = re.sub(r"[,;:—–\-\"'\(\)\[\]\{\}…]+", " ", text)
+    clean_text = " ".join(clean_text.split())
+    if not clean_text:
+        clean_text = text
+    # Conversational Hindi phonetics (e.g. 'वह' -> 'वो', numbers to Hindi words)
+    return normalize_hindi_phonetics(clean_text)
+
+
+def prepare_remote_text(sentence: str) -> str:
+    """Exactly the string the remote IndicF5 endpoint is asked to speak."""
+    return normalize_hindi_phonetics(prepare_tts_text(sentence))
+
+
+def line_voice_and_speed(
+    scene: dict,
+    line: dict,
+    characters: dict,
+    voice_default: str,
+    base_speed: float,
+    dynamic: bool,
+) -> tuple[str, float, dict]:
+    """Resolve the voice, speaking rate, and character record for one narration line.
+
+    Shared by the synthesis loop and the Vast.ai batch pre-fetch so a pre-built cache
+    key always matches the request the loop would otherwise have made.
+    """
+    character_id = line.get("character")
+    character = (characters.get(character_id) or {}) if character_id else {}
+    line_raw_voice = line.get("voice") or character.get("voice") or scene.get("voice") or voice_default
+    voice = resolve_voice(line_raw_voice)
+
+    base = float(character.get("speed") or scene.get("speed") or base_speed)
+    if not dynamic:
+        return voice, base, character
+
+    beat_name = str(scene.get("beat") or scene.get("movement") or "").lower()
+    scene_emotion = str(
+        scene.get("emotion") or (scene.get("cast") and scene["cast"][0].get("emotion")) or ""
+    ).lower()
+    beat_factor = BEAT_SPEED_MULTIPLIERS.get(beat_name, 1.0)
+    emotion_factor = EMOTION_SPEED_MULTIPLIERS.get(scene_emotion, 1.0)
+    # Combine base multiplier with emotional inflection (bounded between 0.6x and 1.8x)
+    return voice, round(max(0.6, min(1.8, base * beat_factor * emotion_factor)), 3), character
+
+
+def prebuild_vast_batch(
+    scenes: list[dict],
+    characters: dict,
+    voice_default: str,
+    base_speed: float,
+    dynamic_speed: bool,
+) -> int:
+    """Synthesise every narration sentence in one Vast.ai round trip.
+
+    Returns the number of segments cached. Best effort: any failure leaves the cache
+    empty and the normal per-sentence path still runs.
+    """
+    vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+    if not vast_url:
+        return 0
+
+    # (voice, speed) -> ordered unique sentences
+    requests: dict[tuple[str, float], list[str]] = {}
+    for scene in scenes:
+        for line in scene.get("lines") or []:
+            text = " ".join(str(line.get("text") or "").split())
+            if not text:
+                continue
+            voice, line_speed, _character = line_voice_and_speed(
+                scene, line, characters, voice_default, base_speed, dynamic_speed
+            )
+            primary = resolve_voice(voice).split(",")[0].strip()
+            bucket = requests.setdefault((primary, round(line_speed, 3)), [])
+            for sentence in split_sentences(text):
+                remote_text = prepare_remote_text(sentence)
+                if remote_text.strip() and remote_text not in bucket:
+                    bucket.append(remote_text)
+
+    if not requests:
+        return 0
+
+    from vast_manager import VastManager
+
+    manager = VastManager(server_url=vast_url)
+    cached_count = 0
+    for (primary, line_speed), sentences in requests.items():
+        print(f"[IndicF5 Vast Batch] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
+        items = [{"id": str(index), "text": sentence} for index, sentence in enumerate(sentences)]
+        try:
+            results = manager.synthesize_tts_batch(items, voice=primary, speed=line_speed)
+        except Exception as err:  # noqa: BLE001 - fall back to per-sentence requests
+            print(
+                f"[IndicF5 Vast Batch Warning] batch request failed ({err}); "
+                "falling back to per-sentence requests.",
+                file=sys.stderr,
+            )
+            continue
+
+        import io as _io
+        import soundfile as sf
+
+        for index, sentence in enumerate(sentences):
+            entry = results.get(str(index))
+            if not entry:
+                continue
+            wav_bytes, _duration = entry
+            try:
+                wav_np, _sr = sf.read(_io.BytesIO(wav_bytes), dtype="float32")
+            except Exception:
+                continue
+            _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
+            cached_count += 1
+        print(f"[IndicF5 Vast Batch] cached {cached_count} segment(s) so far")
+    return cached_count
+
+
 class Voice:
     """Wraps the Kokoro pipeline, loading one per language code."""
 
@@ -1627,14 +1761,9 @@ class Voice:
         """
         import numpy as np
 
-        # Strip internal pauses caused by minor punctuation (commas, colons, semicolons, em-dashes, quotes, ellipses)
-        clean_text = re.sub(r"[,;:—–\-\"'\(\)\[\]\{\}…]+", " ", text)
-        clean_text = " ".join(clean_text.split())
-        if not clean_text:
-            clean_text = text
-
-        # Conversational Hindi phonetic normalization (e.g. 'वह' -> 'वो', 'यह' -> 'ये', numbers to Hindi)
-        clean_text = normalize_hindi_phonetics(clean_text)
+        # Strip internal pauses caused by minor punctuation and apply conversational Hindi
+        # phonetics. Shared with the Vast.ai batch pre-fetch so both derive identical text.
+        clean_text = prepare_tts_text(text)
 
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
@@ -2097,6 +2226,9 @@ def main() -> int:
     parser.add_argument("--vast", action="store_true", help="use remote Vast.ai GPU instance for IndicF5 synthesis")
     parser.add_argument("--vast-url", type=str, default=None, help="Vast.ai server URL (e.g. http://ip:port)")
     parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 synthesis fails")
+    parser.add_argument("--no-vast-batch", action="store_true", help="skip the one-shot bulk Vast.ai narration pre-fetch")
+    parser.add_argument("--vast-batch", dest="no_vast_batch", action="store_false", help="(default) pre-fetch all narration in one Vast.ai round trip")
+    parser.set_defaults(no_vast_batch=False)
     args = parser.parse_args()
 
     if args.vast:
@@ -2208,6 +2340,21 @@ def main() -> int:
 
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     engine = Voice()
+
+    # One bulk round trip for the whole narration when a remote GPU is available; the
+    # per-sentence path below then reads those segments from memory.
+    if os.environ.get("VAST_SERVER_URL", "").strip() and not args.no_vast_batch:
+        try:
+            batch_cached = prebuild_vast_batch(scenes, characters, voice_default, speed, args.dynamic_speed)
+            if batch_cached:
+                print(f"[IndicF5 Vast Batch] {batch_cached} segment(s) ready from the GPU")
+        except Exception as batch_err:  # noqa: BLE001 - never block synthesis on the pre-fetch
+            print(
+                f"[IndicF5 Vast Batch Warning] pre-fetch failed ({batch_err}); "
+                "using per-sentence requests.",
+                file=sys.stderr,
+            )
+
     timeline_scenes: list[dict] = []
     cursor = 0.0
     total_words = 0
@@ -2227,22 +2374,9 @@ def main() -> int:
 
             character_id = line.get("character")
             character = (characters.get(character_id) or {}) if character_id else {}
-            line_raw_voice = line.get("voice") or character.get("voice") or scene.get("voice") or voice_default
-            voice = resolve_voice(line_raw_voice)
-
-            # Dynamic Humanized Speed & Emotion Tone Calculation
-            base_speed = float(character.get("speed") or scene.get("speed") or speed)
-            if args.dynamic_speed:
-                beat_name = str(scene.get("beat") or scene.get("movement") or "").lower()
-                scene_emotion = str(scene.get("emotion") or (scene.get("cast") and scene["cast"][0].get("emotion")) or "").lower()
-                
-                beat_factor = BEAT_SPEED_MULTIPLIERS.get(beat_name, 1.0)
-                emotion_factor = EMOTION_SPEED_MULTIPLIERS.get(scene_emotion, 1.0)
-                
-                # Combine base multiplier with emotional inflection (bounded between 0.6x and 1.8x)
-                line_speed = round(max(0.6, min(1.8, base_speed * beat_factor * emotion_factor)), 3)
-            else:
-                line_speed = base_speed
+            voice, line_speed, character = line_voice_and_speed(
+                scene, line, characters, voice_default, speed, args.dynamic_speed
+            )
 
             suffix = f"-{line_index + 1}" if len(scene["lines"]) > 1 else ""
             audio_path = AUDIO_DIR / f"{scene['id']}{suffix}.wav"

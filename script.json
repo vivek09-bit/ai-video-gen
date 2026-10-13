@@ -1,5 +1,5 @@
 {
-  "title": "चीन का वो मंदिर जिसे बनाने वाले गायब हो गए — चार हज़ार साल पुराना रहस्य",
+  "title": "चीन का 4000 साल पुराना ऐसा रहस्य जो आज तक कोई नहीं सुलझा पाया",
   "topic": "4000 saal purani china ki kahani",
   "language": "hi",
   "genre": "ancient_history",
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: aerial drone shot of flooded Chinese valley,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient Chinese bronze mask, museum spotlight, dark, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -78,7 +78,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: aerial drone shot of flooded Chinese valley,, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient Chinese bronze mask, museum spotlight, dark, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -123,10 +123,10 @@
       "lines": [
         {
           "character": null,
-          "text": "साल दो हज़ार उन्नीस की बात है। चीन के झेजियांग प्रांत में एक झील है, क्वियांदाओ लेक। और उस झील के नीचे, पानी की सतह से चालीस मीटर नीचे, एक ऐसा शहर सोया हुआ है, जिसे देखकर आज के इंजीनियर भी सिर पकड़ लेते हैं। गांव के लोग इसे शापित शहर कहते हैं। कहते हैं कि जब पानी घटता है, तब भी नीचे की मूर्तियाँ सीधे आसमान की तरफ देखती हैं। गाइड जब टूरिस्टों को नाव पर ले जाता है, तो पानी के नीचे चमकते हुए पत्थर के शेर, ड्रैगन, और तैंतीस मीटर ऊँचे दरवाज़े दिखाई देते हैं। लेकिन हैरानी की बात ये है कि ये शहर किसी बाढ़ में नहीं डूबा। इसे जान-बूझकर पानी में डुबोया गया था। और जिसने इसे बनाया, उसका नाम तक इतिहास के पन्नों से मिटा दिया गया। तो चलिए, आज आपको उस शहर की कहानी सुनाता हूँ, जो चार हज़ार साल पहले बना था, और आज भी पानी के अंदर अपने रहस्य की रक्षा कर रहा है।"
+          "text": "साल दो हज़ार बाईस, चीन के सिचुआन प्रांत में एक खुदाई चल रही थी, और अचानक मजदूरों के हाथों में एक ऐसी चीज़ लगी जिसने पूरी दुनिया के पुरातत्व वैज्ञानिकों के होश उड़ा दिए। सोने की चमकती हुई एक मुखौटा, यानी मास्क, जिसकी आँखें बिल्कुल ज़िंदा इंसान जैसी लग रही थीं। लेकिन यहाँ असली सवाल ये नहीं था कि ये मास्क किसने बनाया, असली सवाल ये था कि चार हज़ार साल पहले, जब ना बिजली थी, ना लोहा, ना कोई आधुनिक औज़ार, तब इंसान ने इस मास्क को इतनी बारीकी से कैसे बनाया। और सबसे हैरानी की बात ये है कि जब वैज्ञानिकों ने इस मास्क को लैब में टेस्ट किया, तो पता चला कि इसमें इस्तेमाल हुआ सोना, आज के सोने से भी ज़्यादा शुद्ध था। नब्बे प्रतिशत से भी ऊपर। ये सुनकर आप सोच रहे होंगे कि ये तो बस एक मास्क है, तो इसमें ऐसा क्या है जो चार हज़ार साल से दुनिया से छिपा हुआ था। लेकिन दोस्तों, ये सिर्फ़ शुरुआत है। क्योंकि जो चीज़ इस मास्क के साथ मिली, वो आज तक की सबसे बड़ी पहेली बनी हुई है।"
         }
       ],
-      "visualKeywords": "aerial drone shot of flooded Chinese valley, submerged stone temple under green water"
+      "visualKeywords": "ancient Chinese bronze mask, museum spotlight, dark background, macro detail"
     }
   ],
   "audioModel": "indicf5",
