@@ -83,17 +83,25 @@ class VastManager:
             return custom
         repository = os.environ.get("VAST_SERVER_REPO_URL", "https://github.com/vivek09-bit/ai-video-gen.git")
         branch = os.environ.get("VAST_SERVER_GIT_REF", "main")
+        # Use a token-authenticated URL if VAST_GITHUB_TOKEN is set (needed for private repos).
+        token_repo = os.environ.get("VAST_GITHUB_TOKEN")
+        if token_repo:
+            repo_url = f"https://x-access-token:{token_repo}@github.com/vivek09-bit/ai-video-gen.git"
+        else:
+            repo_url = repository
         return (
             "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; "
             "cd /workspace; "
-            "apt-get update && apt-get install -y git ffmpeg libsndfile1; "
+            "apt-get update && apt-get install -y git ffmpeg libsndfile1 || true; "
             f"[ -d tube2dscript ] || git clone --depth 1 --branch {shlex.quote(branch)} "
-            f"{shlex.quote(repository)} tube2dscript; "
+            f"{shlex.quote(repo_url)} tube2dscript || true; "
             "cd /workspace/tube2dscript; "
             "python -m pip install --upgrade 'diffusers>=0.33' accelerate transformers "
             "sentencepiece protobuf imageio imageio-ffmpeg soundfile f5-tts cached-path "
-            "vocos safetensors huggingface_hub; "
-            "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 &"
+            "vocos safetensors huggingface_hub || true; "
+            "echo 'starting server at $(hostname -i):8000'; "
+            "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 & "
+            "sleep 3; tail -20 /workspace/server.log"
         )
     
 

@@ -1,6 +1,6 @@
 {
-  "title": "सिनौली का प्राचीन रहस्य: महाभारत कालीन इंजीनियरिंग का सच",
-  "topic": "सिनौली के 4000 साल पुराने महाभारत कालीन युद्ध Sanauli Excavation Mystery",
+  "title": "सनौली का अनसुलझा रहस्य",
+  "topic": " 4000 साल पुराने महाभारत कालीन युद्ध Sanauli Excavation Mystery",
   "language": "hi",
   "genre": "ancient_history",
   "visualStyle": null,
@@ -32,15 +32,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "amber_ember",
-    "name": "Amber Ember",
-    "accent": "#f97316",
-    "text": "#fff7ed",
-    "muted": "#fdba74",
-    "panel": "rgba(35, 18, 10, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0a0502"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Archaeological excavation site, dusty ground, ancient artifacts,, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Excavation site, dusty fields, metal detector, iron, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -78,7 +78,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Archaeological excavation site, dusty ground, ancient artifacts,, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Excavation site, dusty fields, metal detector, iron, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -95,7 +95,7 @@
         }
       ],
       "ambience": {
-        "src": "amb_quarry_echo",
+        "src": "amb_temple",
         "volume": 0.15
       },
       "soundCues": [
@@ -107,7 +107,7 @@
       ],
       "background": {
         "type": "color",
-        "color": "#0a0502"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -123,370 +123,10 @@
       "lines": [
         {
           "character": null,
-          "text": "उत्तर प्रदेश के सिनौली में जब खुदाई शुरू हुई, तो पुरातत्व विभाग हैरान रह गया। वहां मिली चार हज़ार साल पुरानी कब्रें और पीतल के शानदार रथ। यह सिर्फ एक खोज नहीं, बल्कि ऐसी इंजीनियरिंग का सबूत है जिसे देखकर आज के मॉडर्न वैज्ञानिक भी पूरी तरह दंग रह गए हैं।"
+          "text": "कल्पना कीजिए कि एक किसान अपने खेत को खोद रहा है और अचानक उसका फावड़ा किसी ऐसी धातु से टकराता है, जो वहाँ होनी ही नहीं चाहिए थी। उत्तर प्रदेश के सनौली गांव में ठीक यही हुआ था। जब सरकारी टीम ने खुदाई शुरू की, तो जो बाहर निकला, उसने पूरी दुनिया के आर्कियोलॉजिस्ट्स के होश उड़ा दिए। चार हजार साल पुरानी एक ऐसी युद्ध वाली गाड़ी, यानी रथ, जिसे देख कर आज के मॉडर्न इंजीनियर्स भी अपनी आंखों पर यकीन नहीं कर पा रहे हैं।"
         }
       ],
-      "visualKeywords": "Archaeological excavation site, dusty ground, ancient artifacts, sunlight, drone shot"
-    },
-    {
-      "id": "scene-002",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-002.png",
-            "kenBurns": "out",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Bronze chariot wheel, intricate metal carving, ancient, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.78,
-            "grain": 0.28,
-            "dust": 0.32,
-            "zoom": 0.03,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-002.png",
-            "kenBurns": "left",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Bronze chariot wheel, intricate metal carving, ancient, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.78,
-            "grain": 0.28,
-            "dust": 0.32,
-            "zoom": 0.03,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": {
-        "src": "amb_drone",
-        "volume": 0.18
-      },
-      "soundCues": [
-        {
-          "at": 0.15,
-          "sfx": "sfx_ancient_mechanism",
-          "volume": 0.19
-        }
-      ],
-      "background": {
-        "type": "color",
-        "color": "#0a0502"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.44,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "ये रथ साधारण नहीं थे। इनकी बनावट और तकनीक इतनी एडवांस थी कि मानो किसी मॉडर्न फैक्ट्री में तैयार हों। लकड़ी के ढांचे पर तांबे की बारीक नक्काशी और पहियों का वो सटीक बैलेंस, आज की इंजीनियरिंग को सीधी चुनौती है। आखिर उस दौर में यह सब कैसे मुमकिन था।"
-        }
-      ],
-      "visualKeywords": "Bronze chariot wheel, intricate metal carving, ancient bronze artifacts, close-up detail"
-    },
-    {
-      "id": "scene-003",
-      "beat": "approach",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-003.png",
-            "kenBurns": "left",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Historical site, burial ground, skeletal remains, digital, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.25,
-            "dust": 0.28,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-003.png",
-            "kenBurns": "right",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Historical site, burial ground, skeletal remains, digital, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.25,
-            "dust": 0.28,
-            "zoom": 0.035,
-            "drift": "in",
-            "shake": 0.2
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": {
-        "src": "amb_ancient_sanctum",
-        "volume": 0.19
-      },
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0a0502"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.65,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "जैसे-जैसे खुदाई बढ़ी, रहस्य गहराता गया। क्या ये वही महाभारत काल के निशान हैं जिनका जिक्र हमारे ग्रंथों में मिलता है? सिनौली की ये साइट साबित करती है कि भारत के पास चार हज़ार साल पहले वो तकनीक थी, जिसे समझने के लिए आज भी भारी रिसर्च की जरूरत है।"
-        }
-      ],
-      "visualKeywords": "Historical site, burial ground, skeletal remains, digital map animation"
-    },
-    {
-      "id": "scene-004",
-      "beat": "reveal",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-004.png",
-            "kenBurns": "right",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: futuristic scientist laboratory research graceful queen royal, featuring candle, glowing magical radiance, house, lit window warm illumination, reveal scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.3,
-            "dust": 0.25,
-            "shake": 0.12,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-004.png",
-            "kenBurns": "in",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: futuristic scientist laboratory research graceful queen royal, featuring candle, glowing magical radiance, house, lit window warm illumination, reveal scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.3,
-            "dust": 0.25,
-            "shake": 0.12,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        },
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-004.png",
-            "kenBurns": "out",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: futuristic scientist laboratory research graceful queen royal, featuring candle, glowing magical radiance, house, lit window warm illumination, reveal scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.3,
-            "dust": 0.25,
-            "shake": 0.39,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": {
-        "src": "amb_tension",
-        "volume": 0.25
-      },
-      "soundCues": [
-        {
-          "at": 0.15,
-          "sfx": "sfx_cinematic_hit",
-          "volume": 0.24
-        },
-        {
-          "at": 13.56,
-          "sfx": "sfx_mystic_reveal",
-          "volume": 0.24
-        }
-      ],
-      "background": {
-        "type": "color",
-        "color": "#0a0502"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.96,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "हैरानी की बात है कि आधुनिक इंजीनियर इन रथों के डिजाइन को कॉपी नहीं कर पा रहे हैं। उनके जोड़ और धातु की शुद्धता किसी बड़ी मिस्ट्री से कम नहीं है। ऐसा लगता है कि हम अपनी ही पुरानी विरासत को एक नए नज़रिए से देखने में अब तक नाकाम रहे हैं।"
-        }
-      ],
-      "visualKeywords": "Modern engineers, blueprints, puzzled scientists, ancient artifact, lab equipment"
-    },
-    {
-      "id": "scene-005",
-      "beat": "react",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-005.png",
-            "kenBurns": "in",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Sunset over excavation site, ancient artifacts, philosophical, featuring fog, glowing magical radiance, house, lit window warm illumination, react scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.22,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "image",
-            "src": "images/scene-005.png",
-            "kenBurns": "out",
-            "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: Sunset over excavation site, ancient artifacts, philosophical, featuring fog, glowing magical radiance, house, lit window warm illumination, react scene, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.22,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": {
-        "src": "amb_temple",
-        "volume": 0.16
-      },
-      "soundCues": [
-        {
-          "at": 0.15,
-          "sfx": "sfx_bell",
-          "volume": 0.16
-        }
-      ],
-      "background": {
-        "type": "color",
-        "color": "#0a0502"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.56,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "सिनौली सिर्फ मिट्टी का ढेर नहीं, हमारे गौरवशाली अतीत का जिंदा सबूत है। आज जब हम इस रहस्य को सुलझाने की कोशिश कर रहे हैं, तो असल में हम खुद को खोज रहे हैं। क्या हम कभी उस खोई हुई तकनीक को दोबारा हासिल कर पाएंगे? यह सवाल आज भी अनसुलझा है।"
-        }
-      ],
-      "visualKeywords": "Sunset over excavation site, ancient artifacts, philosophical reflection, final wide shot"
+      "visualKeywords": "Excavation site, dusty fields, metal detector, iron chariot wheel"
     }
   ],
   "audioModel": "indicf5",

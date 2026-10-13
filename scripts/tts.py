@@ -1069,7 +1069,7 @@ def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndar
         # Check if Vast.ai remote GPU is configured
         vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
         use_vast = os.environ.get("USE_VAST", "0") == "1" or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
-        if use_vast or vast_url:
+        if (use_vast or vast_url) and vast_url:
             try:
                 from vast_manager import VastManager
                 import io
@@ -1086,6 +1086,8 @@ def synthesize_indicf5(text: str, voice_key: str, speed: float = 1.0) -> np.ndar
                 if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
                     raise RuntimeError(f"Required Vast.ai IndicF5 synthesis failed: {vast_err}") from vast_err
                 print(f"[IndicF5 Remote Vast Warning] Remote Vast.ai synthesis failed ({vast_err}), falling back to local...", file=sys.stderr)
+        elif use_vast and not vast_url:
+            print("[IndicF5 TTS Warning] Vast.ai requested but VAST_SERVER_URL is empty, falling back to local...", file=sys.stderr)
 
         ref_wav = ROOT / vinfo["prompt_wav"]
         ref_txt = ROOT / vinfo["prompt_text"]
