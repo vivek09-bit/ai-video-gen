@@ -1,123 +1,123 @@
 1
-00:00:00,000 --> 00:00:01,232
-raat ke thik do baje,
+00:00:00,000 --> 00:00:01,478
+raat ke thik tin baje,
 
 2
-00:00:01,232 --> 00:00:02,781
-us purani haveli ki divar
+00:00:01,478 --> 00:00:03,088
+jab pura shahar so raha
 
 3
-00:00:02,781 --> 00:00:04,026
-ke peeche se ek aawaz
+00:00:03,088 --> 00:00:05,045
+tha, mujhe haveli ki divaron
 
 4
-00:00:04,026 --> 00:00:05,328
-aaee. woh kisi insan ki
+00:00:05,045 --> 00:00:06,725
+se apna nam sunaee diya.
 
 5
-00:00:05,328 --> 00:00:06,888
-nahi thi. koee dhimi aawaz
+00:00:06,753 --> 00:00:07,976
+main to bas dada ji
 
 6
-00:00:06,888 --> 00:00:08,302
-mein ginati gin raha tha...
+00:00:07,976 --> 00:00:09,430
+ki virasat mein mili ye
 
 7
-00:00:08,330 --> 00:00:10,313
-ek... do... tin... mainne apne
+00:00:09,430 --> 00:00:11,498
+purani haveli bechane aaya tha.
 
 8
-00:00:10,313 --> 00:00:11,935
-kanon par yakin nahi kiya.
+00:00:11,526 --> 00:00:13,771
+lekin pehli raat hi divaron
 
 9
-00:00:11,964 --> 00:00:13,358
-lekin jaise hi mainne us
+00:00:13,771 --> 00:00:16,106
+par ubharin ungaliyon ke nishan
 
 10
-00:00:13,358 --> 00:00:14,938
-aawaz ko ginana shuru kiya,
+00:00:16,106 --> 00:00:18,619
+mujhe kamare ke bilkul bichon-bich
 
 11
-00:00:14,938 --> 00:00:16,743
-mere hath-pair thnde par gae.
+00:00:18,619 --> 00:00:20,276
+khinch lae. aur jaise hi
 
 12
-00:00:16,772 --> 00:00:18,617
-kyunki haveli ka aakhiri varis
+00:00:20,276 --> 00:00:22,321
+mainne kan sataya, andar se
 
 13
-00:00:18,617 --> 00:00:19,890
-kahata tha, jo bhi us
+00:00:22,321 --> 00:00:24,428
+koee phusaphusaya, "tu bhi ab
 
 14
-00:00:19,890 --> 00:00:21,300
-ginati ko pura sun leta
+00:00:24,428 --> 00:00:25,515
+yahin rahega."
 
 15
-00:00:21,300 --> 00:00:22,558
-hai, woh hamesha ke lie
+00:00:25,555 --> 00:00:26,938
+main ghabara kar tahakhane ki
 
 16
-00:00:22,558 --> 00:00:23,577
-gayab ho jata hai.
+00:00:26,938 --> 00:00:28,328
+taraph bhaga, jise dada ji
 
 17
-00:00:23,617 --> 00:00:24,902
-agali subah mainne haveli ki
+00:00:28,328 --> 00:00:29,608
+ne hamesha bnd rakhane ko
 
 18
-00:00:24,902 --> 00:00:26,037
-us divar ko tora, to
+00:00:29,608 --> 00:00:30,820
+kaha tha. lekin jaise hi
 
 19
-00:00:26,037 --> 00:00:27,414
-andar ek purana kamra mila.
+00:00:30,820 --> 00:00:32,051
+mainne woh jng laga tala
 
 20
-00:00:27,442 --> 00:00:28,712
-wahan ek dayari rakhi thi,
+00:00:32,051 --> 00:00:33,254
+khola, andar se jo chikh
 
 21
-00:00:28,712 --> 00:00:29,895
-jisamen likha tha ki har
+00:00:33,254 --> 00:00:34,412
+nikali, woh kisi insan ki
 
 22
-00:00:29,895 --> 00:00:31,308
-raat woh ginati un rishtedaron
+00:00:34,412 --> 00:00:35,701
+nahi thi. divaron par bane
 
 23
-00:00:31,308 --> 00:00:32,731
-ki aatmaen ginati hain, jinhonne
+00:00:35,701 --> 00:00:37,060
+nishan ab daravaze ki taraph
 
 24
-00:00:32,731 --> 00:00:34,390
-aakhiri varis ko zinda jalaya
+00:00:37,060 --> 00:00:38,100
+ishara kar rahe the. tabhi
 
 25
-00:00:34,390 --> 00:00:35,140
-tha. aur us din ke
+00:00:38,100 --> 00:00:38,579
+mujhe ehasas huaa, haveli mujhe
 
 26
-00:00:35,140 --> 00:00:36,300
-bad se, haveli ke aaeene
+00:00:38,579 --> 00:00:39,048
+bechane nahi, balki apni divaron
 
 27
-00:00:36,300 --> 00:00:37,764
-mein mera chehara nahi dikhata.
+00:00:39,048 --> 00:00:39,375
+mein hamesha ke lie bnd
 
 28
-00:00:37,792 --> 00:00:39,094
-sirf woh aawaz ginati hai...
+00:00:39,375 --> 00:00:39,889
+karane aaee thi. aur aaj
 
 29
-00:00:39,122 --> 00:00:41,190
-ek... do... tin... aur main
+00:00:39,889 --> 00:00:40,960
+bhi, raat ke tin baje,
 
 30
-00:00:41,190 --> 00:00:42,418
-khud us ginati ka hissa
+00:00:40,960 --> 00:00:42,063
+woh divaren kisi aur ka
 
 31
-00:00:42,418 --> 00:00:43,080
-ban chuka hun.
+00:00:42,063 --> 00:00:42,867
+nam pukarati hain.

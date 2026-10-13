@@ -178,8 +178,8 @@ Useful flags:
 | `--language` | language for narration (`hi`, `hinglish`, or `en`; generates conversational Devanagari Hindi for TTS voice authenticity) |
 | `--subtitles` | on-screen captions & .srt script: `hinglish` (default for Hindi voice) or `devanagari` |
 | `--no-hinglish-subtitles` | keep Devanagari script for captions and subtitles instead of Roman Hinglish |
-| `--voice` | primary narrator voice, alias, or blend (e.g. `hm_omega`, `hindi_female`, `bm_george`, `af_heart+af_bella`) |
-| `--audio-model` | `kokoro` (default) or `indic_parler`; Indic Parler-TTS runs on the selected Vast.ai GPU (aliases: `parler`, `indicf5`) |
+| `--voice` | primary narrator voice, alias, or blend (default: **`indic_parler_aarav`**; e.g. `hm_omega`, `hindi_female`, `bm_george`) |
+| `--audio-model` | `auto` (default) picks Indic Parler-TTS; use `kokoro` for CPU-only Kokoro narration (aliases: `indic_parler`, `parler`, `indicf5`) |
 | `--voice-2` / `--secondary-voice` | secondary voice for dialogue/antagonist in character scenes |
 | `--voices` | list all 30+ available Kokoro voices, aliases, and blending syntax |
 | `--visual-mode` / `--generation-mode` | choose `image` or `video`; exactly one generated visual mode is used per video |
@@ -265,6 +265,13 @@ On startup, the client checks the server-reported GPU and stops with an error if
 it does not match the selected mode. `--vast-autostop` is on by default.
 
 ### Default flow: Indic Parler-TTS on the GPU, everything else local
+
+By default the narrator is a **single consistent voice** — `indic_parler_aarav`, a
+professional Hindi tone. Every scene uses it at one steady pace: beat/emotion speed
+modulation (which would otherwise push it between ~0.96x and ~1.2x) is **skipped for the
+Indic voice**, so tone and pacing never drift. Override the voice with `--voice
+indic_parler_priya` (etc.), or set `DEFAULT_VOICE` / `VOICE` in `.env`; pass
+`--audio-model kokoro` for CPU-only Kokoro narration.
 
 With no tuning flags, a run behaves like this:
 

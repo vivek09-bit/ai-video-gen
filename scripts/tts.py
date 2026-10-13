@@ -911,6 +911,12 @@ def indic_parler_model_candidates() -> list[str]:
     return list(INDIC_PARLER_MODEL_FALLBACKS)
 
 
+# The single default narrator: one consistent, professional Hindi voice. Every scene uses
+# it at one steady pace; per-beat/emotion speed modulation is skipped for it so the tone
+# and pacing never drift.
+DEFAULT_INDIC_VOICE = os.environ.get("DEFAULT_VOICE", "indic_parler_aarav")
+
+
 INDIC_PARLER_VOICES: dict[str, dict] = {
     "indic_parler_aarav": {
         "id": "indic_parler_aarav",
@@ -1847,6 +1853,16 @@ def prepare_remote_text(sentence: str) -> str:
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
 
+def is_indic_voice(voice: str) -> bool:
+    """True for the Indic Parler-TTS family (canonical ids, aliases and old indicf5 ids)."""
+    primary = (voice or "").strip().lower().split(",")[0].strip()
+    if primary in INDIC_PARLER_VOICES:
+        return True
+    if primary.startswith(("indic_parler", "indicf5", "indic_")):
+        return True
+    return any(primary in [a.lower() for a in vi.get("aliases", [])] for vi in INDIC_PARLER_VOICES.values())
+
+
 def line_voice_and_speed(
     scene: dict,
     line: dict,
@@ -1866,7 +1882,9 @@ def line_voice_and_speed(
     voice = resolve_voice(line_raw_voice)
 
     base = float(character.get("speed") or scene.get("speed") or base_speed)
-    if not dynamic:
+    if not dynamic or is_indic_voice(voice):
+        # The Indic Parler-TTS narrator is one consistent voice: beat/emotion speed
+        # modulation is deliberately skipped so tone and pacing never drift between scenes.
         return voice, base, character
 
     beat_name = str(scene.get("beat") or scene.get("movement") or "").lower()
@@ -1923,7 +1941,7 @@ def prebuild_vast_batch(
     # drop the empties before deciding whether anything needs to be requested.
     requests = {key: value for key, value in requests.items() if value}
     if reused:
-        print(f"[IndicF5 Vast Batch] {reused} segment(s) already on disk; requesting only the rest.")
+        print(f"[Indic Parler Vast Batch] {reused} segment(s) already on disk; requesting only the rest.")
     if not requests:
         return reused
 
@@ -1932,13 +1950,13 @@ def prebuild_vast_batch(
     manager = VastManager(server_url=vast_url)
     cached_count = 0
     for (primary, line_speed), sentences in requests.items():
-        print(f"[IndicF5 Vast Batch] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
+        print(f"[Indic Parler Vast Batch] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
         items = [{"id": str(index), "text": sentence} for index, sentence in enumerate(sentences)]
         try:
             results = manager.synthesize_tts_batch(items, voice=primary, speed=line_speed)
         except Exception as err:  # noqa: BLE001 - fall back to per-sentence requests
             print(
-                f"[IndicF5 Vast Batch Warning] batch request failed ({err}); "
+                f"[Indic Parler Vast Batch Warning] batch request failed ({err}); "
                 "falling back to per-sentence requests.",
                 file=sys.stderr,
             )
@@ -1961,7 +1979,7 @@ def prebuild_vast_batch(
                 continue
             if audio_is_bad(wav_np):
                 print(
-                    f"[IndicF5 Vast Batch] segment {index + 1} came back silent/non-finite; "
+                    f"[Indic Parler Vast Batch] segment {index + 1} came back silent/non-finite; "
                     "retrying it individually.",
                     file=sys.stderr,
                 )
@@ -1972,13 +1990,13 @@ def prebuild_vast_batch(
             write_gpu_cache(sentence, primary, line_speed, wav_bytes)
             _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
             cached_count += 1
-        print(f"[IndicF5 Vast Batch] cached {cached_count} segment(s) so far")
+        print(f"[Indic Parler Vast Batch] cached {cached_count} segment(s) so far")
 
         # Items the server omitted are retried individually rather than dropped, which is
         # what the batch endpoint's contract expects of the caller.
         if missing:
             print(
-                f"[IndicF5 Vast Batch] {len(missing)} segment(s) missing from the batch "
+                f"[Indic Parler Vast Batch] {len(missing)} segment(s) missing from the batch "
                 "response; retrying them individually."
             )
             for sentence in missing:
@@ -2601,10 +2619,10 @@ def main() -> int:
         try:
             batch_cached = prebuild_vast_batch(scenes, characters, voice_default, speed, args.dynamic_speed)
             if batch_cached:
-                print(f"[IndicF5 Vast Batch] {batch_cached} segment(s) ready from the GPU")
+                print(f"[Indic Parler Vast Batch] {batch_cached} segment(s) ready from the GPU")
         except Exception as batch_err:  # noqa: BLE001 - never block synthesis on the pre-fetch
             print(
-                f"[IndicF5 Vast Batch Warning] pre-fetch failed ({batch_err}); "
+                f"[Indic Parler Vast Batch Warning] pre-fetch failed ({batch_err}); "
                 "using per-sentence requests.",
                 file=sys.stderr,
             )

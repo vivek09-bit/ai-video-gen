@@ -1425,8 +1425,12 @@ def main() -> int:
             research_report = None
 
     # Resolve primary voice (resolves aliases, blends, or genre/language fallback)
-    from tts import resolve_voice
+    from tts import resolve_voice, DEFAULT_INDIC_VOICE
     requested_voice = args.voice or os.environ.get("VOICE")
+    # Default to a single consistent professional Hindi narrator (Aarav) unless the user
+    # explicitly asked for Kokoro. `auto` then selects the Indic Parler-TTS engine for it.
+    if not requested_voice and args.audio_model != "kokoro":
+        requested_voice = DEFAULT_INDIC_VOICE
     requested_voice_key = (requested_voice or "").strip().lower()
     voice_requests_indic = requested_voice_key.startswith(("indicf5", "indic_"))
     indic_engine_selected = args.audio_model in ("indicf5", "indic_parler", "parler")
