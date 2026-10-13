@@ -14,7 +14,12 @@ examples/
 tools/
 youtube_token.json
 # Generated narration audio (re-created by `npm run voice`)
-public/audio/
+# Keep the small IndicF5 zero-shot reference voices so a fresh Vast.ai clone
+# still has the prompt audio the remote TTS server needs.
+public/audio/*
+!public/audio/prompts/
+public/audio/prompts/*
+!public/audio/prompts/indicf5/
 public/images/
 
 # Generated grain texture and ambience beds (re-created by `npm run assets`)

@@ -1600,12 +1600,14 @@ def main() -> int:
                 server_url = vast_mgr.wait_until_ready(vast_instance_id)
                 os.environ["VAST_SERVER_URL"] = server_url
             else:
-                server_url = os.environ.get("VAST_SERVER_URL", "")
-                if not server_url:
-                    print(f"  Searching and spinning up a one-GPU {expected_gpu} instance...")
-                    vast_instance_id = vast_mgr.create_instance(gpu_name=expected_gpu)
-                    server_url = vast_mgr.wait_until_ready(vast_instance_id)
-                    os.environ["VAST_SERVER_URL"] = server_url
+                # --vast always provisions a fresh GPU. A stale VAST_SERVER_URL
+                # (e.g. the local dev server) must never short-circuit this, so we
+                # ignore the environment here and rely on --vast-url / --vast-instance
+                # for connecting to an already-running server.
+                print(f"  Searching and spinning up a one-GPU {expected_gpu} instance...")
+                vast_instance_id = vast_mgr.create_instance(gpu_name=expected_gpu)
+                server_url = vast_mgr.wait_until_ready(vast_instance_id)
+                os.environ["VAST_SERVER_URL"] = server_url
             health = vast_mgr.require_gpu(expected_gpu, server_url)
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
             os.environ["USE_VAST"] = "1"
@@ -1615,7 +1617,11 @@ def main() -> int:
             return 1
 
     # ---- generate exactly one visual type --------------------------------
-    cli_img_prov = args.image_provider
+    # Priority: explicit CLI flag > IMAGE_PROVIDER env > mode defaults.
+    # --vast provisions the GPU, but must not silently override a configured
+    # provider: with IMAGE_PROVIDER=local the images render on the PC while the
+    # rented GPU is used only for IndicF5 narration.
+    cli_img_prov = args.image_provider or os.environ.get("IMAGE_PROVIDER") or ""
     if args.visual_mode == "video":
         try:
             from generate_videos import generate_videos_for_script
@@ -1630,12 +1636,13 @@ def main() -> int:
             print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
             stop_vast_instance()
             return 1
-    elif (args.vast or args.vast_url or args.vast_instance is not None) and not cli_img_prov:
-        cli_img_prov = "vast"
-    elif getattr(args, "local_images", False) and not cli_img_prov:
-        cli_img_prov = "local"
-    elif args.free_images and not cli_img_prov:
-        cli_img_prov = "fetch"
+    elif not cli_img_prov:
+        if args.vast or args.vast_url or args.vast_instance is not None:
+            cli_img_prov = "vast"
+        elif getattr(args, "local_images", False):
+            cli_img_prov = "local"
+        elif args.free_images:
+            cli_img_prov = "fetch"
 
     det_img_prov, det_img_key, _ = detect_image_provider(cli_img_prov)
     should_gen_images = not args.no_images and (

@@ -101,8 +101,9 @@ class VastManager:
             "vocos safetensors huggingface_hub || true; "
             "echo 'starting server at $(hostname -i):8000'; "
             "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 & "
-            "sleep 3; tail -20 /workspace/server.log"
-        )
+                        "sleep 5; echo '--- server.log after start ---'; tail -30 /workspace/server.log; "
+                        "echo 'onstart done, keeping container alive'; sleep infinity"
+                    )
     
 
     def search_gpu(
@@ -248,7 +249,17 @@ class VastManager:
 
     def require_gpu(self, expected_gpu: str, url: str | None = None) -> dict[str, Any]:
         """Reject a server whose reported device does not match this generation mode."""
-        health = self.check_health(url)
+        last_err = None
+        for attempt in range(3):
+            try:
+                health = self.check_health(url)
+                break
+            except Exception as e:
+                last_err = e
+                print(f"[Vast Manager]   health check attempt {attempt + 1}/3 failed: {type(e).__name__}; retrying...")
+                time.sleep(10)
+        else:
+            raise RuntimeError(f"Vast server not reachable at {url}: {last_err}") from last_err
         actual = str(health.get("vram", {}).get("device_name", "")).upper()
         expected = expected_gpu.upper().replace("NVIDIA GEFORCE ", "")
         if expected not in actual:

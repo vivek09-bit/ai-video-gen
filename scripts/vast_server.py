@@ -283,19 +283,33 @@ class VastHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "Invalid JSON"}, status=400)
             return
 
-        if self.path == "/v1/images/generate":
-            self.handle_image_generate(req)
-        elif self.path == "/v1/videos/generate":
-            self.handle_video_generate(req)
-        elif self.path == "/v1/audio/synthesize":
-            self.handle_audio_synthesize(req)
-        elif self.path == "/v1/batch":
-            self.handle_batch(req)
-        elif self.path == "/v1/shutdown":
-            self._send_json({"message": "Server shutting down..."})
-            sys.exit(0)
-        else:
-            self._send_json({"error": "Unknown endpoint"}, status=404)
+        # Never let a handler error drop the connection silently: the client
+        # would only see RemoteDisconnected, with the real cause buried in the
+        # server log. Always answer with a JSON error payload instead.
+        try:
+            if self.path == "/v1/images/generate":
+                self.handle_image_generate(req)
+            elif self.path == "/v1/videos/generate":
+                self.handle_video_generate(req)
+            elif self.path == "/v1/audio/synthesize":
+                self.handle_audio_synthesize(req)
+            elif self.path == "/v1/batch":
+                self.handle_batch(req)
+            elif self.path == "/v1/shutdown":
+                self._send_json({"message": "Server shutting down..."})
+                sys.exit(0)
+            else:
+                self._send_json({"error": "Unknown endpoint"}, status=404)
+        except Exception as err:  # noqa: BLE001 - report any handler failure to the client
+            import traceback
+            traceback.print_exc()
+            try:
+                self._send_json(
+                    {"status": "error", "error": f"{type(err).__name__}: {err}"},
+                    status=500,
+                )
+            except Exception:
+                pass
 
     def handle_image_generate(self, req: dict):
         prompt = req.get("prompt", "")
@@ -414,8 +428,8 @@ class VastHandler(BaseHTTPRequestHandler):
         import soundfile as sf
         engine = load_indicf5_engine()
 
-        # Resolve prompt reference
-        ref_dir = Path("public/audio/prompts/indicf5")
+        # Resolve prompt reference (absolute, so it works regardless of CWD)
+        ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
         speaker = "aarav"
         if "priya" in voice:
             speaker = "priya"
@@ -428,6 +442,12 @@ class VastHandler(BaseHTTPRequestHandler):
 
         ref_wav = ref_dir / f"{speaker}.wav"
         ref_txt = ref_dir / f"{speaker}.txt"
+        if not ref_wav.exists():
+            self._send_json(
+                {"status": "error", "error": f"Missing IndicF5 reference voice: {ref_wav}"},
+                status=500,
+            )
+            return
         ref_text_content = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else "मौर्यन एम्पायर की हर डेट सिर्फ़ रटो मत।"
 
         t0 = time.time()
@@ -473,8 +493,9 @@ class VastHandler(BaseHTTPRequestHandler):
 
             if narration_text:
                 engine = load_indicf5_engine()
-                ref_wav = Path("public/audio/prompts/indicf5/aarav.wav")
-                ref_txt = Path("public/audio/prompts/indicf5/aarav.txt")
+                ref_dir = Path(__file__).resolve().parent.parent / "public/audio/prompts/indicf5"
+                ref_wav = ref_dir / "aarav.wav"
+                ref_txt = ref_dir / "aarav.txt"
                 ref_t = ref_txt.read_text(encoding="utf-8").strip() if ref_txt.exists() else "मौर्यन एम्पायर"
                 audio_np = engine.synthesize(narration_text, ref_wav, ref_t, speed=speed, nfe_step=32)
                 buf_a = io.BytesIO()
