@@ -155,11 +155,10 @@ def test_dynamic_prompting() -> None:
 
     assert "cyberpunk thriller" in hinglish_prompt
     assert "AI and Quantum Computer future" in hinglish_prompt
-    assert "Conversational Spoken Hindi & Modern Loanword Rules" in hinglish_prompt
-    assert "मोबाइल फोन" in hinglish_prompt
+    assert "Native Spoken Hindi Rules" in hinglish_prompt
+    assert "Minimise English loanwords" in hinglish_prompt
     assert "चल दूरभाष" in hinglish_prompt
-    assert "कंप्यूटर" in hinglish_prompt
-    assert "संगणक" in hinglish_prompt
+    assert "अंतरजाल" in hinglish_prompt
 
     # 2. Test Devanagari Hindi prompt rules
     plan_dict_hindi = beats.plan("AI and Quantum Computer future", minutes=1.0, genre="scifi", language="hi")
@@ -168,11 +167,10 @@ def test_dynamic_prompting() -> None:
         voice_style="cyberpunk thriller",
         genre_profile=profile,
     )
-    assert "Conversational Spoken Hindi & Modern Loanword Rules" in hindi_prompt
-    assert "मोबाइल फोन" in hindi_prompt
+    assert "Native Spoken Hindi Rules" in hindi_prompt
+    assert "Minimise English loanwords" in hindi_prompt
     assert "चल दूरभाष" in hindi_prompt
-    assert "कंप्यूटर" in hindi_prompt
-    assert "संगणक" in hindi_prompt
+    assert "अंतरजाल" in hindi_prompt
     assert "ट्रेन" in hindi_prompt
     assert "लोहपथगामिनी" in hindi_prompt
 

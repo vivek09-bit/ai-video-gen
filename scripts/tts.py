@@ -926,9 +926,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Deep, resonant & authoritative (ideal for history, mythology, epics)",
         "description": (
-            "A male speaker with a deep, resonant and authoritative voice speaks in native "
-            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
-            "close-sounding recording with no background noise."
+            "A male speaker with a deep, resonant and authoritative voice speaks only in "
+            "pure Hindi with a clear native Indian accent at a moderate pace in a very "
+            "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_omega",
         # `indicf5_*` aliases are retained so existing script.json files keep resolving.
@@ -945,9 +945,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Calm, natural & conversational (ideal for documentary, explainer)",
         "description": (
-            "A male speaker with a calm, natural and conversational voice speaks in native "
-            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
-            "close-sounding recording with no background noise."
+            "A male speaker with a calm, natural and conversational voice speaks only in "
+            "pure Hindi with a clear native Indian accent at a moderate pace in a very "
+            "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_psi",
         "aliases": [
@@ -962,9 +962,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "male",
         "style": "Direct & serious (ideal for mysteries)",
         "description": (
-            "A male speaker with a direct, serious and slightly dry voice speaks in native "
-            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
-            "close-sounding recording with no background noise."
+            "A male speaker with a direct, serious and slightly dry voice speaks only in "
+            "pure Hindi with a clear native Indian accent at a moderate pace in a very "
+            "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_omega",
         "aliases": [
@@ -979,9 +979,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "female",
         "style": "Warm, expressive & engaging (ideal for drama, storytelling)",
         "description": (
-            "A female speaker with a warm, expressive and engaging voice speaks in native "
-            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
-            "close-sounding recording with no background noise."
+            "A female speaker with a warm, expressive and engaging voice speaks only in "
+            "pure Hindi with a clear native Indian accent at a moderate pace in a very "
+            "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hf_alpha",
         "aliases": [
@@ -996,9 +996,9 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         "gender": "female",
         "style": "Soft, cheerful & pleasant (ideal for lifestyle, casual)",
         "description": (
-            "A female speaker with a soft, cheerful and pleasant voice speaks in native "
-            "Hindi with a clear Indian accent at a moderate pace in a very clear, "
-            "close-sounding recording with no background noise."
+            "A female speaker with a soft, cheerful and pleasant voice speaks only in "
+            "pure Hindi with a clear native Indian accent at a moderate pace in a very "
+            "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hf_beta",
         "aliases": [

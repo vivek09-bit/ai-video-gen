@@ -304,21 +304,12 @@ def build_prompt(
     if is_hindi_family:
         lines += [
             "",
-            "Conversational Spoken Hindi & Modern Loanword Rules (CRITICAL for Human-Like TTS Voice Quality):",
-            "- Spoken Audio Script: Write the spoken narration in natural, contemporary conversational spoken Hindi (Devanagari script) with everyday English loanwords and colloquial idioms (creating an authentic studio-recorded neural voice delivery).",
-            "- Human Cadence & Phrasing: Use short, punchy sentence structures. Vary rhythm with natural pauses and conversational connectors ('अचानक', 'लेकिन तभी', 'हैरानी की बात ये है', 'और फिर'). Avoid stiff, literary, or textbook Hindi phrasing.",
-            "- English Loanwords: For everyday modern objects, technology, locations, professions, and familiar concepts, ALWAYS write the standard English loanwords in Devanagari script:",
-            "  * Technology & Communication: 'मोबाइल फोन', 'फोन', 'मैसेज', 'कॉल', 'वीडियो कॉल', 'स्क्रीन', 'नोटिफिकेशन', 'इंटरनेट', 'पासवर्ड', 'कैमरा', 'लैपटॉप', 'कंप्यूटर', 'सिग्नल', 'बैटरी'",
-            "  * Places & Transit: 'हॉस्पिटल', 'लिफ्ट', 'कमरा / फ्लैट', 'हॉस्टल', 'ऑफिस', 'स्टेशन', 'रोड', 'ट्रेन', 'कार', 'बस'",
-            "  * People & Concepts: 'डॉक्टर', 'नर्स', 'पुलिस', 'अलर्ट', 'स्कैम', 'सावधान', 'वॉर्निंग', 'सिक्योरिटी', 'टाइम'",
-            "- Strictly FORBIDDEN Archaic Sanskrit Translations (NEVER use these robotic words):",
-            "  * Do NOT use 'चल दूरभाष' or 'भ्रमणभाष' -> Use 'फोन' / 'मोबाइल'",
-            "  * Do NOT use 'संगणक' -> Use 'कंप्यूटर' / 'लैपटॉप'",
-            "  * Do NOT use 'लोहपथगामिनी' -> Use 'ट्रेन' / 'रेलगाड़ी'",
-            "  * Do NOT use 'छायाचित्रक' -> Use 'कैमरा'",
-            "  * Do NOT use 'चिकित्सालय' / 'चिकित्सक' -> Use 'हॉस्पिटल' / 'डॉक्टर'",
-            "  * Do NOT use 'आरक्षी' -> Use 'पुलिस'",
-            "  * Do NOT use 'अंतरजाल' -> Use 'इंटरनेट'",
+            "Native Spoken Hindi Rules (CRITICAL for an authentic Hindi TTS accent):",
+            "- Spoken Audio Script: Write the spoken narration in fluent, natural, NATIVE Hindi in Devanagari script. It is read aloud by a Hindi TTS model, so every word must be one a native Hindi speaker would actually say — that is what produces a genuine Hindi accent instead of an English one.",
+            "- Minimise English loanwords. Use a borrowed word ONLY when there is no natural everyday Hindi equivalent (e.g. 'फोन', 'ट्रेन', 'हॉस्पिटल' are acceptable because everyone says them). Do NOT interleave English words or English phrases into Hindi sentences.",
+            "- Always write the narration in Devanagari. Never write spoken text in Roman/Latin letters.",
+            "- Human Cadence & Phrasing: Use short, punchy sentence structures. Vary rhythm with natural pauses and conversational connectors ('अचानक', 'लेकिन तभी', 'हैरानी की बात यह है', 'और फिर'). Avoid stiff, literary, or textbook Hindi phrasing.",
+            "- Avoid archaic/literary Sanskritised words that sound robotic: 'चल दूरभाष', 'भ्रमणभाष', 'संगणक', 'लोहपथगामिनी', 'छायाचित्रक', 'चिकित्सालय', 'चिकित्सक', 'आरक्षी', 'अंतरजाल'. Prefer the simple word a real Hindi speaker uses.",
             "- Headlines & Subtitles: Scene headlines must be punchy and modern in Devanagari (automatically transliterated to Roman Hinglish for viewer readability).",
         ]
 

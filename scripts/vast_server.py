@@ -160,9 +160,9 @@ def _resolve_indic_description(voice: str, speed: float = 1.0) -> str:
     except Exception:
         pass
     return (
-        "A male speaker with a deep, resonant and authoritative voice speaks in native "
-        f"Hindi with a clear Indian accent at {_pace_word(speed)} in a very clear, "
-        "close-sounding recording with no background noise."
+        "A male speaker with a deep, resonant and authoritative voice speaks only in "
+        f"pure Hindi with a clear native Indian accent at {_pace_word(speed)} in a very "
+        "clear, close-sounding recording with no background noise."
     )
 
 
