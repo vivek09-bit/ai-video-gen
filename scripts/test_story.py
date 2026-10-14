@@ -9,6 +9,7 @@ Run with:  .venv\\Scripts\\python.exe scripts\\test_story.py
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -114,6 +115,7 @@ print(f"rising alternates visuals: {rising_beats}")
 # The planner's private keys must not reach script.json
 # ---------------------------------------------------------------------------
 import new_video  # noqa: E402
+import story  # noqa: E402
 
 planned = beats.plan(topic="leak check", minutes=2)
 blocks = [(f"headline {i}", f"narration for scene {i}") for i in range(1, len(planned["scenes"]) + 1)]
@@ -131,5 +133,206 @@ assert script["scenes"][0]["headline"] == "headline 1", "headline not bound to s
 assert script["scenes"][0]["lines"][0]["text"] == "narration for scene 1", "narration misbound"
 print("planned scenes pass through wholesale, private keys stripped, narration bound by index.")
 
+# ---------------------------------------------------------------------------
+# The runtime contract is published once, and it tiles the scenes exactly
+# ---------------------------------------------------------------------------
+for minutes in (1, 5, 10, 30):
+    plan = beats.plan(topic="runtime contract", minutes=minutes)
+    blueprint = plan["blueprint"]
+    scenes = plan["scenes"]
+
+    assert blueprint["sceneCount"] == len(scenes), f"{minutes}m blueprint/plan scene mismatch"
+    assert blueprint["sceneCount"] == plan["target"]["scenes"], f"{minutes}m blueprint disagrees with target"
+    assert blueprint["totalWords"] == plan["target"]["totalWords"], f"{minutes}m blueprint word total drifted"
+    tiled = [n for movement in blueprint["movements"] for n in movement["scenes"]]
+    assert tiled == list(range(1, blueprint["sceneCount"] + 1)), (
+        f"{minutes}m blueprint movements do not tile 1..{blueprint['sceneCount']}"
+    )
+    assert sum(m["sceneCount"] for m in blueprint["movements"]) == blueprint["sceneCount"]
+    for movement in blueprint["movements"]:
+        assert movement["range"] == [movement["scenes"][0], movement["scenes"][-1]]
+print("every plan publishes a blueprint that tiles its scenes exactly once.")
+
+# ---------------------------------------------------------------------------
+# A scene is never called a "part", because that is how a story becomes a set
+# ---------------------------------------------------------------------------
+duties = [duty for _movement, _beat, duty in beats.story_plan(25)]
+assert not any("Part " in duty for duty in duties), "a duty still calls a scene a 'Part'"
+assert any("continue the same story" in duty for duty in duties), "duties lost their continuation wording"
+print("scene duties say 'continue', never 'Part N of M'.")
+
+# ---------------------------------------------------------------------------
+# Chunks tile the story exactly, contiguously
+# ---------------------------------------------------------------------------
+for scene_count in (1, 5, 7, 8, 9, 24, 25, 100):
+    chunks = story.plan_chunks(scene_count, 8)
+    assert chunks[0][0] == 1, f"{scene_count} chunks do not start at 1"
+    assert chunks[-1][1] == scene_count, f"{scene_count} chunks do not reach the end"
+    for (first, last), (next_first, _next_last) in zip(chunks, chunks[1:]):
+        assert last + 1 == next_first, f"{scene_count} chunks are not contiguous"
+    covered = [n for first, last in chunks for n in range(first, last + 1)]
+    assert covered == list(range(1, scene_count + 1)), f"{scene_count} chunks drop or duplicate a scene"
+    assert all(last - first + 1 <= 8 for first, last in chunks), f"{scene_count} chunk is oversized"
+assert story.plan_chunks(5, 99) == [(1, 5)], "a chunk size past the end must still be one chunk"
+print("chunks tile every scene exactly once, contiguously, at every length.")
+
+# ---------------------------------------------------------------------------
+# A continuation call sees the bible, the tail verbatim, and where it stands
+# ---------------------------------------------------------------------------
+plan = beats.plan(topic="continuity", minutes=10)
+bible = story.normalize_bible(
+    {"logline": "एक खोया शहर और उसे खोजने वाला।", "arc": [{"movement": "hook", "scenes": [1]}]},
+    plan,
+)
+chunks = story.plan_chunks(len(plan["scenes"]), 8)
+written = [
+    story.WrittenScene(
+        n=n,
+        headline=f"दृश्य {n}",
+        visual="lantern",
+        # Long enough that the summary line really does truncate it.
+        body=" ".join([f"शब्द{n}"] + ["गहरा"] * 20),
+    )
+    for n in range(1, chunks[0][1] + 1)
+]
+
+first_prompt = story.build_chunk_prompt(plan, bible, chunks[0], [], is_hindi=True)
+second_prompt = story.build_chunk_prompt(plan, bible, chunks[1], written, is_hindi=True)
+last_prompt = story.build_chunk_prompt(plan, bible, chunks[-1], written, is_hindi=True)
+
+assert "STORY BIBLE" in second_prompt, "continuation lost the bible"
+assert f"scenes {chunks[1][0]}-{chunks[1][1]} of {len(plan['scenes'])}" in second_prompt, "wrong absolute range"
+assert written[-1].body in second_prompt, "the previous scene is not shown verbatim"
+assert written[-2].body in second_prompt, "the tail is thinner than two scenes"
+assert written[0].body not in second_prompt, "the writer is being fed scenes it must not repeat"
+assert "Do NOT restart" in second_prompt, "no restart instruction"
+assert "Do NOT summarise and do NOT conclude" in second_prompt, "no continuation contract"
+assert "open the story" in first_prompt, "the first chunk is not told to open the story"
+assert "Do NOT restart" not in first_prompt, "the first chunk cannot continue from nothing"
+assert "final chunk" in last_prompt, "the last chunk is not told to resolve the story"
+assert f"scenes {chunks[-1][0]}-{chunks[-1][1]} out of {len(plan['scenes'])}" in last_prompt, (
+    "the final chunk is not told where it sits in the story"
+)
+print("continuation prompts carry the bible, the verbatim tail and the absolute range.")
+
+# ---------------------------------------------------------------------------
+# Prose is bound by index: a dropped scene must not shift the ones after it
+# ---------------------------------------------------------------------------
+sample = "\n".join(
+    [
+        "TITLE: टेस्ट",
+        "###1|पहला दृश्य | VISUAL: ancient corridor",
+        "कहानी यहीं से शुरू होती है।",
+        "###2|दूसरा दृश्य | VISUAL: stone gate",
+        "दूसरा हिस्सा आगे बढ़ता है।",
+        "###4|चौथा दृश्य | VISUAL: deep chamber",
+        "चौथा हिस्सा कहानी पूरी करता है।",
+    ]
+)
+title, parsed = story.parse_blocks(sample, 4)
+assert [scene.n for scene in parsed] == [1, 2, 4], f"scene numbers not preserved: {[s.n for s in parsed]}"
+assert title == "टेस्ट"
+
+plan = beats.plan(topic="binding", minutes=1, scenes=4)
+script, missing = new_video.build_script(
+    plan, "T", parsed, voice="hm_omega", speed=1.0, captions={}
+)
+assert missing == [3], f"the dropped scene should be the only gap, got {missing}"
+assert script["scenes"][2]["lines"] == [], "the gap must stay a gap"
+assert script["scenes"][3]["lines"][0]["text"] == "चौथा हिस्सा कहानी पूरी करता है।", (
+    "scene 4's prose drifted onto another scene"
+)
+print("a dropped scene leaves a gap instead of dragging every later scene out of place.")
+
+# Unnumbered prose still binds in order, and the tail is simply reported missing.
+legacy = [("पहला", "पहली पंक्ति"), ("दूसरा", "दूसरी पंक्ति")]
+plan = beats.plan(topic="legacy binding", minutes=2)
+script, missing = new_video.build_script(plan, "T", legacy, voice="hm_omega", speed=1.0, captions={})
+assert script["scenes"][0]["lines"][0]["text"] == "पहली पंक्ति"
+assert script["scenes"][1]["lines"][0]["text"] == "दूसरी पंक्ति"
+assert missing == list(range(3, len(plan["scenes"]) + 1)), f"unexpected gaps: {missing}"
+assert not any(key.startswith("_") for scene in script["scenes"] for key in scene)
+print("unnumbered narration still binds positionally, gaps reported honestly.")
+
+# ---------------------------------------------------------------------------
+# Validation catches the things that make a story read as disconnected
+# ---------------------------------------------------------------------------
+plan = beats.plan(topic="validation", minutes=2)
+duty_rows = story.scene_duties(plan)
+good = [
+    story.WrittenScene(
+        n=row["n"],
+        headline=f"दृश्य {row['n']}",
+        # Distinct opening words per scene, exact word count, so nothing but the
+        # injected fault should ever be reported.
+        body=" ".join([f"प्रसंग{row['n']}"] * row["words"]),
+    )
+    for row in duty_rows
+]
+assert story.validate_script(good, plan) == [], "a clean script reported problems"
+
+recapped = list(good)
+recapped[2] = story.WrittenScene(n=3, headline="दृश्य 3", body="जैसा कि हमने पहले बताया, सब वैसा ही था।")
+kinds = {issue.kind for issue in story.validate_script(recapped, plan)}
+assert "restart" in kinds, f"a recap was not caught: {kinds}"
+
+gapped = [scene for scene in good if scene.n != 2]
+issues = story.validate_script(gapped, plan)
+assert any(issue.kind == "missing" and issue.scene == 2 for issue in issues), "a missing scene was not caught"
+
+starved = list(good)
+starved[0] = story.WrittenScene(n=1, headline="दृश्य 1", body="बहुत छोटा।")
+assert any(issue.kind == "length" for issue in story.validate_script(starved, plan)), "a starved scene was not caught"
+print("validation catches recaps, gaps and starved scenes; a clean script stays quiet.")
+
+# ---------------------------------------------------------------------------
+# The bible carries the whole length, and degrades instead of exploding
+# ---------------------------------------------------------------------------
+plan = beats.plan(topic="bible", minutes=2)
+expected_scenes = len(plan["scenes"])
+
+
+def good_bible_llm(_prompt: str, **_kwargs) -> str:
+    return json.dumps(
+        {
+            "logline": "एक राजा और उसका खोया शहर।",
+            "arc": [{"movement": "hook", "scenes": [1], "summary": "शुरुआत"}],
+            "sceneBeats": [
+                {"n": n, "whatHappens": f"घटना {n}", "endsOn": f"सवाल {n}", "words": 40}
+                for n in range(1, expected_scenes + 1)
+            ],
+            "payoff": {"scene": expected_scenes, "resolves": ["सवाल 1"]},
+        },
+        ensure_ascii=False,
+    )
+
+
+bible, report = story.build_bible(plan, good_bible_llm, attempts=1, verbose=False)
+assert report["accepted"] is True, f"a good bible was rejected: {report['problems']}"
+assert [entry["n"] for entry in bible["sceneBeats"]] == list(range(1, expected_scenes + 1)), (
+    "the bible does not cover every planned scene"
+)
+assert bible["span"]["totalScenes"] == expected_scenes
+assert bible["span"]["totalWords"] == plan["target"]["totalWords"], "the bible lost the word budget"
+assert all(entry.get("words") for entry in bible["sceneBeats"])
+
+
+def broken_llm(_prompt: str, **_kwargs) -> str:
+    raise RuntimeError("503 service unavailable")
+
+
+fallback, report = story.build_bible(plan, broken_llm, attempts=2, verbose=False)
+assert fallback is not None, "a broken writer must degrade, not return nothing"
+assert report["fallback"] is True
+assert len(fallback["sceneBeats"]) == expected_scenes, "the fallback bible does not cover every scene"
+assert report["attempts"], "failures were not recorded"
+
+assert story.parse_bible('```json\n{"logline": "x"}\n```')["logline"] == "x"
+assert story.parse_bible('Here you go:\n{"logline": "y"}\nHope that helps!')["logline"] == "y"
+assert story.parse_bible("no json at all") is None
+assert story.bible_ok({"logline": "x"}, plan), "a bible with no arc or scenes must be rejected"
+print(f"the bible spans all {expected_scenes} scenes and survives a dead writer.")
+
 print("\nStory planner verified: complete arc at every length, exact allocation,")
-print("distinct per-scene instructions, nothing private leaked into script.json.")
+print("distinct per-scene instructions, nothing private leaked into script.json,")
+print("and one continuous story told in order across chunked calls.")

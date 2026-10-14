@@ -3066,7 +3066,13 @@ def duty_for(movement: Movement, step: int, total: int, scene_count: int = 4) ->
             f"{movement.duty} This is complication {step} of {total}, and it must "
             f"be worse than the one before it."
         )
-    return f"{movement.duty} Part {step} of {total}; continue this, do not restart it."
+    # Say "continue", never "Part N of M": calling a scene a part invites the
+    # writer to treat it as a separate piece, which is how one story becomes a
+    # row of disconnected fragments.
+    return (
+        f"{movement.duty} Step {step} of {total} inside this movement; continue the "
+        f"same story from the previous scene, do not restart it and do not conclude it."
+    )
 
 
 def story_plan(scene_count: int, genre_profile: GenreProfile | None = None) -> list[tuple[Movement, str, str]]:
@@ -3486,6 +3492,35 @@ def plan(
     global_amb_src = rng.choice(global_amb_options)
     global_ambience = {"src": global_amb_src, "volume": 0.20}
 
+    # The length contract, published as one object. The story bible, the chunk
+    # writer and the validator all read the runtime from here rather than
+    # re-deriving it, so "how long is this going to be" has exactly one answer
+    # for the whole run.
+    movement_span: dict[str, dict] = {}
+    for index, (movement, _beat_name, _duty) in enumerate(story):
+        span = movement_span.setdefault(movement.key, {"scenes": [], "weight": movement.weight})
+        span["scenes"].append(index + 1)
+
+    blueprint = {
+        "minutes": minutes,
+        "seconds": round(total_seconds, 1),
+        "sceneCount": scene_count,
+        "totalWords": total_words,
+        "wordsPerScene": words_per_scene,
+        "wpm": wpm,
+        "movements": [
+            {
+                "key": key,
+                "weight": span["weight"],
+                "scenes": span["scenes"],
+                "sceneCount": len(span["scenes"]),
+                "words": words_per_scene * len(span["scenes"]),
+                "range": [span["scenes"][0], span["scenes"][-1]],
+            }
+            for key, span in movement_span.items()
+        ],
+    }
+
     return {
         "topic": topic,
         "language": language,
@@ -3502,6 +3537,7 @@ def plan(
         "fps": format_profile.fps,
         "voice": voice or genre_profile.voice_for_language(language),
         "characters": DEFAULT_CHARACTERS if with_characters else {},
+        "blueprint": blueprint,
         "target": {
             "minutes": minutes,
             "seconds": round(total_seconds, 1),

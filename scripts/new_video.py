@@ -59,6 +59,7 @@ from generate_images import (  # noqa: E402
 from make_assets import ensure_assets  # noqa: E402
 import metadata  # noqa: E402
 import research  # noqa: E402
+import story  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = ROOT / "script.json"
@@ -155,7 +156,7 @@ def build_prompt(
         if gp.key in ("ancient_history", "ancient_engineering"):
             lines += [
                 "### FICTIONAL ANCIENT / IMPOSSIBLE ENGINEERING VIRAL FRAMEWORK (YouTube Shorts 35-50s):",
-                "• CORE OBJECTIVE: Take the most chilling 30-second climax/hook from a 10-minute story to drive viewers to the main video.",
+                "• CORE OBJECTIVE: Tell ONE complete micro-story in 35-50 seconds: a hook, an escalation, and a payoff. It must stand on its own. Never an excerpt cut out of a longer story, and never a trailer for a video that does not exist.",
                 "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
                 "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
                 "   - Start MID-ACTION with a jarring physical contradiction, forbidden relic, or impossible sound code (e.g., '4 लाख टन का यह ठोस पहाड़ बिना किसी जोड़ के ऊपर से नीचे तराशा गया था!').",
@@ -163,9 +164,9 @@ def build_prompt(
                 "2. RAPID MICRO-CLIFFHANGERS (SCENES 2-5):",
                 "   - Disclose concrete physical enigmas: missing 400,000 tons of excavated stone debris, sub-millimeter precision cuts in granite, zero-mortar seismic interlocking joints, or subterranean 136.1 Hz Om acoustic resonance.",
                 "   - Pacing: Crisp, punchy, 6-10 words per sentence for high-velocity spoken delivery.",
-                "3. OPEN-LOOP CLIMAX & INFINITE REPLAY LOOP (FINAL SCENE):",
-                "   - Deliver the most chilling ancient breakthrough/reveal.",
-                "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back into the opening hook question, creating an addictive infinite replay loop that drives viewers to watch the full video.",
+                "3. CLIMAX & PAYOFF (FINAL SCENE):",
+                "   - Deliver the most chilling ancient breakthrough/reveal, and answer the question the hook opened.",
+                "   - Craft the closing sting (max 8-10 words) so its final words connect back into the opening line. The replay loop is a bonus, never a substitute for an ending: the reveal must land first.",
                 "4. ZERO FLUFF: Every single word must heighten curiosity, awe, and mathematical impossibility.",
                 "",
             ]
@@ -179,7 +180,7 @@ def build_prompt(
 
             lines += [
                 "### ULTRA HIGH-RETENTION SHORT-FORM STORY FRAMEWORK (YouTube Shorts 35-50s):",
-                "• CORE OBJECTIVE: Deliver the most chilling 30-second climax/hook to drive viewers to the main long-form video.",
+                "• CORE OBJECTIVE: Deliver ONE complete micro-story in 35-50 seconds - hook, escalation, payoff - so a viewer who never sees anything else still gets a whole story. Never a fragment, never an excerpt.",
                 "1. 0-3 SECOND INESCAPABLE HOOK (SCENE 1):",
                 "   - The FIRST sentence MUST grab attention within 10-12 words (~2-3 sec).",
                 f"   - Start MID-ACTION with a jarring, impossible fact, forbidden warning, or a mind-bending anomaly ({hook_example}).",
@@ -190,9 +191,9 @@ def build_prompt(
                 "   - Sentence length: Crisp, punchy, 6-10 words per sentence for high-velocity spoken pacing.",
                 "3. HYPER-RELATABLE PSYCHOLOGICAL IMMERSION:",
                 "   - Ground the setting in familiar, everyday situations or vivid analogies so the viewer feels immediate personal curiosity.",
-                "4. HIGH-PAYOFF TWIST & INFINITE REPLAY LOOP (FINAL SCENE):",
-                "   - Deliver a mind-bending revelation or payoff in the last sentence.",
-                "   - Craft the closing sting (max 8-10 words) so its final words seamlessly connect back to the opening hook sentence, creating an addictive infinite replay loop.",
+                "4. HIGH-PAYOFF TWIST & PAYOFF (FINAL SCENE):",
+                "   - Deliver a mind-bending revelation or payoff in the last sentence, and close the loop opened in Scene 1.",
+                "   - Craft the closing sting (max 8-10 words) so its final words connect back to the opening hook sentence. The replay loop is a bonus, never a substitute for an ending.",
                 "5. ZERO FLUFF OR FILLER: Every single word must push narrative momentum. No generic morals, no recaps.",
                 "",
             ]
@@ -210,6 +211,8 @@ def build_prompt(
             "   - Chapter 2 (Scenes 34% - 66%): The Second Enigma — deeper dive into forgotten lore and forbidden architectural secrets with its own climax.",
             "   - Atmospheric Narrator Bridge 2: Hypnotic transition preparing the listener for the grand finale.",
             "   - Chapter 3 (Scenes 67% - 100%): The Ultimate Ancient Horror / Revelation — the most intense, grandest legend with epic resolution.",
+            "   - ONE STORY, NOT THREE: all three chapters share the same narrator, the same frame, and one connecting thread. Chapter 2 must pick up the aftermath of Chapter 1, and the bridges are spoken in-story, never read out as a table of contents.",
+            "   - No chapter may end on a 'to be continued' hook. Each one closes its own question; the thread between them is what carries the listener forward.",
             "2. HYPNOTIC AMBIENT FLOW FOR EXTENDED SESSIONS:",
             "   - Steady, mesmerizing narrator pacing ideal for deep immersion and sleep listening.",
             "   - Rich atmospheric descriptions with layered soundstage cues and regional folklore cadence.",
@@ -291,6 +294,10 @@ def build_prompt(
         "3. STORY BRIDGES & CONNECTORS: Use natural storytelling transitions at the start of scenes (e.g. 'इसकी शुरुआत तब हुई जब...', 'लेकिन जैसे ही...', 'हैरानी की बात ये थी कि...', 'तभी अचानक...', 'और अंत में...'). When listening, it must sound like a gripping, continuous audio documentary.",
         "4. COMPLETE SENTENCES PER SCENE: Every scene must contain grammatically complete sentences ending in proper terminal punctuation ('।' in Hindi or '.' in English). NEVER split a sentence in half across scene boundaries or leave trailing commas.",
         "5. CONSISTENT SUBJECT & CHARACTERS: Maintain the same protagonist, setting, and timeline throughout all scenes.",
+        "6. NEVER RE-INTRODUCE WHAT IS ALREADY KNOWN: A person, place, or object introduced in an earlier scene is never introduced again. Refer back to it as something the listener already knows.",
+        "7. NEVER RECAP: No 'as we saw earlier', no summary of previous scenes, no restating a fact you already delivered. A listener who has heard scenes 1 to N-1 must never hear them again.",
+        "8. CONTINUE MID-MOTION: Every scene after the first starts inside the moment the previous scene ended on, not at a fresh beginning. Scene N is the immediate next beat of scene N-1.",
+        "9. DO NOT END EARLY: Only the final scene resolves the story. No scene before it may summarise, conclude, or wrap up the arc.",
         "",
         "Scene list. Each scene has a specific story duty to advance the narrative:",
     ]
@@ -484,23 +491,35 @@ def ask_llm(
     prompt: str,
     *,
     system_prompt: str | None = None,
+    max_tokens: int | None = None,
+    temperature: float = 0.85,
+    response_format: dict | None = None,
 ) -> str:
+    """One chat completion.
+
+    `max_tokens` is set explicitly by every caller that matters: leaving it to the
+    provider's default is how a long story used to come back silently truncated
+    at the point where the model ran out of room rather than out of story.
+    """
     default_system = (
         "You write narration for engaging videos. You follow output formats exactly."
     )
-    payload = json.dumps(
-        {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": system_prompt or default_system,
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.85,
-        }
-    ).encode("utf-8")
+    request_body: dict[str, object] = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": system_prompt or default_system,
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": temperature,
+    }
+    if max_tokens:
+        request_body["max_tokens"] = int(max_tokens)
+    if response_format:
+        request_body["response_format"] = response_format
+    payload = json.dumps(request_body).encode("utf-8")
 
     headers = {
         "Content-Type": "application/json",
@@ -525,119 +544,26 @@ def ask_llm(
 
 def is_conversational_chatter(text: str) -> bool:
     """Detect if LLM output is an error/chatter refusal rather than story narration."""
-    lowered = text.lower().strip()
-    chatter_patterns = [
-        "looks like your message came through blank",
-        "how can i help you today",
-        "i am an ai language model",
-        "as an ai language model",
-        "i cannot fulfill this request",
-        "is there anything else i can help you with",
-        "it appears your message is empty",
-        "it seems your prompt is empty",
-        "your message was blank",
-        "सहायता कर सकता हूँ",
-        "किस प्रकार सहायता",
-        "कैसे मदद कर सकता हूँ",
-        "नमस्ते! आज मैं",
-        "कृपया अपने प्रश्न या विषय",
-        "आपकी क्या सहायता",
-        "मैं एक एआई",
-        "मैं एक ai",
-        "मैं आपकी क्या मदद",
-    ]
-    return any(p in lowered for p in chatter_patterns)
+    return story.is_conversational_chatter(text)
+
+
+def parse_written_scenes(text: str, scene_count: int = 999) -> tuple[str, list[story.WrittenScene]]:
+    """Index-aware parse: each scene keeps the absolute number the writer gave it.
+
+    This is the shape the writer pipeline uses. Binding prose by index instead of
+    by position is what stops one dropped scene from shifting every scene after it.
+    """
+    return story.parse_blocks(text, scene_count)
 
 
 def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[str, str, str]]]:
-    """Parse `TITLE:` plus `###N|headline | VISUAL: visual_tags` blocks into (title, [(headline, visual_keywords, body)])."""
-    if is_conversational_chatter(text):
-        return "", []
+    """Legacy shape: (title, [(headline, visual_keywords, body)]).
 
-    title = ""
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.upper().startswith("TITLE:"):
-            title = stripped.split(":", 1)[1].strip()
-            break
-
-    raw_blocks: list[tuple[str, list[str]]] = []
-    current_headline: str | None = None
-    buffer: list[str] = []
-
-    def flush() -> None:
-        if current_headline is not None:
-            raw_blocks.append((current_headline, list(buffer)))
-
-    for line in text.splitlines():
-        # Only treat as a scene divider if it starts with # or "scene 1:" or "1|" or "1."
-        if (
-            re.match(r"^\s*#{1,4}\s*(\d+)", line)
-            or re.match(r"^\s*scene\s*\d+\s*[|:\.\-]", line, flags=re.IGNORECASE)
-            or re.match(r"^\s*\d+\s*[|]\s*", line)
-        ):
-            flush()
-            buffer = []
-            m = re.search(r"^\s*(?:#{1,4}\s*)?(?:scene\s*)?\d+\s*[|:\.\-]?\s*(.*)$", line, flags=re.IGNORECASE)
-            current_headline = m.group(1).strip() if m else ""
-            continue
-        if current_headline is not None:
-            buffer.append(line)
-    flush()
-
-    if not raw_blocks:
-        # The model ignored the format. Fall back to splitting on blank lines so
-        # a usable result still comes out of a sloppy response.
-        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-        # Filter out obvious conversational noise or pure delimiter paragraphs
-        filtered_paras = [p for p in paragraphs if not is_conversational_chatter(p) and len(p.split()) > 3]
-        raw_blocks = [("", [p]) for p in filtered_paras]
-
-    blocks: list[tuple[str, str, str]] = []
-    for raw_headline, lines in raw_blocks:
-        headline = raw_headline
-        visual_keywords = ""
-
-        # 1. Check for inline VISUAL tag in headline e.g. "Headline | VISUAL: forest glowing lantern" or "Headline [VISUAL: ...]"
-        if " | VISUAL:" in headline or " | visual:" in headline.lower():
-            parts = re.split(r"\s*\|\s*visual:\s*", headline, flags=re.IGNORECASE, maxsplit=1)
-            headline = parts[0].strip()
-            visual_keywords = parts[1].strip() if len(parts) > 1 else ""
-        elif "[VISUAL:" in headline or "[visual:" in headline.lower():
-            v_match = re.search(r"\[visual:\s*([^\]]+)\]", headline, flags=re.IGNORECASE)
-            if v_match:
-                visual_keywords = v_match.group(1).strip()
-                headline = re.sub(r"\[visual:\s*[^\]]+\]", "", headline, flags=re.IGNORECASE).strip()
-        elif "(VISUAL:" in headline or "(visual:" in headline.lower():
-            v_match = re.search(r"\(visual:\s*([^\)]+)\)", headline, flags=re.IGNORECASE)
-            if v_match:
-                visual_keywords = v_match.group(1).strip()
-                headline = re.sub(r"\(visual:\s*[^\)]+\)", "", headline, flags=re.IGNORECASE).strip()
-
-        # 2. Check if any line in the body contains a VISUAL tag and clean it from spoken body
-        clean_lines = []
-        for line in lines:
-            stripped = line.strip()
-            # If line starts with VISUAL: or [VISUAL: ...]
-            if re.match(r"^\[?\s*visual\s*:\s*", stripped, flags=re.IGNORECASE):
-                extracted = re.sub(r"^\[?\s*visual\s*:\s*", "", stripped, flags=re.IGNORECASE).rstrip("]").strip()
-                if not visual_keywords:
-                    visual_keywords = extracted
-                continue
-            # Remove any embedded [VISUAL: ...] tags inside prose so TTS won't read it aloud
-            cleaned = re.sub(r"\[visual:\s*[^\]]+\]", "", line, flags=re.IGNORECASE)
-            cleaned = re.sub(r"\(visual:\s*[^\)]+\)", "", cleaned, flags=re.IGNORECASE)
-            clean_lines.append(cleaned)
-
-        body = " ".join(" ".join(clean_lines).split())
-        if body and not is_conversational_chatter(body):
-            # Clean trailing commas, colons, hyphens, or broken punctuation at the end of scene body
-            body = body.rstrip(" ,-–—;:")
-            if body and not body.endswith(("।", ".", "!", "?", '"', '”', "'")):
-                body += "।" if re.search(r"[ऀ-ॿ]", body) else "."
-            blocks.append((headline, visual_keywords, body))
-
-    return title, blocks[:scene_count]
+    Kept for `--narration` files and existing callers. New code should prefer
+    `parse_written_scenes`, which preserves scene numbering.
+    """
+    title, scenes = story.parse_blocks(text, scene_count)
+    return title, [(scene.headline, scene.visual, scene.body) for scene in scenes]
 
 
 # --------------------------------------------------------------------------
@@ -698,7 +624,7 @@ def caption_options(
 def build_script(
     planned: dict,
     title: str,
-    blocks: list[tuple],
+    blocks: list,
     *,
     voice: str,
     speed: float,
@@ -712,19 +638,27 @@ def build_script(
     gp = genre_profile or beats.get_genre(planned.get("genre"))
     scenes = []
     missing: list[int] = []
+    scene_count = len(planned["scenes"])
 
-    for index, scene in enumerate(planned["scenes"]):
-        headline, visual_keywords, narration = ("", "", "")
-        if index < len(blocks):
-            item = blocks[index]
-            if len(item) >= 3:
-                headline, visual_keywords, narration = item[0], item[1], item[2]
-            elif len(item) == 2:
-                headline, narration = item[0], item[1]
-                if " | VISUAL:" in headline or " | visual:" in headline.lower():
-                    parts = re.split(r"\s*\|\s*visual:\s*", headline, flags=re.IGNORECASE, maxsplit=1)
-                    headline = parts[0].strip()
-                    visual_keywords = parts[1].strip() if len(parts) > 1 else ""
+    # Bind prose by the scene number the writer used, not by list position. Binding
+    # by position meant one dropped scene shifted every scene after it, so a duty
+    # meant for the climax landed on the setup and the story read as fragments.
+    written = story.coerce_blocks(blocks)
+    by_number: dict[int, story.WrittenScene] = {
+        scene.n: scene for scene in written if scene.n is not None
+    }
+    unnumbered = [scene for scene in written if scene.n is None]
+
+    for index in range(scene_count):
+        scene = planned["scenes"][index]
+        piece = by_number.get(index + 1)
+        if piece is None and unnumbered:
+            # Hand-written narration with no numbering still binds in order.
+            piece = unnumbered.pop(0)
+
+        headline = piece.headline if piece else ""
+        visual_keywords = piece.visual if piece else ""
+        narration = piece.body if piece else ""
 
         if not narration.strip():
             missing.append(index + 1)
@@ -811,6 +745,347 @@ def report(args, target_sec: float | None = None) -> None:
     print(f"  delta  : {delta:+.0f}s  ({delta / target_seconds * 100:+.1f}%)")
     if not args.no_render:
         print(f"  output : {args.out}")
+
+
+# --------------------------------------------------------------------------
+# Story writing: blueprint first, then chunks that can see backwards
+# --------------------------------------------------------------------------
+
+STORY_DIR = ROOT / "out" / "story"
+
+
+def _write_story_artifact(name: str, payload) -> None:
+    """Drop a sidecar in out/story. Debugging a continuity problem needs the raw material."""
+    try:
+        STORY_DIR.mkdir(parents=True, exist_ok=True)
+        if isinstance(payload, str):
+            (STORY_DIR / name).write_text(payload, encoding="utf-8")
+        else:
+            (STORY_DIR / name).write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+    except Exception as exc:  # noqa: BLE001 - sidecars are best effort
+        print(f"note: could not write out/story/{name} ({exc})", file=sys.stderr)
+
+
+def _read_story_artifact(name: str):
+    try:
+        path = STORY_DIR / name
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 - a broken cache is worth less than a clean run
+        return None
+    return None
+
+
+def _scene_payload(scene: story.WrittenScene) -> dict:
+    return {"n": scene.n, "headline": scene.headline, "visual": scene.visual, "body": scene.body}
+
+
+def writer_system_prompt(args, genre_profile, planned: dict) -> str:
+    """The writer's standing instructions: one continuous story, in the right language."""
+    base = args.system_prompt or genre_profile.system_prompt
+    raw_lang = (planned.get("language") or "hi").lower().strip()
+    common = (
+        "You are an expert documentary and video scriptwriter. "
+        f"{base} "
+        "You are writing ONE single continuous story delivered across consecutive scenes. "
+        "Every scene continues the scene before it mid-motion. "
+        "Never re-introduce a person, place or object that is already known. "
+        "Never recap what has already been said. "
+        "Never conclude the story before its final scene. "
+    )
+    if raw_lang in ("hi", "hindi", "hinglish"):
+        return common + (
+            "Write every spoken line in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
+            "Do NOT write English narration sentences even if the topic is in English. "
+            "Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल'). "
+            "NEVER reply with chatbot greetings, pleasantries, or explanations. "
+            "Output the requested format and nothing else."
+        )
+    return common + (
+        "NEVER reply with chatbot greetings, pleasantries, or explanations. "
+        "Output the requested format and nothing else."
+    )
+
+
+def write_narration(
+    args,
+    planned: dict,
+    genre_profile,
+    writer_info: tuple[str, str, str | None, str],
+    *,
+    is_hindi: bool,
+    research_report: dict | None = None,
+) -> tuple[str, list[story.WrittenScene], dict | None, dict]:
+    """Write the story: a bible first, then chunks that each see what came before.
+
+    Returns (title, scenes, bible, report). `bible` is None only when the caller
+    asked for no blueprint. `report` records what happened so the run summary can
+    say how much of the story actually got written.
+    """
+    label, base_url, api_key, model_to_use = writer_info
+    scene_count = len(planned["scenes"])
+    target = planned.get("target") or {}
+    standing_prompt = writer_system_prompt(args, genre_profile, planned)
+
+    report: dict = {
+        "writer": label,
+        "model": model_to_use,
+        "scenesPlanned": scene_count,
+        "chunks": [],
+        "issues": [],
+        "repairs": [],
+    }
+
+    def llm(
+        text: str,
+        *,
+        temperature: float = 0.85,
+        max_tokens: int | None = None,
+        system_prompt: str | None = None,
+    ) -> str:
+        return ask_llm(
+            base_url,
+            api_key,
+            model_to_use,
+            text,
+            system_prompt=system_prompt or standing_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+    # ---- the story bible -------------------------------------------------
+    bible: dict | None = None
+    if not getattr(args, "no_blueprint", False):
+        from_bible = getattr(args, "from_bible", None)
+        if from_bible:
+            path = Path(from_bible)
+            if not path.exists():
+                print(f"  error: --from-bible {path} not found", file=sys.stderr)
+                return "", [], None, report
+            try:
+                raw = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                print(f"  error: --from-bible {path} is not valid JSON: {exc}", file=sys.stderr)
+                return "", [], None, report
+            bible = story.normalize_bible(raw, planned, is_hindi=is_hindi)
+            print(f"  blueprint: reusing {path}")
+            report["bible"] = {"accepted": True, "source": str(path)}
+        else:
+            print("  blueprint: designing the whole story before writing any prose...")
+            started = time.time()
+            bible, bible_report = story.build_bible(
+                planned,
+                llm,
+                genre_profile=genre_profile,
+                research=research_report,
+                is_hindi=is_hindi,
+            )
+            report["bible"] = {
+                "accepted": bool(bible_report.get("accepted")),
+                "fallback": bool(bible_report.get("fallback")),
+                "problems": bible_report.get("problems") or [],
+                "attempts": len(bible_report.get("attempts") or []),
+            }
+            _write_story_artifact(
+                "bible-report.json",
+                {
+                    "problems": bible_report.get("problems") or [],
+                    "attempts": [
+                        {
+                            "attempt": entry.get("attempt"),
+                            "parsed": entry.get("parsed"),
+                            "problems": entry.get("problems"),
+                            "error": entry.get("error"),
+                        }
+                        for entry in (bible_report.get("attempts") or [])
+                    ],
+                },
+            )
+            span = (bible or {}).get("span") or {}
+            if bible_report.get("accepted"):
+                print(
+                    f"  blueprint: {span.get('totalScenes', scene_count)} scenes, "
+                    f"~{span.get('totalWords', target.get('totalWords'))} words, "
+                    f"{len((bible or {}).get('arc') or [])} movements "
+                    f"({time.time() - started:.0f}s)"
+                )
+            else:
+                print("  blueprint: unavailable; writing from the scene plan alone")
+        if bible:
+            _write_story_artifact("bible.json", bible)
+
+    # ---- chunked writing -------------------------------------------------
+    chunk_size = int(getattr(args, "story_chunk_scenes", story.CHUNK_SCENES) or 0)
+    if chunk_size <= 0:
+        chunk_size = scene_count
+    chunks = story.plan_chunks(scene_count, chunk_size)
+    attempts = max(1, int(getattr(args, "story_attempts", 3) or 3))
+    max_tokens = int(getattr(args, "story_max_tokens", 4096) or 4096)
+    total_chunks = len(chunks)
+    written: list[story.WrittenScene] = []
+    title = ""
+
+    for position, (first, last) in enumerate(chunks, start=1):
+        cache_name = f"chunk-{position:02d}.json"
+        cached = None if getattr(args, "force_story", False) else _read_story_artifact(cache_name)
+        if cached and cached.get("chunk") == [first, last] and cached.get("scenes"):
+            chunk_scenes = [story.WrittenScene(**item) for item in cached["scenes"]]
+            title = title or str(cached.get("title") or "")
+            written += chunk_scenes
+            print(
+                f"  [{position}/{total_chunks}] scenes {first}-{last}: cached, "
+                f"{sum(scene.words for scene in chunk_scenes)} words"
+            )
+            report["chunks"].append(
+                {"chunk": [first, last], "cached": True, "words": sum(scene.words for scene in chunk_scenes)}
+            )
+            continue
+
+        chunk_prompt = story.build_chunk_prompt(
+            planned,
+            bible or {},
+            (first, last),
+            written,
+            genre_profile=genre_profile,
+            research=research_report,
+            is_hindi=is_hindi,
+        )
+        if position == 1:
+            _write_story_artifact("chunk-01-prompt.txt", chunk_prompt)
+
+        started = time.time()
+        chunk_scenes: list[story.WrittenScene] = []
+        for attempt in range(1, attempts + 1):
+            try:
+                response = llm(
+                    chunk_prompt,
+                    # Continuations run cooler: the bible already supplies the
+                    # invention, so extra heat only adds drift.
+                    temperature=0.85 if position == 1 else 0.6,
+                    max_tokens=max_tokens,
+                )
+            except Exception as exc:  # noqa: BLE001 - one bad attempt is not fatal
+                print(
+                    f"  [{position}/{total_chunks}] attempt {attempt} failed: "
+                    f"{type(exc).__name__}: {exc}",
+                    file=sys.stderr,
+                )
+                continue
+
+            chunk_title, parsed = story.parse_blocks(response, scene_count)
+            in_range = [scene for scene in parsed if scene.n is not None and first <= scene.n <= last]
+            if in_range:
+                chunk_scenes = in_range
+            elif parsed:
+                # Either the model restarted numbering at 1 or it ignored numbering
+                # entirely. Rebase onto the range we actually asked for.
+                chunk_scenes = parsed[: last - first + 1]
+                for offset, scene in enumerate(chunk_scenes):
+                    scene.n = first + offset
+            else:
+                print(
+                    f"  [{position}/{total_chunks}] attempt {attempt}: nothing usable came "
+                    "back, retrying"
+                )
+                continue
+            title = title or chunk_title
+            break
+
+        if chunk_scenes:
+            print(
+                f"  [{position}/{total_chunks}] scenes {first}-{last}: "
+                f"{sum(scene.words for scene in chunk_scenes)} words in {time.time() - started:.0f}s"
+            )
+            _write_story_artifact(
+                cache_name,
+                {"chunk": [first, last], "title": title, "scenes": [_scene_payload(s) for s in chunk_scenes]},
+            )
+        else:
+            print(
+                f"  [{position}/{total_chunks}] scenes {first}-{last}: no prose came back; "
+                "they will be repaired below",
+                file=sys.stderr,
+            )
+        written += chunk_scenes
+        report["chunks"].append(
+            {
+                "chunk": [first, last],
+                "scenes": [scene.n for scene in chunk_scenes],
+                "words": sum(scene.words for scene in chunk_scenes),
+                "seconds": round(time.time() - started, 1),
+            }
+        )
+
+    def sort_key(scene: story.WrittenScene) -> tuple[int, int]:
+        return (scene.n if scene.n is not None else 10**6, 0)
+
+    written.sort(key=sort_key)
+
+    # ---- continuity check ------------------------------------------------
+    issues = story.validate_script(written, planned, bible)
+    report["issues"] = [str(issue) for issue in issues]
+    if issues:
+        print(f"  continuity: {len(issues)} issue(s) across {scene_count} scenes")
+        for issue in issues[:12]:
+            print(f"    - {issue}")
+        if len(issues) > 12:
+            print(f"    ... {len(issues) - 12} more")
+    else:
+        print(f"  continuity: {scene_count}/{scene_count} scenes checked out")
+
+    # Rewriting only the broken scene, with its neighbours as context, is what
+    # keeps a repair from turning into a second, slightly different story.
+    budget = int(getattr(args, "story_repair_budget", 6) or 0)
+    repaired = 0
+    for issue in issues:
+        if repaired >= budget or issue.scene <= 0:
+            continue
+        repair_prompt = story.build_repair_prompt(planned, bible, issue, written, is_hindi=is_hindi)
+        try:
+            response = llm(repair_prompt, temperature=0.5, max_tokens=1024)
+        except Exception as exc:  # noqa: BLE001 - a failed repair is not fatal
+            print(
+                f"    repair of scene {issue.scene} failed: {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            continue
+
+        _, parsed = story.parse_blocks(response, scene_count)
+        replacement = next((scene for scene in parsed if scene.n == issue.scene), None)
+        if replacement is None and parsed:
+            replacement = parsed[0]
+            replacement.n = issue.scene
+        if replacement is None or replacement.is_empty:
+            continue
+
+        for index, scene in enumerate(written):
+            if scene.n == issue.scene:
+                written[index] = replacement
+                break
+        else:
+            written.append(replacement)
+        written.sort(key=sort_key)
+        repaired += 1
+        report["repairs"].append(f"scene {issue.scene}: {issue.kind}")
+        print(f"    repaired scene {issue.scene} ({issue.kind})")
+
+    if repaired:
+        remaining = story.validate_script(written, planned, bible)
+        report["issuesAfterRepair"] = [str(issue) for issue in remaining]
+        print(f"  continuity after repair: {len(remaining)} issue(s) remaining")
+
+    # ---- story summary ---------------------------------------------------
+    words = sum(scene.words for scene in written)
+    covered = len({scene.n for scene in written if scene.n is not None})
+    target_words = int(target.get("totalWords") or 0)
+    drift = f" ({words / target_words - 1:+.0%} against target)" if target_words else ""
+    report["words"] = words
+    report["scenesWritten"] = covered
+    print(f"  story: {covered}/{scene_count} scenes, {words} words{drift}")
+    _write_story_artifact("story-report.json", report)
+    return title, written, bible, report
 
 
 def main() -> int:
@@ -1102,6 +1377,59 @@ def main() -> int:
         help="print the brief sent to the writer, then exit",
     )
     parser.add_argument("--narration", help="use narration from this file instead of a model")
+    parser.add_argument(
+        "--show-bible",
+        dest="show_bible",
+        action="store_true",
+        help="print the story-bible brief (the length contract and per-scene jobs), then exit",
+    )
+    parser.add_argument(
+        "--no-blueprint",
+        dest="no_blueprint",
+        action="store_true",
+        help="skip the story bible and write the whole story in one call (old behaviour)",
+    )
+    parser.add_argument(
+        "--from-bible",
+        dest="from_bible",
+        default=None,
+        help="reuse a story bible JSON (e.g. out/story/bible.json) so a re-render keeps the same plot",
+    )
+    parser.add_argument(
+        "--story-chunk-scenes",
+        dest="story_chunk_scenes",
+        type=int,
+        default=story.CHUNK_SCENES,
+        help="scenes written per LLM call; 0 writes the whole story in one call "
+             f"(default: {story.CHUNK_SCENES})",
+    )
+    parser.add_argument(
+        "--story-max-tokens",
+        dest="story_max_tokens",
+        type=int,
+        default=4096,
+        help="output token ceiling per writing call (default: 4096)",
+    )
+    parser.add_argument(
+        "--story-attempts",
+        dest="story_attempts",
+        type=int,
+        default=3,
+        help="attempts per chunk before moving on (default: 3)",
+    )
+    parser.add_argument(
+        "--story-repair-budget",
+        dest="story_repair_budget",
+        type=int,
+        default=6,
+        help="maximum scenes rewritten by the continuity repair pass (default: 6)",
+    )
+    parser.add_argument(
+        "--force-story",
+        dest="force_story",
+        action="store_true",
+        help="ignore the cached chunks in out/story and rewrite the whole story",
+    )
     parser.add_argument(
         "--title",
         help="override the video title (defaults to the written title, then the topic)",
@@ -1519,6 +1847,33 @@ def main() -> int:
         research=research_report,
     )
 
+    if args.show_bible:
+        print()
+        print("=" * 74)
+        print("STORY BIBLE BRIEF")
+        print("=" * 74)
+        bible_prompt = story.build_bible_prompt(
+            planned,
+            genre_profile=gp,
+            research=research_report,
+            is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
+        )
+        print(bible_prompt)
+        blueprint = planned.get("blueprint") or {}
+        print()
+        print(
+            f"length contract: {blueprint.get('sceneCount')} scenes, "
+            f"~{blueprint.get('totalWords')} words, {blueprint.get('minutes')} min "
+            f"at {blueprint.get('wpm')} wpm"
+        )
+        for movement in blueprint.get("movements") or []:
+            print(
+                f"  {movement['key']:<11} scenes {movement['range'][0]}-{movement['range'][1]} "
+                f"({movement['sceneCount']}), ~{movement['words']} words"
+            )
+        print(f"\n(~{len(bible_prompt) // 4} tokens)")
+        return 0
+
     if args.show_prompt:
         print()
         print("=" * 74)
@@ -1539,14 +1894,16 @@ def main() -> int:
     print("=" * 74)
 
     title = ""
-    blocks: list[tuple[str, str]] = []
+    blocks: list[story.WrittenScene] = []
+    bible: dict | None = None
+    story_report: dict = {}
 
     if args.narration:
         source = Path(args.narration)
         if not source.exists():
             print(f"error: {source} not found", file=sys.stderr)
             return 1
-        title, blocks = parse_written(source.read_text(encoding="utf-8"), len(planned["scenes"]))
+        title, blocks = story.parse_blocks(source.read_text(encoding="utf-8"), len(planned["scenes"]))
         print(f"  source: {source}")
         # Say this loudly. A narration file supplies the entire story, so the
         # topic stops affecting the words -- only the visuals. Getting this wrong
@@ -1566,48 +1923,15 @@ def main() -> int:
         if writer_info:
             label, base_url, api_key, model_to_use = writer_info
             print(f"  writer: {label}, model {model_to_use}")
-            print(f"  prompt: ~{len(prompt) // 4} tokens in, "
-                  f"~{planned['target']['totalWords']} words out")
-            started = time.time()
-            base_sys_prompt = args.system_prompt or gp.system_prompt
-            raw_lang = (planned.get("language") or "hi").lower().strip()
-            if raw_lang in ("hi", "hindi", "hinglish"):
-                effective_sys_prompt = (
-                    "You are an expert documentary and video scriptwriter. "
-                    f"{base_sys_prompt} "
-                    "CRITICAL STORY CONTINUITY: You MUST write ONE UNIFIED, CONTINUOUS, AND CONNECTED STORY ARC from scene 1 to the final scene. "
-                    "The narration must flow seamlessly like an engaging documentary/thriller without disconnected sentences or raw isolated bullet points. "
-                    "Every scene must logically connect to the previous one using natural narrative transitions. "
-                    "Write all spoken story lines in 100% natural conversational Hindi in Devanagari script (हिंदी लिपि). "
-                    "Do NOT write English narration sentences even if the topic is in English. Use standard English loanwords in Devanagari script (e.g. 'फोन', 'हॉस्पिटल'). "
-                    "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
-                )
-            else:
-                effective_sys_prompt = (
-                    "You are an expert documentary and video scriptwriter. "
-                    f"{base_sys_prompt} "
-                    "CRITICAL STORY CONTINUITY: You MUST write ONE UNIFIED, CONTINUOUS, AND CONNECTED STORY ARC from scene 1 to the final scene. "
-                    "The narration must flow seamlessly without disconnected sentences or raw isolated bullet points. "
-                    "Every scene must logically connect to the previous one using natural narrative transitions. "
-                    "NEVER provide conversational chatbot greetings, polite pleasantries, or explanations. Start immediately with TITLE: followed by the scene blocks."
-                )
-
-            for attempt in range(1, 4):
-                try:
-                    response = ask_llm(
-                        base_url,
-                        api_key,
-                        model_to_use,
-                        prompt,
-                        system_prompt=effective_sys_prompt if attempt == 1 else None,
-                    )
-                    title, blocks = parse_written(response, len(planned["scenes"]))
-                    if blocks:
-                        print(f"  wrote {len(blocks)} scenes in {time.time() - started:.0f}s")
-                        break
-                    print(f"  [Attempt {attempt}] Output rejected (empty or refusal). Retrying writer...")
-                except Exception as exc:  # noqa: BLE001 - report and fall through
-                    print(f"  [Attempt {attempt}] writer failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+            print(f"  brief : ~{len(prompt) // 4} tokens in, ~{planned['target']['totalWords']} words out")
+            title, blocks, bible, story_report = write_narration(
+                args,
+                planned,
+                gp,
+                writer_info,
+                is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
+                research_report=research_report,
+            )
         else:
             print("  no writer available (no LLM reachable, no --narration)")
 
@@ -1662,6 +1986,22 @@ def main() -> int:
     )
     script["audioModel"] = audio_model
     script["visualMode"] = args.visual_mode
+
+    # Keep the plot with the script. Phase 2 visual prompts and Phase 3 metadata
+    # then describe the story that was actually written, and a re-render can be
+    # pinned to it with --from-bible.
+    if planned.get("blueprint"):
+        script["blueprint"] = planned["blueprint"]
+    if bible:
+        script["storyBible"] = bible
+    if story_report:
+        script["storyReport"] = {
+            "bible": story_report.get("bible"),
+            "chunks": story_report.get("chunks"),
+            "issues": story_report.get("issues"),
+            "issuesAfterRepair": story_report.get("issuesAfterRepair"),
+            "repairs": story_report.get("repairs"),
+        }
 
     # ---- persist research / keywords (Phase 1) ---------------------------
     # The research report only steered the writer prompt above; keep it on the script so the
