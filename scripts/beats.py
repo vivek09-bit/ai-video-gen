@@ -912,13 +912,13 @@ class GenreProfile:
 GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
     "ancient_history": {
         "ambience_setup": ["amb_ancient_sanctum", "amb_temple", "amb_vedic_resonance", "amb_quarry_echo"],
-        "ambience_rising": ["amb_subterranean_chamber", "amb_ancient_sanctum", "amb_drone", "amb_tension"],
-        "ambience_climax": ["amb_vedic_resonance", "amb_subterranean_chamber", "amb_tension", "amb_drone"],
+        "ambience_rising": ["amb_ancient_sanctum", "amb_drone"],
+        "ambience_climax": ["amb_vedic_resonance", "amb_drone"],
         "ambience_resolution": ["amb_vedic_resonance", "amb_ancient_sanctum", "amb_temple", "amb_warm"],
-        "sfx_setup": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_chisel_tap", "sfx_bell", "sfx_chisel_echo"],
-        "sfx_rising": ["sfx_stone_grind", "sfx_monolith_shift", "sfx_ancient_mechanism", "sfx_hydraulic_stone_gate", "sfx_riser"],
-        "sfx_climax": ["sfx_stone_impact", "sfx_cinematic_hit", "sfx_ancient_horn_blast", "sfx_mystic_reveal", "sfx_boom", "sfx_impact"],
-        "sfx_resolution": ["sfx_temple_gong", "sfx_bronze_bell_ring", "sfx_conch_call", "sfx_bell", "sfx_mystic_reveal"],
+        "sfx_setup": ["sfx_temple_gong", "sfx_chisel_tap", "sfx_bell", "sfx_chisel_echo"],
+        "sfx_rising": ["sfx_ancient_mechanism", "sfx_riser"],
+        "sfx_climax": ["sfx_stone_impact", "sfx_cinematic_hit", "sfx_mystic_reveal", "sfx_boom", "sfx_impact"],
+        "sfx_resolution": ["sfx_temple_gong", "sfx_bell", "sfx_mystic_reveal"],
     },
     "anime": {
         "ambience_setup": ["amb_cyber", "amb_wind", "amb_warm"],
