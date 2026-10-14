@@ -193,9 +193,9 @@ def needs_gpu(jobs: list[dict]) -> bool:
     for job in jobs:
         if job.get("video-gen"):
             return True
-        if str(job.get("audio-model") or "").lower() == "indicf5":
+        if str(job.get("audio-model") or "").lower() == "indic_parler":
             return True
-        if str(job.get("voice") or "").lower().startswith(("indicf5", "indic_")):
+        if str(job.get("voice") or "").lower().startswith(("indic_parler", "indic_")):
             return True
     return False
 
@@ -207,12 +207,12 @@ def expected_gpu(jobs: list[dict]) -> str:
 def prefetch_for(jobs: list[dict]) -> list[str]:
     """Weights to pull while the container is still installing."""
     models: list[str] = []
-    wants_indicf5 = any(
-        str(job.get("audio-model") or "").lower() == "indicf5"
-        or str(job.get("voice") or "").lower().startswith(("indicf5", "indic_"))
+    wants_indic_parler = any(
+        str(job.get("audio-model") or "").lower() == "indic_parler"
+        or str(job.get("voice") or "").lower().startswith(("indic_parler", "indic_"))
         for job in jobs
     )
-    if wants_indicf5:
+    if wants_indic_parler:
         models.append("RXD03/indic-parler-tts")
     if any(job.get("video-gen") for job in jobs):
         video_models = [str(job["video-model"]) for job in jobs if job.get("video-model")]

@@ -836,7 +836,10 @@ def main() -> int:
         "--audio-model",
         choices=("auto", "kokoro", "indic_parler", "parler", "indicf5"),
         default="auto",
-        help="narration model; auto uses Kokoro by default and selects Indic Parler-TTS for an Indic voice",
+        help=(
+            "narration model; auto uses Kokoro by default and selects Indic Parler-TTS for an "
+            "indic_parler_* voice, or the LOCAL IndicF5 cloner (examples/indicf5) for an indicf5_* voice"
+        ),
     )
     parser.add_argument(
         "--video-model",
@@ -889,7 +892,7 @@ def main() -> int:
     parser.add_argument(
         "--voice",
         default=None,
-        help="Voice id, alias, or blend (e.g. hm_omega, indic_parler_aarav, indic_parler_priya, hindi_female, bm_george)",
+        help="Voice id, alias, or blend (e.g. hm_omega, indic_parler_aarav, indicf5_aarav, hindi_female, bm_george)",
     )
     parser.add_argument(
         "--dynamic-speed",
@@ -1423,19 +1426,27 @@ def main() -> int:
     if not requested_voice and args.audio_model != "kokoro":
         requested_voice = DEFAULT_INDIC_VOICE
     requested_voice_key = (requested_voice or "").strip().lower()
-    voice_requests_indic = requested_voice_key.startswith(("indicf5", "indic_"))
-    indic_engine_selected = args.audio_model in ("indicf5", "indic_parler", "parler")
+    voice_requests_indicf5 = requested_voice_key.startswith("indicf5")
+    voice_requests_parler = requested_voice_key.startswith(("indic_parler", "indic_"))
+    voice_requests_indic = voice_requests_indicf5 or voice_requests_parler
+    indic_engine_selected = args.audio_model in ("indic_parler", "parler")
+    indicf5_selected = args.audio_model == "indicf5"
     if args.audio_model == "kokoro" and voice_requests_indic:
-        parser.error("--audio-model kokoro cannot be combined with an Indic Parler-TTS voice.")
-    if indic_engine_selected and args.voice and not voice_requests_indic:
+        parser.error("--audio-model kokoro cannot be combined with an Indic voice.")
+    if indic_engine_selected and args.voice and not voice_requests_parler:
         parser.error("--audio-model indic_parler requires an Indic voice, e.g. --voice indic_parler_aarav.")
-    audio_model = (
-        "indicf5"
-        if indic_engine_selected or (args.audio_model == "auto" and voice_requests_indic)
-        else "kokoro"
-    )
-    if audio_model == "indicf5" and not voice_requests_indic:
+    if indicf5_selected and args.voice and not voice_requests_indicf5:
+        parser.error("--audio-model indicf5 requires an IndicF5 voice, e.g. --voice indicf5_aarav.")
+    if indicf5_selected or (args.audio_model == "auto" and voice_requests_indicf5):
+        audio_model = "indicf5"
+    elif indic_engine_selected or (args.audio_model == "auto" and voice_requests_parler):
+        audio_model = "indic_parler"
+    else:
+        audio_model = "kokoro"
+    if audio_model == "indic_parler" and not voice_requests_parler:
         requested_voice = "indic_parler_aarav"
+    if audio_model == "indicf5" and not voice_requests_indicf5:
+        requested_voice = "indicf5_aarav"
 
     primary_voice = resolve_voice(
         requested_voice,
@@ -1697,7 +1708,7 @@ def main() -> int:
         or args.vast_instance is not None
         or args.vast_url is not None
         or (not args.no_images and detected_image_provider == "vast")
-        or audio_model == "indicf5"
+        or audio_model == "indic_parler"
     )
     # Visuals that cannot be produced without the GPU must fail loudly; narration has a
     # slow local CPU path and so degrades instead.
@@ -1706,7 +1717,7 @@ def main() -> int:
     )
     auto_rented_for_audio = (
         needs_vast
-        and audio_model == "indicf5"
+        and audio_model == "indic_parler"
         and not vast_required_early
         and not args.vast
         and args.vast_instance is None
@@ -1720,7 +1731,7 @@ def main() -> int:
     # Prefetch the weights this run will actually need while the container is still
     # installing, so the first request is not stuck waiting on a download. Video mode
     # pulls the LTX checkpoint too; image mode never touches it.
-    vast_prefetch = ["RXD03/indic-parler-tts"] if audio_model == "indicf5" else []
+    vast_prefetch = ["RXD03/indic-parler-tts"] if audio_model == "indic_parler" else []
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
     render_on_vast = args.render_on == "vast"
@@ -1808,7 +1819,7 @@ def main() -> int:
                         prefetch_models=vast_prefetch or None,
                     )
             health = vast_mgr.require_gpu(
-                expected_gpu, server_url, require_tts=audio_model == "indicf5"
+                expected_gpu, server_url, require_tts=audio_model == "indic_parler"
             )
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
             os.environ["VAST_SERVER_URL"] = server_url
@@ -1913,7 +1924,7 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
-        if audio_model == "indicf5":
+        if audio_model == "indic_parler":
             print(
                 "  Continuing without Vast.ai: Indic Parler-TTS narration will run locally on the CPU\n"
                 "  (much slower) because --allow-local-fallback was passed.",
@@ -1926,7 +1937,7 @@ def main() -> int:
     # No reference-voice upload is needed here: Indic Parler-TTS is steered by a text
     # description, not a reference clip, so the server needs nothing beyond its own code.
     strict_audio = not getattr(args, "allow_local_fallback", False)
-    if audio_model == "indicf5":
+    if audio_model == "indic_parler":
         if vast_server:
             tts_cmd.extend(["--vast", "--vast-url", vast_server])
             # Always strict for Indic Parler-TTS: a mid-run remote failure must raise rather
@@ -1946,8 +1957,10 @@ def main() -> int:
                 "  [Indic Parler-TTS] No Vast.ai server available; synthesising locally on the CPU (slow).",
                 file=sys.stderr,
             )
-    if audio_model == "indicf5":
+    if audio_model == "indic_parler":
         tts_label = "Indic Parler-TTS on Vast.ai" if vast_server else "Indic Parler-TTS (local CPU)"
+    elif audio_model == "indicf5":
+        tts_label = "IndicF5 (local)"
     else:
         tts_label = "Kokoro"
     tts_succeeded = run_step(

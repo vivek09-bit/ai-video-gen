@@ -2,7 +2,7 @@
 """Vast.ai GPU Cloud Manager & Client.
 
 Image generation uses one RTX 3090; LTX-Video uses one RTX 4090. Both can also
-run remote IndicF5 narration before the selected instance is stopped.
+run remote Indic Parler-TTS narration before the selected instance is stopped.
 
 An already-rented instance of the right GPU is reused before anything new is
 rented, and every offer is filtered against a per-GPU all-in price ceiling
@@ -121,8 +121,8 @@ def _image_torch_backend(image: str) -> str:
     """Derive uv's torch backend ('cu124') from an image tag such as 'cuda12.4'.
 
     The torch family must come from the index matching the image's own CUDA build.
-    Without that, `f5-tts` resolves a `torchaudio` wheel built for a different CUDA
-    version, and it cannot be loaded by the image's torch: the IndicF5 engine then fails
+    Without that, a `torchaudio` wheel built for a different CUDA version gets resolved
+    and cannot be loaded by the image's torch: the Indic Parler-TTS engine then fails
     at first use with "Could not load .../torchaudio/lib/libtorchaudio.so", which reaches
     the client as an opaque HTTP 500. Falls back to uv's own detection when the image tag
     carries no CUDA version.
@@ -169,8 +169,8 @@ def _http_json(req: urllib.request.Request, timeout: int) -> dict:
     The Vast inference server answers handler failures with a 500 plus
     {"status": "error", "error": "..."}, but urlopen raises before the body can be read,
     so the reason was being thrown away. Every server-side fault looked identical
-    ("HTTP Error 500: Internal Server Error"), including a missing IndicF5 reference voice
-    which the server names explicitly in that body.
+    ("HTTP Error 500: Internal Server Error"), including a model-load failure which the
+    server names explicitly in that body.
     """
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -265,9 +265,9 @@ RENDER_STACK_PACKAGES: tuple[str, ...] = (
 def _wav_is_bad(wav_bytes: bytes) -> bool:
     """True when a returned WAV is empty, non-finite, silent or pure DC.
 
-    IndicF5 on fp16 can emit NaN, which libsndfile encodes as a constant -32768 (0x8000)
-    DC WAV that is structurally valid but carries no speech. Rejecting it at the transport
-    boundary stops silent audio from reaching the disk cache and the final render.
+    Indic Parler-TTS can emit NaN on some draws, which libsndfile encodes as a constant
+    -32768 (0x8000) DC WAV that is structurally valid but carries no speech. Rejecting it
+    at the transport boundary stops silent audio from reaching the disk cache and render.
     """
     try:
         import io
@@ -425,28 +425,6 @@ class VastManager:
     def pull_file(self, instance_id: int, remote_path: str, local_path: str | Path) -> None:
         """Download a remote file from the instance."""
         self._transfer(instance_id, str(local_path), remote_path, upload=False)
-
-    def push_reference_voices(self, instance_id: int, local_dir: str | Path | None = None) -> int:
-        """Copy the IndicF5 zero-shot reference voices onto the instance.
-
-        These are generated narration assets rather than code, so a fresh `git clone` of
-        the repo may not carry them -- and without one the server answers HTTP 500 for
-        every synthesis request. Uploading ~2MB makes narration independent of whatever
-        the clone happens to contain, including on a warm instance cloned before the
-        files were committed. Returns the number of files copied.
-        """
-        source = Path(local_dir) if local_dir else ROOT / "public/audio/prompts/indicf5"
-        if not source.is_dir():
-            return 0
-        files = sorted(source.glob("*.wav")) + sorted(source.glob("*.txt"))
-        if not files:
-            return 0
-        remote_dir = "/workspace/tube2dscript/public/audio/prompts/indicf5"
-        self.run_ssh(instance_id, f"mkdir -p {shlex.quote(remote_dir)}", timeout=60)
-        for path in files:
-            self.push_file(instance_id, path, f"{remote_dir}/{path.name}")
-        print(f"[Vast Manager] Uploaded {len(files)} IndicF5 reference file(s) to instance {instance_id}.")
-        return len(files)
 
     def _safe_destroy(self, instance_id: int) -> None:
         """Destroy an instance without letting cleanup failure mask the real error."""
@@ -1560,10 +1538,10 @@ class VastManager:
     ) -> dict[str, Any]:
         """Reject a server whose reported device does not match this generation mode.
 
-        With `require_tts`, a server whose IndicF5 import path is broken is rejected too.
-        That state is invisible to a liveness check but makes every synthesis request
-        answer HTTP 500, so without this the failure only surfaces after the rental has
-        been paid for and narration has already started.
+        With `require_tts`, a server whose Indic Parler-TTS import path is broken is
+        rejected too. That state is invisible to a liveness check but makes every
+        synthesis request answer HTTP 500, so without this the failure only surfaces
+        after the rental has been paid for and narration has already started.
 
         A server that reports no `tts_ready` field at all is accepted: instances cloned
         before this check existed cannot answer it, and refusing them would strand them.
@@ -1662,11 +1640,11 @@ class VastManager:
     def synthesize_tts(
         self,
         text: str,
-        voice: str = "indicf5_aarav",
+        voice: str = "indic_parler_aarav",
         speed: float = 1.0,
         url: str | None = None,
     ) -> tuple[bytes, float]:
-        """Synthesize IndicF5 speech remotely on Vast.ai RTX 4090."""
+        """Synthesize Indic Parler-TTS speech remotely on Vast.ai RTX 4090."""
         target = (url or self.server_url or "").rstrip("/") + "/v1/audio/synthesize"
         payload = {
             "text": text,
@@ -1681,17 +1659,17 @@ class VastManager:
         )
         res = _http_json(req, timeout=600)
         if res.get("status") != "success":
-            raise RuntimeError(f"Remote IndicF5 TTS failed: {res.get('error')}")
+            raise RuntimeError(f"Remote Indic Parler-TTS failed: {res.get('error')}")
         audio_bytes = base64.b64decode(res["audio_base64"])
         if _wav_is_bad(audio_bytes):
-            raise RuntimeError("Remote IndicF5 TTS returned silent/non-finite audio")
+            raise RuntimeError("Remote Indic Parler-TTS returned silent/non-finite audio")
         dur = float(res.get("audio_duration_sec", 0.0))
         return audio_bytes, dur
 
     def synthesize_tts_batch(
         self,
         items: list[dict],
-        voice: str = "indicf5_aarav",
+        voice: str = "indic_parler_aarav",
         speed: float = 1.0,
         url: str | None = None,
         timeout: int = 3600,
@@ -1714,7 +1692,7 @@ class VastManager:
         )
         res = _http_json(req, timeout=timeout)
         if res.get("status") != "success":
-            raise RuntimeError(f"Remote IndicF5 batch synthesis failed: {res.get('error')}")
+            raise RuntimeError(f"Remote Indic Parler-TTS batch synthesis failed: {res.get('error')}")
 
         out: dict[str, tuple[bytes, float]] = {}
         errors: list[str] = []

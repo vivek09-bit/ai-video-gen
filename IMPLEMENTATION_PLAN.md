@@ -3,14 +3,14 @@
 **Goal:** a single command that runs
 
 > research → keywords → write script → build image/video prompts →
-> *(if IndicF5)* rent Vast RTX 3090 → load model → generate voice → store locally →
+> *(if Indic Parler-TTS)* rent Vast RTX 3090 → load model → generate voice → store locally →
 > render the final video on CPU.
 
 **Usage target (after all steps are done):**
 
 ```powershell
 npm run new -- --topic "पुरानी हवेली का राज़" --minutes 10 `
-  --audio-model indicf5 --voice indicf5_aarav --imageprovider local
+  --audio-model indic_parler --voice indic_parler_aarav --imageprovider local
 ```
 
 ---
@@ -60,7 +60,7 @@ All four suites are green (`npm test`); `test_providers.py` now also runs
 4. **Batch refactor** — deliberately skipped (documented as available in the docstring).
 
 **Still to verify (no code)**
-5. **Phase 7 (live GPU run)** — rent 3090 → IndicF5 → audio → local render, and confirm the
+5. **Phase 7 (live GPU run)** — rent 3090 → Indic Parler-TTS → audio → local render, and confirm the
    instance finishes **stopped (not terminated)**. Needs a Vast account + credit + LLM key.
 6. `--stop-after metadata` not yet exercised at runtime.
 7. Phase 1/3 with research **enabled** (needs an LLM key): confirm `script.json` gains
@@ -89,7 +89,7 @@ All four suites are green (`npm test`); `test_providers.py` now also runs
 | Research / keywords | `scripts/research.py` | `fetch_youtube_suggestions`, `fetch_google_suggestions`, `generate_keyword_clusters`, `research_viral_angles`, `format_research_report` |
 | Script writing | `scripts/new_video.py`, `scripts/beats.py` | `build_prompt(research=…)`, `parse_written`, `build_script`, `resolve_llm_writer`, `ask_llm` |
 | Visual prompts | `scripts/generate_images.py`, `scripts/generate_videos.py` | `extract_script_visual_keywords`, `build_search_queries`, `make_prompt`, `generate_images_for_script`, `generate_videos_for_script` |
-| GPU / IndicF5 | `scripts/vast_manager.py`, `scripts/vast_server.py`, `scripts/tts.py` | `VastManager.provision_instance`, `find_existing_instance`, `require_gpu`, `prebuild_vast_batch`, `synthesize_indicf5` |
+| GPU / Indic Parler-TTS | `scripts/vast_manager.py`, `scripts/vast_server.py`, `scripts/tts.py` | `VastManager.provision_instance`, `find_existing_instance`, `require_gpu`, `prebuild_vast_batch`, `synthesize_indic_parler` |
 | Metadata / SEO | `scripts/metadata.py` | `build_seo_tags`, `generate_metadata`, `generate_metadata_procedural` |
 | Render | `package.json`, `scripts/vast_render.py` | `npx remotion render Main …`, `render_on_vast` |
 | Tests | `scripts/test_*.py` | `test_providers.py`, `test_audio.py`, `test_story.py`, `test_phonemise.py` |
@@ -101,9 +101,9 @@ All four suites are green (`npm test`); `test_providers.py` now also runs
 - ✅ Research + concepts injected into the writer brief (`build_prompt(research=…)`).
 - ✅ Visual prompt factories and multi-provider image generation.
 - ✅ LTX-Video generation for `--visual-mode video`.
-- ✅ IndicF5 auto-rent of RTX 3090 (4090 only for video mode), budget caps, bad-host
+- ✅ Indic Parler-TTS auto-rent of RTX 3090 (4090 only for video mode), budget caps, bad-host
   blacklist, warm reuse, onstart install (`uv` + torch/numpy/pyarrow/torchaudio pins) +
-  HF prefetch of `rsolanki1822/IndicF5-mirror`.
+  HF prefetch of `RXD03/indic-parler-tts`.
 - ✅ Remote TTS API (`/health`, `/v1/audio/synthesize`, `/v1/audio/synthesize_batch`) and
   local disk cache `out/gpu_audio_cache` keyed by `(text, voice, speed)`.
 - ✅ `batch.py` holds the GPU only for the audio phase, stops once, renders on CPU.
@@ -119,7 +119,7 @@ All four suites are green (`npm test`); `test_providers.py` now also runs
 **Status: `[x]` already implemented — verify only, do not rebuild.**
 
 Why it matters: a *stopped* instance keeps its container filesystem, so the dependency
-install it already paid for (torch + IndicF5 + HF weights, ~20-30 min) survives for cheap
+install it already paid for (torch + Indic Parler-TTS + HF weights, ~20-30 min) survives for cheap
 reuse. Destroying it throws that away and the next run re-pays the full setup. A stopped
 50GB instance bills storage (~$0.77/day), which is far less than re-running setup.
 
@@ -148,7 +148,7 @@ appears **stopped** in `vastai show instances` — never absent (absent = termin
 
 **Verify:**
 ```powershell
-npm run new -- --topic "..." --minutes 1 --audio-model indicf5 --voice indicf5_aarav --imageprovider local --stop-after audio
+npm run new -- --topic "..." --minutes 1 --audio-model indic_parler --voice indic_parler_aarav --imageprovider local --stop-after audio
 .venv\Scripts\vastai.exe show instances   # expect status "stopped", the id still listed
 # do NOT see the instance disappear (that would mean it was terminated)
 ```
@@ -297,7 +297,7 @@ and exits **without** rendering.
 
 **Verify:**
 ```powershell
-npm run new -- --topic "..." --minutes 1 --audio-model indicf5 --voice indicf5_aarav --imageprovider local --stop-after audio
+npm run new -- --topic "..." --minutes 1 --audio-model indic_parler --voice indic_parler_aarav --imageprovider local --stop-after audio
 # expect: script.json + public/audio/voice/*.wav + out/gpu_audio_cache/*, no out/*.mp4
 ```
 
@@ -409,7 +409,7 @@ unavailable and keep local rendering. (Recommended until remote render is proven
 
 ## Phase 7 — Prove the flow live (Gap #6) — ⬜ **PENDING (verification only)**
 
-**What:** rent 3090 → boot → IndicF5 → audio → local render has never been run end-to-end.
+**What:** rent 3090 → boot → Indic Parler-TTS → audio → local render has never been run end-to-end.
 
 **Change:** none (verification only). Run a short, cheap job.
 
@@ -424,7 +424,7 @@ unavailable and keep local rendering. (Recommended until remote render is proven
 **Verify:**
 ```powershell
 npm run new -- --topic "aadha din aadhi raat" --minutes 1 `
-  --audio-model indicf5 --voice indicf5_aarav --imageprovider local --out out/indicf5-1min.mp4
+  --audio-model indic_parler --voice indic_parler_aarav --imageprovider local --out out/indic-parler-1min.mp4
 ```
 Then: `npm run verify-final` (or ffprobe/duration check) and confirm the instance is
 **stopped, not gone**, with `.venv\Scripts\vastai.exe show instances`.
@@ -449,7 +449,7 @@ and note the render engine is **Remotion (bundled ffmpeg) on CPU**, not a raw ff
 - [x] `npm test` (phonemise + audio + story + providers) exits 0. — **verified**
 - [x] `python scripts/test_providers.py` passes `test_vast_call_sites()`. — **verified**
 - [x] No new `get_errors` / Pylance diagnostics in edited files. — **verified**
-- [ ] Non-IndicF5 path still works: `npm run new -- --topic x --minutes 1 ...` (Kokoro). — **NOT verified**
+- [ ] Non-Indic path still works: `npm run new -- --topic x --minutes 1 ...` (Kokoro). — **NOT verified**
 - [x] Offline / `--no-research` still produces a script. — **verified** (`--no-research --stop-after write`)
 - [ ] `--stop-after audio` / `--stop-after metadata` exercised at runtime. — **NOT verified**
 

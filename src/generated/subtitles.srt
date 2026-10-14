@@ -1,139 +1,107 @@
 1
-00:00:00,000 --> 00:00:04,230
-chin ke shanshi prant mein,
+00:00:00,000 --> 00:00:01,321
+panch hazar sal purani is
 
 2
-00:00:04,230 --> 00:00:09,148
-char hazar sal purani ek
+00:00:01,321 --> 00:00:02,443
+khudaee mein jo mila, woh
 
 3
-00:00:09,148 --> 00:00:14,729
-khudaee ke dauran, mazaduron ko
+00:00:02,443 --> 00:00:03,457
+aaj ki puri takanik ko
 
 4
-00:00:14,729 --> 00:00:19,189
-zamin ke neeche kuchh aisa
+00:00:03,457 --> 00:00:04,575
+jhutha sabit karta hai.
 
 5
-00:00:19,189 --> 00:00:24,553
-mila, jisane puri duniya ke
+00:00:05,045 --> 00:00:06,273
+dharati ke neeche se nikale
 
 6
-00:00:24,553 --> 00:00:30,198
-itihasakaron ki nind ura di.
+00:00:06,273 --> 00:00:07,453
+in pattharon ko bina kisi
 
 7
-00:00:30,282 --> 00:00:55,515
-ye koee sadharan qabr nahi
+00:00:07,453 --> 00:00:08,806
+jor ke, aadhe milimitar ki
 
 8
-00:00:55,515 --> 00:01:05,061
-thi... ye ek aisa sil
+00:00:08,806 --> 00:00:10,125
+satikata se kata gaya tha.
 
 9
-00:01:05,061 --> 00:01:13,529
-kiya huaa kamra tha, jisaka
+00:00:10,595 --> 00:00:11,766
+lekin hairani ki baat ye
 
 10
-00:01:13,529 --> 00:01:23,011
-darwaza kholane par andar se
+00:00:11,766 --> 00:00:12,721
+thi ki, char lakh ton
 
 11
-00:01:23,011 --> 00:01:30,697
-ek ajib si gunj nikali...
+00:00:12,721 --> 00:00:14,136
+malaba, khudaee ke bad gayab
 
 12
-00:01:30,782 --> 00:01:44,840
-jaise char hazar sal purani
+00:00:14,136 --> 00:00:15,419
+ho gaya, kahin koee nishan
 
 13
-00:01:44,840 --> 00:01:55,787
-koee aawaz aaj bhi wahan
+00:00:15,419 --> 00:00:15,980
+nahi mila.
 
 14
-00:01:55,787 --> 00:02:02,360
-qaid ho... aur bahar nikalane
+00:00:16,450 --> 00:00:17,675
+aur phir achanak, ek gupt
 
 15
-00:02:02,360 --> 00:02:04,161
-ke lie chhatapata rahi ho.
+00:00:17,675 --> 00:00:19,029
+kamare mein, ek sau chhattis
 
 16
-00:02:04,631 --> 00:02:13,934
-lekin jaise hi puratatvavidon ne
+00:00:19,029 --> 00:00:20,508
+dashamalav ek hartz ki dhvani
 
 17
-00:02:13,934 --> 00:02:21,631
-andar qadam rakha, hairani ki
+00:00:20,508 --> 00:00:21,715
+gunji, jo om ki prachin
 
 18
-00:02:21,631 --> 00:02:26,485
-baat ye thi ki wahan
+00:00:21,715 --> 00:00:22,190
+aawaz thi.
 
 19
-00:02:26,485 --> 00:02:33,222
-koee sona ya hira nahi
+00:00:22,660 --> 00:00:24,450
+in prachin shilpakaron ne patthar
 
 20
-00:02:33,222 --> 00:02:39,912
-tha... balki ek aisa kansy
+00:00:24,450 --> 00:00:25,954
+mein ganit, dhvani vigyaan, aur
 
 21
-00:02:39,912 --> 00:02:46,258
-ka bartan rakha tha, jisaki
+00:00:25,954 --> 00:00:27,493
+brahmand ka pura gyaan chhipa
 
 22
-00:02:46,258 --> 00:02:53,429
-divaren itani patali aur satik
+00:00:27,493 --> 00:00:27,985
+diya tha.
 
 23
-00:02:53,429 --> 00:02:58,714
-thin, ki aaj ki machines
+00:00:28,455 --> 00:00:29,485
+aaj tak koee machine ise
 
 24
-00:02:58,714 --> 00:03:05,110
-bhi use bana nahi sakatin.
+00:00:29,485 --> 00:00:30,586
+tor nahi paee, ye amar
 
 25
-00:03:05,195 --> 00:03:15,006
-aur us bartan ke andar
+00:00:30,586 --> 00:00:31,771
+sabhyata ka sabut hai, jo
 
 26
-00:03:15,006 --> 00:03:25,116
-se, aaj bhi ek gahari
+00:00:31,771 --> 00:00:32,814
+dharati ke neeche aaj bhi
 
 27
-00:03:25,116 --> 00:03:39,012
-gunj nikal rahi thi... jisaki
-
-28
-00:03:39,012 --> 00:04:00,335
-aawaz sunakar vaigyaanikon ke pasine
-
-29
-00:04:00,335 --> 00:04:13,377
-chhut gae. tabhi achanak, wahan
-
-30
-00:04:13,377 --> 00:04:24,853
-maujud ek vaigyaanik ne dekha
-
-31
-00:04:24,853 --> 00:04:33,658
-ki divar par kuchh likha
-
-32
-00:04:33,658 --> 00:04:37,039
-tha... aur woh likhavat aaj
-
-33
-00:04:37,039 --> 00:04:38,133
-ki bhasha se mel kha
-
-34
-00:04:38,133 --> 00:04:39,524
-rahi thi... jo char hazar
-
-35
-00:04:39,524 --> 00:04:40,696
-sal pehle asnbhav tha.
+00:00:32,814 --> 00:00:33,230
+chhipa hai.

@@ -11,6 +11,8 @@
     "images": ".venv\\Scripts\\python.exe scripts\\generate_images.py",
     "voice": ".venv\\Scripts\\python.exe scripts\\tts.py",
     "voices": ".venv\\Scripts\\python.exe scripts\\tts.py --voices",
+    "indicf5:setup": "powershell -ExecutionPolicy Bypass -File examples/indicf5/setup.ps1",
+    "indicf5": "cd examples\\indicf5 && .venv-indicf5\\Scripts\\python.exe indicf5_voices.py",
     "tokens": ".venv\\Scripts\\python.exe scripts\\token_report.py",
     "upload": ".venv\\Scripts\\python.exe scripts\\uploader.py",
     "upload:check": ".venv\\Scripts\\python.exe scripts\\uploader.py --check",

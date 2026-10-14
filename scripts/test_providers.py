@@ -710,8 +710,8 @@ def test_vast_setup_resilience() -> None:
     )
     assert "torch.version.cuda" in onstart, "onstart must report the CUDA build it ended up with"
 
-    # 5. The torch family must be resolved from the image's own CUDA index. f5-tts
-    #    otherwise drags in a torchaudio built for a different CUDA version, which the
+    # 5. The torch family must be resolved from the image's own CUDA index, otherwise a
+    #    torchaudio wheel built for a different CUDA version may be pulled in, which the
     #    image's torch cannot load; that surfaced only at first synthesis as
     #    "Could not load .../torchaudio/lib/libtorchaudio.so" and an opaque HTTP 500.
     assert "--torch-backend=cu124" in onstart, (
@@ -1043,11 +1043,11 @@ def test_gpu_resume_and_batch() -> None:
 
     # 1. The GPU cache is content-addressed: identical segments share a file, and any
     #    change of text, voice or speed must not collide with another segment.
-    base = tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.0)
-    assert base == tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.0)
-    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_priya", 1.0), "voice must be part of the key"
-    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indicf5_aarav", 1.2), "speed must be part of the key"
-    assert base != tts.gpu_cache_path("अलग वाक्य", "indicf5_aarav", 1.0), "text must be part of the key"
+    base = tts.gpu_cache_path("नमस्ते दुनिया", "indic_parler_aarav", 1.0)
+    assert base == tts.gpu_cache_path("नमस्ते दुनिया", "indic_parler_aarav", 1.0)
+    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indic_parler_priya", 1.0), "voice must be part of the key"
+    assert base != tts.gpu_cache_path("नमस्ते दुनिया", "indic_parler_aarav", 1.2), "speed must be part of the key"
+    assert base != tts.gpu_cache_path("अलग वाक्य", "indic_parler_aarav", 1.0), "text must be part of the key"
     assert base.suffix == ".wav"
     assert tts.GPU_CACHE_DIR.name == "gpu_audio_cache"
 
@@ -1062,12 +1062,12 @@ def test_gpu_resume_and_batch() -> None:
     # A silent segment must never be persisted (it would be replayed as a muted video).
     silent_buf = _io.BytesIO()
     sf.write(silent_buf, [0.0] * 2400, 24000, format="WAV", subtype="PCM_16")
-    silent_path = tts.gpu_cache_path("कैश साइलेंट", "indicf5_aarav", 1.0)
+    silent_path = tts.gpu_cache_path("कैश साइलेंट", "indic_parler_aarav", 1.0)
     silent_path.unlink(missing_ok=True)
-    tts.write_gpu_cache("कैश साइलेंट", "indicf5_aarav", 1.0, silent_buf.getvalue())
+    tts.write_gpu_cache("कैश साइलेंट", "indic_parler_aarav", 1.0, silent_buf.getvalue())
     assert not silent_path.exists(), "a silent segment must not be written to the gpu cache"
 
-    probe_text, probe_voice, probe_speed = "कैश परीक्षण", "indicf5_aarav", 1.0
+    probe_text, probe_voice, probe_speed = "कैश परीक्षण", "indic_parler_aarav", 1.0
     probe_path = tts.gpu_cache_path(probe_text, probe_voice, probe_speed)
     probe_path.unlink(missing_ok=True)
     assert tts.read_gpu_cache(probe_text, probe_voice, probe_speed) is None

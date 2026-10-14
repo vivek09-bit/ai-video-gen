@@ -1,7 +1,7 @@
 # Implementation Plan — Audio Guards + Cache Purge
 
 **Goal:** stop a *silent-but-valid* narration WAV from ever reaching the render, and make
-the pipeline recover on its own when the Vast.ai IndicF5 server returns corrupt audio.
+the pipeline recover on its own when the Vast.ai Indic Parler-TTS server returns corrupt audio.
 
 **One-line summary of the bug:** the GPU returned WAVs made of constant `−32768` (NaN
 encoded as DC). Nothing validated the audio, so the silent result was cached on disk and
@@ -15,7 +15,6 @@ reused by every later run — hence "no voice, not even in any audio generated".
 |---|---|
 | `public/audio/voice/scene-001.wav` | 23.58 s, peak −1.5 dBFS, but per‑100 ms profile is ~all zeros with isolated single‑sample spikes → **silence** (mastering removed the DC, leaving step edges). |
 | `out/gpu_audio_cache/*.wav` | **16 of 17** segments have `peak == RMS == 32768` → every sample is `−32768` (`0x8000`, raw bytes `00 80 00 80 …`). One file is fine. |
-| `public/audio/prompts/indicf5/*.wav` | Reference voices are valid → corruption is in **inference output**, not the prompt. |
 | `scripts/vast_server.py` | `handle_audio_synthesize*` calls `infer_process(...)` then `sf.write(..., subtype="PCM_16")` with **no finiteness check**. libsndfile encodes NaN as `−32768` → a "valid" DC WAV. |
 | `scripts/vast_manager.py` | `synthesize_tts*` only checks `status == "success"`, then `base64.b64decode`s. **No amplitude/silence check.** |
 | `scripts/tts.py` | `write_gpu_cache` stores the bytes verbatim; `prebuild_vast_batch` skips any sentence whose cache file exists; key = `sha256(AUDIO_PIPELINE_VERSION, voice, speed, text)` so the poison is reused forever. |
@@ -46,7 +45,7 @@ are the permanent guards. Every step is independently shippable.
 | 2 — shared `audio_is_bad()` | ✅ **done** — `scripts/tts.py` |
 | 3 — server guard | ✅ **done** — `vast_server._audio_is_bad`, both audio handlers |
 | 4 — client transport guard | ✅ **done** — `vast_manager._wav_is_bad`, `synthesize_tts*` |
-| 5 — cache guards | ✅ **done** — `write_gpu_cache`, `read_gpu_cache`, `prebuild_vast_batch`, `synthesize_indicf5` |
+| 5 — cache guards | ✅ **done** — `write_gpu_cache`, `read_gpu_cache`, `prebuild_vast_batch`, `synthesize_indic_parler` |
 | 6 — regression tests | ✅ **done** — `test_audio.py` + `test_providers.py` fixture fixed; all 4 suites green |
 | 7 — `--purge-audio-cache` | ✅ **done** — `tts.py` + `new_video.py` pass-through |
 | 8 — fp16 NaN root cause | ⬜ **pending** (follow-up; guards make it non-urgent) |
@@ -152,7 +151,7 @@ the client retries or falls back instead of caching junk.
   if _audio_is_bad(audio_np):
       self._send_json(
           {"status": "error",
-           "error": "IndicF5 produced non-finite/constant audio (likely fp16 NaN)"},
+           "error": "Indic Parler-TTS produced non-finite/constant audio (possible fp16 NaN)"},
           status=500,
       )
       return
@@ -180,8 +179,8 @@ the disk cache.
 - Add a module-level `_wav_is_bad(wav_bytes: bytes) -> bool` that decodes with
   `soundfile` into float32 and applies the Phase 2 rule.
 - `synthesize_tts`: after `audio_bytes = base64.b64decode(...)`, if `_wav_is_bad(audio_bytes)`
-  → `raise RuntimeError("Remote IndicF5 TTS returned silent/non-finite audio")` (this makes
-  the existing retry/fallback logic in `tts.synthesize_indicf5` engage).
+  → `raise RuntimeError("Remote Indic Parler-TTS returned silent/non-finite audio")` (this makes
+  the existing retry/fallback logic in `tts.synthesize_indic_parler` engage).
 - `synthesize_tts_batch`: in the results loop, if `_wav_is_bad(decoded)` → append to
   `errors` and **omit** the entry from `out` (caller then retries it individually and, on
   repeat failure, falls back to Kokoro).
@@ -201,13 +200,13 @@ both write and read.
 
 **Change:**
 - `write_gpu_cache` (~1707): decode `wav_bytes`; if `audio_is_bad` → print a
-  `[IndicF5 Cache Warning]` and **return without writing**.
+  `[Indic Parler Cache Warning]` and **return without writing**.
 - `read_gpu_cache` (~1692): after `sf.read`, if `audio_is_bad(wav_np)` → delete the file
   (`path.unlink(missing_ok=True)`), warn, and `return None`.
 - `prebuild_vast_batch` (~1794): before `write_gpu_cache(sentence, …)`, decode and check
   `audio_is_bad`; if bad, append `sentence` to `missing` (retry individually) and skip the
   cache write.
-- `synthesize_indicf5` remote branch (~1095): after `sf.read(...)`, if `audio_is_bad(wav_np)`
+- `synthesize_indic_parler` remote branch (~1095): after `sf.read(...)`, if `audio_is_bad(wav_np)`
   → do **not** cache; raise/continue so the loop retries, and ultimately return `None`
   (→ Kokoro fallback). Guarding here means a bad segment can never populate
   `_VAST_AUDIO_CACHE` either.
@@ -274,11 +273,11 @@ Also confirm the other three suites stay green (`test_providers.py`, `test_phone
 
 ---
 
-## Phase 8 — Root cause: fp16 NaN in the F5/IndicF5 model (follow-up)
+## Phase 8 — Root cause: fp16 NaN in the zero-shot model (follow-up)
 
 **What:** the guards stop the bleeding; this removes the source of the NaN.
 
-**Where:** `scripts/vast_server.py` (`load_indicf5_engine`, `SimpleIndicF5.synthesize`)
+**Where:** `scripts/vast_server.py` (`load_indic_parler_engine`, `SimpleIndicParler.synthesize`)
 
 **Change (candidates, test one at a time):**
 - Load the CFM model in `float32` instead of `float16` on CUDA (line ~257:
@@ -304,7 +303,7 @@ non-constant.
 **Where:** `/memories/repo/vast-gotchas.md`, `README.md` (troubleshooting section)
 
 **Change:**
-- Add a gotcha entry: "IndicF5 fp16 can emit NaN → `−32768` DC WAV; guards are
+- Add a gotcha entry: "The old fp16 F5-style model can emit NaN → `−32768` DC WAV; guards are
   `tts.audio_is_bad`, `vast_manager._wav_is_bad`, `vast_server._audio_is_bad`; recover with
   `--purge-audio-cache`."
 - README: a one-line "no voice in the output" troubleshooting pointer.
@@ -358,8 +357,8 @@ The purge is destructive only to regenerable cache, so no data is lost.
 | 2 | `scripts/tts.py` | `audio_is_bad()` (new) |
 | 3 | `scripts/vast_server.py` | `_audio_is_bad()`, `handle_audio_synthesize`, `handle_audio_synthesize_batch` |
 | 4 | `scripts/vast_manager.py` | `_wav_is_bad()`, `synthesize_tts`, `synthesize_tts_batch` |
-| 5 | `scripts/tts.py` | `write_gpu_cache`, `read_gpu_cache`, `prebuild_vast_batch`, `synthesize_indicf5` |
+| 5 | `scripts/tts.py` | `write_gpu_cache`, `read_gpu_cache`, `prebuild_vast_batch`, `synthesize_indic_parler` |
 | 6 | `scripts/test_audio.py` | new asserts |
 | 7 | `scripts/tts.py`, `scripts/new_video.py`, `package.json`, `.vscode/tasks.json` | `--purge-audio-cache` |
-| 8 | `scripts/vast_server.py` | `load_indicf5_engine`, `SimpleIndicF5.synthesize` |
+| 8 | `scripts/vast_server.py` | `load_indic_parler_engine`, `SimpleIndicParler.synthesize` |
 | 9 | `README.md`, repo memory | troubleshooting note |

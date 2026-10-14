@@ -56,7 +56,7 @@ CC-BY-NC), **Higgs Audio v3** (non-commercial), **Wav2Lip** (non-commercial).
 - **Python** — `setup.ps1` provisions its own 3.12 via `uv`, no admin rights needed
 - No FFmpeg install (Remotion bundles its own)
 - No GPU required — everything runs on CPU. A rented GPU is optional and is used only
-  for IndicF5 narration and LTX-Video clips; see **Default flow** below.
+  for Indic Parler-TTS narration and LTX-Video clips; see **Default flow** below.
 
 ## Quick start
 
@@ -179,7 +179,7 @@ Useful flags:
 | `--subtitles` | on-screen captions & .srt script: `hinglish` (default for Hindi voice) or `devanagari` |
 | `--no-hinglish-subtitles` | keep Devanagari script for captions and subtitles instead of Roman Hinglish |
 | `--voice` | primary narrator voice, alias, or blend (default: **`indic_parler_aarav`**; e.g. `hm_omega`, `hindi_female`, `bm_george`) |
-| `--audio-model` | `auto` (default) picks Indic Parler-TTS; use `kokoro` for CPU-only Kokoro narration (aliases: `indic_parler`, `parler`, `indicf5`) |
+| `--audio-model` | `auto` (default) picks Indic Parler-TTS; use `kokoro` for CPU-only Kokoro narration (aliases: `indic_parler`, `parler`) |
 | `--voice-2` / `--secondary-voice` | secondary voice for dialogue/antagonist in character scenes |
 | `--voices` | list all 30+ available Kokoro voices, aliases, and blending syntax |
 | `--visual-mode` / `--generation-mode` | choose `image` or `video`; exactly one generated visual mode is used per video |
@@ -233,8 +233,8 @@ npm run new -- --topic "पुरानी हवेली का राज़" 
 ```
 
 Indic Parler-TTS is also available with `indic_parler_kabir`, `indic_parler_rohan`,
-`indic_parler_priya`, and `indic_parler_ananya` (the old `indicf5_*` ids still resolve as
-aliases). It is AI4Bharat's description-conditioned model: each voice is a natural-language
+`indic_parler_priya`, and `indic_parler_ananya`. It is AI4Bharat's description-conditioned
+model: each voice is a natural-language
 speaker description rather than a reference clip, which is far more stable and needs no
 reference files. In image mode with `IMAGE_PROVIDER=vast`,
 choosing an Indic voice reuses the same RTX 3090 instance after Flux generation; with the
@@ -249,8 +249,7 @@ dependencies, and starts the server. Set `VAST_SERVER_REPO_URL` and
 `VAST_SERVER_ONSTART_CMD` can override the full startup command. Make sure the
 repository/ref contains this Vast server implementation. For an already-running
 instance/server, use `--vast-instance ID` or `--vast-url URL`; that server must
-already have this project's inference service running and its IndicF5 reference
-audio if that model is selected.
+already have this project's inference service running.
 
 To manually set up the GPU server, use a CUDA-enabled PyTorch build and:
 
@@ -326,7 +325,7 @@ afternoon. Use `--no-vast` to request CPU narration deliberately, or
 
 #### Troubleshooting: no voice in the output
 
-The old IndicF5 path could return NaN in fp16, which libsndfile encodes as a constant
+An earlier zero-shot TTS path could return NaN in fp16, which libsndfile encodes as a constant
 `-32768` (`0x8000`) DC WAV — a file that is *structurally* valid but carries no speech.
 Indic Parler-TTS is loaded in **float32**, so that class of bug is gone. The guards that
 caught it are kept as defence-in-depth, and they also protect against any future model

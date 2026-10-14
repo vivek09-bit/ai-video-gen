@@ -120,7 +120,7 @@ export interface MouthCue {
 /** A reusable character. Defined once, reused across every episode. */
 export interface CharacterSpec {
   name: string;
-  /** TTS voice id, e.g. `af_heart` or `indicf5_aarav`. */
+  /** TTS voice id, e.g. `af_heart` or `indic_parler_aarav`. */
   voice: string;
   speed?: number;
   palette: {

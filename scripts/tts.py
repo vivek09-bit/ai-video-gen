@@ -40,6 +40,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -931,9 +932,7 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
             "clear, close-sounding recording with no background noise."
         ),
         "fallback_kokoro": "hm_omega",
-        # `indicf5_*` aliases are retained so existing script.json files keep resolving.
         "aliases": [
-            "indicf5", "indicf5_aarav", "indicf5_male", "indicf5_deep",
             "indic_parler", "indic_parler_male", "indic_aarav",
         ],
     },
@@ -951,7 +950,7 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         ),
         "fallback_kokoro": "hm_psi",
         "aliases": [
-            "indicf5_kabir", "indicf5_calm", "indicf5_doc", "indic_parler_calm", "indic_kabir",
+            "indic_parler_calm", "indic_kabir",
         ],
     },
     "indic_parler_rohan": {
@@ -968,7 +967,7 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         ),
         "fallback_kokoro": "hm_omega",
         "aliases": [
-            "indicf5_rohan", "indicf5_mystery", "indic_parler_mystery", "indic_rohan",
+            "indic_parler_mystery", "indic_rohan",
         ],
     },
     "indic_parler_priya": {
@@ -985,7 +984,7 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         ),
         "fallback_kokoro": "hf_alpha",
         "aliases": [
-            "indicf5_priya", "indicf5_female", "indicf5_warm", "indic_parler_female", "indic_priya",
+            "indic_parler_female", "indic_priya",
         ],
     },
     "indic_parler_ananya": {
@@ -1002,10 +1001,39 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
         ),
         "fallback_kokoro": "hf_beta",
         "aliases": [
-            "indicf5_ananya", "indicf5_soft", "indicf5_cheerful", "indic_parler_soft", "indic_ananya",
+            "indic_parler_soft", "indic_ananya",
         ],
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# Local IndicF5 (AI4Bharat) — zero-shot voice cloning on THIS machine.
+#
+# Deliberately NOT part of the default narration path: it is heavy and needs its own
+# environment (examples/indicf5/.venv-indicf5: Python 3.11 + f5-tts), so it is driven
+# through a SUBPROCESS (examples/indicf5/indicf5_batch.py) instead of imported here.
+# Select one of these voices (e.g. `--voice indicf5_aarav`) to use it.
+# ---------------------------------------------------------------------------
+INDICF5_LOCAL_VOICES: dict[str, dict] = {
+    "indicf5_aarav": {"id": "indicf5_aarav", "reference": "aarav", "lang": "hi", "fallback_kokoro": "hm_omega"},
+    "indicf5_kabir": {"id": "indicf5_kabir", "reference": "kabir", "lang": "hi", "fallback_kokoro": "hm_psi"},
+    "indicf5_rohan": {"id": "indicf5_rohan", "reference": "rohan", "lang": "hi", "fallback_kokoro": "hm_omega"},
+    "indicf5_priya": {"id": "indicf5_priya", "reference": "priya", "lang": "hi", "fallback_kokoro": "hf_alpha"},
+    "indicf5_ananya": {"id": "indicf5_ananya", "reference": "ananya", "lang": "hi", "fallback_kokoro": "hf_beta"},
+}
+
+INDICF5_EXAMPLE_DIR = ROOT / "examples" / "indicf5"
+INDICF5_VOICES_DIR = INDICF5_EXAMPLE_DIR / "voices"
+INDICF5_BATCH_SCRIPT = INDICF5_EXAMPLE_DIR / "indicf5_batch.py"
+INDICF5_VENV_PYTHON = INDICF5_EXAMPLE_DIR / ".venv-indicf5" / "Scripts" / "python.exe"
+# The batch child publishes its result in this file inside the run's temp dir. It cannot
+# use stdout: f5_tts and its dependencies print progress there (the jieba banner,
+# "Download Vocos ...", "vocab :", "token :"), which would precede the JSON document.
+INDICF5_RESULT_FILE = "_result.json"
+INDICF5_RESULT_PREFIX = "INDICF5_RESULT "
+
+_INDICF5_BATCH_USABLE = True
 
 _INDIC_ENGINE = None
 
@@ -1337,6 +1365,10 @@ for ivid, ivinfo in INDIC_PARLER_VOICES.items():
     VOICE_ALIASES[ivid.lower()] = ivid
     for alias in ivinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = ivid
+
+for fivid in INDICF5_LOCAL_VOICES:
+    VOICE_ALIASES[fivid.lower()] = fivid
+VOICE_ALIASES["indicf5"] = "indicf5_aarav"
 
 for cvid, cvinfo in CARTESIA_VOICES.items():
     VOICE_ALIASES[cvid.lower()] = cvid
@@ -1720,7 +1752,7 @@ def phoneme_weight(phonemes: str) -> float:
 
 # Narration text already returned by a remote Vast.ai batch call, keyed by
 # (spoken text, voice, speed). Filled by prebuild_vast_batch() and consumed by
-# synthesize_indicf5(), so the per-sentence path costs nothing extra.
+# synthesize_indic_parler(), so the per-sentence path costs nothing extra.
 _VAST_AUDIO_CACHE: dict[tuple[str, str, float], object] = {}
 
 # Content-addressed local store for audio the GPU has already produced. Each segment is
@@ -1729,7 +1761,7 @@ _VAST_AUDIO_CACHE: dict[tuple[str, str, float], object] = {}
 GPU_CACHE_DIR = ROOT / "out" / "gpu_audio_cache"
 
 # Retry policy for a remote synthesis call. A single dropped connection used to fall
-# straight through to local CPU IndicF5, which is hours of work for a long script.
+# straight through to local CPU Indic Parler-TTS, which is hours of work for a long script.
 VAST_AUDIO_ATTEMPTS = int(os.environ.get("VAST_AUDIO_ATTEMPTS", "3"))
 VAST_AUDIO_RETRY_WAIT = float(os.environ.get("VAST_AUDIO_RETRY_WAIT", "15"))
 
@@ -1746,7 +1778,7 @@ PERMANENT_REMOTE_TTS_ERRORS: tuple[str, ...] = (
 
 
 def is_permanent_remote_tts_error(err: object) -> bool:
-    """True when retrying a remote IndicF5 request cannot possibly succeed.
+    """True when retrying a remote Indic Parler-TTS request cannot possibly succeed.
 
     A dependency or ABI problem inside the server's environment is stable for the life of
     the instance, so the retry loop only adds waiting on top of an already-failed run. It
@@ -1759,7 +1791,7 @@ def is_permanent_remote_tts_error(err: object) -> bool:
 def audio_is_bad(wav) -> bool:
     """True when a waveform is empty, non-finite, silent or pure DC.
 
-    Guards the whole narration path. The Vast.ai IndicF5 server can return a WAV that is
+    Guards the whole narration path. The Vast.ai Indic Parler-TTS server can return a WAV that is
     structurally valid but made of constant -32768 (0x8000) -- a NaN encoded by libsndfile
     as DC. Without this check that silent audio gets cached on disk and, because the cache
     is content-addressed, served again by every later run.
@@ -1818,7 +1850,7 @@ def read_gpu_cache(text: str, voice: str, speed: float):
         wav_np, _sr = sf.read(str(path), dtype="float32")
         if audio_is_bad(wav_np):
             print(
-                f"[IndicF5 Cache Warning] Discarding silent/non-finite cached "
+                f"[Indic Parler Cache Warning] Discarding silent/non-finite cached "
                 f"segment {path.name}",
                 file=sys.stderr,
             )
@@ -1826,7 +1858,7 @@ def read_gpu_cache(text: str, voice: str, speed: float):
             return None
         return wav_np
     except Exception as err:  # noqa: BLE001 - a corrupt entry must never be fatal
-        print(f"[IndicF5 Cache Warning] Ignoring unreadable {path.name}: {err}", file=sys.stderr)
+        print(f"[Indic Parler Cache Warning] Ignoring unreadable {path.name}: {err}", file=sys.stderr)
         return None
 
 
@@ -1843,11 +1875,11 @@ def write_gpu_cache(text: str, voice: str, speed: float, wav_bytes: bytes) -> No
 
         wav_np, _sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
     except Exception as err:  # noqa: BLE001
-        print(f"[IndicF5 Cache Warning] Refusing to cache undecodable segment: {err}", file=sys.stderr)
+        print(f"[Indic Parler Cache Warning] Refusing to cache undecodable segment: {err}", file=sys.stderr)
         return
     if audio_is_bad(wav_np):
         print(
-            f"[IndicF5 Cache Warning] Refusing to cache silent/non-finite segment "
+            f"[Indic Parler Cache Warning] Refusing to cache silent/non-finite segment "
             f"({voice} @ {round(speed, 3)}x)",
             file=sys.stderr,
         )
@@ -1857,7 +1889,7 @@ def write_gpu_cache(text: str, voice: str, speed: float, wav_bytes: bytes) -> No
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(wav_bytes)
     except Exception as err:  # noqa: BLE001
-        print(f"[IndicF5 Cache Warning] Could not persist GPU audio: {err}", file=sys.stderr)
+        print(f"[Indic Parler Cache Warning] Could not persist GPU audio: {err}", file=sys.stderr)
 
 
 def prepare_tts_text(text: str) -> str:
@@ -1874,16 +1906,18 @@ def prepare_tts_text(text: str) -> str:
 
 
 def prepare_remote_text(sentence: str) -> str:
-    """Exactly the string the remote IndicF5 endpoint is asked to speak."""
+    """Exactly the string the remote Indic Parler-TTS endpoint is asked to speak."""
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
 
 def is_indic_voice(voice: str) -> bool:
-    """True for the Indic Parler-TTS family (canonical ids, aliases and old indicf5 ids)."""
+    """True for the Indic narration families (Indic Parler-TTS and local IndicF5)."""
     primary = (voice or "").strip().lower().split(",")[0].strip()
+    if primary in INDICF5_LOCAL_VOICES:
+        return True
     if primary in INDIC_PARLER_VOICES:
         return True
-    if primary.startswith(("indic_parler", "indicf5", "indic_")):
+    if primary.startswith(("indic_parler", "indic_")):
         return True
     return any(primary in [a.lower() for a in vi.get("aliases", [])] for vi in INDIC_PARLER_VOICES.values())
 
@@ -2030,6 +2064,242 @@ def prebuild_vast_batch(
     return reused + cached_count
 
 
+# ---------------------------------------------------------------------------
+# Local IndicF5 (zero-shot cloner) — subprocess bridge to examples/indicf5
+# ---------------------------------------------------------------------------
+
+
+def is_indicf5_local_voice(voice: str) -> bool:
+    """True when the resolved voice is one of the local IndicF5 cloner voices."""
+    primary = (voice or "").strip().lower().split(",")[0].strip()
+    return primary in INDICF5_LOCAL_VOICES
+
+
+def indicf5_reference_name(voice: str) -> str | None:
+    """Reference clip stem for an IndicF5 voice ('indicf5_aarav' -> 'aarav'), or None."""
+    primary = (voice or "").strip().lower().split(",")[0].strip()
+    info = INDICF5_LOCAL_VOICES.get(primary)
+    if info:
+        return info["reference"]
+    if primary.startswith("indicf5_"):
+        return primary[len("indicf5_"):]
+    return None
+
+
+def indicf5_available() -> tuple[bool, str]:
+    """Whether the local IndicF5 example is installed and runnable."""
+    if not INDICF5_VENV_PYTHON.exists():
+        return False, (
+            f"the local IndicF5 environment is missing ({INDICF5_VENV_PYTHON}). "
+            "Create it once with: npm run indicf5:setup"
+        )
+    if not INDICF5_BATCH_SCRIPT.exists():
+        return False, f"missing {INDICF5_BATCH_SCRIPT}"
+    return True, ""
+
+
+def _indicf5_read_result(child_output: str, result_path: Path) -> dict:
+    """Return the batch child's result payload.
+
+    The result file is authoritative. The sentinel-prefixed stdout line is only a
+    fallback for a child whose temp dir is unwritable; every other stdout line is
+    third-party progress noise and must be ignored.
+    """
+    if result_path.exists():
+        return json.loads(result_path.read_text(encoding="utf-8"))
+    for line in reversed(child_output.splitlines()):
+        stripped = line.strip()
+        if stripped.startswith(INDICF5_RESULT_PREFIX):
+            return json.loads(stripped[len(INDICF5_RESULT_PREFIX):])
+    raise ValueError(
+        "no result file and no 'INDICF5_RESULT ' line in the subprocess output"
+    )
+
+
+def _indicf5_run_batch(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
+    """Synthesise all ``(text, voice, speed)`` items in ONE IndicF5 subprocess.
+
+    The model lives in its own Python 3.11 venv, so it is loaded once per call there
+    rather than imported into this process. Returns {index: wav_bytes} for the successes.
+    """
+    global _INDICF5_BATCH_USABLE
+    ok, why = indicf5_available()
+    if not ok:
+        _INDICF5_BATCH_USABLE = False
+        raise RuntimeError(f"IndicF5 unavailable: {why}")
+    job = {
+        "voices_dir": str(INDICF5_VOICES_DIR),
+        "items": [
+            {"id": str(index), "text": text, "voice": indicf5_reference_name(voice) or voice}
+            for index, (text, voice, _speed) in enumerate(items)
+        ],
+    }
+    with tempfile.TemporaryDirectory(prefix="indicf5-") as tmp:
+        job["out_dir"] = tmp
+        # stderr is folded into stdout: the child's diagnostics must survive, and the
+        # result no longer travels over stdout (see INDICF5_RESULT_FILE).
+        proc = subprocess.run(
+            [str(INDICF5_VENV_PYTHON), str(INDICF5_BATCH_SCRIPT), "--job", "-"],
+            input=json.dumps(job).encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=float(os.environ.get("INDICF5_TIMEOUT", "7200")),
+        )
+        child_output = proc.stdout.decode("utf-8", "replace").strip()
+        if proc.returncode != 0:
+            tail = child_output.splitlines()[-6:]
+            raise RuntimeError(f"IndicF5 batch failed (exit {proc.returncode}): {' | '.join(tail)}")
+        try:
+            payload = _indicf5_read_result(child_output, Path(tmp) / INDICF5_RESULT_FILE)
+        except (OSError, ValueError) as err:
+            tail = child_output.splitlines()[-6:]
+            raise RuntimeError(
+                f"IndicF5 batch produced no readable result ({err}); child output tail: "
+                f"{' | '.join(tail) if tail else '(empty)'}"
+            ) from err
+        # A cold run costs minutes per segment, so surface the child's own progress and
+        # warnings instead of hiding them; errors below are reported separately.
+        for line in child_output.splitlines():
+            if INDICF5_RESULT_PREFIX not in line:
+                print(f"[IndicF5 Batch] {line}", file=sys.stderr)
+        for entry_id, reason in (payload.get("errors") or {}).items():
+            print(f"[IndicF5 Local] segment {entry_id} failed: {reason}", file=sys.stderr)
+        out: dict[int, bytes] = {}
+        for entry_id, entry in (payload.get("results") or {}).items():
+            path = Path(entry["path"])
+            if path.exists():
+                out[int(entry_id)] = path.read_bytes()
+        return out
+
+
+def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
+    """Synthesise one sentence with the local IndicF5 cloner (disk-cached per segment).
+
+    Returns a float32 numpy array at ``SAMPLE_RATE``, or None when the engine is
+    unavailable or the segment came back unusable (the caller then falls back to Kokoro).
+    """
+    if indicf5_reference_name(voice_key) is None:
+        return None
+    norm_text = normalize_hindi_phonetics(text)
+    primary = voice_key.lower()
+    cache_key = (norm_text, primary, round(speed, 3))
+    cached = _VAST_AUDIO_CACHE.get(cache_key)
+    if cached is not None:
+        return cached  # type: ignore[return-value]
+    disk_cached = read_gpu_cache(norm_text, primary, speed)
+    if disk_cached is not None:
+        _VAST_AUDIO_CACHE[cache_key] = disk_cached
+        return disk_cached  # type: ignore[return-value]
+
+    import io
+
+    import soundfile as sf
+
+    try:
+        results = _indicf5_run_batch([(norm_text, voice_key, speed)])
+    except Exception as err:  # noqa: BLE001 - fall back to Kokoro rather than crash
+        print(f"[IndicF5 Local Warning] {err}", file=sys.stderr)
+        return None
+    wav_bytes = results.get(0)
+    if not wav_bytes:
+        return None
+    wav_np, sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
+    wav_np = resample_audio(wav_np, sr or SAMPLE_RATE, SAMPLE_RATE)
+    if audio_is_bad(wav_np):
+        print("[IndicF5 Local Warning] silent/non-finite audio; not cached", file=sys.stderr)
+        return None
+    write_gpu_cache(norm_text, primary, speed, wav_bytes)
+    _VAST_AUDIO_CACHE[cache_key] = wav_np
+    return wav_np
+
+
+def prebuild_indicf5_batch(
+    scenes: list[dict],
+    characters: dict,
+    voice_default: str,
+    base_speed: float,
+    dynamic_speed: bool,
+) -> int:
+    """Synthesise every IndicF5 narration sentence in ONE subprocess round trip.
+
+    Mirrors prebuild_vast_batch: the model is loaded once for the whole script and each
+    segment is persisted to the disk cache, so the per-sentence path costs nothing extra.
+    """
+    ok, why = indicf5_available()
+    if not ok:
+        raise RuntimeError(f"IndicF5 unavailable: {why}")
+
+    requests: dict[tuple[str, float], list[str]] = {}
+    reused = 0
+    for scene in scenes:
+        for line in scene.get("lines") or []:
+            text = " ".join(str(line.get("text") or "").split())
+            if not text:
+                continue
+            voice, line_speed, _character = line_voice_and_speed(
+                scene, line, characters, voice_default, base_speed, dynamic_speed
+            )
+            primary = resolve_voice(voice).split(",")[0].strip()
+            if not is_indicf5_local_voice(primary):
+                continue
+            bucket = requests.setdefault((primary, round(line_speed, 3)), [])
+            for sentence in split_sentences(text):
+                remote_text = prepare_remote_text(sentence)
+                if not remote_text.strip() or remote_text in bucket:
+                    continue
+                if gpu_cache_path(remote_text, primary, line_speed).exists():
+                    reused += 1
+                    continue
+                bucket.append(remote_text)
+
+    requests = {key: value for key, value in requests.items() if value}
+    if reused:
+        print(f"[IndicF5 Local] {reused} segment(s) already on disk; synthesising only the rest.")
+    if not requests:
+        return reused
+
+    import io
+
+    import soundfile as sf
+
+    cached_count = 0
+    for (primary, line_speed), sentences in requests.items():
+        print(
+            f"[IndicF5 Local] synthesising {len(sentences)} segment(s) for {primary} "
+            "(loads the model once)...",
+            flush=True,
+        )
+        try:
+            results = _indicf5_run_batch([(s, primary, line_speed) for s in sentences])
+        except Exception as err:  # noqa: BLE001 - per-sentence synthesis still works
+            print(
+                f"[IndicF5 Local Warning] batch request failed ({err}); "
+                "falling back to per-sentence synthesis.",
+                file=sys.stderr,
+            )
+            continue
+        for index, sentence in enumerate(sentences):
+            wav_bytes = results.get(index)
+            if not wav_bytes:
+                continue
+            try:
+                wav_np, _sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
+            except Exception:
+                continue
+            if audio_is_bad(wav_np):
+                print(
+                    f"[IndicF5 Local] segment {index + 1} came back silent/non-finite; "
+                    "it will be retried individually.",
+                    file=sys.stderr,
+                )
+                continue
+            write_gpu_cache(sentence, primary, line_speed, wav_bytes)
+            _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
+            cached_count += 1
+        print(f"[IndicF5 Local] cached {cached_count} segment(s) so far")
+    return reused + cached_count
+
+
 class Voice:
     """Wraps the Kokoro pipeline, loading one per language code."""
 
@@ -2060,6 +2330,21 @@ class Voice:
 
         resolved_voice = resolve_voice(voice)
         primary = resolved_voice.split(",")[0].strip()
+
+        # Local IndicF5 zero-shot cloner (examples/indicf5). Checked BEFORE the Indic
+        # Parler-TTS branch because 'indicf5_aarav' also starts with 'indic'.
+        if is_indicf5_local_voice(primary):
+            indicf5_audio = synthesize_indicf5_local(clean_text, primary, speed=speed)
+            if indicf5_audio is not None and len(indicf5_audio) > 0:
+                return apply_fades(trim_edge_silence(indicf5_audio, threshold=0.005, padding=0.005))
+            vinfo = INDICF5_LOCAL_VOICES.get(primary.lower())
+            fallback = vinfo["fallback_kokoro"] if vinfo else "hm_omega"
+            print(
+                f"[IndicF5 Local] synthesis failed; falling back to Kokoro voice {fallback}",
+                file=sys.stderr,
+            )
+            resolved_voice = fallback
+            primary = resolved_voice.split(",")[0].strip()
 
         # Check if the voice is Indic Parler-TTS (AI4Bharat description-conditioned TTS)
         is_indic = primary.lower().startswith("indic") or primary.lower() in INDIC_PARLER_VOICES or any(
@@ -2516,9 +2801,9 @@ def main() -> int:
     parser.add_argument("--samples", action="store_true", help="generate short preview .wav samples for Hindi / Hinglish voices into public/audio/samples/")
     parser.add_argument("--hinglish", action="store_true", help="force Roman Hinglish on-screen captions & subtitles")
     parser.add_argument("--no-hinglish", action="store_true", help="disable Roman Hinglish transliteration (keep Devanagari subtitles)")
-    parser.add_argument("--vast", action="store_true", help="use remote Vast.ai GPU instance for IndicF5 synthesis")
+    parser.add_argument("--vast", action="store_true", help="use remote Vast.ai GPU instance for Indic Parler-TTS synthesis")
     parser.add_argument("--vast-url", type=str, default=None, help="Vast.ai server URL (e.g. http://ip:port)")
-    parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 synthesis fails")
+    parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote Indic Parler-TTS synthesis fails")
     parser.add_argument("--no-vast-batch", action="store_true", help="skip the one-shot bulk Vast.ai narration pre-fetch")
     parser.add_argument("--vast-batch", dest="no_vast_batch", action="store_false", help="(default) pre-fetch all narration in one Vast.ai round trip")
     parser.add_argument("--purge-audio-cache", action="store_true", help="delete cached GPU narration segments and scene sidecars, then exit")
@@ -2647,6 +2932,22 @@ def main() -> int:
 
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     engine = Voice()
+
+    # Local IndicF5: one subprocess round trip for the whole narration, so the ~1.6 GB
+    # model is loaded once instead of once per sentence.
+    if is_indicf5_local_voice(voice_default) and not args.no_vast_batch:
+        try:
+            indicf5_cached = prebuild_indicf5_batch(
+                scenes, characters, voice_default, speed, args.dynamic_speed
+            )
+            if indicf5_cached:
+                print(f"[IndicF5 Local] {indicf5_cached} segment(s) ready")
+        except Exception as batch_err:  # noqa: BLE001 - per-sentence synthesis still works
+            print(
+                f"[IndicF5 Local Warning] pre-fetch failed ({batch_err}); "
+                "using per-sentence synthesis.",
+                file=sys.stderr,
+            )
 
     # One bulk round trip for the whole narration when a remote GPU is available; the
     # per-sentence path below then reads those segments from memory.

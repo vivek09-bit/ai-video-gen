@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Vast.ai GPU Inference Server for FLUX.1-schnell, LTX-Video & IndicF5 TTS.
+"""Vast.ai GPU Inference Server for FLUX.1-schnell, LTX-Video & Indic Parler-TTS.
 
 Runs on one remote 24GB GPU instance, hosting one requested visual pipeline:
   1. FLUX.1-schnell image generation (RTX 3090 workflow)
   2. LTX-Video 2B distilled video generation (RTX 4090 workflow)
-  2. AI4Bharat IndicF5 zero-shot flow-matching Hindi TTS
+  3. AI4Bharat Indic Parler-TTS description-conditioned Hindi TTS
 
 Endpoints:
   GET  /health              -> System, GPU VRAM & model status
   POST /v1/images/generate  -> FLUX.1 image generation
   POST /v1/videos/generate  -> LTX-Video MP4 generation
-  POST /v1/audio/synthesize -> IndicF5 audio generation (WAV + duration)
-  POST /v1/audio/synthesize_batch -> many IndicF5 segments in one round trip
+  POST /v1/audio/synthesize -> Indic Parler-TTS audio generation (WAV + duration)
+  POST /v1/audio/synthesize_batch -> many Indic Parler-TTS segments in one round trip
   POST /v1/batch            -> images + audio for a scene list in one round trip
   POST /v1/shutdown         -> Gracefully shutdown server / instance
 """
@@ -42,7 +42,7 @@ _LTX_PIPE = None
 _LTX_MODEL_ID: str | None = None
 _INDIC_PARLER_ENGINE = None
 
-# Latched once the IndicF5 import path is known to work. A failure is deliberately NOT
+# Latched once the Indic Parler-TTS import path is known to work. A failure is deliberately NOT
 # cached: an instance can be repaired over SSH while this process keeps running, and the
 # next /health should reflect that without needing a restart.
 _TTS_IMPORT_OK = False
@@ -51,7 +51,7 @@ _TTS_IMPORT_OK = False
 def _audio_is_bad(wav) -> bool:
     """True when a waveform is empty, non-finite, silent or pure DC.
 
-    IndicF5 on fp16 can return NaN; libsndfile then encodes it as a constant -32768
+    Indic Parler-TTS can return NaN; libsndfile then encodes it as a constant -32768
     (0x8000) DC WAV that is structurally valid but carries no speech. Rejecting it here
     turns a corrupt generation into an explicit error instead of a silent success.
     """
@@ -375,7 +375,7 @@ class VastHandler(BaseHTTPRequestHandler):
             vram = get_vram_info()
             # status stays "healthy": this server is alive and the GPU is usable. The
             # `tts_ready` field is the separate question the client actually needs answered,
-            # because narration cannot use a server whose IndicF5 import path is broken.
+            # because narration cannot use a server whose Indic Parler-TTS import path is broken.
             tts_error = tts_import_error()
             self._send_json({
                 "status": "healthy",
