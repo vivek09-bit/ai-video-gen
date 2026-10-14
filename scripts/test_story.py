@@ -213,6 +213,12 @@ assert "final chunk" in last_prompt, "the last chunk is not told to resolve the 
 assert f"scenes {chunks[-1][0]}-{chunks[-1][1]} out of {len(plan['scenes'])}" in last_prompt, (
     "the final chunk is not told where it sits in the story"
 )
+
+# Without a bible the length still has to be stated, or the first chunk is paced
+# as if it were the whole story.
+no_bible_prompt = story.build_chunk_prompt(plan, None, chunks[1], written, is_hindi=True)
+assert "STORY LENGTH CONTRACT" in no_bible_prompt, "--no-blueprint lost the length contract"
+assert f"{len(plan['scenes'])} scenes" in no_bible_prompt
 print("continuation prompts carry the bible, the verbatim tail and the absolute range.")
 
 # ---------------------------------------------------------------------------

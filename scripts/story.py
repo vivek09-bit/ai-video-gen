@@ -623,7 +623,7 @@ def chunk_ranges(scene_count: int, chunk_scenes: int = CHUNK_SCENES) -> list[tup
 
 def build_chunk_prompt(
     planned: dict,
-    bible: dict,
+    bible: dict | None,
     chunk: tuple[int, int],
     written: Sequence[WrittenScene],
     *,
@@ -659,11 +659,21 @@ def build_chunk_prompt(
             "",
         ]
 
-    lines += [
-        "=== STORY BIBLE (already decided; do not change it) ===",
-        json.dumps(bible, ensure_ascii=False, indent=1),
-        "",
-    ]
+    if bible:
+        lines += [
+            "=== STORY BIBLE (already decided; do not change it) ===",
+            json.dumps(bible, ensure_ascii=False, indent=1),
+            "",
+        ]
+    else:
+        # --no-blueprint still needs the length stated, or the writer paces the
+        # first chunk as if it were the whole story.
+        lines += [
+            "=== STORY LENGTH CONTRACT (fixed; the story must fill exactly this) ===",
+            f"This is ONE story of {total_scenes} scenes and about {total_words} words. "
+            "Every scene advances the same single story.",
+            "",
+        ]
 
     if written:
         lines += [
