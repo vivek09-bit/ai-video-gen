@@ -709,7 +709,7 @@ def build_script(
         "voice": voice,
         "secondaryVoice": secondary_voice,
         "speed": speed,
-        "sentencePauseSeconds": 0.06,
+        "sentencePauseSeconds": 0.25,
         "ambience": planned.get("ambience"),
         "captions": captions,
         "theme": planned.get("theme") or gp.theme,

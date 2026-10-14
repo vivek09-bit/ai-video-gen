@@ -111,7 +111,7 @@ EMOTION_SPEED_MULTIPLIERS = {
 # How long to hold silence after a sentence, relative to the configured base
 # pause. Tightened for natural flowing speech without awkward silent gaps.
 PAUSE_SCALE = {
-    ",": 0.0,
+    ",": 0.25,
     ";": 0.0,
     ":": 0.0,
     "\u2014": 0.0,
@@ -1626,7 +1626,7 @@ DEFAULT_SCRIPT = {
     "width": 1920,
     "height": 1080,
     "tailPaddingSeconds": 1.2,
-    "sentencePauseSeconds": 0.06,
+    "sentencePauseSeconds": 0.25,
     "master": DEFAULT_MASTER,
     "captions": {
         "enabled": True,
@@ -1717,17 +1717,18 @@ def rate_to_speed(script: dict) -> float:
 
 
 def split_sentences(text: str) -> list[str]:
-    """Split narration into sentences, keeping common abbreviations intact.
+    """Split narration into sentences (and clauses), keeping common abbreviations intact.
 
     Handles the Devanagari danda (।) and double danda (॥) as well as Latin
     punctuation, since Hindi narration uses them exclusively.
+    Also splits at commas so that each clause gets a small explicit pause.
     """
     text = " ".join(text.split())
     if not text:
         return []
 
     sentences: list[str] = []
-    for part in re.split(r"(?<=[.!?।॥])\s+", text):
+    for part in re.split(r"(?<=[.!?।॥,])\s+", text):
         if sentences:
             tail = re.split(r"[\s.।॥]+", sentences[-1].rstrip())[-1].lower().strip(".")
             if tail in ABBREVIATIONS:
@@ -1897,7 +1898,7 @@ def prepare_tts_text(text: str) -> str:
 
     Shared by ``Voice.say`` and the Vast.ai batch pre-fetch so their cache keys agree.
     """
-    clean_text = re.sub(r"[,;:—–\-\"'\(\)\[\]\{\}…]+", " ", text)
+    clean_text = re.sub(r"[;:—–\-\"'\(\)\[\]\{\}…]+", " ", text)
     clean_text = " ".join(clean_text.split())
     if not clean_text:
         clean_text = text
@@ -2319,8 +2320,10 @@ class Voice:
 
         The Kokoro language code is the first letter of the primary voice id, so the
         same call handles English, Hindi, blends (e.g. 'af_heart,af_bella'), and aliases.
-        Minor internal punctuation like commas, semicolons, and dashes is cleaned to prevent
-        unnatural mid-sentence audio pauses. Hindi text is normalized for natural conversational pronunciation.
+        Minor internal punctuation like semicolons and dashes is cleaned to prevent
+        unnatural mid-sentence audio pauses. Commas are preserved so the engine can
+        produce natural clause-level prosody. Hindi text is normalized for natural
+        conversational pronunciation.
         """
         import numpy as np
 

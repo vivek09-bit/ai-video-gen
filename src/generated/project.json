@@ -7,7 +7,7 @@
     "width": 1080,
     "height": 1920,
     "tailPaddingSeconds": 1.2,
-    "sentencePauseSeconds": 0.06,
+    "sentencePauseSeconds": 0.25,
     "master": {
       "enabled": true,
       "highpassHz": 85.0,
