@@ -1,5 +1,5 @@
 {
-  "title": "पाँच हज़ार साल पुरानी खुदाई का अनसुलझा रहस्य",
+  "title": "5000 saal puri khudai ka sach",
   "topic": "5000 saal puri khudai ka sach",
   "language": "hi",
   "genre": "ancient_history",
@@ -14,7 +14,7 @@
   "speed": 0.94,
   "sentencePauseSeconds": 0.06,
   "ambience": {
-    "src": "amb_quarry_echo",
+    "src": "amb_temple",
     "volume": 0.2
   },
   "captions": {
@@ -58,7 +58,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavated pit, torchlight on ancient stone, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient excavation site, buried stone structure, dusty, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -78,7 +78,7 @@
             "src": "images/scene-001.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dark excavated pit, torchlight on ancient stone, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient excavation site, buried stone structure, dusty, featuring corridor, flickering flame light, house, lit window warm illumination, glowing magical radiance, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -101,7 +101,7 @@
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_bronze_bell_ring",
+          "sfx": "sfx_chisel_tap",
           "volume": 0.16
         }
       ],
@@ -123,14 +123,14 @@
       "lines": [
         {
           "character": null,
-          "text": "पाँच हज़ार साल पुरानी इस खुदाई में जो मिला, वो आज की पूरी तकनीक को झूठा साबित करता है।"
+          "text": "सिंधु घाटी की 5000 साल पुरानी खुदाई में मिट्टी के नीचे कुछ ऐसा दबा है, जो आज तक किसी ने नहीं देखा।"
         }
       ],
-      "visualKeywords": "dark excavated pit, torchlight on ancient stone wall, dust particles floating"
+      "visualKeywords": "ancient excavation site, buried stone structure, dusty soil, archaeologists digging"
     },
     {
       "id": "scene-002",
-      "beat": "dread",
+      "beat": "establish",
       "headline": "",
       "subtext": "",
       "bullets": [],
@@ -142,7 +142,325 @@
             "src": "images/scene-002.png",
             "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring corridor, flickering flame light, candle, glowing magical radiance, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient excavation site, workers terrified, strange energy,, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-002.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient excavation site, workers terrified, strange energy,, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_vedic_resonance",
+        "volume": 0.15
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_bell",
+          "volume": 0.16
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.27,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "खुदाई के दौरान अजीब आवाजें आने लगीं, ऊर्जा महसूस हुई। मजदूर डर गए। क्या यह जगह श्रापित है?"
+        }
+      ],
+      "visualKeywords": "ancient excavation site, workers terrified, strange energy, dust, eerie glow"
+    },
+    {
+      "id": "scene-003",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-003.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_vedic_resonance",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.28,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "दीवारें, खंभे, हाथी, शेर—सब कुछ एक ही चट्टान से उकेरा गया। कोई जोड़ नहीं, कोई गैप नहीं। एक ही पत्थर, जो आज तक अपनी जगह से एक इंच भी नहीं हिला।"
+        }
+      ],
+      "visualKeywords": "granite cliff, vertical chisel lines, monolithic pillars, zero seams"
+    },
+    {
+      "id": "scene-004",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: temple courtyard, weathered stone, ancient carvings, sunlight, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-004.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: temple courtyard, weathered stone, ancient carvings, sunlight, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.29,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आठवीं सदी में बना ये मंदिर आज भी वैसा ही खड़ा है। बारिश, धूप, हमले—कुछ भी इसका कुछ नहीं बिगाड़ पाया। जैसे समय ने खुद इसे छूना बंद कर दिया हो।"
+        }
+      ],
+      "visualKeywords": "temple courtyard, weathered stone, ancient carvings, sunlight raking"
+    },
+    {
+      "id": "scene-005",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-005.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dramatic climax finale sunset resolution intricate ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-005.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: dramatic climax finale sunset resolution intricate ancient, featuring house, lit window warm illumination, glowing magical radiance, corridor, flickering flame light, establish scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.3,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "हर नक्काशी में जान है। हाथी की सूंड, शेर का पंजा, देवता का मुद्रा—सब इतने बारीक कि लगे कल कोई सांस लेगा। और ये सब एक ही चट्टान के अंदर से निकला।"
+        }
+      ],
+      "visualKeywords": "carved elephants, lions, detailed relief, courtyard depth"
+    },
+    {
+      "id": "scene-006",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-006.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: majestic peacock feathers radiant garden ancient carved, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -159,10 +477,94 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-002.png",
+            "src": "images/scene-006.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring corridor, flickering flame light, candle, glowing magical radiance, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: majestic peacock feathers radiant garden ancient carved, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_ancient_mechanism",
+          "volume": 0.19
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.44,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "यहां दो पत्थरों के बीच एक बाल जितनी भी जगह नहीं। ना सीमेंट, ना गारा, ना कोई चिपकाने वाला पदार्थ। सिर्फ इंसानी हाथ और ऐसी सटीकता जो मशीन भी शायद ना दे पाए।"
+        }
+      ],
+      "visualKeywords": "interlocking joints, no mortar, macro stone gap, precision fit"
+    },
+    {
+      "id": "scene-007",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-007.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: mythological demon warrior dark shadows ancient carved, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-007.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: mythological demon warrior dark shadows ancient carved, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -185,7 +587,7 @@
       "soundCues": [
         {
           "at": 0.15,
-          "sfx": "sfx_stone_grind",
+          "sfx": "sfx_ancient_mechanism",
           "volume": 0.19
         }
       ],
@@ -196,7 +598,91 @@
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.42,
+        "intensity": 0.45,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अंदर जाकर आवाज़ करो, तो वो गूंजती है—कुछ इस तरह जैसे पत्थर खुद जवाब दे रहे हों। वैज्ञानिक आज तक समझ नहीं पाए कि ये आवाज़ कहां से और कैसे लौटती है।"
+        }
+      ],
+      "visualKeywords": "sound wave, underground chamber, resonance, acoustic measurement"
+    },
+    {
+      "id": "scene-008",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-008.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: acoustic chamber, frequency meter, vibration, dark interior, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-008.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: acoustic chamber, frequency meter, vibration, dark interior, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_riser",
+          "volume": 0.19
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.47,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -207,13 +693,13 @@
       "lines": [
         {
           "character": null,
-          "text": "धरती के नीचे से निकले इन पत्थरों को बिना किसी जोड़ के, आधे मिलीमीटर की सटीकता से काटा गया था।"
+          "text": "और सबसे डरावनी बात—कुछ खास फ्रीक्वेंसी पर पूरा ढांचा हल्का-सा कांपता है। जैसे मंदिर जड़ नहीं, ज़िंदा हो। और यहीं से शुरू होता है वो सवाल, जिसका जवाब आज तक कोई नहीं दे पाया।"
         }
       ],
-      "visualKeywords": "macro shot of granite block, razor-thin joint line, archaeologist's gloved hand"
+      "visualKeywords": "acoustic chamber, frequency meter, vibration, dark interior"
     },
     {
-      "id": "scene-003",
+      "id": "scene-009",
       "beat": "approach",
       "headline": "",
       "subtext": "",
@@ -223,10 +709,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-003.png",
-            "kenBurns": "left",
+            "src": "images/scene-009.png",
+            "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: vast empty quarry site, aerial view of, featuring corridor, flickering flame light, figure, glowing magical radiance, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -243,10 +729,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-003.png",
-            "kenBurns": "right",
+            "src": "images/scene-009.png",
+            "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: vast empty quarry site, aerial view of, featuring corridor, flickering flame light, figure, glowing magical radiance, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: graceful queen royal crown ornate dress palace, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -264,7 +750,7 @@
         }
       ],
       "ambience": {
-        "src": "amb_ancient_sanctum",
+        "src": "amb_drone",
         "volume": 0.19
       },
       "soundCues": [],
@@ -286,13 +772,13 @@
       "lines": [
         {
           "character": null,
-          "text": "लेकिन हैरानी की बात ये थी कि, चार लाख टन मलबा, खुदाई के बाद गायब हो गया, कहीं कोई निशान नहीं मिला।"
+          "text": "अब सोचिए, वो कैसे उकेरा गया। नीचे से ऊपर नहीं—छत से शुरू करके नीचे तक। मूर्तिकार हवा में लटककर पत्थर काटते थे, और नीचे कोई मलबा नहीं गिरता था।"
         }
       ],
-      "visualKeywords": "vast empty quarry site, aerial view of missing debris, sunset shadows"
+      "visualKeywords": "top-down carving, vertical excavation, granite cliff, chisel marks"
     },
     {
-      "id": "scene-004",
+      "id": "scene-010",
       "beat": "dread",
       "headline": "",
       "subtext": "",
@@ -302,10 +788,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-004.png",
-            "kenBurns": "right",
+            "src": "images/scene-010.png",
+            "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: underground acoustic chamber, sound waves visual, humming, featuring corridor, flickering flame light, candle, glowing magical radiance, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: frequency meter, 136.1 Hz, tuning fork, acoustic, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -322,10 +808,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-004.png",
-            "kenBurns": "in",
+            "src": "images/scene-010.png",
+            "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: underground acoustic chamber, sound waves visual, humming, featuring corridor, flickering flame light, candle, glowing magical radiance, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: frequency meter, 136.1 Hz, tuning fork, acoustic, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -342,13 +828,13 @@
         }
       ],
       "ambience": {
-        "src": "amb_tension",
+        "src": "amb_drone",
         "volume": 0.18
       },
       "soundCues": [
         {
           "at": 0.15,
-          "sfx": "sfx_riser",
+          "sfx": "sfx_ancient_mechanism",
           "volume": 0.19
         }
       ],
@@ -359,7 +845,7 @@
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.53,
+        "intensity": 0.49,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -370,13 +856,255 @@
       "lines": [
         {
           "character": null,
-          "text": "और फिर अचानक, एक गुप्त कमरे में, एक सौ छत्तीस दशमलव एक हर्ट्ज़ की ध्वनि गूंजी, जो ओम की प्राचीन आवाज़ थी।"
+          "text": "और वो गूंज? वैज्ञानिकों ने नापी—एक सौ छत्तीस पॉइंट एक हर्ट्ज़। यही तो ओम की ध्वनि है। यानी मंदिर कोई इमारत नहीं, एक बजता हुआ यंत्र है।"
         }
       ],
-      "visualKeywords": "underground acoustic chamber, sound waves visual, humming stone ceiling"
+      "visualKeywords": "frequency meter, 136.1 Hz, tuning fork, acoustic graph"
     },
     {
-      "id": "scene-005",
+      "id": "scene-011",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-011.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: astronomical alignment, sun rays, stone geometry, shadow, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-011.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: astronomical alignment, sun rays, stone geometry, shadow, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.21
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.19
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.66,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "सूरज की किरणें साल में सिर्फ एक दिन ठीक शिवलिंग पर पड़ती हैं। कोई कंपास नहीं, कोई नक्शा नहीं—फिर भी हिसाब इतना सटीक, जैसे आसमान ने खुद पत्थर को नाप दिया हो।"
+        }
+      ],
+      "visualKeywords": "astronomical alignment, sun rays, stone geometry, shadow line"
+    },
+    {
+      "id": "scene-012",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-012.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: demolition attempt, drill machine, cracked bit, dust, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-012.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: demolition attempt, drill machine, cracked bit, dust, featuring candle, glowing magical radiance, corridor, flickering flame light, dread scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.18
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.52,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "कुछ साल पहले इसे तोड़ने की कोशिश हुई। आधुनिक ड्रिल मशीनें आईं। लेकिन ग्रेनाइट इतना सख्त निकला कि ड्रिल के फन चटक गए, और पत्थर पर एक खरोंच तक नहीं आई।"
+        }
+      ],
+      "visualKeywords": "demolition attempt, drill machine, cracked drill bit, dust"
+    },
+    {
+      "id": "scene-013",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-013.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: hammer strike, metallic ring, vibration, stone surface, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-013.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: hammer strike, metallic ring, vibration, stone surface, featuring figure, glowing magical radiance, corridor, flickering flame light, approach scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.22
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.19
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_riser",
+          "volume": 0.2
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.69,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "जब हथौड़ा पत्थर पर पड़ता है, तो आवाज़ लोहे जैसी निकलती है। जैसे ये पत्थर नहीं, कोई धातु का ढोल हो। आज की कोई भी चट्टान ऐसी आवाज़ नहीं देती।"
+        }
+      ],
+      "visualKeywords": "hammer strike, metallic ring, vibration, stone surface"
+    },
+    {
+      "id": "scene-014",
       "beat": "reveal",
       "headline": "",
       "subtext": "",
@@ -386,10 +1114,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-005.png",
-            "kenBurns": "in",
+            "src": "images/scene-014.png",
+            "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry carved on stone wall, glowing, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: empty quarry, missing debris, cliff face, aerial, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -407,10 +1135,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-005.png",
-            "kenBurns": "out",
+            "src": "images/scene-014.png",
+            "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry carved on stone wall, glowing, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: empty quarry, missing debris, cliff face, aerial, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -429,10 +1157,236 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-005.png",
+            "src": "images/scene-014.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: empty quarry, missing debris, cliff face, aerial, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.37,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.24
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_stone_impact",
+          "volume": 0.24
+        },
+        {
+          "at": 8.55,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.24
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.93,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "दो लाख टन पत्थर हटा। तो वो मलबा कहां गया? आसपास कहीं ढेर नहीं, कोई गड्ढा नहीं। जैसे पत्थर हवा में घुल गया हो, या कहीं और ले जाया गया हो।"
+        }
+      ],
+      "visualKeywords": "empty quarry, missing debris, cliff face, aerial view"
+    },
+    {
+      "id": "scene-015",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-015.png",
             "kenBurns": "left",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry carved on stone wall, glowing, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: tool marks, uniform grooves, chisel pattern, close-up, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-015.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: tool marks, uniform grooves, chisel pattern, close-up, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-015.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: tool marks, uniform grooves, chisel pattern, close-up, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.39,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_vedic_resonance",
+        "volume": 0.25
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_cinematic_hit",
+          "volume": 0.24
+        },
+        {
+          "at": 8.55,
+          "sfx": "sfx_impact",
+          "volume": 0.24
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.95,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "पूरे मंदिर में औजार के निशान एक जैसे हैं। ना कोई गलती, ना कोई रुकावट। जैसे किसी एक ही हाथ ने सैकड़ों साल तक बिना थके ये पूरा पहाड़ तराशा हो।"
+        }
+      ],
+      "visualKeywords": "tool marks, uniform grooves, chisel pattern, close-up stone"
+    },
+    {
+      "id": "scene-016",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-016.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry, acoustic chamber, light rays, stone, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-016.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry, acoustic chamber, light rays, stone, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-016.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sacred geometry, acoustic chamber, light rays, stone, featuring house, lit window warm illumination, glowing magical radiance, candle, reveal scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -450,19 +1404,19 @@
         }
       ],
       "ambience": {
-        "src": "amb_vedic_resonance",
+        "src": "amb_drone",
         "volume": 0.25
       },
       "soundCues": [
         {
           "at": 0.15,
-          "sfx": "sfx_boom",
-          "volume": 0.25
+          "sfx": "sfx_impact",
+          "volume": 0.24
         },
         {
-          "at": 5.9,
+          "at": 8.55,
           "sfx": "sfx_stone_impact",
-          "volume": 0.25
+          "volume": 0.24
         }
       ],
       "background": {
@@ -472,9 +1426,9 @@
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.98,
-        "head": "center",
-        "eyes": "center",
+        "intensity": 0.97,
+        "head": "left",
+        "eyes": "left",
         "gesture": "explain"
       },
       "padBefore": 0.0,
@@ -483,13 +1437,13 @@
       "lines": [
         {
           "character": null,
-          "text": "इन प्राचीन शिल्पकारों ने पत्थर में गणित, ध्वनि विज्ञान, और ब्रह्मांड का पूरा ज्ञान छिपा दिया था।"
+          "text": "अब वो राज़ खुलने लगता है, जो सदियों से पत्थर में छिपा था। ये मंदिर सिर्फ प्रार्थना की जगह नहीं—ये ध्वनि, गणित और खगोल का एक ज़िंदा नक्शा है। और यहीं से शुरू होता है असली खुलासा।"
         }
       ],
-      "visualKeywords": "sacred geometry carved on stone wall, glowing star alignment, ancient blueprint"
+      "visualKeywords": "sacred geometry, acoustic chamber, light rays, stone mandala"
     },
     {
-      "id": "scene-006",
+      "id": "scene-017",
       "beat": "react",
       "headline": "",
       "subtext": "",
@@ -499,10 +1453,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-006.png",
-            "kenBurns": "out",
+            "src": "images/scene-017.png",
+            "kenBurns": "in",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient monolithic structure standing strong, time-lapse clouds,, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sealed pit, heavy stone slab, dust, trembling, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 2,
           "effects": {
@@ -519,10 +1473,10 @@
         {
           "visual": {
             "type": "image",
-            "src": "images/scene-006.png",
-            "kenBurns": "left",
+            "src": "images/scene-017.png",
+            "kenBurns": "out",
             "dim": 0.15,
-            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: ancient monolithic structure standing strong, time-lapse clouds,, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: sealed pit, heavy stone slab, dust, trembling, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
           },
           "weight": 1,
           "effects": {
@@ -539,16 +1493,10 @@
         }
       ],
       "ambience": {
-        "src": "amb_warm",
+        "src": "amb_temple",
         "volume": 0.16
       },
-      "soundCues": [
-        {
-          "at": 0.15,
-          "sfx": "sfx_conch_call",
-          "volume": 0.16
-        }
-      ],
+      "soundCues": [],
       "background": {
         "type": "color",
         "color": "#0c0404"
@@ -556,7 +1504,85 @@
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.56,
+        "intensity": 0.53,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "यंत्र को फिर उसी गड्ढे में दबा दिया गया। भारी पत्थर से मुंह बंद कर दिया गया। लेकिन जाते-जाते उसने जो फुसफुसाहट छोड़ी, वो रुकी नहीं। श्राप अब भी ज़िंदा था।"
+        }
+      ],
+      "visualKeywords": "sealed pit, heavy stone slab, dust, trembling hands"
+    },
+    {
+      "id": "scene-018",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-018.png",
+            "kenBurns": "out",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: convoy leaving desert, tired faces, silent jeep,, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-018.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: convoy leaving desert, tired faces, silent jeep,, featuring house, lit window warm illumination, fog, glowing magical radiance, react scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.16
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.54,
         "head": "right",
         "eyes": "right",
         "gesture": "none"
@@ -567,14 +1593,672 @@
       "lines": [
         {
           "character": null,
-          "text": "आज तक कोई मशीन इसे तोड़ नहीं पाई, ये अमर सभ्यता का सबूत है, जो धरती के नीचे आज भी छिपा है।"
+          "text": "विक्रम अपनी टीम लेकर लौटा, पर लौटे हुए लोग वही नहीं थे। आँखों में नींद गायब थी, हाथ काँपते थे। जो देखा था, उसे कोई भुला नहीं सकता था।"
         }
       ],
-      "visualKeywords": "ancient monolithic structure standing strong, time-lapse clouds, camera zoom into dark tunnel"
+      "visualKeywords": "convoy leaving desert, tired faces, silent jeep, dawn sky"
+    },
+    {
+      "id": "scene-019",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-019.png",
+            "kenBurns": "left",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: futuristic scientist laboratory research scientific experiment ancient, featuring forest, house, lit window warm illumination, resolve scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-019.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: futuristic scientist laboratory research scientific experiment ancient, featuring forest, house, lit window warm illumination, resolve scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_warm",
+        "volume": 0.16
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_bell",
+          "volume": 0.15
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.43,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "विक्रम ने कैमरों के सामने खड़े होकर कहा—मैं गलत था। विज्ञान हर चीज़ नहीं समझता। उसने दुनिया से गुज़ारिश की—उस जगह को कोई न खोदे।"
+        }
+      ],
+      "visualKeywords": "press conference, microphones, pale scientist, flashing cameras"
+    },
+    {
+      "id": "scene-020",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-020.png",
+            "kenBurns": "right",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: buried site at night, faint glow underground,, featuring forest, house, lit window warm illumination, resolve scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "image",
+            "src": "images/scene-020.png",
+            "kenBurns": "in",
+            "dim": 0.15,
+            "prompt": "Cinematic national geographic documentary still, hyper-detailed archaeological photography, dramatic ancient architecture: buried site at night, faint glow underground,, featuring forest, house, lit window warm illumination, resolve scene, crimson red color grading, blood-red glow, gothic horror palette, monolithic stone carving, intricately detailed granite pillars, ancient Indian temple engineering, matte painting, hyper-detailed, ray tracing, cinematic atmosphere, 8k resolution, volumetric golden hour lighting."
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_vedic_resonance",
+        "volume": 0.16
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.15
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#0c0404"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.44,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "वो ज़मीन आज भी वैसी ही है। श्राप आज भी ज़िंदा है। और अगर कभी कोई उसे फिर से खोदने की हिम्मत करे—तो नतीजा वही होगा, जो हमने भुगता।"
+        }
+      ],
+      "visualKeywords": "buried site at night, faint glow underground, wind, lone warning sign"
     }
   ],
   "audioModel": "indicf5",
   "visualMode": "image",
+  "blueprint": {
+    "minutes": 5.0,
+    "seconds": 300.0,
+    "sceneCount": 20,
+    "totalWords": 560,
+    "wordsPerScene": 28,
+    "wpm": 112,
+    "movements": [
+      {
+        "key": "hook",
+        "weight": 0.06,
+        "scenes": [
+          1,
+          2
+        ],
+        "sceneCount": 2,
+        "words": 56,
+        "range": [
+          1,
+          2
+        ]
+      },
+      {
+        "key": "setup",
+        "weight": 0.12,
+        "scenes": [
+          3,
+          4,
+          5
+        ],
+        "sceneCount": 3,
+        "words": 84,
+        "range": [
+          3,
+          5
+        ]
+      },
+      {
+        "key": "inciting",
+        "weight": 0.12,
+        "scenes": [
+          6,
+          7,
+          8
+        ],
+        "sceneCount": 3,
+        "words": 84,
+        "range": [
+          6,
+          8
+        ]
+      },
+      {
+        "key": "rising",
+        "weight": 0.32,
+        "scenes": [
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "sceneCount": 5,
+        "words": 140,
+        "range": [
+          9,
+          13
+        ]
+      },
+      {
+        "key": "climax",
+        "weight": 0.18,
+        "scenes": [
+          14,
+          15,
+          16
+        ],
+        "sceneCount": 3,
+        "words": 84,
+        "range": [
+          14,
+          16
+        ]
+      },
+      {
+        "key": "resolution",
+        "weight": 0.12,
+        "scenes": [
+          17,
+          18
+        ],
+        "sceneCount": 2,
+        "words": 56,
+        "range": [
+          17,
+          18
+        ]
+      },
+      {
+        "key": "button",
+        "weight": 0.08,
+        "scenes": [
+          19,
+          20
+        ],
+        "sceneCount": 2,
+        "words": 56,
+        "range": [
+          19,
+          20
+        ]
+      }
+    ]
+  },
+  "storyBible": {
+    "title": "5000 साल पुरानी खुदाई का सच: जो रहस्य आज तक नहीं खुला",
+    "logline": "एक पुरातत्ववेत्ता 5000 साल पुरानी खुदाई में मिले रहस्यमय यंत्र की सच्चाई खोजना चाहता है, लेकिन एक प्राचीन श्राप और विज्ञान की असमर्थता उसके रास्ते में खड़ी है।",
+    "protagonist": {
+      "name": "डॉ. विक्रम सिंह",
+      "want": "5000 साल पुरानी खुदाई में मिले रहस्यमय यंत्र का रहस्य सुलझाना",
+      "flaw": "अपने अहंकार के कारण वह प्राचीन मान्यताओं और श्रापों को नकारता है"
+    },
+    "setting": {
+      "place": "सिंधु घाटी सभ्यता का एक प्राचीन स्थल, अब पाकिस्तान और भारत के सीमावर्ती क्षेत्र में",
+      "era": "वर्तमान काल, जब 5000 साल पुरानी खुदाई हो रही है"
+    },
+    "span": {
+      "totalScenes": 20,
+      "totalWords": 560,
+      "runtimeMinutes": 5.0
+    },
+    "arc": [
+      {
+        "movement": "hook",
+        "scenes": [
+          1,
+          2
+        ],
+        "summary": "दर्शकों को 5000 साल पुरानी खुदाई के रहस्य में उतारना और मुख्य रहस्य का बीज बोना",
+        "endsOn": "दर्शक जानना चाहते हैं कि खुदाई में क्या मिला"
+      },
+      {
+        "movement": "setup",
+        "scenes": [
+          3,
+          4,
+          5
+        ],
+        "summary": "डॉ. विक्रम और उनकी टीम का परिचय, खुदाई का संदर्भ, और रहस्यमय यंत्र की खोज",
+        "endsOn": "यंत्र मिल गया है, लेकिन उसका उद्देश्य अज्ञात है"
+      },
+      {
+        "movement": "inciting",
+        "scenes": [
+          6,
+          7,
+          8
+        ],
+        "summary": "यंत्र के असामान्य गुणों का पता चलना और प्राचीन श्राप की कहानी सामने आना",
+        "endsOn": "टीम के सदस्यों में डर पैदा हो जाता है"
+      },
+      {
+        "movement": "rising",
+        "scenes": [
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "summary": "वैज्ञानिक जांच शुरू, यंत्र से जुड़ी घटनाएं, और श्राप के प्रभाव की आशंका",
+        "endsOn": "एक बड़ा खुलासा होने वाला है"
+      },
+      {
+        "movement": "climax",
+        "scenes": [
+          14,
+          15,
+          16
+        ],
+        "summary": "यंत्र का रहस्य और श्राप का सच सामने आता है, डॉ. विक्रम का अहंकार टूटता है",
+        "endsOn": "सच का सामना करना पड़ता है"
+      },
+      {
+        "movement": "resolution",
+        "scenes": [
+          17,
+          18,
+          19
+        ],
+        "summary": "परिणाम भुगतना और सबक सीखना",
+        "endsOn": "टीम को एहसास होता है कि कुछ रहस्य जानना खतरनाक है"
+      },
+      {
+        "movement": "button",
+        "scenes": [
+          20
+        ],
+        "summary": "अंतिम संदेश और श्राप का चिरस्थायी प्रभाव",
+        "endsOn": "दर्शकों के मन में सवाल छोड़ना"
+      }
+    ],
+    "sceneBeats": [
+      {
+        "n": 1,
+        "beat": "establish",
+        "whatHappens": "5000 साल पुरानी खुदाई की जगह का परिचय, मिट्टी के नीचे छिपे रहस्य का संकेत",
+        "continuesFrom": null,
+        "endsOn": "खुदाई में क्या मिला, यह जानने की उत्सुकता",
+        "openLoops": [
+          "खुदाई में क्या मिलेगा?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 2,
+        "beat": "dread",
+        "whatHappens": "खुदाई के दौरान अजीब आवाजें और ऊर्जा का अनुभव, मजदूरों में डर",
+        "continuesFrom": "खुदाई शुरू हो चुकी है",
+        "endsOn": "क्या यह जगह श्रापित है?",
+        "openLoops": [
+          "अजीब घटनाओं का कारण क्या है?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 3,
+        "beat": "approach",
+        "whatHappens": "डॉ. विक्रम सिंह का परिचय, उनका अहंकार और विज्ञान में विश्वास",
+        "continuesFrom": "डर का माहौल",
+        "endsOn": "वह इस रहस्य को सुलझाने का दावा करता है",
+        "openLoops": [
+          "क्या वह सच में सुलझा पाएगा?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 4,
+        "beat": "approach",
+        "whatHappens": "टीम का परिचय, खुदाई का उद्देश्य, और सिंधु घाटी सभ्यता का संदर्भ",
+        "continuesFrom": "डॉ. विक्रम का दावा",
+        "endsOn": "खुदाई आगे बढ़ती है",
+        "openLoops": [
+          "क्या टीम को कुछ मिलेगा?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 5,
+        "beat": "reveal",
+        "whatHappens": "एक रहस्यमय यंत्र मिलता है, जो धातु और क्रिस्टल से बना है, अत्याधुनिक तकनीक जैसा",
+        "continuesFrom": "खुदाई जारी",
+        "endsOn": "यंत्र का उद्देश्य क्या है?",
+        "openLoops": [
+          "यंत्र क्या है और कैसे काम करता है?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 6,
+        "beat": "react",
+        "whatHappens": "यंत्र से अजीब आवाजें और कंपन, वैज्ञानिक चौंकते हैं",
+        "continuesFrom": "यंत्र मिला",
+        "endsOn": "यंत्र सक्रिय क्यों हो रहा है?",
+        "openLoops": [
+          "यंत्र की शक्ति का स्रोत क्या है?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 7,
+        "beat": "dread",
+        "whatHappens": "स्थानीय लोगों द्वारा प्राचीन श्राप की कहानी सुनाई जाती है",
+        "continuesFrom": "यंत्र की गतिविधि",
+        "endsOn": "क्या श्राप सच है?",
+        "openLoops": [
+          "श्राप क्या है और किसने दिया?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 8,
+        "beat": "react",
+        "whatHappens": "टीम के सदस्यों में बहस, कुछ डरते हैं, डॉ. विक्रम नकारता है",
+        "continuesFrom": "श्राप की कहानी",
+        "endsOn": "टीम में तनाव",
+        "openLoops": [
+          "क्या टीम टूट जाएगी?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 9,
+        "beat": "approach",
+        "whatHappens": "यंत्र को लैब में ले जाया जाता है, वैज्ञानिक परीक्षण शुरू",
+        "continuesFrom": "तनाव",
+        "endsOn": "परीक्षणों से कुछ पता चलेगा?",
+        "openLoops": [
+          "यंत्र की संरचना क्या है?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 10,
+        "beat": "reveal",
+        "whatHappens": "यंत्र से अल्ट्रासोनिक तरंगें निकलती हैं, जो इमारतों को हिला सकती हैं",
+        "continuesFrom": "परीक्षण",
+        "endsOn": "यह तकनीक 5000 साल पुरानी कैसे?",
+        "openLoops": [
+          "प्राचीन लोगों को यह तकनीक कैसे मिली?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 11,
+        "beat": "dread",
+        "whatHappens": "यंत्र के पास रहने वाले वैज्ञानिकों को बुरे सपने और मतिभ्रम होने लगते हैं",
+        "continuesFrom": "तरंगों का पता चला",
+        "endsOn": "क्या यह श्राप का असर है?",
+        "openLoops": [
+          "यंत्र का मानसिक प्रभाव क्यों?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 12,
+        "beat": "approach",
+        "whatHappens": "डॉ. विक्रम प्राचीन ग्रंथों में यंत्र का जिक्र ढूंढता है",
+        "continuesFrom": "मतिभ्रम",
+        "endsOn": "ग्रंथों में कुछ मिला?",
+        "openLoops": [
+          "प्राचीन ग्रंथ क्या बताते हैं?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 13,
+        "beat": "reveal",
+        "whatHappens": "ग्रंथों में यंत्र को 'देवताओं का अस्त्र' बताया गया है, जो श्राप से जुड़ा है",
+        "continuesFrom": "ग्रंथों की खोज",
+        "endsOn": "श्राप और यंत्र का संबंध क्या है?",
+        "openLoops": [
+          "श्राप की सच्चाई क्या है?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 14,
+        "beat": "climax",
+        "whatHappens": "यंत्र अचानक सक्रिय होता है, आसपास तबाही, टीम फंस जाती है",
+        "continuesFrom": "श्राप का संकेत",
+        "endsOn": "क्या टीम बच पाएगी?",
+        "openLoops": [
+          "यंत्र को कैसे रोका जाए?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 15,
+        "beat": "climax",
+        "whatHappens": "डॉ. विक्रम को एहसास होता है कि श्राप सच है, यंत्र एक अभिशापित वस्तु है",
+        "continuesFrom": "तबाही",
+        "endsOn": "वह अपनी गलती मानता है",
+        "openLoops": [
+          "क्या वह यंत्र को बेअसर कर पाएगा?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 16,
+        "beat": "climax",
+        "whatHappens": "यंत्र को बेअसर करने का प्रयास, लेकिन एक सदस्य की मौत",
+        "continuesFrom": "गलती की स्वीकृति",
+        "endsOn": "भारी कीमत चुकाई गई",
+        "openLoops": [
+          "क्या श्राप खत्म हुआ?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 17,
+        "beat": "resolve",
+        "whatHappens": "यंत्र को फिर से दबा दिया जाता है, लेकिन श्राप जारी रहता है",
+        "continuesFrom": "मौत",
+        "endsOn": "क्या श्राप कभी खत्म होगा?",
+        "openLoops": [
+          "श्राप का अंत कैसे होगा?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 18,
+        "beat": "resolve",
+        "whatHappens": "डॉ. विक्रम टीम को लेकर लौटता है, लेकिन वे बदल चुके हैं",
+        "continuesFrom": "यंत्र दबाया गया",
+        "endsOn": "वे इस अनुभव से सबक लेते हैं",
+        "openLoops": [
+          "क्या वे कभी सामान्य हो पाएंगे?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 19,
+        "beat": "resolve",
+        "whatHappens": "डॉ. विक्रम सार्वजनिक रूप से अपनी गलती मानता है और चेतावनी देता है",
+        "continuesFrom": "लौटना",
+        "endsOn": "दुनिया को आगाह करता है",
+        "openLoops": [
+          "क्या दुनिया मानेगी?"
+        ],
+        "words": 28
+      },
+      {
+        "n": 20,
+        "beat": "resolve",
+        "whatHappens": "अंतिम संदेश: श्राप आज भी जीवित है, और यह रहस्य कभी न खोजें",
+        "continuesFrom": "चेतावनी",
+        "endsOn": "दर्शकों के मन में डर और जिज्ञासा",
+        "openLoops": [],
+        "words": 28
+      }
+    ],
+    "payoff": {
+      "scene": 20,
+      "resolves": [
+        "खुदाई में मिले यंत्र का रहस्य",
+        "प्राचीन श्राप की सच्चाई",
+        "विज्ञान की असमर्थता",
+        "डॉ. विक्रम का अहंकार टूटना"
+      ]
+    },
+    "banned": [
+      "रीकैप",
+      "पुनः परिचय",
+      "अंग्रेजी नरेशन",
+      "असंबंधित कहानी"
+    ],
+    "language": "hi"
+  },
+  "storyReport": {
+    "bible": {
+      "accepted": true,
+      "fallback": false,
+      "problems": [],
+      "attempts": 3
+    },
+    "chunks": [
+      {
+        "chunk": [
+          1,
+          8
+        ],
+        "cached": true,
+        "words": 273
+      },
+      {
+        "chunk": [
+          9,
+          16
+        ],
+        "cached": true,
+        "words": 248
+      },
+      {
+        "chunk": [
+          17,
+          20
+        ],
+        "scenes": [
+          17,
+          18,
+          19,
+          20
+        ],
+        "words": 114,
+        "seconds": 3.9
+      }
+    ],
+    "issues": [
+      "scene 1: length (39 words against a target of 28 (39% off))",
+      "scene 2: length (41 words against a target of 28 (46% off))"
+    ],
+    "issuesAfterRepair": [
+      "scene 2: length (18 words against a target of 28 (36% off))"
+    ],
+    "repairs": [
+      "scene 1: length",
+      "scene 2: length"
+    ]
+  },
   "research": {
     "seed": "5000 saal puri khudai ka sach",
     "genre": "ancient_history",
@@ -589,58 +2273,58 @@
       "concepts": [
         {
           "title": "5000 Saal Purani Khudai Ka Sach",
-          "hook": "5000 saal purani khudai ne jo dikhaya, woh itihaas ki sabse badi khoj hai",
-          "core_angle": "The psychological twist: the excavation reveals a technologically advanced civilization that challenges everything we know about ancient India.",
-          "recommended_topic_arg": "5000 saal purani khudai ka sach: ek aisi khoj jo itihaas badal de",
+          "hook": "5000 saal purani khudai ne jo raaz khola, wo aaj tak kisi ne nahi bataya!",
+          "core_angle": "The excavation reveals an advanced ancient civilization that mysteriously vanished, challenging mainstream history.",
+          "recommended_topic_arg": "5000 saal purani khudai ka sach: ek gupt sabhyata jo itihas se gayab ho gayi",
           "target_emotion": "shock"
         },
         {
-          "title": "Khudai Mein Mila Anokha Yantra",
-          "hook": "Khudai ke dauraan mila yantra jo aaj ki technology ko bhi piche chhod de",
-          "core_angle": "The story tension: archaeologists uncover a device that suggests ancient Indians had advanced engineering far beyond their time.",
-          "recommended_topic_arg": "khudai mein mila anokha yantra: ancient technology ka raaz",
+          "title": "Khudai Mein Mila Aisa Rahasya",
+          "hook": "Jab khudai hui, toh mila ek aisa rahasya jo science aaj tak samjha nahi paayi!",
+          "core_angle": "An artifact found in the excavation possesses technology far ahead of its time, suggesting alien intervention or lost knowledge.",
+          "recommended_topic_arg": "khudai mein mila anokha yantra: 5000 saal purana rahasya jo vigyan ko chakra mein daal de",
           "target_emotion": "curiosity"
         },
         {
-          "title": "5000 Saal Purana Rahasya",
-          "hook": "5000 saal purana rahasya jo aaj tak solve nahi hua",
-          "core_angle": "The psychological twist: an ancient curse or prophecy linked to the excavation site that predicted modern events.",
-          "recommended_topic_arg": "5000 saal purana rahasya: khudai se juda shraap",
+          "title": "5000 Saal Purana Shraap Ka Sach",
+          "hook": "5000 saal purani khudai ne ek shraap ko jinda kar diya, jo aaj bhi hamare saath hai!",
+          "core_angle": "The excavation site was cursed, and those who disturbed it faced mysterious tragedies, linking past to present.",
+          "recommended_topic_arg": "5000 saal purana shraap: khudai se nikla sach jo aaj bhi darata hai",
           "target_emotion": "dread"
         },
         {
-          "title": "Khudai Ne Khola Itihaas Ka Raaz",
-          "hook": "Khudai ne khola woh raaz jo itihaas ki kitabon mein nahi milta",
-          "core_angle": "The story tension: a hidden chamber in the excavation contains records of a lost civilization that interacted with aliens or gods.",
-          "recommended_topic_arg": "khudai ne khola itihaas ka raaz: gupt sabhyata",
-          "target_emotion": "wonder"
+          "title": "Khudai Ka Woh Sach Jo Chhupaya Gaya",
+          "hook": "5000 saal purani khudai ka sach duniya se chhupaya gaya, kyun?",
+          "core_angle": "A global conspiracy suppressed the excavation findings because they contradicted religious and historical narratives.",
+          "recommended_topic_arg": "khudai ka chhupa hua sach: 5000 saal purani khudai ki report kyun gayab kar di gayi",
+          "target_emotion": "shock"
         },
         {
-          "title": "5000 Saal Purani Khudai: Sabse Badi Khoj",
-          "hook": "5000 saal purani khudai ne duniya ko hila diya, jaanिए kaise",
-          "core_angle": "The psychological twist: the excavation uncovered evidence that ancient Indians had global influence and advanced knowledge of astronomy and mathematics.",
-          "recommended_topic_arg": "5000 saal purani khudai: sabse badi puratatvik khoj",
-          "target_emotion": "excitement"
+          "title": "5000 Saal Puri Khudai Ka Anokha Sach",
+          "hook": "5000 saal purani khudai ne dikhaya ki hamara itihas jhooth par basa hai!",
+          "core_angle": "The excavation uncovers evidence that an ancient advanced civilization existed, rewriting human history and sparking wonder.",
+          "recommended_topic_arg": "5000 saal purani khudai ka anokha sach: itihas ke panno se chhupa ek adbhut adhyay",
+          "target_emotion": "wonder"
         }
       ],
       "seo_tags": [
-        "ancient history",
         "khudai ka sach",
-        "5000 saal purana",
-        "puratatva",
-        "itihaas",
+        "5000 saal purani khudai",
+        "ancient history hindi",
+        "purani sabhyata",
         "rahasya",
-        "khoj",
-        "ancient India",
-        "archaeology",
-        "Hindi documentary"
+        "khudai",
+        "itihas",
+        "puratatva",
+        "shraap",
+        "gupt raaz"
       ],
       "recommended_hashtags": [
-        "#ancienthistory",
-        "#khudai",
-        "#rahasya",
-        "#itihaas",
-        "#puratatva"
+        "#KhudaiKaSach",
+        "#AncientHistory",
+        "#Hindi",
+        "#Rahasya",
+        "#Itihas"
       ]
     }
   }
