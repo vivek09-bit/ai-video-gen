@@ -60,7 +60,7 @@ def call_llm(prompt: str, model: str | None = None) -> str | None:
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are an elite viral YouTube & TikTok video growth strategist. Respond only with valid JSON.",
+                    "content": "You are an elite viral YouTube video growth strategist. Respond only with valid JSON.",
                 },
                 {"role": "user", "content": prompt},
             ],

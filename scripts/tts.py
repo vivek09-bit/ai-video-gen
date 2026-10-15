@@ -912,10 +912,10 @@ def indic_parler_model_candidates() -> list[str]:
     return list(INDIC_PARLER_MODEL_FALLBACKS)
 
 
-# The single default narrator: one consistent, professional Hindi voice. Every scene uses
-# it at one steady pace; per-beat/emotion speed modulation is skipped for it so the tone
-# and pacing never drift.
-DEFAULT_INDIC_VOICE = os.environ.get("DEFAULT_VOICE", "indic_parler_aarav")
+# The production default narrator is a reference-conditioned IndicF5 voice. Every scene
+# uses it at one steady pace; per-beat/emotion speed modulation is skipped so tone and
+# pacing do not drift. Set DEFAULT_VOICE to retain a legacy Indic Parler narrator.
+DEFAULT_INDIC_VOICE = os.environ.get("DEFAULT_VOICE", "indicf5_aarav")
 
 
 INDIC_PARLER_VOICES: dict[str, dict] = {
@@ -1008,12 +1008,11 @@ INDIC_PARLER_VOICES: dict[str, dict] = {
 
 
 # ---------------------------------------------------------------------------
-# Local IndicF5 (AI4Bharat) — zero-shot voice cloning on THIS machine.
+# IndicF5 (AI4Bharat) reference-conditioned voices.
 #
-# Deliberately NOT part of the default narration path: it is heavy and needs its own
-# environment (examples/indicf5/.venv-indicf5: Python 3.11 + f5-tts), so it is driven
-# through a SUBPROCESS (examples/indicf5/indicf5_batch.py) instead of imported here.
-# Select one of these voices (e.g. `--voice indicf5_aarav`) to use it.
+# Production uses the remote RTX 4090 server. The Python 3.11 subprocess runtime in
+# examples/indicf5 remains the deliberate local/--no-vast fallback because its pinned
+# dependency stack must not be imported into this project's primary Python environment.
 # ---------------------------------------------------------------------------
 INDICF5_LOCAL_VOICES: dict[str, dict] = {
     "indicf5_aarav": {"id": "indicf5_aarav", "reference": "aarav", "lang": "hi", "fallback_kokoro": "hm_omega"},
@@ -1445,7 +1444,7 @@ def resolve_voice(
     Supports:
       - Direct IDs: 'hm_omega', 'af_heart', 'bm_george'
       - Friendly aliases: 'hindi_male', 'hindi_female', 'documentary', 'deep_male', 'anime'
-      - Multi-voice blending: 'af_heart,af_bella', 'af_heart+af_bella', 'hindi_male+hindi_female'
+      - Multi-voice blending: 'af_heart+af_bella', 'af_heart+af_bella', 'hindi_male+hindi_female'
       - Fallback / Auto: language & genre aware selection
     """
     if not voice_input or voice_input.strip().lower() in ("auto", "default", "none"):
@@ -1957,6 +1956,14 @@ def line_voice_and_speed(
     return voice, round(max(0.6, min(1.8, base * beat_factor * emotion_factor)), 3), character
 
 
+def remote_tts_enabled() -> bool:
+    """Whether narration is explicitly configured to use the running Vast server."""
+    return bool(os.environ.get("VAST_SERVER_URL", "").strip()) and (
+        os.environ.get("USE_VAST", "0") == "1"
+        or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
+    )
+
+
 def prebuild_vast_batch(
     scenes: list[dict],
     characters: dict,
@@ -1970,7 +1977,7 @@ def prebuild_vast_batch(
     empty and the normal per-sentence path still runs.
     """
     vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
-    if not vast_url:
+    if not remote_tts_enabled():
         return 0
 
     # (voice, speed) -> ordered unique sentences
@@ -2056,11 +2063,12 @@ def prebuild_vast_batch(
         # what the batch endpoint's contract expects of the caller.
         if missing:
             print(
-                f"[Indic Parler Vast Batch] {len(missing)} segment(s) missing from the batch "
+                f"[Vast TTS Batch] {len(missing)} segment(s) missing from the batch "
                 "response; retrying them individually."
             )
             for sentence in missing:
-                if synthesize_indic_parler(sentence, primary, line_speed) is not None:
+                synthesize = synthesize_indicf5_local if is_indicf5_local_voice(primary) else synthesize_indic_parler
+                if synthesize(sentence, primary, line_speed) is not None:
                     cached_count += 1
     return reused + cached_count
 
@@ -2174,11 +2182,7 @@ def _indicf5_run_batch(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
 
 
 def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
-    """Synthesise one sentence with the local IndicF5 cloner (disk-cached per segment).
-
-    Returns a float32 numpy array at ``SAMPLE_RATE``, or None when the engine is
-    unavailable or the segment came back unusable (the caller then falls back to Kokoro).
-    """
+    """Synthesise one sentence with IndicF5, preferring remote Vast and falling back locally."""
     if indicf5_reference_name(voice_key) is None:
         return None
     norm_text = normalize_hindi_phonetics(text)
@@ -2193,8 +2197,28 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
         return disk_cached  # type: ignore[return-value]
 
     import io
-
     import soundfile as sf
+
+    vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+    if remote_tts_enabled():
+        try:
+            from vast_manager import VastManager
+            manager = VastManager(server_url=vast_url)
+            manager.require_gpu("RTX 4090", vast_url, require_tts=True)
+            audio_bytes, _duration = manager.synthesize_tts(
+                text=norm_text, voice=primary, speed=speed
+            )
+            wav_np, sample_rate = sf.read(io.BytesIO(audio_bytes), dtype="float32")
+            wav_np = resample_audio(wav_np, sample_rate or SAMPLE_RATE, SAMPLE_RATE)
+            if audio_is_bad(wav_np):
+                raise RuntimeError("remote IndicF5 returned silent/non-finite audio")
+            write_gpu_cache(norm_text, primary, speed, audio_bytes)
+            _VAST_AUDIO_CACHE[cache_key] = wav_np
+            return wav_np
+        except Exception as err:  # noqa: BLE001 - local fallback is intentional
+            print(f"[IndicF5 Remote Warning] {type(err).__name__}: {err}; falling back locally", file=sys.stderr)
+            if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
+                raise
 
     try:
         results = _indicf5_run_batch([(norm_text, voice_key, speed)])
@@ -2804,9 +2828,9 @@ def main() -> int:
     parser.add_argument("--samples", action="store_true", help="generate short preview .wav samples for Hindi / Hinglish voices into public/audio/samples/")
     parser.add_argument("--hinglish", action="store_true", help="force Roman Hinglish on-screen captions & subtitles")
     parser.add_argument("--no-hinglish", action="store_true", help="disable Roman Hinglish transliteration (keep Devanagari subtitles)")
-    parser.add_argument("--vast", action="store_true", help="use remote Vast.ai GPU instance for Indic Parler-TTS synthesis")
+    parser.add_argument("--vast", action="store_true", help="use the remote Vast.ai GPU instance for IndicF5 or legacy Indic Parler synthesis")
     parser.add_argument("--vast-url", type=str, default=None, help="Vast.ai server URL (e.g. http://ip:port)")
-    parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote Indic Parler-TTS synthesis fails")
+    parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 or legacy Indic Parler synthesis fails")
     parser.add_argument("--no-vast-batch", action="store_true", help="skip the one-shot bulk Vast.ai narration pre-fetch")
     parser.add_argument("--vast-batch", dest="no_vast_batch", action="store_false", help="(default) pre-fetch all narration in one Vast.ai round trip")
     parser.add_argument("--purge-audio-cache", action="store_true", help="delete cached GPU narration segments and scene sidecars, then exit")
@@ -2936,9 +2960,15 @@ def main() -> int:
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     engine = Voice()
 
-    # Local IndicF5: one subprocess round trip for the whole narration, so the ~1.6 GB
-    # model is loaded once instead of once per sentence.
-    if is_indicf5_local_voice(voice_default) and not args.no_vast_batch:
+    # Local IndicF5 is an explicit fallback: when Vast is configured, use its batch API
+    # below rather than loading the local 3.11 model process unnecessarily.
+    if is_indicf5_local_voice(voice_default) and not remote_tts_enabled() and not args.no_vast_batch:
+        if os.environ.get("REQUIRE_VAST_TTS", "0") == "1":
+            print(
+                "error: remote IndicF5 is required but no Vast.ai server is configured.",
+                file=sys.stderr,
+            )
+            return 1
         try:
             indicf5_cached = prebuild_indicf5_batch(
                 scenes, characters, voice_default, speed, args.dynamic_speed
@@ -2952,16 +2982,16 @@ def main() -> int:
                 file=sys.stderr,
             )
 
-    # One bulk round trip for the whole narration when a remote GPU is available; the
+    # One bulk round trip for the whole narration when remote TTS is selected; the
     # per-sentence path below then reads those segments from memory.
-    if os.environ.get("VAST_SERVER_URL", "").strip() and not args.no_vast_batch:
+    if remote_tts_enabled() and not args.no_vast_batch:
         try:
             batch_cached = prebuild_vast_batch(scenes, characters, voice_default, speed, args.dynamic_speed)
             if batch_cached:
-                print(f"[Indic Parler Vast Batch] {batch_cached} segment(s) ready from the GPU")
+                print(f"[Vast TTS Batch] {batch_cached} segment(s) ready from the GPU")
         except Exception as batch_err:  # noqa: BLE001 - never block synthesis on the pre-fetch
             print(
-                f"[Indic Parler Vast Batch Warning] pre-fetch failed ({batch_err}); "
+                f"[Vast TTS Batch Warning] pre-fetch failed ({batch_err}); "
                 "using per-sentence requests.",
                 file=sys.stderr,
             )

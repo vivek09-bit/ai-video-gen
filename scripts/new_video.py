@@ -1112,8 +1112,8 @@ def main() -> int:
         choices=("auto", "kokoro", "indic_parler", "parler", "indicf5"),
         default="auto",
         help=(
-            "narration model; auto uses Kokoro by default and selects Indic Parler-TTS for an "
-            "indic_parler_* voice, or the LOCAL IndicF5 cloner (examples/indicf5) for an indicf5_* voice"
+            "narration model; auto uses the default IndicF5 narrator, indicf5 uses remote-first "
+            "reference-conditioned narration, indic_parler/parler is legacy compatibility, and kokoro is CPU-only"
         ),
     )
     parser.add_argument(
@@ -1567,7 +1567,7 @@ def main() -> int:
     parser.add_argument(
         "--vast",
         action="store_true",
-        help="use Vast.ai for image generation (RTX 3090); video mode selects RTX 4090 automatically",
+        help="use Vast.ai GPU generation; production image, video, and IndicF5 narration use an RTX 4090", 
     )
     parser.add_argument(
         "--vast-instance",
@@ -1599,7 +1599,7 @@ def main() -> int:
         "--no-vast",
         dest="no_vast",
         action="store_true",
-        help="never rent a GPU; run Indic Parler-TTS narration locally on the CPU",
+        help="never rent a GPU; use the local IndicF5 fallback (or local Kokoro) for narration", 
     )
     parser.add_argument(
         "--render-on",
@@ -1749,8 +1749,8 @@ def main() -> int:
     # Resolve primary voice (resolves aliases, blends, or genre/language fallback)
     from tts import resolve_voice, DEFAULT_INDIC_VOICE
     requested_voice = args.voice or os.environ.get("VOICE")
-    # Default to a single consistent professional Hindi narrator (Aarav) unless the user
-    # explicitly asked for Kokoro. `auto` then selects the Indic Parler-TTS engine for it.
+    # Default to a single consistent reference-conditioned Hindi narrator unless the
+    # user explicitly selected Kokoro. `auto` resolves the default to IndicF5.
     if not requested_voice and args.audio_model != "kokoro":
         requested_voice = DEFAULT_INDIC_VOICE
     requested_voice_key = (requested_voice or "").strip().lower()
@@ -2038,9 +2038,8 @@ def main() -> int:
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
     
-    # A GPU is rented when the visuals need one (video mode, or Vast images), or when an
-    # Indic Parler-TTS voice is selected: picking it *is* the request for GPU narration.
-    # --no-vast keeps everything local on the CPU.
+    # A GPU is rented when the visuals need one, or when an Indic engine is selected.
+    # --no-vast keeps narration local on purpose.
     no_vast = getattr(args, "no_vast", False)
     needs_vast = not no_vast and (
         args.visual_mode == "video"
@@ -2048,7 +2047,7 @@ def main() -> int:
         or args.vast_instance is not None
         or args.vast_url is not None
         or (not args.no_images and detected_image_provider == "vast")
-        or audio_model == "indic_parler"
+        or audio_model in ("indic_parler", "indicf5")
     )
     # Visuals that cannot be produced without the GPU must fail loudly; narration has a
     # slow local CPU path and so degrades instead.
@@ -2057,7 +2056,7 @@ def main() -> int:
     )
     auto_rented_for_audio = (
         needs_vast
-        and audio_model == "indic_parler"
+        and audio_model in ("indic_parler", "indicf5")
         and not vast_required_early
         and not args.vast
         and args.vast_instance is None
@@ -2071,16 +2070,20 @@ def main() -> int:
     # Prefetch the weights this run will actually need while the container is still
     # installing, so the first request is not stuck waiting on a download. Video mode
     # pulls the LTX checkpoint too; image mode never touches it.
-    vast_prefetch = ["RXD03/indic-parler-tts"] if audio_model == "indic_parler" else []
+    vast_prefetch = ["ai4bharat/IndicF5"] if audio_model == "indicf5" else []
+    if audio_model == "indic_parler":
+        vast_prefetch.append("RXD03/indic-parler-tts")
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
     render_on_vast = args.render_on == "vast"
 
-    if args.visual_mode == "video":
-        expected_gpu = "RTX 4090"
-    else:
-        # "image" or "none"
-        expected_gpu = "RTX 3090"
+    # All remote workloads use one supported target GPU, including IndicF5 narration.
+    expected_gpu = "RTX 4090"
+    # FLUX alone is ~34GB of weights at bf16, on top of the container image and the
+    # installed dependencies, so a 50GB disk fills up part-way through an image run. Reuse
+    # and rent share this floor on purpose: a warm instance that cannot finish the job is not
+    # worth reusing, and a mismatch would only move the failure later.
+    vast_disk_gb = int(os.environ.get("VAST_DISK_GB", "100"))
 
     def stop_vast_instance() -> None:
         if needs_vast and vast_mgr and vast_instance_id and args.vast_autostop:
@@ -2100,15 +2103,22 @@ def main() -> int:
         if not needs_vast:
             return False
         if vast_mgr is not None and os.environ.get("VAST_SERVER_URL"):
+            # Revalidate a supplied/reused URL; it may be stale or point at an old
+            # Parler-only instance.
+            vast_mgr.require_gpu(
+                expected_gpu,
+                os.environ.get("VAST_SERVER_URL"),
+                require_tts=audio_model in ("indic_parler", "indicf5"),
+            )
             return True
         print()
         print("=" * 74)
         print(f"VAST.AI CLOUD GPU INITIALIZATION ({expected_gpu} 24GB)")
         print("=" * 74)
         if auto_rented_for_audio:
-            print("  (Indic Parler-TTS narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
+            print(f"  ({audio_model} narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
         try:
-            from vast_manager import VastManager
+            from vast_manager import VastManager, hub_token
             vast_mgr = VastManager()
             if getattr(args, "vast_url", None):
                 server_url = args.vast_url
@@ -2131,15 +2141,27 @@ def main() -> int:
                             f"({inst['status']}, {inst['disk_space']}GB) but this run needs {expected_gpu}.",
                             file=sys.stderr,
                         )
-                    raise RuntimeError(
-                        f"{len(conflicts)} existing instance(s) of the wrong GPU model block a "
-                        f"clean {expected_gpu} reuse. Prune or destroy them first "
-                        f"(scripts/vast_manager.py prune), or pass --vast-instance to choose one."
+                    # Reported, not fatal. An account can legitimately hold instances of other
+                    # GPU models (another project, another tool), and refusing to rent over them
+                    # turned an unrelated state into a blocked production run. The reuse path
+                    # below already ignores them; set VAST_STRICT_CONFLICTS=1 to restore the
+                    # hard stop when the operator wants a clean account before spending.
+                    if os.environ.get("VAST_STRICT_CONFLICTS", "0") == "1":
+                        raise RuntimeError(
+                            f"{len(conflicts)} existing instance(s) of the wrong GPU model are "
+                            f"rented while this run needs {expected_gpu}. Prune or destroy them "
+                            f"(scripts/vast_manager.py prune), or pass --vast-instance to choose one."
+                        )
+                    print(
+                        "  [Vast Manager] Continuing: those instances are billed separately and do "
+                        "not block this run. Use `scripts/vast_manager.py prune` to reclaim them."
                     )
                 # Reuse an already-rented instance of the right GPU before paying for a
                 # new one. Broken instances (bad host / failed image pull) are destroyed
                 # so they stop billing storage instead of being skipped.
-                vast_instance_id, server_url = vast_mgr.find_existing_instance(expected_gpu, min_disk=50)
+                vast_instance_id, server_url = vast_mgr.find_existing_instance(
+                    expected_gpu, min_disk=vast_disk_gb
+                )
 
                 if vast_instance_id:
                     if not server_url:
@@ -2147,6 +2169,16 @@ def main() -> int:
                         vast_mgr.start_instance(vast_instance_id)
                     server_url = vast_mgr.wait_until_ready(vast_instance_id)
                 else:
+                    # Renting a NEW instance. A container's environment is fixed at create
+                    # time, so a missing token cannot be repaired later without re-renting: say
+                    # so before the money is spent, not after the health check fails.
+                    if audio_model in ("indic_parler", "indicf5") and not hub_token():
+                        print(
+                            "  [Vast Manager Warning] No HF_TOKEN / HUGGINGFACE_API_KEY is set. "
+                            "ai4bharat/IndicF5 is a GATED Hugging Face repository, so this instance "
+                            "will not be able to download or load the narration model.",
+                            file=sys.stderr,
+                        )
                     # Nothing reusable: rent the cheapest in-budget GPU, moving to the
                     # next offer if a host cannot pull the image.
                     print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
@@ -2155,11 +2187,24 @@ def main() -> int:
                     # lazy, so static analysis cannot see a mismatch here.
                     vast_instance_id, server_url = vast_mgr.provision_instance(
                         gpu_name=expected_gpu,
-                        disk_gb=50,
+                        disk_gb=vast_disk_gb,
                         prefetch_models=vast_prefetch or None,
                     )
+            # The reference clips live in the git-ignored examples tree, so a freshly cloned
+            # instance does not have them and its health check would report IndicF5 as
+            # unavailable. Seed them before validating, so the default narration path needs no
+            # manual step on the instance.
+            if vast_instance_id is not None and audio_model == "indicf5":
+                try:
+                    vast_mgr.push_indicf5_voices(vast_instance_id)
+                except Exception as voices_err:  # noqa: BLE001 - the health check reports the truth
+                    print(
+                        f"  [Vast Manager Warning] Could not upload the IndicF5 reference clips: "
+                        f"{voices_err}",
+                        file=sys.stderr,
+                    )
             health = vast_mgr.require_gpu(
-                expected_gpu, server_url, require_tts=audio_model == "indic_parler"
+                expected_gpu, server_url, require_tts=audio_model in ("indic_parler", "indicf5")
             )
             print(f"  Connected to {health.get('vram', {}).get('device_name', expected_gpu)}")
             os.environ["VAST_SERVER_URL"] = server_url
@@ -2184,7 +2229,7 @@ def main() -> int:
     # Priority: explicit CLI flag > IMAGE_PROVIDER env > mode defaults.
     # --vast provisions the GPU, but must not silently override a configured
     # provider: with IMAGE_PROVIDER=local the images render on the PC while the
-    # rented GPU is used only for Indic Parler-TTS narration.
+    # rented GPU is used only for remote narration.
     cli_img_prov = args.image_provider or os.environ.get("IMAGE_PROVIDER") or ""
     if args.visual_mode == "video":
         try:
@@ -2253,9 +2298,9 @@ def main() -> int:
 
     # Narration is the only remaining reason to hold a GPU at this point.
     if needs_vast and not start_vast():
-        # Abort by default. Indic Parler-TTS on a laptop CPU is slow for a long script, so
-        # a silent fallback turns a two-minute failure into an afternoon. --allow-local-fallback
-        # restores the old behaviour, and --no-vast runs on the CPU on purpose.
+        # Abort by default. Local IndicF5 and legacy Parler synthesis are slow for a long
+        # script, so a silent fallback turns a short failure into an afternoon.
+        # --allow-local-fallback restores that behaviour; --no-vast selects it deliberately.
         if not getattr(args, "allow_local_fallback", False):
             print(
                 "  [Vast Manager Error] The GPU could not be used and narration needs it.\n"
@@ -2270,23 +2315,28 @@ def main() -> int:
                 "  (much slower) because --allow-local-fallback was passed.",
                 file=sys.stderr,
             )
-        else:
-            print("  Continuing without Vast.ai; narration runs locally with Kokoro.", file=sys.stderr)
+        elif audio_model == "indicf5":
+            print(
+                "  Continuing without Vast.ai: IndicF5 will use the local Python 3.11 fallback\n"
+                "  because --allow-local-fallback was passed.",
+                file=sys.stderr,
+            )
 
     vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
-    # No reference-voice upload is needed here: Indic Parler-TTS is steered by a text
-    # description, not a reference clip, so the server needs nothing beyond its own code.
-    strict_audio = not getattr(args, "allow_local_fallback", False)
-    if audio_model == "indic_parler":
+    # IndicF5 requires a matching reference clip/transcript on the server; the remote
+    # health check validates the default reference before this process is started.
+    strict_audio = not no_vast and not getattr(args, "allow_local_fallback", False)
+    if audio_model in ("indic_parler", "indicf5"):
+        model_label = "IndicF5" if audio_model == "indicf5" else "Indic Parler-TTS"
         if vast_server:
             tts_cmd.extend(["--vast", "--vast-url", vast_server])
-            # Always strict for Indic Parler-TTS: a mid-run remote failure must raise rather
-            # than quietly re-synthesise the whole script on the CPU.
+            # A production remote run must not silently reroute a failed segment to the
+            # local runtime; --no-vast and --allow-local-fallback are explicit opt-ins.
             if strict_audio:
                 tts_cmd.append("--require-vast")
         elif strict_audio:
             print(
-                "  [Indic Parler-TTS] No Vast.ai server available and narration needs the GPU. Aborting.\n"
+                f"  [{model_label}] No Vast.ai server available and narration needs the GPU. Aborting.\n"
                 "  Use --allow-local-fallback to synthesise on the CPU instead.",
                 file=sys.stderr,
             )
@@ -2294,13 +2344,13 @@ def main() -> int:
             return 1
         else:
             print(
-                "  [Indic Parler-TTS] No Vast.ai server available; synthesising locally on the CPU (slow).",
+                f"  [{model_label}] No Vast.ai server available; using the deliberate local fallback.",
                 file=sys.stderr,
             )
     if audio_model == "indic_parler":
         tts_label = "Indic Parler-TTS on Vast.ai" if vast_server else "Indic Parler-TTS (local CPU)"
     elif audio_model == "indicf5":
-        tts_label = "IndicF5 (local)"
+        tts_label = "IndicF5 on Vast.ai" if vast_server else "IndicF5 (local Python 3.11 fallback)"
     else:
         tts_label = "Kokoro"
     tts_succeeded = run_step(

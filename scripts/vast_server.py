@@ -2,16 +2,17 @@
 """Vast.ai GPU Inference Server for FLUX.1-schnell, LTX-Video & Indic Parler-TTS.
 
 Runs on one remote 24GB GPU instance, hosting one requested visual pipeline:
-  1. FLUX.1-schnell image generation (RTX 3090 workflow)
+  1. FLUX.1-schnell image generation (RTX 4090 workflow)
   2. LTX-Video 2B distilled video generation (RTX 4090 workflow)
-  3. AI4Bharat Indic Parler-TTS description-conditioned Hindi TTS
+  3. AI4Bharat IndicF5 reference-conditioned Hindi TTS
+  4. Legacy Indic Parler-TTS compatibility
 
 Endpoints:
   GET  /health              -> System, GPU VRAM & model status
   POST /v1/images/generate  -> FLUX.1 image generation
   POST /v1/videos/generate  -> LTX-Video MP4 generation
-  POST /v1/audio/synthesize -> Indic Parler-TTS audio generation (WAV + duration)
-  POST /v1/audio/synthesize_batch -> many Indic Parler-TTS segments in one round trip
+  POST /v1/audio/synthesize -> IndicF5 or legacy Indic Parler-TTS audio (WAV + duration)
+  POST /v1/audio/synthesize_batch -> many Indic audio segments in one round trip
   POST /v1/batch            -> images + audio for a scene list in one round trip
   POST /v1/shutdown         -> Gracefully shutdown server / instance
 """
@@ -30,9 +31,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 
-# Ensure UTF-8 output
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+# Ensure UTF-8 output. Guarded because this module is imported by the test suite as well
+# as run as the server: a captured or replaced stdout has no `reconfigure`, and an
+# import-time AttributeError would take down the whole test process.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, OSError):
+    pass
 
 PORT = int(os.environ.get("PORT", 8000))
 DEVICE = "cuda" if os.environ.get("FORCE_CPU", "0") != "1" else "cpu"
@@ -41,11 +47,16 @@ _FLUX_PIPE = None
 _LTX_PIPE = None
 _LTX_MODEL_ID: str | None = None
 _INDIC_PARLER_ENGINE = None
+_INDICF5_ENGINE = None
 
-# Latched once the Indic Parler-TTS import path is known to work. A failure is deliberately NOT
+# Latched once each engine's import path is known to work. A failure is deliberately NOT
 # cached: an instance can be repaired over SSH while this process keeps running, and the
 # next /health should reflect that without needing a restart.
 _TTS_IMPORT_OK = False
+_INDICF5_IMPORT_OK = False
+INDICF5_REPOSITORY = "ai4bharat/IndicF5"
+INDICF5_SAMPLE_RATE = 24000
+INDICF5_AUDIO_EXTENSIONS = (".wav", ".flac", ".ogg", ".mp3")
 
 
 def _audio_is_bad(wav) -> bool:
@@ -90,6 +101,25 @@ def tts_import_error() -> str | None:
     return None
 
 
+def indicf5_import_error() -> str | None:
+    """Return why the remote IndicF5 runtime is unusable, or None when it imports."""
+    global _INDICF5_IMPORT_OK
+    if _INDICF5_IMPORT_OK:
+        return None
+    try:
+        import numpy  # noqa: F401
+        import soundfile  # noqa: F401
+        import torch  # noqa: F401
+        import torchaudio  # noqa: F401
+        from transformers import AutoModel  # noqa: F401
+        import vocos  # noqa: F401
+        from f5_tts.infer import utils_infer  # noqa: F401
+    except Exception as err:  # noqa: BLE001 - every failure makes inference impossible
+        return f"{type(err).__name__}: {err}"
+    _INDICF5_IMPORT_OK = True
+    return None
+
+
 def _hub_token() -> str | None:
     """Read an optional Hugging Face token from the server environment."""
     return os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY") or None
@@ -97,14 +127,15 @@ def _hub_token() -> str | None:
 
 def _release_other_models(active: str) -> None:
     """Keep only one large inference model resident on the 24GB GPU."""
-    global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDIC_PARLER_ENGINE
-    for name in ("flux", "ltx", "indic_parler"):
+    global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDIC_PARLER_ENGINE, _INDICF5_ENGINE
+    for name in ("flux", "ltx", "indic_parler", "indicf5"):
         if name == active:
             continue
         value = {
             "flux": _FLUX_PIPE,
             "ltx": _LTX_PIPE,
             "indic_parler": _INDIC_PARLER_ENGINE,
+            "indicf5": _INDICF5_ENGINE,
         }[name]
         if value is None:
             continue
@@ -118,8 +149,10 @@ def _release_other_models(active: str) -> None:
         elif name == "ltx":
             _LTX_PIPE = None
             _LTX_MODEL_ID = None
-        else:
+        elif name == "indic_parler":
             _INDIC_PARLER_ENGINE = None
+        else:
+            _INDICF5_ENGINE = None
     gc.collect()
     try:
         import torch
@@ -361,6 +394,156 @@ def load_indic_parler_engine():
     return _INDIC_PARLER_ENGINE
 
 
+def _indicf5_voice_stem(voice: str) -> str:
+    """Map public ``indicf5_aarav`` ids to their reference-file stem."""
+    lowered = (voice or "indicf5_aarav").strip().lower()
+    return lowered[len("indicf5_"):] if lowered.startswith("indicf5_") else lowered
+
+
+def _voices_dir_has_clips(directory: Path) -> bool:
+    """True when a directory actually holds a reference clip, not just transcripts."""
+    try:
+        return any(
+            entry.is_file() and entry.suffix.lower() in INDICF5_AUDIO_EXTENSIONS
+            for entry in directory.iterdir()
+        )
+    except OSError:
+        return False
+
+
+def _indicf5_voices_dir() -> Path:
+    """Where the IndicF5 reference clips live.
+
+    The resolution order matters because the layouts disagree. The client seeds a fixed
+    writable directory on a rented instance (INDICF5_VOICES_DIR), a checked-out repo keeps
+    them under the git-ignored examples tree, and a repo that ships them for deployment puts
+    them in public/audio/prompts/indicf5. An explicit override always wins, and a directory
+    holding only transcripts must not be chosen over one holding actual audio.
+    """
+    configured = os.environ.get("INDICF5_VOICES_DIR", "").strip()
+    if configured:
+        return Path(configured)
+    repo = Path(__file__).resolve().parent.parent
+    shipped = repo / "public" / "audio" / "prompts" / "indicf5"
+    if _voices_dir_has_clips(shipped):
+        return shipped
+    return repo / "examples" / "indicf5" / "voices"
+
+
+def _prepare_indicf5_reference(voice: str) -> tuple[str, str]:
+    """Prepare an IndicF5 reference clip as a 24 kHz mono PCM WAV."""
+    import numpy as np
+    import soundfile as sf
+    from math import gcd
+    from scipy.signal import resample_poly
+
+    stem = _indicf5_voice_stem(voice)
+    voices_dir = _indicf5_voices_dir()
+    source = next((voices_dir / f"{stem}{extension}" for extension in INDICF5_AUDIO_EXTENSIONS
+                   if (voices_dir / f"{stem}{extension}").is_file()), None)
+    transcript = voices_dir / f"{stem}.txt"
+    if source is None or not transcript.is_file():
+        raise RuntimeError(f"IndicF5 voice '{stem}' has no reference clip/transcript in {voices_dir}")
+    reference_text = " ".join(transcript.read_text(encoding="utf-8-sig").split())
+    if not reference_text:
+        raise RuntimeError(f"IndicF5 voice '{stem}' has an empty reference transcript")
+    try:
+        audio, sample_rate = sf.read(str(source), dtype="float32", always_2d=True)
+    except Exception as err:  # noqa: BLE001 - include the voice context in this preflight error
+        raise RuntimeError(f"IndicF5 voice '{stem}' reference clip cannot be decoded: {err}") from err
+    audio = audio.mean(axis=1)
+    if sample_rate <= 0:
+        raise RuntimeError(f"IndicF5 voice '{stem}' reference clip has an invalid sample rate")
+    if sample_rate != INDICF5_SAMPLE_RATE:
+        factor = gcd(sample_rate, INDICF5_SAMPLE_RATE)
+        audio = resample_poly(audio, INDICF5_SAMPLE_RATE // factor, sample_rate // factor).astype(np.float32)
+    if _audio_is_bad(audio):
+        raise RuntimeError(f"IndicF5 voice '{stem}' reference clip is silent/non-finite")
+    peak = float(np.max(np.abs(audio)))
+    prepared = voices_dir / f"_prepared_{stem}.wav"
+    try:
+        voices_dir.mkdir(parents=True, exist_ok=True)
+        sf.write(str(prepared), audio / peak * 0.9, INDICF5_SAMPLE_RATE, subtype="PCM_16")
+    except OSError as err:
+        raise RuntimeError(f"IndicF5 voice directory is not writable: {voices_dir} ({err})") from err
+    return str(prepared), reference_text
+
+
+def indicf5_voice_error(voice: str = "indicf5_aarav") -> str | None:
+    """Return an IndicF5 reference-readiness reason without loading the model."""
+    try:
+        _prepare_indicf5_reference(voice)
+    except Exception as err:  # noqa: BLE001 - health must remain a JSON response
+        return f"{type(err).__name__}: {err}"
+    return None
+
+
+def load_indicf5_engine():
+    """Load one resident AI4Bharat IndicF5 model and patch reference decoding safely."""
+    global _INDICF5_ENGINE
+    if _INDICF5_ENGINE is not None:
+        return _INDICF5_ENGINE
+    problem = indicf5_import_error()
+    if problem:
+        raise RuntimeError(f"IndicF5 runtime unavailable: {problem}")
+
+    _release_other_models("indicf5")
+    import numpy as np
+    import soundfile as sf
+    import torch
+    import torchaudio
+    from transformers import AutoModel
+
+    # New torchaudio versions may require TorchCodec merely to decode a WAV. IndicF5 only
+    # needs the decoded reference waveform, so use SoundFile just as the local batch path does.
+    def load_with_soundfile(path, *args, **kwargs):
+        data, sample_rate = sf.read(str(path), dtype="float32", always_2d=True)
+        return torch.from_numpy(np.ascontiguousarray(data.T)), sample_rate
+
+    torchaudio.load = load_with_soundfile
+    print(f"[Vast Server] Loading IndicF5 model {INDICF5_REPOSITORY} on {DEVICE}...")
+    _INDICF5_ENGINE = AutoModel.from_pretrained(
+        INDICF5_REPOSITORY, trust_remote_code=True, token=_hub_token()
+    )
+    if hasattr(_INDICF5_ENGINE, "to"):
+        _INDICF5_ENGINE.to(DEVICE)
+    if hasattr(_INDICF5_ENGINE, "eval"):
+        _INDICF5_ENGINE.eval()
+    print("[Vast Server] IndicF5 model loaded successfully.")
+    return _INDICF5_ENGINE
+
+
+def synthesize_indicf5(text: str, voice: str):
+    """Generate one valid IndicF5 waveform from its selected cloning reference."""
+    import numpy as np
+    import torch
+
+    model = load_indicf5_engine()
+    reference_path, reference_text = _prepare_indicf5_reference(voice)
+    started = time.time()
+    with torch.inference_mode():
+        audio = model(text, ref_audio_path=reference_path, ref_text=reference_text)
+    if hasattr(audio, "detach"):
+        audio = audio.detach().cpu().numpy()
+    audio_np = np.asarray(audio).squeeze().astype(np.float32)
+    if audio_np.ndim > 1:
+        audio_np = audio_np.mean(axis=0)
+    peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
+    if peak > 1.0:
+        audio_np = audio_np / peak
+    if _audio_is_bad(audio_np):
+        raise RuntimeError("IndicF5 produced silent/non-finite audio")
+    return audio_np, round(time.time() - started, 3)
+
+
+def synthesize_requested_voice(text: str, voice: str, speed: float):
+    """Dispatch public audio endpoints by voice family, retaining Parler compatibility."""
+    if (voice or "").strip().lower().startswith("indicf5_"):
+        return synthesize_indicf5(text, voice)
+    engine = load_indic_parler_engine()
+    return _synthesize_with_retries(engine, text, _resolve_indic_description(voice, speed), speed)
+
+
 class VastHandler(BaseHTTPRequestHandler):
     def _send_json(self, data: dict, status: int = 200):
         body = json.dumps(data).encode("utf-8")
@@ -373,10 +556,11 @@ class VastHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health" or self.path == "/":
             vram = get_vram_info()
-            # status stays "healthy": this server is alive and the GPU is usable. The
-            # `tts_ready` field is the separate question the client actually needs answered,
-            # because narration cannot use a server whose Indic Parler-TTS import path is broken.
+            # status stays "healthy": this server is alive and the GPU is usable. Engine
+            # readiness is reported separately because model imports may be lazy/optional.
             tts_error = tts_import_error()
+            indicf5_error = indicf5_import_error()
+            indicf5_reference_error = None if indicf5_error else indicf5_voice_error()
             self._send_json({
                 "status": "healthy",
                 "device": DEVICE,
@@ -387,6 +571,14 @@ class VastHandler(BaseHTTPRequestHandler):
                 "tts_greedy": getattr(_INDIC_PARLER_ENGINE, "do_sample", True) is False,
                 "tts_ready": tts_error is None,
                 "tts_error": tts_error,
+                "indicf5_loaded": _INDICF5_ENGINE is not None,
+                # Reported separately from indicf5_error so the client can tell a gated-repo
+                # 401 (fix: supply a token, which needs a NEW container) from a broken install
+                # (fix: repair in place). The two have different remedies, and one of them
+                # cannot be applied to a container that already exists.
+                "hf_token_present": bool(_hub_token()),
+                "indicf5_ready": indicf5_error is None and indicf5_reference_error is None,
+                "indicf5_error": indicf5_error or indicf5_reference_error,
             })
         else:
             self._send_json({"error": "Not Found"}, status=404)
@@ -543,17 +735,13 @@ class VastHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "Missing text"}, status=400)
             return
 
-        import numpy as np
         import soundfile as sf
-        engine = load_indic_parler_engine()
-        description = _resolve_indic_description(voice, speed)
-
-        audio_np, gen_time = _synthesize_with_retries(engine, text, description, speed)
+        audio_np, gen_time = synthesize_requested_voice(text, voice, speed)
         if audio_np is None:
             self._send_json(
                 {
                     "status": "error",
-                    "error": "Indic Parler-TTS produced silent/non-finite audio after retries",
+                    "error": "Indic TTS produced silent/non-finite audio after retries",
                 },
                 status=500,
             )
@@ -588,8 +776,6 @@ class VastHandler(BaseHTTPRequestHandler):
 
         import soundfile as sf
 
-        engine = load_indic_parler_engine()
-        description = _resolve_indic_description(voice, speed)
         results = []
         started = time.time()
         for index, item in enumerate(items):
@@ -600,7 +786,7 @@ class VastHandler(BaseHTTPRequestHandler):
                 continue
             t0 = time.time()
             try:
-                audio_np, _gen = _synthesize_with_retries(engine, text, description, speed)
+                audio_np, _gen = synthesize_requested_voice(text, voice, speed)
             except Exception as err:  # noqa: BLE001 - report per-item failure to the client
                 results.append({"id": entry_id, "error": f"{type(err).__name__}: {err}"})
                 continue
@@ -640,8 +826,6 @@ class VastHandler(BaseHTTPRequestHandler):
         width = int(req.get("width", 1080))
         height = int(req.get("height", 1920))
 
-        description = _resolve_indic_description(voice, speed)
-
         results = []
         for i, sc in enumerate(scenes):
             scene_id = sc.get("id", f"scene-{i+1:03d}")
@@ -659,8 +843,7 @@ class VastHandler(BaseHTTPRequestHandler):
                 res_entry["image_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")
 
             if narration_text:
-                engine = load_indic_parler_engine()
-                audio_np, _gen = _synthesize_with_retries(engine, narration_text, description, speed)
+                audio_np, _gen = synthesize_requested_voice(narration_text, voice, speed)
                 if audio_np is None:
                     continue
                 buf_a = io.BytesIO()

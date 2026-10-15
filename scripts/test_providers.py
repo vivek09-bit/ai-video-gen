@@ -624,7 +624,11 @@ def test_vast_gpu_routing() -> None:
     # the create call rather than assuming it is the most recent command.
     create_args = next(cmd for cmd in commands if cmd[:2] == ["create", "instance"])
     # Port 8000 is published through --env, which is how `vastai create instance` maps ports.
-    assert "--env" in create_args and create_args[create_args.index("--env") + 1] == "-p 8000:8000"
+    # The same one string also carries -e variables (the gated IndicF5 repo needs HF_TOKEN and
+    # the server needs to be told where its reference clips are), so assert containment.
+    assert "--env" in create_args
+    env_spec = create_args[create_args.index("--env") + 1]
+    assert "-p 8000:8000" in env_spec, f"the port mapping must survive the env spec: {env_spec}"
     assert "--onstart-cmd" in create_args
     assert "vast_server.py" in create_args[create_args.index("--onstart-cmd") + 1]
 
@@ -702,11 +706,12 @@ def test_vast_setup_resilience() -> None:
     onstart = VastManager.server_onstart_command()
     assert ".tube2dscript_deps_ready" in onstart, "onstart must guard the install with a marker"
     assert "uv pip install --system" in onstart, "onstart must install with uv"
-    assert onstart.index("uv pip install") < onstart.index("apt done"), (
-        "deps and apt must run concurrently, not in sequence"
+    assert "command -v git" in onstart, "the Git-backed IndicF5 runtime requires a git preflight"
+    assert onstart.index("apt done") < onstart.index("uv pip install"), (
+        "dependency installation must wait for apt to provide git"
     )
-    assert "git clone" in onstart and onstart.index(".tube2dscript_deps_ready") < onstart.index("git clone"), (
-        "the repo must be cloned after apt guarantees git"
+    assert "git clone" in onstart and onstart.index("apt done") < onstart.index("git clone"), (
+        "the repo must be cloned only after apt guarantees git"
     )
     assert "torch.version.cuda" in onstart, "onstart must report the CUDA build it ended up with"
 
@@ -762,8 +767,12 @@ def test_vast_setup_resilience() -> None:
     # later run from reinstalling and each synthesis request answered HTTP 500.
     marker_probe = VastManager.dependency_probe_command(quiet=True)
     assert marker_probe in plain_stack, "the marker must be re-verified with a real import"
-    assert "parler_tts" in marker_probe, (
-        "the probe must import the TTS module the synthesis handler imports lazily"
+    assert "f5_tts.infer.utils_infer" in marker_probe, (
+        "the probe must import the IndicF5 module the synthesis handler imports lazily"
+    )
+    assert "vocos" in marker_probe, "the probe must import IndicF5's vocoder runtime"
+    assert "parler_tts" not in marker_probe, (
+        "legacy Parler compatibility must not block IndicF5 production readiness"
     )
     assert "transformers" in marker_probe, "the probe must import transformers, the model runner"
     assert plain_stack.count(marker_probe) >= 2, (
@@ -874,17 +883,18 @@ def test_vast_dependency_abi() -> None:
 
     from vast_manager import DEFAULT_SERVER_IMAGE, SERVER_DEPENDENCIES, VastManager
 
-    # 1. numpy and pyarrow must be pinned, and pinned as a PAIR. pyarrow wheels from 17.0.0
-    #    are built against the NumPy 2.x C ABI while the image ships NumPy 1.26.4 for torch
-    #    2.4, and pyarrow declares numpy only as an optional extra -- so a free resolve
-    #    installs an unimportable pyarrow that nothing corrects. Every synthesis request
-    #    then answered HTTP 500, and only after a GPU had been rented for it.
+    # 1. IndicF5 needs AI4Bharat's Git fork, not PyPI's unrelated f5-tts project. Its
+    #    numerics/data stack is pinned to the proven environment so pyarrow cannot silently
+    #    resolve against an incompatible NumPy ABI on a newly rented host.
     pins = {name.split(">")[0].split("<")[0].split("=")[0]: name for name in SERVER_DEPENDENCIES}
-    assert "numpy" in pins, "numpy must be pinned explicitly, not left to the image"
-    assert "<2" in pins["numpy"], f"numpy must stay on the 1.x side of the ABI: {pins['numpy']}"
-    assert any(name.startswith("parler-tts") for name in SERVER_DEPENDENCIES), (
-        "the server must install the TTS engine it actually imports"
+    assert pins["numpy"] == "numpy==1.26.4", "IndicF5 must pin the tested NumPy ABI"
+    assert pins["pyarrow"] == "pyarrow==20.0.0", "IndicF5 must pin compatible pyarrow"
+    assert pins["datasets"] == "datasets==3.6.0", "the lazy F5 data path must be reproducible"
+    f5_package = next(name for name in SERVER_DEPENDENCIES if name.startswith("f5_tts @"))
+    assert "git+https://github.com/AI4Bharat/IndicF5.git" in f5_package, (
+        "the server must install the AI4Bharat IndicF5 runtime it actually imports"
     )
+    assert "vocos==0.1.0" in SERVER_DEPENDENCIES
 
     # 2. The shared package list must still carry the torchaudio pin, and the install helper
     #    must carry every package: the onstart and `repair` both run this one snippet, so a
@@ -903,7 +913,10 @@ def test_vast_dependency_abi() -> None:
     #    marker before reinstalling and restore it only after the probe passes -- otherwise
     #    a warm instance keeps its broken install forever.
     probe = VastManager.dependency_probe_command()
-    assert "parler_tts" in probe and "transformers" in probe and "numpy" in probe
+    assert "f5_tts.infer.utils_infer" in probe and "transformers" in probe and "numpy" in probe
+    assert "vocos" in probe and "parler_tts" not in probe, (
+        "IndicF5 production readiness must not depend on optional Parler compatibility"
+    )
 
     repaired: list[tuple[int, str, int]] = []
     manager = VastManager(api_key="test-key")
@@ -916,7 +929,7 @@ def test_vast_dependency_abi() -> None:
     )
     for package in packages:
         assert package in command, f"the repair install dropped {package}"
-    assert "parler_tts" in command, "the repair must re-verify with the lazy probe"
+    assert "f5_tts.infer.utils_infer" in command, "the repair must re-verify the lazy IndicF5 probe"
     assert command.index("rm -f") < command.index("touch"), (
         "the marker may only be restored after the probe passes"
     )
@@ -927,19 +940,19 @@ def test_vast_dependency_abi() -> None:
     gated = VastManager(api_key="test-key")
     broken_health = {
         "status": "healthy",
-        "vram": {"device_name": "NVIDIA GeForce RTX 3090"},
-        "tts_ready": False,
-        "tts_error": "ImportError: pyarrow requires NumPy 2.0 or newer, found 1.26.4",
+        "vram": {"device_name": "NVIDIA GeForce RTX 4090"},
+        "indicf5_ready": False,
+        "indicf5_error": "ImportError: vocos is unavailable",
     }
     gated.check_health = lambda url=None: dict(broken_health)  # type: ignore[method-assign]
-    assert gated.require_gpu("RTX 3090")["tts_ready"] is False, "image runs must not be blocked"
+    assert gated.require_gpu("RTX 4090")["indicf5_ready"] is False, "image runs must not be blocked"
     try:
-        gated.require_gpu("RTX 3090", require_tts=True)
+        gated.require_gpu("RTX 4090", require_tts=True)
     except RuntimeError as err:
-        assert "pyarrow requires NumPy 2.0" in str(err), str(err)
+        assert "vocos is unavailable" in str(err), str(err)
         assert "repair" in str(err), "the message must name the repair command"
     else:
-        raise AssertionError("a broken TTS environment must stop an Indic Parler-TTS run")
+        raise AssertionError("a broken IndicF5 environment must stop an IndicF5 run")
 
     gated.check_health = lambda url=None: {  # type: ignore[method-assign]
         "status": "healthy",
@@ -973,6 +986,63 @@ def test_vast_dependency_abi() -> None:
     )
 
     print("  ✓ numpy/pyarrow are pinned, the probe covers the lazy import, and repair reuses it.")
+
+
+def test_indicf5_contracts() -> None:
+    print("Testing IndicF5 references, health preflight, and remote-batch policy...")
+
+    import numpy as np
+    import soundfile as sf
+    import vast_server
+
+    assert vast_server._indicf5_voice_stem("indicf5_aarav") == "aarav"
+    assert vast_server._indicf5_voice_stem("AARAV") == "aarav"
+    assert tts.indicf5_reference_name("indicf5_aarav") == "aarav"
+    assert tts.indicf5_reference_name("indicf5_missing") == "missing"
+
+    old_voices_dir = os.environ.get("INDICF5_VOICES_DIR")
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            voice_dir = Path(tmp)
+            os.environ["INDICF5_VOICES_DIR"] = str(voice_dir)
+            tone = 0.2 * np.sin(2 * np.pi * 220 * np.arange(12000) / 16000)
+            sf.write(voice_dir / "aarav.wav", tone, 16000, subtype="PCM_16")
+            (voice_dir / "aarav.txt").write_text(" नमस्ते   दुनिया ", encoding="utf-8")
+            prepared, transcript = vast_server._prepare_indicf5_reference("indicf5_aarav")
+            data, sample_rate = sf.read(prepared, dtype="float32")
+            assert transcript == "नमस्ते दुनिया"
+            assert sample_rate == vast_server.INDICF5_SAMPLE_RATE
+            assert data.ndim == 1 and not vast_server._audio_is_bad(data)
+            assert vast_server.indicf5_voice_error("indicf5_aarav") is None
+
+            (voice_dir / "silent.wav").write_bytes(b"")
+            (voice_dir / "silent.txt").write_text("silence", encoding="utf-8")
+            assert "cannot be decoded" in (vast_server.indicf5_voice_error("indicf5_silent") or "")
+            assert "no reference clip/transcript" in (vast_server.indicf5_voice_error("indicf5_missing") or "")
+    finally:
+        if old_voices_dir is None:
+            os.environ.pop("INDICF5_VOICES_DIR", None)
+        else:
+            os.environ["INDICF5_VOICES_DIR"] = old_voices_dir
+
+    old_env = {key: os.environ.get(key) for key in ("VAST_SERVER_URL", "USE_VAST", "TTS_PROVIDER")}
+    try:
+        os.environ["VAST_SERVER_URL"] = "http://127.0.0.1:8000"
+        os.environ["USE_VAST"] = "1"
+        assert tts.remote_tts_enabled()
+        os.environ["USE_VAST"] = "0"
+        os.environ["TTS_PROVIDER"] = "vast"
+        assert tts.remote_tts_enabled()
+        os.environ["TTS_PROVIDER"] = "local"
+        assert not tts.remote_tts_enabled()
+    finally:
+        for key, value in old_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+    print("  ✓ IndicF5 references are normalised and remote batch policy is explicit.")
 
 
 def test_vast_call_sites() -> None:
@@ -1606,6 +1676,124 @@ def test_auto_uploader() -> None:
     print("  ✓ All Multi-Platform Auto-Uploader checks passed.")
 
 
+def test_vast_gated_model_provisioning() -> None:
+    """A fresh rental must (a) authenticate to gated Hub repos and (b) find the IndicF5
+    reference clips, or its narration step fails after the GPU has already been paid for.
+
+    Both are environment problems that no amount of retrying fixes, and one of them cannot be
+    fixed on an existing container at all, so they are asserted here rather than discovered
+    during a paid run.
+    """
+    print("Testing Vast.ai gated-model provisioning (HF token + IndicF5 reference clips)...")
+
+    from vast_manager import CONTAINER_VOICES_DIR, VastManager, hub_token
+
+    saved_hf = os.environ.get("HF_TOKEN")
+    saved_hf_api = os.environ.get("HUGGINGFACE_API_KEY")
+
+    try:
+        # 1. The docker-options string always publishes the port and pins the voices
+        #    directory, and carries the token only when one is actually configured.
+        os.environ.pop("HF_TOKEN", None)
+        os.environ.pop("HUGGINGFACE_API_KEY", None)
+        assert hub_token() == ""
+        without = VastManager.container_env_spec()
+        assert "-p 8000:8000" in without, f"the port mapping is mandatory: {without}"
+        assert f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}" in without, (
+            f"the container must be told where its reference clips are: {without}"
+        )
+        assert "-e HF_TOKEN=" not in without, f"no token must not become an empty token: {without}"
+
+        # The repo's .env spells it HUGGINGFACE_API_KEY while the server reads HF_TOKEN.
+        os.environ["HUGGINGFACE_API_KEY"] = "hf_from_dotenv"
+        assert hub_token() == "hf_from_dotenv"
+        assert "-e HF_TOKEN=hf_from_dotenv" in VastManager.container_env_spec()
+
+        # 2. A malformed token would corrupt the WHOLE docker-options string, port mapping
+        #    included, and the resulting breakage looks like a Vast fault. Refuse it.
+        os.environ.pop("HUGGINGFACE_API_KEY", None)
+        os.environ["HF_TOKEN"] = "bad token"
+        assert hub_token() == "", "whitespace inside a token must be refused"
+        os.environ["HF_TOKEN"] = 'bad"quote'
+        assert hub_token() == "", "a quote inside a token must be refused"
+        assert "-e HF_TOKEN=" not in VastManager.container_env_spec()
+
+        # 3. Only COMPLETE reference pairs are uploaded: a clip without its transcript is
+        #    unusable, and a generated _prepared_* file is an artefact, not a source clip.
+        with tempfile.TemporaryDirectory() as tmp:
+            voices = Path(tmp)
+            (voices / "aarav.wav").write_bytes(b"RIFF")
+            (voices / "aarav.txt").write_text("नमस्ते", encoding="utf-8")
+            (voices / "orphan.wav").write_bytes(b"RIFF")
+            (voices / "_prepared_aarav.wav").write_bytes(b"RIFF")
+            (voices / "notes.md").write_text("not a clip", encoding="utf-8")
+
+            os.environ["INDICF5_LOCAL_VOICES_DIR"] = str(voices)
+            try:
+                manager = VastManager(api_key="test-key")
+                assert [p.name for p in manager.indicf5_voice_files()] == ["aarav.wav", "aarav.txt"], (
+                    f"only the complete pair may be uploaded: {manager.indicf5_voice_files()}"
+                )
+
+                ssh_calls: list[str] = []
+                pushes: list[tuple[int, str, str]] = []
+                manager.run_ssh = lambda i, cmd, timeout=600: ssh_calls.append(cmd) or ""  # type: ignore[method-assign]
+                manager.push_file = lambda i, local, remote: pushes.append((i, str(local), remote))  # type: ignore[method-assign]
+                assert manager.push_indicf5_voices(4242) == 2
+                assert ssh_calls and f"mkdir -p {CONTAINER_VOICES_DIR}" in ssh_calls[0], ssh_calls
+                assert [remote for _i, _local, remote in pushes] == [
+                    f"{CONTAINER_VOICES_DIR}/aarav.wav",
+                    f"{CONTAINER_VOICES_DIR}/aarav.txt",
+                ], pushes
+            finally:
+                os.environ.pop("INDICF5_LOCAL_VOICES_DIR", None)
+
+        # 4. "This box has no token" must not be reported as "this install is broken": the
+        #    remedies differ, and only the repair can be applied to a container that exists.
+        gated = VastManager(api_key="test-key")
+        gated.check_health = lambda url=None: {  # type: ignore[method-assign]
+            "status": "healthy",
+            "vram": {"device_name": "NVIDIA GeForce RTX 4090"},
+            "indicf5_ready": False,
+            "indicf5_error": "OSError: 401 Client Error",
+            "hf_token_present": False,
+        }
+        try:
+            gated.require_gpu("RTX 4090", require_tts=True)
+            raise AssertionError("a tokenless server must not satisfy an IndicF5 requirement")
+        except RuntimeError as err:
+            assert "GATED" in str(err) and "HF_TOKEN" in str(err), str(err)
+            assert "rent a new instance" in str(err), (
+                "the operator must be told a container's environment cannot be changed in place"
+            )
+
+        # 5. A directory holding only transcripts must never be chosen over one holding the
+        #    clips, and an explicit override must always win.
+        import vast_server
+
+        assert not vast_server._voices_dir_has_clips(Path(tempfile.gettempdir()) / "no-such-voices")
+        transcripts_only = Path(tempfile.mkdtemp(prefix="voices-txt-"))
+        (transcripts_only / "aarav.txt").write_text("नमस्ते", encoding="utf-8")
+        assert not vast_server._voices_dir_has_clips(transcripts_only), (
+            "transcripts alone are not a usable reference directory"
+        )
+
+        override = Path(tempfile.gettempdir()) / "explicit-voices"
+        os.environ["INDICF5_VOICES_DIR"] = str(override)
+        try:
+            assert vast_server._indicf5_voices_dir() == override, "an explicit override must win"
+        finally:
+            os.environ.pop("INDICF5_VOICES_DIR", None)
+    finally:
+        for name, value in (("HF_TOKEN", saved_hf), ("HUGGINGFACE_API_KEY", saved_hf_api)):
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+    print("  ✓ Gated-repo provisioning: the token travels with the instance and clips are seeded.")
+
+
 if __name__ == "__main__":
     test_genres()
     test_themes()
@@ -1615,6 +1803,8 @@ if __name__ == "__main__":
     test_vast_setup_resilience()
     test_vast_boot_stall_policy()
     test_vast_dependency_abi()
+    test_vast_gated_model_provisioning()
+    test_indicf5_contracts()
     test_vast_call_sites()
     test_gpu_resume_and_batch()
     test_voices()

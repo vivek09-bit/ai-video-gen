@@ -90,6 +90,8 @@ load_env_file()
 # Override any model with an env var: VAST_MAX_DPH_RTX_3090=0.35
 # ---------------------------------------------------------------------------
 DEFAULT_GPU_BUDGETS: dict[str, float] = {
+    # RTX 4090 is the only production target; retain the 3090 ceiling for legacy CLI
+    # compatibility and old-instance cleanup, but orchestration never selects it.
     "RTX 3090": 0.40,
     "RTX 4090": 0.50,
 }
@@ -163,6 +165,60 @@ def format_rate(rate: float) -> str:
     return "n/a" if rate == float("inf") else f"${rate:.3f}/hr"
 
 
+# The container needs a Hugging Face token at RUNTIME, not only at install time. The
+# narration model (ai4bharat/IndicF5) is a GATED repository: the Hub refuses to serve its
+# files until the account has accepted the terms, so an unauthenticated container cannot
+# prefetch it and cannot load it with trust_remote_code either. Both failures surface only
+# after the GPU has been rented, so the token travels with the instance.
+def hub_token() -> str:
+    """The Hugging Face token to hand to a rented instance, or '' when none is configured.
+
+    Both spellings are accepted because this repo's .env uses HUGGINGFACE_API_KEY while the
+    inference server reads HF_TOKEN; only HF_TOKEN is put on the wire.
+    """
+    token = (os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY") or "").strip()
+    if not token:
+        return ""
+    # The token rides inside one space-separated docker-options string, beside the port
+    # mapping. A stray space or quote would corrupt that string and yield a broken instance
+    # that looks like a Vast fault, so refuse rather than transmit it.
+    if any(character.isspace() or character in "\"'" for character in token):
+        print(
+            "[Vast Manager Warning] Ignoring a malformed HF token (it contains whitespace or "
+            "quotes); the instance will not be able to download gated models.",
+            file=sys.stderr,
+        )
+        return ""
+    return token
+
+
+_MISSING_TOKEN_WARNED = False
+
+
+def _warn_missing_hub_token() -> None:
+    """Say once per process that a rented instance will be unable to download gated models."""
+    global _MISSING_TOKEN_WARNED
+    if _MISSING_TOKEN_WARNED:
+        return
+    _MISSING_TOKEN_WARNED = True
+    print(
+        "[Vast Manager Warning] No HF_TOKEN / HUGGINGFACE_API_KEY in the environment. "
+        "ai4bharat/IndicF5 is a gated repository, so this instance will fail its IndicF5 "
+        "health check. Add the token to .env before renting.",
+        file=sys.stderr,
+    )
+
+
+# Where the container keeps its IndicF5 reference clips. A fixed path is deliberate: the
+# server writes a normalised `_prepared_<stem>.wav` beside them and a stopped instance keeps
+# whatever it was given, so a stable location is what lets the client top the directory up
+# over SSH (push_indicf5_voices) instead of hoping the deployed repo happens to ship audio.
+CONTAINER_VOICES_DIR = "/workspace/indicf5-voices"
+
+# Audio file types the IndicF5 runtime accepts as a cloning reference.
+INDICF5_VOICE_EXTENSIONS: tuple[str, ...] = (".wav", ".flac", ".ogg", ".mp3")
+
+
 def _http_json(req: urllib.request.Request, timeout: int) -> dict:
     """POST/GET JSON while surfacing the server's own error body.
 
@@ -200,25 +256,39 @@ class InstanceSlow(TimeoutError):
 
 # Python packages the inference server needs. Installed with uv (and falling back to
 # pip) at container start; the CUDA build of torch ships in the base image and is left
-# alone on purpose, so no --upgrade here.
+# alone on purpose, so no --upgrade here. The f5_tts package is specifically
+# AI4Bharat's IndicF5 fork: PyPI's similarly named f5-tts project is a different engine.
 SERVER_DEPENDENCIES: tuple[str, ...] = (
-    "diffusers>=0.33",
+    # Pinned, not floating. The LTX checkpoint declares `_diffusers_version: 0.32.0.dev0` and
+    # names the exact component classes it ships (LTXPipeline, LTXVideoTransformer3DModel,
+    # AutoencoderKLLTXVideo), so a newer diffusers may rename or re-signature them and the
+    # failure would surface only at the first video request, long after the rental was paid.
+    # 0.32.2 is also the version the local venv runs, so both sides agree.
+    "diffusers==0.32.2",
     "accelerate",
-    "transformers",
     "sentencepiece",
     "protobuf",
     "imageio",
     "imageio-ffmpeg",
-    "soundfile",
+    # Pinned to the same commit as requirements.txt: the remote runtime and the local one
+    # must be the same fork revision, or a synthesis difference between them is untraceable.
+    "f5_tts @ git+https://github.com/AI4Bharat/IndicF5.git@13f7c4d627cc10111aea8fe9c0039462cacacdc7",
+    "vocos==0.1.0",
+    "transformers==4.49.0",
+    "transformers-stream-generator==0.0.5",
+    "numpy==1.26.4",
+    "scipy==1.17.1",
+    "soundfile==0.14.0",
+    "huggingface-hub==0.36.2",
+    "datasets==3.6.0",
+    "pyarrow==20.0.0",
+    # Kept installed for legacy indic_parler_* compatibility. Its readiness is deliberately
+    # not part of the IndicF5 production marker or probe.
+    "parler-tts",
     # torchaudio is deliberately NOT listed here: it is pinned to the image's exact torch
     # version at install time (see server_onstart_command). Resolving it freely installs a
     # newer torchaudio than the image's torch, which then fails at import with an
     # unresolved C++ symbol.
-    "parler-tts",
-    # numpy is pinned to the 1.x side because the image's torch 2.4 / torchaudio 2.4 were
-    # built against it; transformers and parler-tts are happy on the same side.
-    "numpy>=1.26,<2",
-    "huggingface_hub",
 )
 
 # The import surface the server actually needs, including the modules it imports LAZILY
@@ -229,12 +299,19 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
 # therefore passed every top-level check, had the "deps ready" marker written for it, and
 # still answered HTTP 500 to every synthesis request it ever received.
 SERVER_DEPENDENCY_PROBE: str = (
-    "import numpy, torch, torchaudio, diffusers, transformers, parler_tts"
+    "import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; "
+    "from f5_tts.infer.utils_infer import infer_process; "
+    # The pipeline classes the request handlers construct lazily. Naming them here is what
+    # turns a diffusers version drift into a boot-time failure instead of an HTTP 500 at the
+    # first image or video request. Deliberately absent: parler_tts, whose absence must never
+    # block IndicF5 production readiness.
+    "from diffusers import FluxPipeline, LTXPipeline"
 )
 
 # Hugging Face repos prefetched during the install so the first request is not stuck
-# on a download. Anything needed by Indic Parler-TTS narration goes here by default.
-DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("RXD03/indic-parler-tts",)
+# on a download. IndicF5 is the remote narration runtime; the legacy Parler repo remains
+# available only for backward-compatible voices.
+DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/IndicF5",)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
 DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
@@ -426,6 +503,86 @@ class VastManager:
         """Download a remote file from the instance."""
         self._transfer(instance_id, str(local_path), remote_path, upload=False)
 
+    def local_indicf5_voices_dir(self) -> Path:
+        """The local directory holding the `<stem>.wav` + `<stem>.txt` reference pairs."""
+        configured = os.environ.get("INDICF5_LOCAL_VOICES_DIR", "").strip()
+        if configured:
+            return Path(configured)
+        return ROOT / "examples" / "indicf5" / "voices"
+
+    def indicf5_voice_files(self) -> list[Path]:
+        """Every usable reference pair locally: the clip AND the transcript, audio first.
+
+        A clip without its transcript is unusable -- the reference text is what conditions the
+        clone -- so an orphaned clip is reported and skipped rather than uploaded to produce a
+        voice the server would then reject.
+        """
+        voices_dir = self.local_indicf5_voices_dir()
+        if not voices_dir.is_dir():
+            return []
+        files: list[Path] = []
+        for audio in sorted(voices_dir.iterdir()):
+            if not audio.is_file() or audio.suffix.lower() not in INDICF5_VOICE_EXTENSIONS:
+                continue
+            if audio.name.startswith("_prepared_"):
+                continue  # a normalised artefact of a previous run, not a source clip
+            transcript = audio.with_suffix(".txt")
+            if not transcript.is_file():
+                print(
+                    f"[Vast Manager Warning] Skipping reference clip {audio.name}: no matching "
+                    f"{transcript.name} (IndicF5 needs the exact transcript of the clip).",
+                    file=sys.stderr,
+                )
+                continue
+            files.extend((audio, transcript))
+        return files
+
+    def push_indicf5_voices(self, instance_id: int, timeout: int = 300) -> int:
+        """Upload the local IndicF5 reference clips to a running instance.
+
+        The clips live in the examples tree, which is git-ignored, so a freshly cloned
+        instance does NOT have them and its `/health` reports `indicf5_ready: false`. Seeding
+        the directory the container was told about (CONTAINER_VOICES_DIR) makes the default
+        narration path work with no manual step, and costs a few hundred kilobytes.
+
+        Raises on an SSH failure. Callers that only need the common case to work should treat
+        that as a warning: the health check that follows reports the real problem.
+        """
+        files = self.indicf5_voice_files()
+        if not files:
+            print(
+                f"[Vast Manager Warning] No IndicF5 reference clips found in "
+                f"{self.local_indicf5_voices_dir()}; the instance cannot narrate IndicF5.",
+                file=sys.stderr,
+            )
+            return 0
+        self.run_ssh(instance_id, f"mkdir -p {shlex.quote(CONTAINER_VOICES_DIR)}", timeout=timeout)
+        for path in files:
+            self.push_file(instance_id, path, f"{CONTAINER_VOICES_DIR}/{path.name}")
+        print(
+            f"[Vast Manager] Uploaded {len(files)} IndicF5 reference file(s) to "
+            f"{CONTAINER_VOICES_DIR}."
+        )
+        return len(files)
+
+    @staticmethod
+    def container_env_spec() -> str:
+        """Build the `--env` value for `vastai create instance`.
+
+        `--env` is not only for environment variables: in the vastai CLI it is the whole
+        docker-options field, so `-p` port mappings and `-e` variables travel together in this
+        single string. The port mapping is mandatory (the client reaches /health and every
+        inference endpoint through it), the voices directory must be pinned to the same path
+        the client uploads to, and the token is mandatory too because IndicF5 is gated.
+        """
+        parts = ["-p 8000:8000", f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}"]
+        token = hub_token()
+        if token:
+            parts.append(f"-e HF_TOKEN={token}")
+        else:
+            _warn_missing_hub_token()
+        return " ".join(parts)
+
     def _safe_destroy(self, instance_id: int) -> None:
         """Destroy an instance without letting cleanup failure mask the real error."""
         try:
@@ -615,12 +772,13 @@ class VastManager:
         # here for the same reason, and for a second one: whatever this probe accepts is
         # what the marker below certifies as "ready".
         verify_imports = (
-            "python -c \"import numpy, torch, torchaudio, diffusers, transformers, parler_tts; "
+            "python -c \"import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; "
+            "from f5_tts.infer.utils_infer import infer_process; "
             "assert torchaudio.__version__.split('+')[0] == torch.__version__.split('+')[0], "
             "'torch and torchaudio versions must match'; "
-            "print('[onstart] imports OK', torch.__version__, torchaudio.__version__, "
+            "print('[onstart] IndicF5 imports OK', torch.__version__, torchaudio.__version__, "
             "'numpy', numpy.__version__, 'transformers', transformers.__version__)\" "
-            "|| echo '[onstart] FAILED: dependency import failed'"
+            "|| echo '[onstart] FAILED: IndicF5 dependency import failed'"
         )
         verify_torch = (
             "python -c \"import torch; print('[onstart] torch', torch.__version__, "
@@ -646,12 +804,17 @@ class VastManager:
             f"&& {probe}; then "
             "echo '[onstart] dependencies already present, skipping install'; "
             "else "
+            # The AI4Bharat f5_tts dependency is installed from Git, so package installation
+            # must wait for apt to provide git; otherwise a cold host races and fails randomly.
             f"( apt-get update && apt-get install -y {apt_install} || true ) & APT_PID=$!; "
             "( curl -LsSf https://astral.sh/uv/install.sh | sh ) || true; "
-            f"( {deps_install} ) & PIP_PID=$!; "
-            f"( {prefetch_cmd} ) & MODEL_PID=$!; "
             "wait $APT_PID; echo '[onstart] apt done'; "
+            "command -v git >/dev/null 2>&1 || { echo '[onstart] FAILED: git is required for IndicF5'; exit 1; }; "
+            f"( {deps_install} ) & PIP_PID=$!; "
             "wait $PIP_PID; echo '[onstart] python deps done'; "
+            # snapshot_download needs huggingface_hub, which the dependency install provides.
+            # Running it sooner races a cold image and wastes a misleading failed prefetch.
+            f"( {prefetch_cmd} ) & MODEL_PID=$!; "
             "wait $MODEL_PID; echo '[onstart] model prefetch done'; "
             f"{verify_imports}; "
             f"{verify_torch}; "
@@ -712,11 +875,13 @@ class VastManager:
         filter is applied in tiers and relaxed automatically: a strict floor can match
         zero offers, which would block renting entirely.
 
-        Only the SPEED preference is ever relaxed. One GPU, the disk floor, the RAM floor
-        and the price ceiling are structural and apply to every tier including the
-        last-resort query, because an offer that cannot host the job costs more than no
-        offer at all: the failure would otherwise surface far later, as a confusing
-        start-up error on an instance that was never viable.
+        Only the SPEED preference is ever relaxed. One GPU, the disk floor, the RAM floor,
+        the direct-port floor and the price ceiling are structural and apply to every tier
+        including the last-resort query, because an offer that cannot host the job costs more
+        than no offer at all: the failure would otherwise surface far later, as a confusing
+        start-up error on an instance that was never viable. The direct-port floor is here
+        because every instance is created with `--direct` (SSH and the exposed inference port
+        both depend on it), and a host that advertises none would fail at create time.
         """
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
         if min_inet_down is None:
@@ -735,7 +900,7 @@ class VastManager:
             bw_clause = f" disk_bw>={disk_bw}" if disk_bw else ""
             query = (
                 f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
-                f"disk_space>={min_disk} inet_down>{inet} cpu_ram>=32{bw_clause}"
+                f"disk_space>={min_disk} direct_port_count>0 inet_down>{inet} cpu_ram>=32{bw_clause}"
             )
             try:
                 offers = json.loads(self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"]))
@@ -767,7 +932,7 @@ class VastManager:
                             "search",
                             "offers",
                             f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
-                            f"disk_space>={min_disk} cpu_ram>=32",
+                            f"disk_space>={min_disk} direct_port_count>0 cpu_ram>=32",
                             "-o",
                             "dph+",
                             "--raw",
@@ -904,7 +1069,7 @@ class VastManager:
             "--disk",
             str(disk_gb),
             "--env",
-            "-p 8000:8000",
+            self.container_env_spec(),
             "--ssh",
             "--direct",
             "--onstart-cmd",
@@ -970,14 +1135,29 @@ class VastManager:
                 f"[Vast Manager] Attempt {index}/{total}: offer {offer_id} "
                 f"({format_rate(rate)}, machine {machine_id})"
             )
-            instance_id = self.create_instance(
-                offer_id=offer_id,
-                disk_gb=disk_gb,
-                gpu_name=gpu_name,
-                max_dph=limit,
-                offer_rate=rate,
-                prefetch_models=prefetch_models,
-            )
+            # The create itself is inside the retry. An offer can be taken by someone else
+            # between the search and the rent, and a host that advertises direct ports can
+            # still refuse a --direct create; both are offer-specific, so the next offer is
+            # the fix rather than aborting a provisioning loop the caller asked to be resilient.
+            # The host is deliberately NOT blacklisted here: a lost race says nothing about
+            # the machine, and blacklisting would retire a good cheap host permanently.
+            try:
+                instance_id = self.create_instance(
+                    offer_id=offer_id,
+                    disk_gb=disk_gb,
+                    gpu_name=gpu_name,
+                    max_dph=limit,
+                    offer_rate=rate,
+                    prefetch_models=prefetch_models,
+                )
+            except Exception as create_error:
+                last_error = create_error
+                print(
+                    f"[Vast Manager Warning] Could not create an instance on offer {offer_id} "
+                    f"(machine {machine_id}): {create_error}",
+                    file=sys.stderr,
+                )
+                continue
             try:
                 return instance_id, self.wait_until_ready(instance_id)
             except InstanceBroken as error:
@@ -1536,14 +1716,14 @@ class VastManager:
         url: str | None = None,
         require_tts: bool = False,
     ) -> dict[str, Any]:
-        """Reject a server whose reported device does not match this generation mode.
+        """Reject a server whose reported device or requested Indic TTS runtime is unusable.
 
-        With `require_tts`, a server whose Indic Parler-TTS import path is broken is
+        With `require_tts`, a server whose IndicF5 (or legacy TTS) import path is broken is
         rejected too. That state is invisible to a liveness check but makes every
         synthesis request answer HTTP 500, so without this the failure only surfaces
         after the rental has been paid for and narration has already started.
 
-        A server that reports no `tts_ready` field at all is accepted: instances cloned
+        A server that reports neither readiness field is accepted: instances cloned
         before this check existed cannot answer it, and refusing them would strand them.
         """
         last_err = None
@@ -1564,13 +1744,35 @@ class VastManager:
                 f"Vast server GPU mismatch: expected {expected_gpu}, got "
                 f"{health.get('vram', {}).get('device_name', 'unknown')}"
             )
-        if require_tts and health.get("tts_ready") is False:
-            detail = health.get("tts_error") or "the Indic Parler-TTS import path is unusable on this instance"
-            raise RuntimeError(
-                f"Vast server {url or self.server_url} cannot synthesise Indic Parler-TTS: {detail}. "
-                "Repair the instance in place (python scripts/vast_manager.py repair "
-                "<instance-id>), or destroy it and rent a fresh one."
-            )
+        if require_tts:
+            # Prefer the new IndicF5 contract, while accepting old servers that only
+            # expose tts_ready so a warm legacy instance remains usable for Parler voices.
+            # A caller may opt into legacy-only validation with VAST_TTS_ENGINE=parler.
+            engine = os.environ.get("VAST_TTS_ENGINE", "indicf5").strip().lower()
+            if engine != "parler" and "indicf5_ready" in health and health.get("indicf5_ready") is False:
+                detail = health.get("indicf5_error") or "the IndicF5 import path is unusable on this instance"
+                # A container with no token cannot download a GATED repo, and its environment
+                # is fixed at create time, so "repair in place" is the wrong advice for it.
+                # Separate the two so the operator takes the fix that matches the cause.
+                if health.get("hf_token_present") is False:
+                    raise RuntimeError(
+                        f"Vast server {url or self.server_url} cannot synthesise IndicF5: {detail}. "
+                        "This instance has no HF_TOKEN, and ai4bharat/IndicF5 is a GATED Hugging "
+                        "Face repository. Accept its terms on the Hub, put HF_TOKEN (or "
+                        "HUGGINGFACE_API_KEY) in .env, and rent a new instance: a container's "
+                        "environment cannot be changed after it is created."
+                    )
+                # Name the command, not just the intent. "Repair the instance" left the
+                # operator to find the subcommand, and this same branch also covers a wheel
+                # resolved against the wrong NumPy, which is a repair of a different kind.
+                raise RuntimeError(
+                    f"Vast server {url or self.server_url} cannot synthesise IndicF5: {detail}. "
+                    "Repair it (python scripts/vast_manager.py repair <instance-id>) "
+                    "or rent a fresh one."
+                )
+            if (engine == "parler" or "indicf5_ready" not in health) and health.get("tts_ready") is False:
+                detail = health.get("tts_error") or "the legacy TTS import path is unusable on this instance"
+                raise RuntimeError(f"Vast server {url or self.server_url} cannot synthesise remote TTS: {detail}")
         return health
 
     def generate_image(
@@ -1644,7 +1846,7 @@ class VastManager:
         speed: float = 1.0,
         url: str | None = None,
     ) -> tuple[bytes, float]:
-        """Synthesize Indic Parler-TTS speech remotely on Vast.ai RTX 4090."""
+        """Synthesize an Indic voice remotely on Vast.ai RTX 4090."""
         target = (url or self.server_url or "").rstrip("/") + "/v1/audio/synthesize"
         payload = {
             "text": text,
@@ -1659,10 +1861,10 @@ class VastManager:
         )
         res = _http_json(req, timeout=600)
         if res.get("status") != "success":
-            raise RuntimeError(f"Remote Indic Parler-TTS failed: {res.get('error')}")
+            raise RuntimeError(f"Remote Indic TTS failed: {res.get('error')}")
         audio_bytes = base64.b64decode(res["audio_base64"])
         if _wav_is_bad(audio_bytes):
-            raise RuntimeError("Remote Indic Parler-TTS returned silent/non-finite audio")
+            raise RuntimeError("Remote Indic TTS returned silent/non-finite audio")
         dur = float(res.get("audio_duration_sec", 0.0))
         return audio_bytes, dur
 
@@ -1692,7 +1894,7 @@ class VastManager:
         )
         res = _http_json(req, timeout=timeout)
         if res.get("status") != "success":
-            raise RuntimeError(f"Remote Indic Parler-TTS batch synthesis failed: {res.get('error')}")
+            raise RuntimeError(f"Remote Indic TTS batch synthesis failed: {res.get('error')}")
 
         out: dict[str, tuple[bytes, float]] = {}
         errors: list[str] = []
