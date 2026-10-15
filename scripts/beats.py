@@ -916,7 +916,7 @@ GENRE_AUDIO_POOLS: dict[str, dict[str, list[str]]] = {
         "ambience_climax": ["amb_vedic_resonance", "amb_drone"],
         "ambience_resolution": ["amb_vedic_resonance", "amb_ancient_sanctum", "amb_temple", "amb_warm"],
         "sfx_setup": ["sfx_temple_gong", "sfx_chisel_tap", "sfx_bell", "sfx_chisel_echo"],
-        "sfx_rising": ["sfx_ancient_mechanism", "sfx_riser"],
+        "sfx_rising": ["sfx_ancient_mechanism"],
         "sfx_climax": ["sfx_stone_impact", "sfx_cinematic_hit", "sfx_mystic_reveal", "sfx_boom", "sfx_impact"],
         "sfx_resolution": ["sfx_temple_gong", "sfx_bell", "sfx_mystic_reveal"],
     },

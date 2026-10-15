@@ -1,107 +1,91 @@
 1
-00:00:00,000 --> 00:00:01,321
-panch hazar sal purani is
+00:00:00,000 --> 00:00:01,378
+chin ki mahan divar... hajaron
 
 2
-00:00:01,321 --> 00:00:02,443
-khudaee mein jo mila, woh
+00:00:01,378 --> 00:00:02,957
+kilometer mein phaili, lekin isake
 
 3
-00:00:02,443 --> 00:00:03,457
-aaj ki puri takanik ko
+00:00:02,957 --> 00:00:04,161
+neeche kya chhipa hai, koee
 
 4
-00:00:03,457 --> 00:00:04,575
-jhutha sabit karta hai.
+00:00:04,161 --> 00:00:04,716
+nahi janata.
 
 5
-00:00:05,045 --> 00:00:06,273
-dharati ke neeche se nikale
+00:00:05,186 --> 00:00:06,426
+doctor aarav ko divar ke
 
 6
-00:00:06,273 --> 00:00:07,453
-in pattharon ko bina kisi
+00:00:06,426 --> 00:00:07,856
+pas ek prachin naksha mila,
 
 7
-00:00:07,453 --> 00:00:08,806
-jor ke, aadhe milimitar ki
+00:00:07,914 --> 00:00:09,198
+jo ek rahasyamayi pahar ki
 
 8
-00:00:08,806 --> 00:00:10,125
-satikata se kata gaya tha.
+00:00:09,198 --> 00:00:10,194
+or ishara karta tha.
 
 9
-00:00:10,595 --> 00:00:11,766
-lekin hairani ki baat ye
+00:00:10,664 --> 00:00:11,876
+pahar ke pas pahunchate hi
 
 10
-00:00:11,766 --> 00:00:12,721
-thi ki, char lakh ton
+00:00:11,876 --> 00:00:13,059
+ajib shakti ne use roka,
 
 11
-00:00:12,721 --> 00:00:14,136
-malaba, khudaee ke bad gayab
+00:00:13,118 --> 00:00:14,326
+vahan jane ki himmat koee
 
 12
-00:00:14,136 --> 00:00:15,419
-ho gaya, kahin koee nishan
+00:00:14,326 --> 00:00:15,098
+nahi karta tha.
 
 13
-00:00:15,419 --> 00:00:15,980
-nahi mila.
+00:00:15,568 --> 00:00:16,643
+pata chala ki pahar ke
 
 14
-00:00:16,450 --> 00:00:17,675
-aur phir achanak, ek gupt
+00:00:16,643 --> 00:00:17,913
+andar samrat ka makabara hai,
 
 15
-00:00:17,675 --> 00:00:19,029
-kamare mein, ek sau chhattis
+00:00:17,972 --> 00:00:19,174
+jisane apni maut ka rahasya
 
 16
-00:00:19,029 --> 00:00:20,508
-dashamalav ek hartz ki dhvani
+00:00:19,174 --> 00:00:20,197
+sadiyon se chhipaya hai.
 
 17
-00:00:20,508 --> 00:00:21,715
-gunji, jo om ki prachin
+00:00:20,667 --> 00:00:22,083
+makabare ke andar adbhut takanik
 
 18
-00:00:21,715 --> 00:00:22,190
-aawaz thi.
+00:00:22,083 --> 00:00:23,527
+dekhakar aarav hairan rah gaya,
 
 19
-00:00:22,660 --> 00:00:24,450
-in prachin shilpakaron ne patthar
+00:00:23,586 --> 00:00:24,926
+saamne ek gupt dvaar khula.
 
 20
-00:00:24,450 --> 00:00:25,954
-mein ganit, dhvani vigyaan, aur
+00:00:25,396 --> 00:00:26,668
+dvaar khula, sach saamne aaya,
 
 21
-00:00:25,954 --> 00:00:27,493
-brahmand ka pura gyaan chhipa
+00:00:26,727 --> 00:00:27,867
+lekin ek naya sawal chhor
 
 22
-00:00:27,493 --> 00:00:27,985
-diya tha.
+00:00:27,867 --> 00:00:29,128
+gaya, jo aaj bhi anasulajha
 
 23
-00:00:28,455 --> 00:00:29,485
-aaj tak koee machine ise
-
-24
-00:00:29,485 --> 00:00:30,586
-tor nahi paee, ye amar
-
-25
-00:00:30,586 --> 00:00:31,771
-sabhyata ka sabut hai, jo
-
-26
-00:00:31,771 --> 00:00:32,814
-dharati ke neeche aaj bhi
-
-27
-00:00:32,814 --> 00:00:33,230
-chhipa hai.
+00:00:29,128 --> 00:00:29,254
+hai.
