@@ -265,9 +265,9 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
     # failure would surface only at the first video request, long after the rental was paid.
     # 0.32.2 is also the version the local venv runs, so both sides agree.
     "diffusers==0.32.2",
-    "accelerate",
+    "accelerate==1.15.0",
     "sentencepiece",
-    "protobuf",
+    "protobuf==7.36.2",
     "imageio",
     "imageio-ffmpeg",
     # Pinned to the same commit as requirements.txt: the remote runtime and the local one
@@ -282,9 +282,6 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
     "huggingface-hub==0.36.2",
     "datasets==3.6.0",
     "pyarrow==20.0.0",
-    # Kept installed for legacy indic_parler_* compatibility. Its readiness is deliberately
-    # not part of the IndicF5 production marker or probe.
-    "parler-tts",
     # torchaudio is deliberately NOT listed here: it is pinned to the image's exact torch
     # version at install time (see server_onstart_command). Resolving it freely installs a
     # newer torchaudio than the image's torch, which then fails at import with an
@@ -314,7 +311,7 @@ SERVER_DEPENDENCY_PROBE: str = (
 DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/IndicF5",)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
-DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
+DEFAULT_SERVER_IMAGE = "vive11/tube2dscript-server:2.4.0-v1"
 
 # Chromium shared libraries Remotion's headless shell needs, plus Noto fonts. The fonts are
 # a correctness requirement, not a nicety: the theme fonts are Windows names (Georgia,
