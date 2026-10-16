@@ -130,9 +130,11 @@ def _image_torch_backend(image: str) -> str:
     carries no CUDA version.
     """
     match = re.search(r"cuda(\d+)\.(\d+)", image or "")
-    if not match:
-        return "auto"
-    return f"cu{match.group(1)}{match.group(2)}"
+    if match:
+        return f"cu{match.group(1)}{match.group(2)}"
+    if "2.4.0" in (image or ""):
+        return "cu124"
+    return "auto"
 
 
 def gpu_budget(gpu_name: str) -> float:
@@ -311,7 +313,7 @@ SERVER_DEPENDENCY_PROBE: str = (
 DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/IndicF5",)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
-DEFAULT_SERVER_IMAGE = "vive11/tube2dscript-server:2.4.0-v1"
+DEFAULT_SERVER_IMAGE = "vive11/tube2dscript-server:2.4.0-cuda12.4-v1"
 
 # Chromium shared libraries Remotion's headless shell needs, plus Noto fonts. The fonts are
 # a correctness requirement, not a nicety: the theme fonts are Windows names (Georgia,
