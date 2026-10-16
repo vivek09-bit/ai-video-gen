@@ -1905,8 +1905,20 @@ def prepare_tts_text(text: str) -> str:
     return normalize_hindi_phonetics(clean_text)
 
 
-def prepare_remote_text(sentence: str) -> str:
-    """Exactly the string the remote Indic Parler-TTS endpoint is asked to speak."""
+def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
+    """Exactly the string the remote narration endpoint is asked to speak.
+
+    ``keep_punctuation`` preserves sentence/clause markers (``.``, ``,``, ``|``, the
+    Devanagari danda) so the IndicF5 engine can insert its own pacing gaps. It defaults
+    to False because the Parler path folds pace into a spoken description and treats a
+    stray semicolon as an unwanted mid-sentence break.
+    """
+    if keep_punctuation:
+        # Keep the sentence terminators, clause separators and explicit pause bars that
+        # the server turns into silence; drop only decorative dashes and brackets.
+        kept = re.sub(r"[—–\-\"'\(\)\[\]\{\}…]+", " ", sentence)
+        kept = " ".join(kept.split())
+        return normalize_hindi_phonetics(kept or sentence)
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
 
@@ -1993,8 +2005,16 @@ def prebuild_vast_batch(
             )
             primary = resolve_voice(voice).split(",")[0].strip()
             bucket = requests.setdefault((primary, round(line_speed, 3)), [])
-            for sentence in split_sentences(text):
-                remote_text = prepare_remote_text(sentence)
+            # IndicF5 applies its own clause-level pauses server-side from the punctuation
+            # in the text. Splitting the line into clauses here would strip that punctuation
+            # before it reaches the server, collapsing the intended 200-600ms gaps down to
+            # the 150ms minimum -- which is exactly what made the narration sound rushed.
+            # So a full narration line is sent as ONE segment for IndicF5 and split only for
+            # the Parler path, which has no server-side pacing of its own.
+            indicf5_line = is_indicf5_remote_voice(primary)
+            segments = [text] if indicf5_line else split_sentences(text)
+            for sentence in segments:
+                remote_text = prepare_remote_text(sentence, keep_punctuation=indicf5_line)
                 if not remote_text.strip() or remote_text in bucket:
                     continue
                 # Already downloaded on an earlier run. Asking the GPU again would pay
@@ -2017,7 +2037,8 @@ def prebuild_vast_batch(
     manager = VastManager(server_url=vast_url)
     cached_count = 0
     for (primary, line_speed), sentences in requests.items():
-        print(f"[Indic Parler Vast Batch] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
+        label = "IndicF5 Vast Batch" if is_indicf5_remote_voice(primary) else "Indic Parler Vast Batch"
+        print(f"[{label}] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
         items = [{"id": str(index), "text": sentence} for index, sentence in enumerate(sentences)]
         try:
             results = manager.synthesize_tts_batch(items, voice=primary, speed=line_speed)
@@ -2082,6 +2103,16 @@ def is_indicf5_local_voice(voice: str) -> bool:
     """True when the resolved voice is one of the local IndicF5 cloner voices."""
     primary = (voice or "").strip().lower().split(",")[0].strip()
     return primary in INDICF5_LOCAL_VOICES
+
+
+def is_indicf5_remote_voice(voice: str) -> bool:
+    """True when a voice id/alias names an IndicF5 reference voice (local OR remote).
+
+    The remote server routes any id starting with ``indicf5_`` to its IndicF5 engine,
+    so this covers voices that are not in the local catalog but are still IndicF5.
+    """
+    primary = (voice or "").strip().lower().split(",")[0].strip()
+    return primary in INDICF5_LOCAL_VOICES or primary.startswith("indicf5_")
 
 
 def indicf5_reference_name(voice: str) -> str | None:
@@ -2182,10 +2213,14 @@ def _indicf5_run_batch(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
 
 
 def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
-    """Synthesise one sentence with IndicF5, preferring remote Vast and falling back locally."""
+    """Synthesise one segment with IndicF5, preferring remote Vast and falling back locally."""
     if indicf5_reference_name(voice_key) is None:
         return None
-    norm_text = normalize_hindi_phonetics(text)
+    # Keep punctuation here too: it both drives the server-side pacing AND forms the cache
+    # key, so this must match exactly what prebuild_vast_batch() stored for the same text.
+    # Using the punctuation-stripping prepare_tts_text() variant here would miss every
+    # batch-produced segment and force a redundant per-segment GPU round trip.
+    norm_text = prepare_remote_text(text, keep_punctuation=True)
     primary = voice_key.lower()
     cache_key = (norm_text, primary, round(speed, 3))
     cached = _VAST_AUDIO_CACHE.get(cache_key)
@@ -2268,8 +2303,11 @@ def prebuild_indicf5_batch(
             if not is_indicf5_local_voice(primary):
                 continue
             bucket = requests.setdefault((primary, round(line_speed, 3)), [])
-            for sentence in split_sentences(text):
-                remote_text = prepare_remote_text(sentence)
+            # Keep the line whole here too, for the same reason as the remote batch: the
+            # punctuation is both what the engine paces on and what keys the cache, so
+            # splitting it would miss every segment synthesise_line() later looks up.
+            for sentence in [text]:
+                remote_text = prepare_remote_text(sentence, keep_punctuation=True)
                 if not remote_text.strip() or remote_text in bucket:
                     continue
                 if gpu_cache_path(remote_text, primary, line_speed).exists():
@@ -2667,7 +2705,12 @@ def synthesise_line(
     """
     import numpy as np
 
-    sentences = split_sentences(text)
+    # IndicF5 applies clause-level pauses on the server from the punctuation embedded in
+    # the text, so a line must reach it whole. Splitting here would remove the punctuation
+    # the server paces on AND would key the cache to per-clause strings, so the full-line
+    # segments produced by prebuild_vast_batch() would never be found. Other engines keep
+    # the per-sentence split because it gives them accurate per-sentence word timings.
+    sentences = [text] if is_indicf5_remote_voice(voice) else split_sentences(text)
     if not sentences:
         return np.zeros(0, dtype=np.float32), []
 

@@ -1,91 +1,155 @@
 1
-00:00:00,000 --> 00:00:01,378
-chin ki mahan divar... hajaron
+00:00:00,000 --> 00:00:01,402
+doctor arjun varma ne himalay
 
 2
-00:00:01,378 --> 00:00:02,957
-kilometer mein phaili, lekin isake
+00:00:01,402 --> 00:00:02,335
+ki us gupha mein kadam
 
 3
-00:00:02,957 --> 00:00:04,161
-neeche kya chhipa hai, koee
+00:00:02,335 --> 00:00:03,620
+rakha jisaka nam kisi nakshe
 
 4
-00:00:04,161 --> 00:00:04,716
-nahi janata.
+00:00:03,620 --> 00:00:04,865
+par nahi tha. andhere mein
 
 5
-00:00:05,186 --> 00:00:06,426
-doctor aarav ko divar ke
+00:00:04,865 --> 00:00:06,030
+ek kali patthar ki pattika
 
 6
-00:00:06,426 --> 00:00:07,856
-pas ek prachin naksha mila,
+00:00:06,030 --> 00:00:07,373
+chamaki, jis par prachin rusi
 
 7
-00:00:07,914 --> 00:00:09,198
-jo ek rahasyamayi pahar ki
+00:00:07,373 --> 00:00:08,495
+lipi khudi thi. ye lipi
 
 8
-00:00:09,198 --> 00:00:10,194
-or ishara karta tha.
+00:00:08,495 --> 00:00:09,340
+yahan kaise pahunchi?
 
 9
-00:00:10,664 --> 00:00:11,876
-pahar ke pas pahunchate hi
+00:00:09,810 --> 00:00:11,010
+anuvad parhate hi arjun ke
 
 10
-00:00:11,876 --> 00:00:13,059
-ajib shakti ne use roka,
+00:00:11,010 --> 00:00:12,240
+hath kanp gae. pattika par
 
 11
-00:00:13,118 --> 00:00:14,326
-vahan jane ki himmat koee
+00:00:12,240 --> 00:00:13,483
+likha tha, jab do mahadvaipon
 
 12
-00:00:14,326 --> 00:00:15,098
-nahi karta tha.
+00:00:13,483 --> 00:00:14,647
+ke devata lare, tab aakash
 
 13
-00:00:15,568 --> 00:00:16,643
-pata chala ki pahar ke
+00:00:14,647 --> 00:00:15,650
+jal utha. ye us yuddh
 
 14
-00:00:16,643 --> 00:00:17,913
-andar samrat ka makabara hai,
+00:00:15,650 --> 00:00:16,836
+ka varnan tha jo itihas
 
 15
-00:00:17,972 --> 00:00:19,174
-jisane apni maut ka rahasya
+00:00:16,836 --> 00:00:17,841
+ki kisi bhi kitab mein
 
 16
-00:00:19,174 --> 00:00:20,197
-sadiyon se chhipaya hai.
+00:00:17,841 --> 00:00:18,454
+nahi milata.
 
 17
-00:00:20,667 --> 00:00:22,083
-makabare ke andar adbhut takanik
+00:00:18,924 --> 00:00:20,576
+saiberiya ke us prachin shivalay
 
 18
-00:00:22,083 --> 00:00:23,527
-dekhakar aarav hairan rah gaya,
+00:00:20,576 --> 00:00:21,970
+mein arjun ruka. divaron par
 
 19
-00:00:23,586 --> 00:00:24,926
-saamne ek gupt dvaar khula.
+00:00:21,970 --> 00:00:23,309
+wohi traishul aur svastik bane
 
 20
-00:00:25,396 --> 00:00:26,668
-dvaar khula, sach saamne aaya,
+00:00:23,309 --> 00:00:24,692
+the jo bharatiy mndiron mein
 
 21
-00:00:26,727 --> 00:00:27,867
-lekin ek naya sawal chhor
+00:00:24,692 --> 00:00:25,736
+hain. wahan ke pujari ne
 
 22
-00:00:27,867 --> 00:00:29,128
-gaya, jo aaj bhi anasulajha
+00:00:25,736 --> 00:00:26,864
+dhire se kaha, ye sthan
 
 23
-00:00:29,128 --> 00:00:29,254
+00:00:26,864 --> 00:00:28,170
+vinash ke devata ko samarpit
+
+24
+00:00:28,170 --> 00:00:28,298
 hai.
+
+25
+00:00:28,768 --> 00:00:29,857
+laddakh ke gupt math mein
+
+26
+00:00:29,857 --> 00:00:31,305
+arjun ko ek purani pandulipi
+
+27
+00:00:31,305 --> 00:00:32,488
+mili. usamen likha tha, us
+
+28
+00:00:32,488 --> 00:00:33,674
+yuddh mein viman aur agni-ban
+
+29
+00:00:33,674 --> 00:00:34,974
+chalae gae the. ye takanik
+
+30
+00:00:34,974 --> 00:00:36,206
+aaj bhi vaigyaanikon ki samajh
+
+31
+00:00:36,206 --> 00:00:37,172
+se puri tarah pare hai.
+
+32
+00:00:37,642 --> 00:00:38,847
+arjun ko antim saty mila.
+
+33
+00:00:38,964 --> 00:00:39,982
+woh yuddh nahi, ek puri
+
+34
+00:00:39,982 --> 00:00:41,259
+sabhyata ka vinash tha, jise
+
+35
+00:00:41,259 --> 00:00:42,327
+bharat aur rus ne milakar
+
+36
+00:00:42,327 --> 00:00:43,973
+chhipaya. taki manavata dobara wohi
+
+37
+00:00:43,973 --> 00:00:45,082
+galati na kare. lekin ab
+
+38
+00:00:45,082 --> 00:00:46,418
+ye sach behad khatarnak sabit
+
+39
+00:00:46,418 --> 00:00:46,956
+ho sakta hai.

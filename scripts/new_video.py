@@ -2230,29 +2230,18 @@ def main() -> int:
     # --vast provisions the GPU, but must not silently override a configured
     # provider: with IMAGE_PROVIDER=local the images render on the PC while the
     # rented GPU is used only for remote narration.
-    cli_img_prov = args.image_provider or os.environ.get("IMAGE_PROVIDER") or ""
-    if args.visual_mode == "video":
-        try:
-            from generate_videos import generate_videos_for_script
-            script = generate_videos_for_script(
-                script,
-                model=args.video_model,
-                duration_seconds=args.video_seconds,
-                steps=args.video_steps,
-                manager=vast_mgr,
-                force=bool(getattr(args, "force_videos", False)),
-            )
-        except Exception as video_err:
-            print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
-            stop_vast_instance()
-            return 1
-    elif not cli_img_prov:
-        if args.vast or args.vast_url or args.vast_instance is not None:
+    #
+    # Ordering for video mode is narration -> images -> image-to-video: the narration
+    # fixes the final scene timing first, the still images are generated from the same
+    # prompts, and only then is each still animated. Doing the clips first (the old
+    # order) wasted GPU time on clips that could not match art which did not yet exist.
+    cli_img_prov = args.image_provider
+    if not cli_img_prov:
+        if args.vast or args.vast_url or args.vast_instance is not None or needs_vast or args.visual_mode == "video":
             cli_img_prov = "vast"
-        elif getattr(args, "local_images", False):
-            cli_img_prov = "local"
-        elif args.free_images:
-            cli_img_prov = "fetch"
+        else:
+            cli_img_prov = os.environ.get("IMAGE_PROVIDER") or ""
+    defer_video = args.visual_mode == "video"
 
     det_img_prov, det_img_key, _ = detect_image_provider(cli_img_prov)
     should_gen_images = not args.no_images and (
@@ -2263,7 +2252,7 @@ def main() -> int:
         or getattr(args, "local_images", False)
         or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local", "vast")))
     )
-    if args.visual_mode == "image" and should_gen_images:
+    if (args.visual_mode == "image") and should_gen_images:
         print()
         print("=" * 74)
         print("SCENE IMAGES")
@@ -2362,6 +2351,49 @@ def main() -> int:
     if not tts_succeeded:
         stop_vast_instance()
         return 1
+
+    # ---- scene images (video mode execution order: audio -> images -> video) ----
+    if defer_video and should_gen_images:
+        print()
+        print("=" * 74)
+        print("SCENE IMAGES")
+        print("=" * 74)
+        script = generate_images_for_script(
+            script,
+            provider=cli_img_prov,
+            model=args.image_model,
+            force=not args.keep_images if hasattr(args, "keep_images") else (args.force_images or True),
+        )
+        SCRIPT_PATH.write_text(
+            json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+
+    # ---- image-to-video clips (video mode only) ---------------------------
+    # Runs AFTER narration so the timing is already fixed and AFTER images so each clip
+    # can start from its scene's still. The clips animate the stills rather than inventing
+    # a fresh composition, which keeps the motion and the art consistent.
+    if defer_video:
+        print()
+        print("=" * 74)
+        print("IMAGE-TO-VIDEO CLIPS (LTX-Video from scene stills)")
+        print("=" * 74)
+        try:
+            from generate_videos import generate_videos_for_script
+            script = generate_videos_for_script(
+                script,
+                model=args.video_model,
+                duration_seconds=args.video_seconds,
+                steps=args.video_steps,
+                manager=vast_mgr,
+                force=bool(getattr(args, "force_videos", False)),
+            )
+            SCRIPT_PATH.write_text(
+                json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+        except Exception as video_err:
+            print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
+            stop_vast_instance()
+            return 1
 
     # --stop-after audio: the GPU's whole job is done (script + narration are on disk and
     # the audio cache is written), so stop paying for it and skip metadata and the render.

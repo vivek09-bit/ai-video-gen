@@ -9,7 +9,7 @@ out/
 .venv/
 __pycache__/
 node_modules/
-examples/
+
 # Rhubarb binary (~83 MB, re-downloaded by setup.ps1)
 tools/
 youtube_token.json
@@ -25,6 +25,10 @@ public/audio/*
 public/audio/prompts/*
 !public/audio/prompts/indicf5/
 public/images/
+public/vidoe/*
+public/vidoes/*
 
 # Generated grain texture and ambience beds (re-created by `npm run assets`)
 public/textures/
+
+.hf_token

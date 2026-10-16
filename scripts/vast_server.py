@@ -513,21 +513,104 @@ def load_indicf5_engine():
     return _INDICF5_ENGINE
 
 
-def synthesize_indicf5(text: str, voice: str):
-    """Generate one valid IndicF5 waveform from its selected cloning reference."""
+# IndicF5 has no built-in pace control, so pacing is applied in two ways: silence gaps
+# inserted at punctuation boundaries, and an optional whole-utterance tempo stretch.
+# Both are tuned by these env vars so pace can be dialled without a code change.
+INDICF5_DEFAULT_SPEED = float(os.environ.get("INDICF5_SPEED", "1.0"))
+INDICF5_PAUSE_SCALE = float(os.environ.get("INDICF5_PAUSE_SCALE", "1.0"))
+
+
+def _resample_speed(audio, speed: float):
+    """Time-stretch a waveform without changing pitch (with a pitch-preserving fallback)."""
+    import numpy as np
+
+    if abs(speed - 1.0) < 1e-3 or audio.size == 0:
+        return audio
+    # Pick the cheapest resampler available; each stretches by resampling to a modified
+    # rate and treating the result as if it were the original rate.
+    try:
+        import librosa
+
+        return librosa.effects.time_stretch(np.asarray(audio, dtype=np.float32), rate=speed)
+    except Exception:
+        pass
+    try:
+        from scipy.signal import resample_poly
+        from math import gcd
+
+        # speed < 1.0 means slower, i.e. more samples for the same utterance.
+        up = 1000
+        down = max(1, int(round(1000 * speed)))
+        g = gcd(up, down)
+        stretched = resample_poly(np.asarray(audio, dtype=np.float32), up // g, down // g)
+        return stretched.astype(np.float32)
+    except Exception:
+        return audio
+
+
+def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
+    """Generate one valid IndicF5 waveform from its selected cloning reference.
+
+    The text is split at punctuation so a short silence can be inserted between clauses,
+    which is what makes the delivery sound paced rather than rushed. An optional ``speed``
+    (< 1.0 = slower) time-stretches the finished waveform without altering pitch.
+    """
     import numpy as np
     import torch
+    import re
 
     model = load_indicf5_engine()
     reference_path, reference_text = _prepare_indicf5_reference(voice)
     started = time.time()
+    if speed is None:
+        speed = INDICF5_DEFAULT_SPEED
+
+    pause_durations = {
+        ",": 0.20,
+        ";": 0.20,
+        ":": 0.20,
+        ".": 0.40,
+        "\u0964": 0.40,  # Devanagari danda
+        "\u0965": 0.60,  # Devanagari double danda
+        "!": 0.35,
+        "?": 0.45,
+        "|": 0.40,
+    }
+
+    pattern = re.compile(r'([^,.;:!?\u0964\u0965|]+)([,.;:!?\u0964\u0965|]*)')
+    matches = pattern.findall(text)
+    if not matches:
+        matches = [(text, "")]
+
+    audio_chunks = []
     with torch.inference_mode():
-        audio = model(text, ref_audio_path=reference_path, ref_text=reference_text)
-    if hasattr(audio, "detach"):
-        audio = audio.detach().cpu().numpy()
-    audio_np = np.asarray(audio).squeeze().astype(np.float32)
-    if audio_np.ndim > 1:
-        audio_np = audio_np.mean(axis=0)
+        for chunk_text, punct in matches:
+            chunk_text = chunk_text.strip()
+            if not chunk_text:
+                continue
+            audio = model(chunk_text, ref_audio_path=reference_path, ref_text=reference_text)
+            if hasattr(audio, "detach"):
+                audio = audio.detach().cpu().numpy()
+            chunk_np = np.asarray(audio).squeeze().astype(np.float32)
+            if chunk_np.ndim > 1:
+                chunk_np = chunk_np.mean(axis=0)
+            if chunk_np.size > 0:
+                audio_chunks.append(chunk_np)
+
+            pause_sec = 0.15
+            for p in punct:
+                if p in pause_durations:
+                    pause_sec = max(pause_sec, pause_durations[p])
+            pause_sec *= INDICF5_PAUSE_SCALE
+            silence_samples = int(INDICF5_SAMPLE_RATE * pause_sec)
+            if silence_samples > 0:
+                audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
+
+    if not audio_chunks:
+        raise RuntimeError("IndicF5 received empty text or produced no audio chunks")
+
+    audio_np = np.concatenate(audio_chunks)
+    audio_np = _resample_speed(audio_np, speed)
     peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
     if peak > 1.0:
         audio_np = audio_np / peak
@@ -539,7 +622,7 @@ def synthesize_indicf5(text: str, voice: str):
 def synthesize_requested_voice(text: str, voice: str, speed: float):
     """Dispatch public audio endpoints by voice family, retaining Parler compatibility."""
     if (voice or "").strip().lower().startswith("indicf5_"):
-        return synthesize_indicf5(text, voice)
+        return synthesize_indicf5(text, voice, speed=speed)
     engine = load_indic_parler_engine()
     return _synthesize_with_retries(engine, text, _resolve_indic_description(voice, speed), speed)
 
@@ -681,6 +764,10 @@ class VastHandler(BaseHTTPRequestHandler):
         steps = int(req.get("steps", 8))
         model_id = str(req.get("model", "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"))
         seed = req.get("seed")
+        # Optional base64 still: when present, animate FROM that image (image-to-video)
+        # instead of synthesising the composition from text alone. This is what lets the
+        # pipeline do audio -> images -> video with consistent art between the two.
+        image_b64 = req.get("image_base64") or req.get("image")
         if width % 32 or height % 32 or num_frames < 9 or (num_frames - 1) % 8:
             self._send_json({
                 "error": "LTX dimensions must be multiples of 32 and num_frames must be 8n+1 (at least 9)."
@@ -696,17 +783,38 @@ class VastHandler(BaseHTTPRequestHandler):
             if seed is not None:
                 generator = torch.Generator(device=DEVICE).manual_seed(int(seed))
 
+            call_kwargs = {
+                "prompt": prompt,
+                "width": width,
+                "height": height,
+                "num_frames": num_frames,
+                "num_inference_steps": steps,
+                "guidance_scale": 1.0,
+                "generator": generator,
+            }
+            if image_b64:
+                try:
+                    from PIL import Image
+
+                    raw = base64.b64decode(image_b64)
+                    init_image = Image.open(io.BytesIO(raw)).convert("RGB").resize((width, height))
+                except Exception as img_err:  # noqa: BLE001 - fall back to text-to-video
+                    print(
+                        f"[Vast Server Warning] ignoring unusable init image ({img_err}); "
+                        "falling back to text-to-video",
+                        file=sys.stderr,
+                    )
+                    init_image = None
+                if init_image is not None:
+                    # LTXPipeline takes the conditioning frame as `image`; if the installed
+                    # diffusers build does not accept it, the call below raises and the
+                    # outer handler reports a clear error rather than silently degrading.
+                    call_kwargs["image"] = init_image
+
             started = time.time()
+            used_image = "image" in call_kwargs
             with torch.inference_mode():
-                result = pipe(
-                    prompt=prompt,
-                    width=width,
-                    height=height,
-                    num_frames=num_frames,
-                    num_inference_steps=steps,
-                    guidance_scale=1.0,
-                    generator=generator,
-                )
+                result = pipe(**call_kwargs)
             frames = result.frames[0]
             with tempfile.TemporaryDirectory(prefix="ltx-video-") as temp_dir:
                 video_path = Path(temp_dir) / "scene.mp4"
@@ -720,6 +828,7 @@ class VastHandler(BaseHTTPRequestHandler):
                 "height": height,
                 "num_frames": num_frames,
                 "fps": fps,
+                "mode": "image-to-video" if used_image else "text-to-video",
                 "duration_sec": round(time.time() - started, 3),
             })
         except Exception as err:

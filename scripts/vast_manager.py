@@ -313,7 +313,7 @@ SERVER_DEPENDENCY_PROBE: str = (
 DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/IndicF5",)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
-DEFAULT_SERVER_IMAGE = "vive11/tube2dscript-server:2.4.0-cuda12.4-v1"
+DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
 
 # Chromium shared libraries Remotion's headless shell needs, plus Noto fonts. The fonts are
 # a correctness requirement, not a nicety: the theme fonts are Windows names (Georgia,
@@ -547,22 +547,28 @@ class VastManager:
         Raises on an SSH failure. Callers that only need the common case to work should treat
         that as a warning: the health check that follows reports the real problem.
         """
-        files = self.indicf5_voice_files()
-        if not files:
-            print(
-                f"[Vast Manager Warning] No IndicF5 reference clips found in "
-                f"{self.local_indicf5_voices_dir()}; the instance cannot narrate IndicF5.",
-                file=sys.stderr,
+        voices_dir = self.local_indicf5_voices_dir()
+        if not voices_dir.is_dir():
+            raise RuntimeError(f"Local IndicF5 voices directory not found: {voices_dir}")
+        paths = [p for p in sorted(voices_dir.iterdir()) if p.is_file() and p.suffix in (".wav", ".mp3", ".txt")]
+        if not paths:
+            raise RuntimeError(
+                f"No IndicF5 voice reference files (.wav/.mp3/.txt) found in "
+                f"{self.local_indicf5_voices_dir()}; the instance cannot narrate IndicF5."
             )
-            return 0
-        self.run_ssh(instance_id, f"mkdir -p {shlex.quote(CONTAINER_VOICES_DIR)}", timeout=timeout)
-        for path in files:
-            self.push_file(instance_id, path, f"{CONTAINER_VOICES_DIR}/{path.name}")
-        print(
-            f"[Vast Manager] Uploaded {len(files)} IndicF5 reference file(s) to "
-            f"{CONTAINER_VOICES_DIR}."
-        )
-        return len(files)
+        max_attempts = 12
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.run_ssh(instance_id, f"mkdir -p {shlex.quote(CONTAINER_VOICES_DIR)}", timeout=timeout)
+                for path in paths:
+                    self.push_file(instance_id, path, f"{CONTAINER_VOICES_DIR}/{path.name}")
+                print(f"[Vast Manager] Pushed {len(paths)} IndicF5 voice files to container {instance_id}:{CONTAINER_VOICES_DIR}.")
+                return len(paths)
+            except Exception as e:
+                if attempt == max_attempts:
+                    raise
+                print(f"[Vast Manager Warning] Attempt {attempt}/{max_attempts} pushing IndicF5 voices failed (SSH key propagating?): {e}. Retrying in 6s...")
+                time.sleep(6)
 
     @staticmethod
     def container_env_spec() -> str:
@@ -797,6 +803,23 @@ class VastManager:
             f"else git clone --depth 1 --branch {branch_q} {shlex.quote(repo_url)} tube2dscript; "
             "fi || true; "
         )
+        # A pre-baked image (VAST_SERVER_IMAGE) already carries apt, uv, the pinned Python
+        # packages and the IndicF5 weights, so the only work left is the two things that
+        # genuinely change per run: fetching the latest repo code and starting the server.
+        # Without this, the full cold-start install still runs and re-downloads everything
+        # the image already has -- which is the whole cost the image was meant to remove.
+        # Opt in with VAST_IMAGE_HAS_DEPS=1; the cold-start branch stays available for
+        # debugging a plain base image (VAST_SERVER_IMAGE unset).
+        if os.environ.get("VAST_IMAGE_HAS_DEPS", "").strip() == "1":
+            return (
+                "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
+                f"{refresh_repo} "
+                "cd /workspace/tube2dscript; "
+                "echo 'starting server at $(hostname -i):8000'; "
+                "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 & "
+                "sleep 5; echo '--- server.log after start ---'; tail -30 /workspace/server.log; "
+                "echo 'onstart done, keeping container alive'; sleep infinity"
+            )
         return (
             "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
             "if [ -f \"$HOME/.tube2dscript_deps_ready\" ] "
@@ -1255,10 +1278,6 @@ class VastManager:
             disk_space = int(float(inst.get("disk_space") or 0))
             rate = hourly_rate(inst)
             status_msg = str(inst.get("status_msg") or "")
-
-            if wanted not in gpu_name.replace(" ", ""):
-                continue
-
             machine_key = str(int(inst.get("machine_id") or 0))
             if machine_key in self.bad_hosts:
                 print(f"  Skipping instance {instance_id}: machine {machine_key} is blacklisted.")
@@ -1814,8 +1833,14 @@ class VastManager:
         seed: int | None = None,
         model: str = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE",
         url: str | None = None,
+        image_bytes: bytes | None = None,
     ) -> bytes:
-        """Generate an MP4 clip remotely with the LTX-Video distilled model."""
+        """Generate an MP4 clip remotely with the LTX-Video distilled model.
+
+        ``image_bytes`` animates the clip FROM an existing still (image-to-video), which
+        keeps the moving art consistent with the still that was generated for the same
+        scene. Without it the server falls back to text-to-video.
+        """
         target = (url or self.server_url or "").rstrip("/") + "/v1/videos/generate"
         payload = {
             "prompt": prompt,
@@ -1827,6 +1852,8 @@ class VastManager:
             "seed": seed,
             "model": model,
         }
+        if image_bytes:
+            payload["image_base64"] = base64.b64encode(image_bytes).decode("ascii")
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             target,

@@ -1,0 +1,49 @@
+# Match the exact base image vast_manager.py pins (DEFAULT_SERVER_IMAGE).
+# The tag names the torch build, and torchaudio must come from the same one.
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
+
+# --- Phase 1: system packages (mirrors apt_packages in server_onstart_command) ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git ffmpeg libsndfile1 ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Phase 2: uv ---
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+# --- Phase 3: pinned Python deps (copy the exact list from SERVER_DEPENDENCIES) ---
+# torchaudio is pinned to the image's own torch version, not left floating.
+RUN uv pip install --system --torch-backend=cu124 \
+        diffusers==0.32.2 \
+        accelerate==1.15.0 \
+        sentencepiece \
+        protobuf==7.36.2 \
+        imageio \
+        imageio-ffmpeg \
+        "f5_tts @ git+https://github.com/AI4Bharat/IndicF5.git@13f7c4d627cc10111aea8fe9c0039462cacacdc7" \
+        vocos==0.1.0 \
+        transformers==4.49.0 \
+        transformers-stream-generator==0.0.5 \
+        numpy==1.26.4 \
+        scipy==1.17.1 \
+        soundfile==0.14.0 \
+        huggingface-hub==0.36.2 \
+        datasets==3.6.0 \
+        pyarrow==20.0.0 \
+        torchaudio==2.4.0
+
+# --- Phase 4: pre-download model weights (the big one) ---
+# HF_TOKEN is a BuildKit secret so the gated token never lands in a layer.
+# ai4bharat/IndicF5 is GATED, so the build must authenticate.
+RUN --mount=type=secret,id=hf_token \
+    HF_TOKEN="$(cat /run/secrets/hf_token)" \
+    python -c "from huggingface_hub import snapshot_download; snapshot_download('ai4bharat/IndicF5')"
+
+# --- Phase 5: verify the exact import surface the server needs ---
+RUN python -c "import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; \
+    from f5_tts.infer.utils_infer import infer_process; \
+    assert torchaudio.__version__.split('+')[0] == torch.__version__.split('+')[0]; \
+    from diffusers import FluxPipeline, LTXPipeline; \
+    print('image deps OK', torch.__version__, torchaudio.__version__)"
+
+WORKDIR /workspace
