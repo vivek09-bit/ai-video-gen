@@ -162,6 +162,55 @@ def _hub_token() -> str | None:
     return os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY") or None
 
 
+def _from_pretrained_on_cpu(loader, *args, **kwargs):
+    """Call a `from_pretrained` loader, forcing real CPU materialisation of the weights.
+
+    Newer transformers builds default `low_cpu_mem_usage=True`, which instantiates every
+    module on the `meta` device (no storage) and relies on the loader to fill it in. The
+    IndicF5 repo's `trust_remote_code` implementation does not, so the subsequent
+    `.to("cuda")` raises
+
+        NotImplementedError: Cannot copy out of meta tensor; no data!
+        Please use torch.nn.Module.to_empty() instead of torch.nn.Module.to() ...
+
+    for every single request, which reaches the client as an opaque HTTP 500. Asking for
+    the legacy path costs some RAM at load time but works on every transformers version.
+
+    A loader that does not accept the keyword (older builds, or a model class that
+    overrides `from_pretrained` with a fixed signature) is retried without it rather than
+    failing the whole load over a compatibility flag.
+    """
+    try:
+        return loader(*args, low_cpu_mem_usage=False, **kwargs)
+    except TypeError as err:
+        if "low_cpu_mem_usage" not in str(err):
+            raise
+        return loader(*args, **kwargs)
+
+
+def release_meta_safe(model):
+    """Move a model to the target device, refusing a silently-empty `meta` module graph.
+
+    Returns the model so call sites stay one-liners. Kept separate from
+    `_from_pretrained_on_cpu` because a warm path can still hand back a meta model (for
+    example when an engine was built by a different code path), and failing here with a
+    sentence beats failing mid-synthesis with a torch internal.
+    """
+    if model is None or not hasattr(model, "to"):
+        return model
+    try:
+        model.to(DEVICE)
+    except NotImplementedError as err:
+        if "meta tensor" in str(err):
+            raise RuntimeError(
+                f"{type(model).__name__} was built on the meta device, so it holds no "
+                "weights and cannot be moved to the GPU. Reload it with "
+                "low_cpu_mem_usage=False (the transformers default changed)."
+            ) from err
+        raise
+    return model
+
+
 def _release_other_models(active: str) -> None:
     """Keep only one large inference model resident on the 24GB GPU."""
     global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDIC_PARLER_ENGINE, _INDICF5_ENGINE
@@ -408,8 +457,12 @@ def load_indic_parler_engine():
                 last_err: Exception | None = None
                 for repo_id in repo_candidates:
                     try:
-                        model = ParlerTTSForConditionalGeneration.from_pretrained(
-                            repo_id, torch_dtype=torch.float32
+                        # See `_from_pretrained_on_cpu`: a meta-device instantiation makes
+                        # the `.to(DEVICE)` below raise for every request.
+                        model = _from_pretrained_on_cpu(
+                            ParlerTTSForConditionalGeneration.from_pretrained,
+                            repo_id,
+                            torch_dtype=torch.float32,
                         )
                         loaded_repo = repo_id
                         break
@@ -422,7 +475,7 @@ def load_indic_parler_engine():
                         )
                 if model is None:
                     raise RuntimeError(f"no Indic Parler-TTS model could be loaded: {last_err}")
-                self.model = model.to(DEVICE).eval()
+                self.model = release_meta_safe(model).eval()
                 self.description_tokenizer = AutoTokenizer.from_pretrained(
                     self.model.config.text_encoder._name_or_path
                 )
@@ -568,11 +621,20 @@ def load_indicf5_engine():
 
     torchaudio.load = load_with_soundfile
     print(f"[Vast Server] Loading IndicF5 model {INDICF5_REPOSITORY} on {DEVICE}...")
-    _INDICF5_ENGINE = AutoModel.from_pretrained(
-        INDICF5_REPOSITORY, trust_remote_code=True, token=_hub_token()
+    # `low_cpu_mem_usage=False` is load-bearing, not an optimisation toggle. Newer
+    # transformers defaults it on (via accelerate), which builds the module graph on the
+    # `meta` device with no storage; the `.to(DEVICE)` below then raises
+    #   NotImplementedError: Cannot copy out of meta tensor; no data!
+    # for EVERY synthesis request. The repo's remote code does not cooperate with the meta
+    # init path, so ask for real CPU materialisation and let `.to()` move it.
+    _INDICF5_ENGINE = _from_pretrained_on_cpu(
+        AutoModel.from_pretrained,
+        INDICF5_REPOSITORY,
+        trust_remote_code=True,
+        token=_hub_token(),
     )
     if hasattr(_INDICF5_ENGINE, "to"):
-        _INDICF5_ENGINE.to(DEVICE)
+        release_meta_safe(_INDICF5_ENGINE)
     if hasattr(_INDICF5_ENGINE, "eval"):
         _INDICF5_ENGINE.eval()
     print("[Vast Server] IndicF5 model loaded successfully.")

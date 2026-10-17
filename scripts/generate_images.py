@@ -1782,7 +1782,14 @@ def generate_images_for_script(
         provider_title = f"Vast.ai Cloud RTX 4090 GPU ({vast_image_model}, {aspect_ratio} @ {width}x{height})"
     else:
         provider_title = f"{resolved_provider.upper()} ({aspect_ratio} @ {width}x{height})"
-    print(f"Retrieving background images via {provider_title} ({model or 'default'}) for {total_scenes} scenes...")
+    # For Vast the model line is only printed when the caller pinned one explicitly. The
+    # resolved default there is the LOCAL pipeline name (segmind/SSD-1B), so echoing it next
+    # to "Vast.ai ... FLUX.2-klein-4B" told the operator the wrong model twice over: once
+    # correctly in the title and once wrongly in the parentheses.
+    if resolved_provider == "vast":
+        print(f"Retrieving background images via {provider_title} for {total_scenes} scenes...")
+    else:
+        print(f"Retrieving background images via {provider_title} ({model or 'default'}) for {total_scenes} scenes...")
 
     burns_modes = ["in", "out", "left", "right"]
 

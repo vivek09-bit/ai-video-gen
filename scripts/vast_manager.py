@@ -35,6 +35,8 @@ Tuning knobs:
   VAST_RENTAL_HOURS         rental length the `choose` picker prices for (1)
   VAST_RENTAL_GB            weight-download size the picker prices egress for (25)
   VAST_PICK_TIMEOUT         seconds before `choose` auto-picks the cheapest offer (10)
+  VAST_PICK_KEY_GRACE_SEC   seconds of keypresses ignored right after the picker draws, so a
+                            stale keystroke from before the prompt cannot override the auto-pick (0.75)
   VAST_AUDIO_IMAGE_ONLY     "1" serves stills + narration only (FLUX.2-klein-4B, no LTX). Set by
                             new_video.py when --visual-mode image meets IMAGE_PROVIDER=vast; also
                             relaxes the disk floor to 60GB because the working set is ~16GB, not ~42GB.
@@ -69,6 +71,9 @@ Usage:
 
   # Reapply the pinned server dependencies on an instance whose install is broken
   python scripts/vast_manager.py repair <INSTANCE_ID>
+
+  # Print the remote interpreter's versions and re-run the boot probe (read-only)
+  python scripts/vast_manager.py diagnose <INSTANCE_ID>
   python scripts/vast_manager.py hosts [--clear]
 """
 
@@ -688,6 +693,14 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
     "huggingface-hub==0.36.2",
     "datasets==3.6.0",
     "pyarrow==20.0.0",
+    # Pydantic is what breaks diffusers against torch 2.4.0. It is a TRANSITIVE dependency
+    # of transformers, so leaving it unpinned meant uv resolved whatever was newest that
+    # day -- pydantic 2.10+ ships a torch-aware schema hook that older torch builds cannot
+    # satisfy, and diffusers then dies at import with
+    #   infer_schema(func): Parameter q has unsupported type torch.Tensor
+    # The failure appears only when a pipeline class is CONSTRUCTED, long after boot, so it
+    # showed up as 25 consecutive HTTP 500s with the GPU already paid for.
+    "pydantic==2.9.2",
     # torchaudio is deliberately NOT listed here: it is pinned to the image's exact torch
     # version at install time (see server_onstart_command). Resolving it freely installs a
     # newer torchaudio than the image's torch, which then fails at import with an
@@ -753,7 +766,13 @@ SERVER_DEPENDENCY_PROBE: str = (
     # turns a diffusers version drift into a boot-time failure instead of an HTTP 500 at the
     # first image or video request. Deliberately absent: parler_tts, whose absence must never
     # block IndicF5 production readiness.
-    "from diffusers import FluxPipeline, LTXPipeline"
+    "from diffusers import FluxPipeline, LTXPipeline; "
+    # `from diffusers import FluxPipeline` only binds the symbol; the modules that actually
+    # explode (torch/pydantic introspecting an ``AutoencoderKL`` method signature) are
+    # imported further down and were therefore never exercised here. Explicitly importing
+    # the autoencoder module is what makes that incompatibility a boot-time failure rather
+    # than an HTTP 500 on every single scene request.
+    "from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL"
 )
 
 
@@ -772,6 +791,9 @@ def server_dependency_probe() -> str:
         "from f5_tts.infer.utils_infer import infer_process; "
         # The classes the request handlers construct lazily (see 4.2 of the plan).
         "from diffusers import Flux2KleinPipeline; "
+        # See SERVER_DEPENDENCY_PROBE: binding the pipeline class never imports the
+        # autoencoder module, which is where a torch/pydantic mismatch actually raises.
+        "from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL; "
         "from transformers import Qwen3ForCausalLM"
     )
 
@@ -984,14 +1006,18 @@ def prompt_pick_with_timeout(
     allowed = [digit for digit in valid_digits[:count]]
     if not allowed:
         return default_index
-    deadline = time.time() + max(0.0, timeout_sec)
-    last_shown = -1
-    # Keys pressed before the prompt appeared (or while this process was still starting)
-    # are still sitting in the terminal buffer, and `_read_key` returns them immediately.
-    # A stray "2" from an earlier keystroke therefore silently OVERRODE the auto-pick, which
-    # showed up as "auto-picking 1 in 11s" immediately followed by "Pinned offer ... pick #2".
-    # Discard whatever is already buffered so only a fresh keypress counts.
+    # Keys pressed before the prompt appeared are still queued in the console and
+    # `_read_key` hands them back immediately, which is how a stray "2" overrode the
+    # auto-pick ("auto-picking 1 in 11s" then "Pinned offer ... pick #2"). Draining once
+    # here is not enough: a key typed while this process was still starting can land in
+    # the buffer AFTER the drain and before the first poll, so the early polls are also
+    # discarded. A real operator needs a moment to read the list anyway, and pressing a
+    # key twice within the grace window is far less likely than a stale key existing.
     _drain_pending_keys()
+    started = time.time()
+    grace_sec = float(os.environ.get("VAST_PICK_KEY_GRACE_SEC", "0.75"))
+    deadline = started + max(0.0, timeout_sec)
+    last_shown = -1
     while True:
         remaining = deadline - time.time()
         if remaining <= 0:
@@ -1014,6 +1040,11 @@ def prompt_pick_with_timeout(
             continue
         key = key.strip()
         if not key:
+            continue
+        # A key seen inside the grace window is almost certainly one that was already in
+        # the buffer when the prompt was drawn. Discard it rather than letting it decide
+        # a rental the operator never got to read.
+        if time.time() - started < grace_sec and key.lower() != "q":
             continue
         if key.lower() == "q":
             print()
@@ -2110,12 +2141,52 @@ class VastManager:
             )
         return conflicts
 
+    def reuse_contract_problem(self, info: dict, require_tts: bool = False) -> str | None:
+        """Why a running instance must not be handed back for this run, or None.
+
+        `find_existing_instance` used to reuse any matching instance inside budget, with no
+        regard for what its Python environment can actually do. A box provisioned before a
+        pin change then answers every request with the same HTTP 500, forever, because
+        `start` re-clones the repo but never rewrites site-packages -- so the failure looked
+        like a client bug. Asking `/health` for the same readiness flags `require_gpu`
+        insists on is what makes reuse conditional on the box being able to serve this run.
+
+        Returns None (reusable) when the instance is not running yet: a stopped instance is
+        started first, and the caller's health check happens after that.
+        """
+        status = str(info.get("actual_status") or info.get("status") or "").lower()
+        if status != "running":
+            return None
+        url = self._resolve_server_url(info)
+        if not url:
+            return None  # port not mapped yet; nothing to interrogate
+        try:
+            health = self.check_health(url)
+        except Exception as err:  # noqa: BLE001 - an unanswerable server is unusable
+            return f"its /health endpoint did not answer ({type(err).__name__})"
+
+        problems: list[str] = []
+        if audio_image_only():
+            if health.get("audio_image_only") is False:
+                problems.append(
+                    "it is serving the old normal mode (no VAST_AUDIO_IMAGE_ONLY on the container)"
+                )
+            if health.get("image_ready") is False:
+                problems.append(f"image pipeline unusable: {health.get('image_error') or 'unknown'}")
+            expected_image = health.get("image_model")
+            if expected_image and "klein" not in str(expected_image).lower():
+                problems.append(f"it is configured for {expected_image}, not FLUX.2-klein-4B")
+        if require_tts and health.get("indicf5_ready") is False:
+            problems.append(f"IndicF5 unusable: {health.get('indicf5_error') or 'unknown'}")
+        return "; ".join(problems) if problems else None
+
     def find_existing_instance(
         self,
         expected_gpu: str,
         min_disk: int = 50,
         max_dph: float | None = None,
         destroy_broken: bool = True,
+        require_tts: bool = False,
     ) -> tuple[int | None, str | None]:
         """Reuse an already-rented instance of the right GPU that still fits the budget.
 
@@ -2165,6 +2236,17 @@ class VastManager:
                 continue
 
             server_url = self._resolve_server_url(inst) if status == "running" else None
+            # A running instance whose environment cannot serve THIS run must not be
+            # handed back. Starting it would re-clone the repo but leave site-packages
+            # untouched, so the same HTTP 500 would repeat on every future run while
+            # looking like a client-side bug.
+            problem = self.reuse_contract_problem(inst, require_tts=require_tts)
+            if problem:
+                print(
+                    f"  Skipping instance {instance_id}: {problem}.\n"
+                    f"    Fix it in place with: python scripts/vast_manager.py repair {instance_id}"
+                )
+                continue
             print(
                 f"  Reusing instance {instance_id} (status={status}, GPU={gpu_name}, "
                 f"disk={disk_space}GB, {format_rate(rate)})"
@@ -2215,6 +2297,42 @@ class VastManager:
         print(f"[Vast Manager] Repairing dependencies on instance {instance_id} over SSH...")
         output = self.run_ssh(instance_id, command, timeout=timeout)
         print(output.strip() or "[Vast Manager] Repair produced no output.")
+        return output
+
+    def diagnose_instance(self, instance_id: int, timeout: int = 120) -> str:
+        """Print what the remote interpreter actually has, and re-run the boot probe.
+
+        A version triangle (torch / transformers / diffusers / pydantic) is the cause of
+        nearly every "HTTP 500 on every request" run, and the only way to see it is to ask
+        the box. Producing the same report the onstart certifies with means a repair can be
+        aimed at the right package instead of re-renting and hoping.
+
+        Read-only by design: it installs nothing and touches no marker, so it is safe to run
+        against a stopped-and-restarted instance that may still be worth saving.
+        """
+        probe = VastManager.dependency_probe_command()
+        report = (
+            "cd /workspace/tube2dscript 2>/dev/null || cd /workspace; "
+            "python -c \"import sys; print('[diagnose] python', sys.version.split()[0])\"; "
+            "python -c \"import torch; print('[diagnose] torch', torch.__version__, "
+            "'cuda', torch.version.cuda, 'available', torch.cuda.is_available())\" 2>&1 | tail -3; "
+            "python -c \"import torchaudio; print('[diagnose] torchaudio', torchaudio.__version__)\" "
+            "2>&1 | tail -2; "
+            "python -c \"import transformers, diffusers; print('[diagnose] transformers', "
+            "transformers.__version__, 'diffusers', diffusers.__version__)\" 2>&1 | tail -2; "
+            "python -c \"import pydantic; print('[diagnose] pydantic', pydantic.VERSION)\" 2>&1 | tail -2; "
+            "python -c \"import numpy, pyarrow; print('[diagnose] numpy', numpy.__version__, "
+            "'pyarrow', pyarrow.__version__)\" 2>&1 | tail -2; "
+            f"echo '[diagnose] probe:'; {probe} && echo '[diagnose] probe OK' "
+            "|| echo '[diagnose] probe FAILED (see the traceback above)'; "
+            "tr '\\0' '\\n' < /proc/$(pgrep -f vast_server.py | head -1)/environ 2>/dev/null "
+            "| grep -E '^(VAST_AUDIO_IMAGE_ONLY|INDICF5_VOICES_DIR|HF_HOME)=' "
+            "| sed 's/^/[diagnose] env /'; "
+            "ls -la \"${INDICF5_VOICES_DIR:-examples/indicf5/voices}\" 2>&1 | sed 's/^/[diagnose] voices /'"
+        )
+        print(f"[Vast Manager] Diagnosing instance {instance_id} over SSH...")
+        output = self.run_ssh(instance_id, report, timeout=timeout)
+        print(output.strip() or "[Vast Manager] Diagnosis produced no output.")
         return output
 
     def prune_instances(self, dry_run: bool = False, idle_hours: float | None = None) -> list[int]:
@@ -2927,6 +3045,15 @@ def main() -> int:
     p_repair.add_argument("instance_id", type=int, help="Instance ID")
     p_repair.add_argument("--timeout", type=int, default=2700, help="SSH timeout in seconds")
 
+    # Diagnose: read-only. Prints the remote versions and re-runs the boot probe, which is
+    # what distinguishes a stale pin set from a genuinely broken install.
+    p_diagnose = subparsers.add_parser(
+        "diagnose",
+        help="Print an instance's torch/transformers/diffusers/pydantic versions and probe it",
+    )
+    p_diagnose.add_argument("instance_id", type=int, help="Instance ID (must be running)")
+    p_diagnose.add_argument("--timeout", type=int, default=120, help="SSH timeout in seconds")
+
     # Preflight: verify the mode contract on this machine, before anything is rented.
     p_preflight = subparsers.add_parser(
         "preflight",
@@ -3091,6 +3218,25 @@ def main() -> int:
     elif args.action == "health":
         h = mgr.check_health(args.url)
         print(json.dumps(h, indent=2))
+        return 0
+
+    elif args.action == "diagnose":
+        info = mgr.get_instance_info(args.instance_id)
+        status = str(info.get("actual_status") or info.get("status") or "").lower()
+        if status != "running":
+            print(
+                f"[Vast Manager] Instance {args.instance_id} is {status or 'not running'}; "
+                "start it first (python scripts/vast_manager.py start <id>).",
+                file=sys.stderr,
+            )
+            return 1
+        mgr.diagnose_instance(args.instance_id, timeout=args.timeout)
+        print(
+            "[Vast Manager] If the probe failed, run:\n"
+            f"    python scripts/vast_manager.py repair {args.instance_id}\n"
+            "then diagnose again. A repair rewrites site-packages to the pinned set, which\n"
+            "is what fixes a torch/transformers/diffusers/pydantic version triangle."
+        )
         return 0
 
     elif args.action == "repair":

@@ -2261,7 +2261,9 @@ def main() -> int:
                 # new one. Broken instances (bad host / failed image pull) are destroyed
                 # so they stop billing storage instead of being skipped.
                 vast_instance_id, server_url = vast_mgr.find_existing_instance(
-                    expected_gpu, min_disk=vast_disk_gb
+                    expected_gpu,
+                    min_disk=vast_disk_gb,
+                    require_tts=audio_model in ("indic_parler", "indicf5"),
                 )
 
                 if vast_instance_id:

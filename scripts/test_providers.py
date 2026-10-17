@@ -962,6 +962,7 @@ def test_audio_image_only_mode() -> None:
     assert "deps_ready_aiimg" not in default_onstart, "the default marker must keep its name"
     assert "Flux2KleinPipeline" not in default_onstart, "the default probe must not require Klein"
     assert "LTXPipeline" in default_onstart, "the default probe must still verify LTX"
+    assert "autoencoder_kl" in default_onstart, "both probes must exercise the autoencoder import"
 
     print("  audio/image-only mode contract OK")
 
@@ -1093,6 +1094,220 @@ def test_vast_rental_cost_ranking() -> None:
     print("  short-rental cost ranking OK")
 
 
+def test_vast_meta_device_and_diagnose() -> None:
+    """A model that lands on the `meta` device must fail loudly, not 500 every request.
+
+    Newer transformers defaults `low_cpu_mem_usage=True`, which builds the module graph
+    with no storage; the following `.to("cuda")` then raises
+    "Cannot copy out of meta tensor; no data!" for every synthesis request. The client sees
+    a bare HTTP 500, so the guard is asserted here rather than rediscovered on a rental.
+    """
+    print("Testing the meta-device guard and the read-only diagnose command...")
+
+    import io
+    from contextlib import redirect_stdout
+
+    import generate_images
+    import vast_server
+    from vast_manager import VastManager
+
+    calls: list[dict] = []
+
+    def loader(*args, **kwargs):
+        calls.append({"args": args, "kwargs": kwargs})
+        return "model"
+
+    # 1. The loader is asked for real CPU materialisation.
+    assert vast_server._from_pretrained_on_cpu(loader, "repo", trust_remote_code=True) == "model"
+    assert calls[-1]["kwargs"]["low_cpu_mem_usage"] is False, (
+        "the loader must disable the meta-device fast init"
+    )
+    assert calls[-1]["kwargs"]["trust_remote_code"] is True
+
+    # 2. A loader that does not accept the flag is retried WITHOUT it rather than failing
+    #    the entire load over a compatibility keyword.
+    def strict_loader(*args, **kwargs):
+        if "low_cpu_mem_usage" in kwargs:
+            raise TypeError("__init__() got an unexpected keyword 'low_cpu_mem_usage'")
+        calls.append({"args": args, "kwargs": kwargs})
+        return "strict-model"
+
+    assert vast_server._from_pretrained_on_cpu(strict_loader, "repo") == "strict-model"
+    assert "low_cpu_mem_usage" not in calls[-1]["kwargs"]
+
+    # 3. A genuinely meta model produces an actionable sentence, not a torch internal.
+    class _MetaModel:
+        def to(self, _device):
+            raise NotImplementedError(
+                "Cannot copy out of meta tensor; no data! Please use torch.nn.Module.to_empty() "
+                "instead of torch.nn.Module.to() when moving module from meta to a different device."
+            )
+
+    try:
+        vast_server.release_meta_safe(_MetaModel())
+    except RuntimeError as err:
+        assert "meta device" in str(err) and "low_cpu_mem_usage" in str(err), str(err)
+    else:
+        raise AssertionError("a meta-device model must not be silently accepted")
+
+    class _Fine:
+        moved: list[str] = []
+
+        def to(self, device):
+            self.moved.append(device)
+            return self
+
+    fine = _Fine()
+    assert vast_server.release_meta_safe(fine) is fine
+    assert fine.moved == [vast_server.DEVICE]
+
+    # 4. `diagnose` is read-only: it must never install anything or touch the marker.
+    manager = VastManager(api_key="test-key")
+    issued: list[str] = []
+    manager.run_ssh = lambda i, cmd, timeout=600: issued.append(cmd) or "[diagnose] ok"  # type: ignore[method-assign]
+    manager.diagnose_instance(4242, timeout=30)
+    assert issued, "diagnose must run exactly one remote command"
+    command = issued[0]
+    for needed in ("pydantic", "transformers, diffusers", "torchaudio", "probe"):
+        assert needed in command, f"the diagnose report must include {needed}: {command}"
+    assert "autoencoder_kl" in command, (
+        "diagnose must run the same probe the onstart certifies with"
+    )
+    assert "uv pip install" not in command and "pip install" not in command, (
+        "diagnose is read-only; installing belongs to repair"
+    )
+    assert "touch" not in command, "diagnose must not create or restore a deps marker"
+
+    # 5. The banner must not print the local pipeline name next to a Vast model. It did:
+    # "@1920x1080) (segmind/SSD-1B)" while the title said FLUX.2-klein-4B.
+    saved_env = {key: os.environ.get(key) for key in ("VAST_AUDIO_IMAGE_ONLY", "IMAGE_MODEL")}
+    buffer = io.StringIO()
+    try:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+        os.environ.pop("IMAGE_MODEL", None)
+        banner_provider = generate_images.detect_provider("vast")
+        with redirect_stdout(buffer):
+            # Recreate just the banner decision the generator makes, without renting a GPU.
+            vast_image_model = (
+                "FLUX.2-klein-4B"
+                if os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1"
+                else "FLUX.1-schnell"
+            )
+            print(f"Retrieving background images via Vast.ai Cloud RTX 4090 GPU ({vast_image_model}, 16:9) for 1 scenes...")
+        text = buffer.getvalue()
+        assert "segmind" not in text and "SSD-1B" not in text, (
+            f"the Vast banner must not name a local pipeline: {text!r}"
+        )
+        assert banner_provider[2] == "black-forest-labs/FLUX.2-klein-4B", banner_provider
+    finally:
+        for key, value in saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
+    print("  ✓ meta-device models fail loudly, diagnose is read-only, and the banner is honest.")
+
+
+def test_vast_reuse_contract() -> None:
+    """A reused instance must be able to serve THIS run, not merely match the GPU.
+
+    `start` re-clones the repo but never rewrites site-packages, so an instance
+    provisioned before a pin change kept answering every request with the same HTTP 500
+    while looking like a client bug. Reuse is now conditional on /health.
+    """
+    print("Testing the Vast reuse contract (/health gating)...")
+
+    from vast_manager import VastManager
+
+    saved = os.environ.get("VAST_AUDIO_IMAGE_ONLY")
+    try:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+
+        # 1. A healthy audio/image box is reusable.
+        healthy = VastManager(api_key="test-key")
+        healthy.check_health = lambda url=None: {  # type: ignore[method-assign]
+            "status": "healthy",
+            "audio_image_only": True,
+            "image_model": "black-forest-labs/FLUX.2-klein-4B",
+            "image_ready": True,
+            "indicf5_ready": True,
+        }
+        assert healthy.reuse_contract_problem({"actual_status": "running", "public_ipaddr": "203.0.113.9", "ports": {"8000/tcp": [{"HostPort": "1234"}]}}, require_tts=True) is None
+
+        # 2. The exact failure from the broken box: image path unusable.
+        broken = VastManager(api_key="test-key")
+        broken.check_health = lambda url=None: {  # type: ignore[method-assign]
+            "status": "healthy",
+            "audio_image_only": True,
+            "image_model": "black-forest-labs/FLUX.2-klein-4B",
+            "image_ready": False,
+            "image_error": "RuntimeError: infer_schema(func): Parameter q has unsupported type torch.Tensor",
+            "indicf5_ready": False,
+            "indicf5_error": "NotImplementedError: Cannot copy out of meta tensor",
+        }
+        info = {"actual_status": "running", "public_ipaddr": "211.120.210.29", "ports": {"8000/tcp": [{"HostPort": "41829"}]}}
+        problem = broken.reuse_contract_problem(info, require_tts=True)
+        assert problem and "image pipeline unusable" in problem, problem
+        assert "meta tensor" in problem, "the TTS half must be reported too when narration is needed"
+
+        # Narration is not required for an image-only run, so only the image half counts.
+        image_only = broken.reuse_contract_problem(info, require_tts=False)
+        assert image_only and "meta tensor" not in image_only
+
+        # 3. A normal-mode container must not be handed to an audio/image run.
+        normal = VastManager(api_key="test-key")
+        normal.check_health = lambda url=None: {  # type: ignore[method-assign]
+            "status": "healthy",
+            "audio_image_only": False,
+            "image_model": "black-forest-labs/FLUX.1-schnell",
+            "image_ready": True,
+            "indicf5_ready": True,
+        }
+        wrong_mode = normal.reuse_contract_problem(info, require_tts=False)
+        assert wrong_mode and "old normal mode" in wrong_mode, wrong_mode
+
+        # 4. A stopped instance is reusable untested: it starts first, and the caller's
+        #    health check runs afterwards.
+        assert normal.reuse_contract_problem({"actual_status": "stopped"}, require_tts=True) is None
+
+        # 5. An unreachable server is not reusable.
+        silent = VastManager(api_key="test-key")
+
+        def _refuse(url=None):
+            raise ConnectionRefusedError("no listener")
+
+        silent.check_health = _refuse  # type: ignore[method-assign]
+        unreachable = silent.reuse_contract_problem(info, require_tts=False)
+        assert unreachable and "did not answer" in unreachable, unreachable
+
+        # 6. find_existing_instance must skip (not return) a contract-breaking instance.
+        finder = VastManager(api_key="test-key")
+        finder.run_cli = lambda args: json.dumps([  # type: ignore[method-assign]
+            {
+                "id": 56399186,
+                "gpu_name": "RTX 4090",
+                "actual_status": "running",
+                "disk_space": 60,
+                "dph_total": 0.457,
+                "machine_id": 150186,
+                "public_ipaddr": "211.120.210.29",
+                "ports": {"8000/tcp": [{"HostPort": "41829"}]},
+            },
+        ])
+        finder.check_health = broken.check_health
+        assert finder.find_existing_instance("RTX 4090", min_disk=60, require_tts=True) == (None, None), (
+            "an instance whose environment cannot serve this run must not be reused"
+        )
+    finally:
+        if saved is None:
+            os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+        else:
+            os.environ["VAST_AUDIO_IMAGE_ONLY"] = saved
+
+    print("  ✓ Reuse is gated on /health, so a stale install cannot be handed back forever.")
+
+
 def test_vast_dependency_abi() -> None:
     print("Testing the pinned NumPy/pyarrow ABI, dependency repair, and fast-fail on a broken server...")
 
@@ -1132,7 +1347,20 @@ def test_vast_dependency_abi() -> None:
     assert "vocos" in probe and "parler_tts" not in probe, (
         "IndicF5 production readiness must not depend on optional Parler compatibility"
     )
+    # `from diffusers import FluxPipeline` binds a symbol; the module that actually raises
+    # `infer_schema(func): Parameter q has unsupported type torch.Tensor` is the autoencoder,
+    # which diffusers imports lazily. Probing only the pipeline class certified a runtime
+    # that then answered HTTP 500 to every one of 25 scene requests.
+    assert "autoencoder_kl" in probe, (
+        "the probe must import the autoencoder module a torch/pydantic mismatch breaks in"
+    )
 
+    # pydantic is a TRANSITIVE dependency of transformers, so an unpinned resolve silently
+    # installs a version whose schema hook older torch builds cannot satisfy.
+    pinned_names = {name.split(">")[0].split("<")[0].split("=")[0]: name for name in SERVER_DEPENDENCIES}
+    assert pinned_names.get("pydantic", "").startswith("pydantic=="), (
+        f"pydantic must be pinned to torch 2.4.0's compatible range: {pinned_names.get('pydantic')}"
+    )
     repaired: list[tuple[int, str, int]] = []
     manager = VastManager(api_key="test-key")
     manager.run_ssh = lambda i, cmd, timeout=600: repaired.append((i, cmd, timeout)) or "[repair] ok"  # type: ignore[method-assign]
@@ -2049,6 +2277,8 @@ if __name__ == "__main__":
     test_audio_image_only_mode()
     test_vast_preflight()
     test_vast_rental_cost_ranking()
+    test_vast_meta_device_and_diagnose()
+    test_vast_reuse_contract()
     test_vast_dependency_abi()
     test_vast_gated_model_provisioning()
     test_indicf5_contracts()

@@ -1,46 +1,46 @@
 {
-  "title": "modi or trump ke yudh ki sachai",
-  "topic": "modi or trump ke yudh ki sachai",
+  "title": "Indus Valley Civilization: The Greatest Mystery of Ancient India",
+  "topic": "Indus Valley Civilization: The Greatest Mystery of Ancient India",
   "language": "hi",
   "genre": "ancient_history",
   "visualStyle": null,
-  "format": "reel",
-  "aspectRatio": "9:16",
-  "width": 1080,
-  "height": 1920,
+  "format": "landscape",
+  "aspectRatio": "16:9",
+  "width": 1920,
+  "height": 1080,
   "fps": 30,
   "voice": "indicf5_aarav",
   "secondaryVoice": null,
   "speed": 0.94,
   "sentencePauseSeconds": 0.25,
   "ambience": {
-    "src": "amb_vedic_resonance",
+    "src": "amb_ancient_sanctum",
     "volume": 0.2
   },
   "captions": {
     "enabled": true,
     "wordsPerCue": 5,
-    "bottom": 0.28,
-    "fontSize": 55,
+    "bottom": 0.14,
+    "fontSize": 48,
     "uppercase": false,
     "highlight": true,
     "position": "bottom",
     "outline": 0,
     "panel": true,
-    "maxWidth": 0.88,
+    "maxWidth": 0.92,
     "rise": 14,
     "hinglish": true
   },
   "theme": {
-    "key": "blood_red",
-    "name": "Blood Red",
-    "accent": "#ef4444",
-    "text": "#fef2f2",
-    "muted": "#fca5a5",
-    "panel": "rgba(45, 10, 10, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0c0404"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -51,22 +51,60 @@
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
-      "shots": [],
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true,
+            "glow": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.2,
+            "depth": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
       "ambience": {
-        "src": "amb_ancient_sanctum",
+        "src": "amb_temple",
         "volume": 0.15
       },
       "soundCues": [
         {
           "at": 0.0,
-          "sfx": "sfx_bell",
+          "sfx": "sfx_temple_gong",
           "volume": 0.16
         }
       ],
       "background": {
-        "type": "video",
-        "src": "videos/scene-001.mp4",
-        "dim": 0.08
+        "type": "color",
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -82,19 +120,362 @@
       "lines": [
         {
           "character": null,
-          "text": "डॉक्टर अर्जुन वर्मा ने हिमालय की उस गुफा में कदम रखा जिसका नाम किसी नक्शे पर नहीं था। अंधेरे में एक काली पत्थर की पट्टिका चमकी, जिस पर प्राचीन रूसी लिपि खुदी थी। यह लिपि यहाँ कैसे पहुँची?"
+          "text": "शिवपुरम मंदिर के बाहर सैकड़ों लोग खड़े हैं, और सब एक ही चीज़ देख रहे हैं। मंदिर के अंदर भारी पत्थर बिना किसी सहारे हवा में उठ रहे हैं। डॉ. आरव मेहरा यह सब अपनी आँखों से देख रहे हैं। क्या यह सच है या कोई चमत्कार?"
         }
       ],
-      "visualKeywords": "dark Himalayan cave, torchlight, black stone tablet, Cyrillic carvings"
+      "visualKeywords": "ancient stone temple, floating rock, shocked crowd, India"
     },
     {
       "id": "scene-002",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true,
+            "glow": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.2,
+            "depth": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.15
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_bell",
+          "volume": 0.16
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.27,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अंदर कदम रखते ही एक पत्थर हवा में उठा और आरव के सिर के ठीक पास से गुजर गया। उन्होंने झट से अपना वैज्ञानिक उपकरण निकाला। स्क्रीन पर एक अनजानी आवृत्ति दिखने लगी, जो किसी ज्ञात ध्वनि से मेल नहीं खाती थी। यह आवृत्ति आखिर कहाँ से आ रही है?"
+        }
+      ],
+      "visualKeywords": "stone flying past head, scientist ducking, digital device"
+    },
+    {
+      "id": "scene-003",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true,
+            "glow": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.2,
+            "depth": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_quarry_echo",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.28,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "गर्भगृह में पहुँचते ही आरव ने देखा कि ध्वनि तरंगें ही पत्थरों को ऊपर उठा रही हैं। हर पत्थर एक तय लय में हिल रहा था। उन्हें समझ आ गया कि यह ध्वनि किसी यंत्र से आ रही है, कोई चमत्कार नहीं। लेकिन वह यंत्र कहाँ छिपा है?"
+        }
+      ],
+      "visualKeywords": "temple sanctum, sound waves, vibrating stones, hidden mechanism"
+    },
+    {
+      "id": "scene-004",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true,
+            "glow": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.2,
+            "depth": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.28,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "मंदिर के फर्श के नीचे एक पुरानी सुरंग मिली, जो सीधे एक बंद गुफा की ओर जाती थी। आरव मशाल लेकर उस रास्ते पर बढ़े। गुफा का दरवाजा बंद था, लेकिन उस पर एक प्राचीन लिपि खुदी हुई थी, जो किसी को अंदर जाने से मना कर रही थी। गुफा में आखिर क्या है?"
+        }
+      ],
+      "visualKeywords": "underground tunnel, ancient inscription, closed cave door"
+    },
+    {
+      "id": "scene-005",
+      "beat": "establish",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true,
+            "glow": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.2,
+            "depth": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.72,
+            "grain": 0.22,
+            "dust": 0.3,
+            "zoom": 0.025,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.15
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.29,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अंदर घुसते ही दरवाजा अपने आप बंद हो गया। घुप्प अंधेरे में अजीब आवाजें गूंजने लगीं, जैसे कोई साँस ले रहा हो। आरव फंस चुके थे। तभी उन्हें दीवार पर कुछ चमकता दिखा। क्या वह इस बंद गुफा से बाहर निकल पाएंगे?"
+        }
+      ],
+      "visualKeywords": "cave door closing, darkness, glowing wall, trapped scientist"
+    },
+    {
+      "id": "scene-006",
       "beat": "dread",
       "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
-      "shots": [],
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
       "ambience": {
         "src": "amb_drone",
         "volume": 0.18
@@ -107,14 +488,171 @@
         }
       ],
       "background": {
-        "type": "video",
-        "src": "videos/scene-002.mp4",
-        "dim": 0.08
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.43,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "चमकती दीवार पर सिंधु घाटी की लिपि में कुछ लिखा था। जैसे ही आरव ने उसे छुआ, पत्थर फिर हवा में उठने लगे। उनके सामने एक गुप्त कक्ष का रास्ता खुल गया। गुप्त कक्ष में आखिर क्या रखा है?"
+        }
+      ],
+      "visualKeywords": "Indus script wall, floating stones, secret chamber entrance"
+    },
+    {
+      "id": "scene-007",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.18
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_ancient_mechanism",
+          "volume": 0.19
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
         "intensity": 0.44,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "कक्ष के बीचों-बीच एक प्राचीन यंत्र रखा था, जो ध्वनि और ऊर्जा से चल रहा था। आरव को सिंधु घाटी के वे अविश्वसनीय आविष्कार याद आ गए, जो आज की तकनीक से भी आगे थे। यह यंत्र हजारों साल बाद भी आखिर कैसे काम कर रहा है?"
+        }
+      ],
+      "visualKeywords": "ancient energy device, humming machine, Indus seals, glowing core"
+    },
+    {
+      "id": "scene-008",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_ancient_mechanism",
+          "volume": 0.19
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.45,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -125,33 +663,72 @@
       "lines": [
         {
           "character": null,
-          "text": "अनुवाद पढ़ते ही अर्जुन के हाथ काँप गए। पट्टिका पर लिखा था, जब दो महाद्वीपों के देवता लड़े, तब आकाश जल उठा। यह उस युद्ध का वर्णन था जो इतिहास की किसी भी किताब में नहीं मिलता।"
+          "text": "यंत्र को छूते ही आरव को एक दिव्य दृष्टि मिली। उन्होंने प्राचीन भारत के वैमानिक शास्त्र में लिखे अंतरिक्ष यान और उड़ते विमान देखे। यह सब उनकी आँखों के सामने जीवित हो उठा। क्या यह सब वाकई सच है?"
         }
       ],
-      "visualKeywords": "trembling hands, translated tablet, burning sky illustration, ancient manuscript"
+      "visualKeywords": "touching device, vision of flying machines, Vaimanika Shastra, ancient spacecraft"
     },
     {
-      "id": "scene-003",
+      "id": "scene-009",
       "beat": "approach",
       "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
-      "shots": [],
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "figure",
+            "distance": 0.45,
+            "fog": 0.3,
+            "glow": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.18
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
       "ambience": {
-        "src": "amb_drone",
+        "src": "amb_ancient_sanctum",
         "volume": 0.19
       },
       "soundCues": [],
       "background": {
-        "type": "video",
-        "src": "videos/scene-003.mp4",
-        "dim": 0.08
+        "type": "color",
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.65,
+        "intensity": 0.6,
         "head": "right",
         "eyes": "right",
         "gesture": "explain"
@@ -162,39 +739,874 @@
       "lines": [
         {
           "character": null,
-          "text": "साइबेरिया के उस प्राचीन शिवालय में अर्जुन रुका। दीवारों पर वही त्रिशूल और स्वस्तिक बने थे जो भारतीय मंदिरों में हैं। वहाँ के पुजारी ने धीरे से कहा, यह स्थान विनाश के देवता को समर्पित है।"
+          "text": "दृष्टि खत्म हुई, और आरव की नज़र सीधे उस विशाल ग्रेनाइट चट्टान पर गई। पूरा मंदिर ऊपर से नीचे तराशा गया था, जैसे किसी ने पहाड़ को भीतर से खोखला किया हो। लेकिन नीचे कोई मलबा नहीं मिला। इतना पत्थर गया कहाँ?"
         }
       ],
-      "visualKeywords": "Siberian ancient temple, trident symbol, swastika carving, old priest"
+      "visualKeywords": "granite cliff, vertical carving marks, chisel grooves, top-down excavation"
     },
     {
-      "id": "scene-004",
+      "id": "scene-010",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_ancient_mechanism",
+          "volume": 0.19
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.47,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "तभी यंत्र से एक गहरी आवाज़ निकली, और आरव के हाथ में लगा मीटर एक सौ छत्तीस दशमलव एक हर्ट्ज़ पर जम गया। यही तो ओम की असली आवृत्ति है। प्राचीन शिल्पियों ने पत्थर को इस तरह काटा था कि पूरा मंदिर एक विशाल वाद्य यंत्र बन गया।"
+        }
+      ],
+      "visualKeywords": "sound waves, tuning fork, 136.1 Hz meter, temple sanctum"
+    },
+    {
+      "id": "scene-011",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "figure",
+            "distance": 0.45,
+            "fog": 0.3,
+            "glow": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.19
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.19
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.62,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आरव ने दीवार पर बने छेदों से बाहर देखा। सूरज की किरण ठीक उसी पल उसी पत्थर पर पड़ी, जहाँ हर साल संक्रांति पर पड़ती थी। यह मंदिर सिर्फ इमारत नहीं, एक खगोलीय कैलेंडर था, जो हज़ारों साल से समय गिन रहा था।"
+        }
+      ],
+      "visualKeywords": "star alignment, sun rays through stone window, equinox, astronomical chart"
+    },
+    {
+      "id": "scene-012",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.49,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "कुछ साल पहले सरकार ने इसे तोड़ने की कोशिश की थी। आधुनिक ड्रिल मशीनें पत्थर पर फिसल गईं, बुलडोज़र के ब्लेड टूट गए। इंजीनियर हार मानकर लौट गए। यह ग्रेनाइट उन मशीनों से भी सख्त निकला, जो पहाड़ काटती हैं।"
+        }
+      ],
+      "visualKeywords": "bulldozer, cracked drill bit, failed demolition, British records"
+    },
+    {
+      "id": "scene-013",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "figure",
+            "distance": 0.45,
+            "fog": 0.3,
+            "glow": 0.6
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.8
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.2
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.19
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_ancient_mechanism",
+          "volume": 0.2
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.65,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अंदर जैसे ही आरव ने एक पत्थर पर हल्का प्रहार किया, पूरा कक्ष गूँज उठा। आवाज़ दीवारों से टकराकर किसी जाल की तरह फैल गई। हर खंभा एक अलग सुर बजा रहा था। यह कोई संयोग नहीं, पूरी तरह गणना से बना ध्वनि-तंत्र था।"
+        }
+      ],
+      "visualKeywords": "underground chamber, resonating pillars, echo map, acoustic blueprint"
+    },
+    {
+      "id": "scene-014",
+      "beat": "dread",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 0.95
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.35,
+            "depth": 0.7
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.78,
+            "grain": 0.28,
+            "dust": 0.32,
+            "zoom": 0.03,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.18
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.51,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आरव ने लेज़र मीटर निकाला। दो पत्थरों के बीच की दरार एक मिलीमीटर से भी कम थी, और बीच में ज़रा भी गारा नहीं। इतनी सटीक कटाई आज की मशीनों से भी मुश्किल है। फिर हज़ारों साल पहले, बिना बिजली के, यह कैसे हुआ?"
+        }
+      ],
+      "visualKeywords": "laser measure, sub-millimeter joints, no mortar, interlocking stones"
+    },
+    {
+      "id": "scene-015",
+      "beat": "approach",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "figure",
+            "distance": 0.45,
+            "fog": 0.3,
+            "glow": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.75,
+            "grain": 0.25,
+            "dust": 0.28,
+            "zoom": 0.035,
+            "drift": "in",
+            "shake": 0.21
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.19
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.68,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "तभी यंत्र की ऊर्जा पूरे कक्ष में फैल गई, और दीवारों पर उभरी आकृतियाँ चमकने लगीं। आरव समझ गया, यह यंत्र सिर्फ चल नहीं रहा था, वह पूरे मंदिर को जगा रहा था। यह ऊर्जा कहाँ से आ रही थी, जब कोई तार या बैटरी दिखती ही नहीं?"
+        }
+      ],
+      "visualKeywords": "glowing device, energy pulse, stone lighting up, ancient battery"
+    },
+    {
+      "id": "scene-016",
       "beat": "reveal",
       "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
-      "shots": [],
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true,
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.36,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
       "ambience": {
         "src": "amb_vedic_resonance",
+        "volume": 0.24
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_cinematic_hit",
+          "volume": 0.24
+        },
+        {
+          "at": 13.56,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.24
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.9,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आरव ने दीवारों पर बने ज्यामितीय नक्शे को गौर से देखा। हर कोण, हर दूरी, सब किसी गहरे गणित में बँधे थे। प्राचीन शिल्पियों ने ध्वनि, प्रकाश और ब्रह्मांड के नियम सीधे पत्थर में उतार दिए थे। यह मंदिर असल में एक जीवित विज्ञान-ग्रंथ था।"
+        }
+      ],
+      "visualKeywords": "sacred geometry, golden ratio, temple blueprint, cosmic mandala"
+    },
+    {
+      "id": "scene-017",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true,
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.37,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.24
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_boom",
+          "volume": 0.24
+        },
+        {
+          "at": 13.56,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.24
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.92,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "देखिए, यही गणित, यही ध्वनि-तरंगें और यही खगोलीय संरेखण अब तक जीवित हैं। जैसे ही मंत्र की आवाज़ गूंजती है, पत्थर उसे सोख नहींता, बल्कि सहेजकर लौटाता है। यह कोई संयोग नहीं, पूरा एक इंजीनियरिंग का चमत्कार है।"
+        }
+      ],
+      "visualKeywords": "temple pillars, geometric carvings, sound wave ripples, priest chanting, stone resonance"
+    },
+    {
+      "id": "scene-018",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true,
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.38,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
+        "volume": 0.24
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_impact",
+          "volume": 0.24
+        },
+        {
+          "at": 13.56,
+          "sfx": "sfx_boom",
+          "volume": 0.24
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.94,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अब गौर कीजिए—यही पवित्र ज्यामिति, यही ध्वनि-भौतिकी और यही शाश्वत विज्ञान, तीनों एक ही पत्थर में गूंथे हुए हैं। हर कोण, हर अनुपात, हर गुंजन एक ही गणितीय भाषा बोलता है। यह कोई अलग-अलग करतब नहीं, एक ही महान शिल्पी की एक ही मास्टर-योजना है, जो अभी पूरी खुली नहीं है।"
+        }
+      ],
+      "visualKeywords": "granite pillars, tuning fork, sound waves, sacred geometry overlay"
+    },
+    {
+      "id": "scene-019",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true,
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.12,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.3,
+            "dust": 0.25,
+            "shake": 0.39,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_drone",
         "volume": 0.25
       },
       "soundCues": [
         {
           "at": 0.15,
-          "sfx": "sfx_mystic_reveal",
+          "sfx": "sfx_boom",
           "volume": 0.24
         },
         {
           "at": 13.56,
-          "sfx": "sfx_cinematic_hit",
+          "sfx": "sfx_mystic_reveal",
           "volume": 0.24
         }
       ],
       "background": {
-        "type": "video",
-        "src": "videos/scene-004.mp4",
-        "dim": 0.08
+        "type": "color",
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -210,39 +1622,70 @@
       "lines": [
         {
           "character": null,
-          "text": "लद्दाख के गुप्त मठ में अर्जुन को एक पुरानी पांडुलिपि मिली। उसमें लिखा था, उस युद्ध में विमान और अग्नि-बाण चलाए गए थे। यह तकनीक आज भी वैज्ञानिकों की समझ से पूरी तरह परे है।"
+          "text": "अब गौर कीजिए—हर स्तंभ, हर गुंबद, हर दीवार ऐसे बनी है जैसे किसी ने ध्वनि को बांधने का नक्शा बनाया हो। पत्थर संगीत बजाता है, ज्यामिति गाती है, और विज्ञान खुद को दोहराता है। लेकिन असली राज़ तो अभी बाकी है—क्योंकि इसी पहाड़ के अंदर एक ऐसा कमरा छिपा है, जो आवाज़ को जिंदा रखता है।"
         }
       ],
-      "visualKeywords": "hidden Ladakh monastery, ancient manuscript, vimana diagram, fire arrow sketch"
+      "visualKeywords": "macro stone joint, geometric overlay, sound wave ripple, candlelit carving"
     },
     {
-      "id": "scene-005",
+      "id": "scene-020",
       "beat": "react",
       "headline": "",
       "subtext": "",
       "bullets": [],
       "headlinePosition": "center",
-      "shots": [],
-      "ambience": {
-        "src": "amb_ancient_sanctum",
-        "volume": 0.16
-      },
-      "soundCues": [
+      "shots": [
         {
-          "at": 0.15,
-          "sfx": "sfx_temple_gong",
-          "volume": 0.16
+          "visual": {
+            "type": "fog",
+            "density": 0.35,
+            "glow": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
         }
       ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.16
+      },
+      "soundCues": [],
       "background": {
-        "type": "video",
-        "src": "videos/scene-005.mp4",
-        "dim": 0.08
+        "type": "color",
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.56,
+        "intensity": 0.52,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -253,19 +1696,407 @@
       "lines": [
         {
           "character": null,
-          "text": "अर्जुन को अंतिम सत्य मिला। वह युद्ध नहीं, एक पूरी सभ्यता का विनाश था, जिसे भारत और रूस ने मिलकर छिपाया। ताकि मानवता दोबारा वही गलती न करे। लेकिन अब यह सच बेहद खतरनाक साबित हो सकता है।"
+          "text": "वह खोखला कमरा आज भी वैसे ही खड़ा है—हज़ारों साल बीत गए, पर एक पत्थर अपनी जगह से नहीं हिला। न धूप ने उसे खाया, न बारिश ने, न ज़मीन के झटकों ने। ये इमारत नहीं, एक अमिट सबूत है—किसी भूली हुई उच्च तकनीकी सभ्यता का, जो अपनी महानता खुद चिल्लाकर बता रही है।"
         }
       ],
-      "visualKeywords": "final manuscript, India Russia map, hidden truth, ominous horizon"
+      "visualKeywords": "hollow chamber, echoing stone, torchlight, ancient granite walls, sound waves"
+    },
+    {
+      "id": "scene-021",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "fog",
+            "density": 0.35,
+            "glow": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.16
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.53,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "सूरज, चांद, तारे—सबकी चाल पत्थर में दर्ज है। हर साल एक खास दिन किरण ठीक उसी बिंदु पर गिरती है, जहां सदियों पहले तय हुआ था। और यही सबसे बड़ा सबूत है—ये पत्थर खुद को सिद्ध करता है। हज़ारों साल बाद भी वो तकनीक आज की मशीनों को चुनौती देती है, जिसे हम आज तक समझ नहीं पाए।"
+        }
+      ],
+      "visualKeywords": "ancient granite wall, sun alignment, timeless stone, cosmic calendar"
+    },
+    {
+      "id": "scene-022",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "fog",
+            "density": 0.35,
+            "glow": 0.7
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.25,
+            "lit": true
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.22,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.16
+      },
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.53,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "आधुनिक मशीनें आईं, हथौड़े चले, ड्रिल घूमीं—पर ग्रेनाइट आज भी हिला तक नहीं। जो चीज़ हज़ारों साल पहले बनी, वो आज की हर तकनीक को हरा देती है। ये पत्थर सिर्फ़ दीवार नहीं—ये उस भूली हुई सभ्यता का अटल साक्ष्य है, जिसके हाथों में वो शक्ति थी जो हमने खो दी।"
+        }
+      ],
+      "visualKeywords": "weathered granite monolith, modern drill snapped, chisel scar close-up, time-lapse erosion"
+    },
+    {
+      "id": "scene-023",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "forest",
+            "fog": 0.25,
+            "moonlight": 0.8
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_temple",
+        "volume": 0.16
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_mystic_reveal",
+          "volume": 0.15
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.42,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "छेनी से ऐसी सफाई कभी नहीं आती। ना कोई चटक, ना कोई रगड़। जैसे पत्थर को काटा नहीं गया—जैसे उसे पिघलाकर ढाला गया हो।"
+        }
+      ],
+      "visualKeywords": "chisel close-up, microscopic precision, tool marks, granite surface"
+    },
+    {
+      "id": "scene-024",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "forest",
+            "fog": 0.25,
+            "moonlight": 0.8
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.16
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_temple_gong",
+          "volume": 0.15
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.43,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "अब समझ आता है—ये सिर्फ मंदिर नहीं। ये गणित, ध्वनि और खगोल का एक ज़िंदा फॉर्मूला है, जिसे पत्थर में हमेशा के लिए कैद कर दिया गया।"
+        }
+      ],
+      "visualKeywords": "golden ratio, sacred geometry overlay, mandala grid, temple plan"
+    },
+    {
+      "id": "scene-025",
+      "beat": "resolve",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "forest",
+            "fog": 0.25,
+            "moonlight": 0.8
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.2,
+            "lit": true
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.68,
+            "grain": 0.2,
+            "dust": 0.18,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": {
+        "src": "amb_ancient_sanctum",
+        "volume": 0.16
+      },
+      "soundCues": [
+        {
+          "at": 0.15,
+          "sfx": "sfx_bell",
+          "volume": 0.15
+        }
+      ],
+      "background": {
+        "type": "color",
+        "color": "#050c18"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.44,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "तो क्या ये मंदिर खुद एक सवाल है, जो हज़ारों साल से हमसे पूछ रहा है—कि हमसे पहले कौन था, जो पत्थर को इस तरह जानता था? और जवाब आज भी उसी ग्रेनाइट में धड़कता है, बस सुनने वाला कोई नहीं।"
+        }
+      ],
+      "visualKeywords": "carved stone circle, glowing 136.1 Hz wave, temple silhouette at dusk, looped geometry"
     }
   ],
   "audioModel": "indicf5",
-  "visualMode": "video",
+  "visualMode": "image",
   "blueprint": {
-    "minutes": 2.0,
-    "seconds": 120.0,
-    "sceneCount": 5,
-    "totalWords": 224,
+    "minutes": 10.0,
+    "seconds": 600.0,
+    "sceneCount": 25,
+    "totalWords": 1120,
     "wordsPerScene": 45,
     "wpm": 112,
     "movements": [
@@ -273,223 +2104,422 @@
         "key": "hook",
         "weight": 0.06,
         "scenes": [
-          1
+          1,
+          2
         ],
-        "sceneCount": 1,
-        "words": 45,
+        "sceneCount": 2,
+        "words": 90,
         "range": [
           1,
-          1
+          2
+        ]
+      },
+      {
+        "key": "setup",
+        "weight": 0.12,
+        "scenes": [
+          3,
+          4,
+          5
+        ],
+        "sceneCount": 3,
+        "words": 135,
+        "range": [
+          3,
+          5
         ]
       },
       {
         "key": "inciting",
         "weight": 0.12,
         "scenes": [
-          2
+          6,
+          7,
+          8
         ],
-        "sceneCount": 1,
-        "words": 45,
+        "sceneCount": 3,
+        "words": 135,
         "range": [
-          2,
-          2
+          6,
+          8
         ]
       },
       {
         "key": "rising",
         "weight": 0.32,
         "scenes": [
-          3
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
         ],
-        "sceneCount": 1,
-        "words": 45,
+        "sceneCount": 7,
+        "words": 315,
         "range": [
-          3,
-          3
+          9,
+          15
         ]
       },
       {
         "key": "climax",
         "weight": 0.18,
         "scenes": [
-          4
+          16,
+          17,
+          18,
+          19
         ],
-        "sceneCount": 1,
-        "words": 45,
+        "sceneCount": 4,
+        "words": 180,
         "range": [
-          4,
-          4
+          16,
+          19
         ]
       },
       {
         "key": "resolution",
         "weight": 0.12,
         "scenes": [
-          5
+          20,
+          21,
+          22
         ],
-        "sceneCount": 1,
-        "words": 45,
+        "sceneCount": 3,
+        "words": 135,
         "range": [
-          5,
-          5
+          20,
+          22
+        ]
+      },
+      {
+        "key": "button",
+        "weight": 0.08,
+        "scenes": [
+          23,
+          24,
+          25
+        ],
+        "sceneCount": 3,
+        "words": 135,
+        "range": [
+          23,
+          25
         ]
       }
     ]
   },
   "storyBible": {
-    "title": "मोदी-ट्रंप का 5000 साल पुराना युद्ध",
-    "logline": "एक पुरातत्वविद् को प्राचीन मंदिर में ऐसा रहस्य मिलता है जो मोदी और ट्रंप को पिछले जन्मों के योद्धा साबित करता है, लेकिन सच छिपाने वाली शक्तियाँ उसे रोकने पर तुली हैं।",
-    "protagonist": {
-      "name": "डॉ. विक्रम सेन",
-      "want": "प्राचीन मंदिर के रहस्य का पता लगाकर मोदी और ट्रंप के युद्ध का सच दुनिया के सामने लाना",
-      "flaw": "अपने करियर और प्रतिष्ठा के लिए सच को थोड़ा तोड़-मरोड़ कर पेश करने की आदत"
-    },
-    "setting": {
-      "place": "अमेरिका के न्यू मैक्सिको में एक गुप्त हिंदू मंदिर और भारत का एक प्राचीन शिवालय",
-      "era": "वर्तमान काल, लेकिन कहानी 5000 साल पुराने इतिहास से जुड़ी है"
-    },
-    "span": {
-      "totalScenes": 5,
-      "totalWords": 224,
-      "runtimeMinutes": 2.0
-    },
-    "arc": [
-      {
-        "movement": "hook",
-        "scenes": [
-          1,
-          2
-        ],
-        "summary": "डॉ. विक्रम को अमेरिका के रेगिस्तान में एक प्राचीन हिंदू मंदिर मिलता है जिसमें मोदी और ट्रंप के चेहरे वाली मूर्तियाँ हैं।",
-        "endsOn": "विक्रम यह समझ जाता है कि यह मंदिर 5000 साल पुराना है और इसमें एक भविष्यवाणी छिपी है।"
-      },
-      {
-        "movement": "rising",
-        "scenes": [
-          3
-        ],
-        "summary": "विक्रम को मंदिर की दीवारों पर एक संस्कृत श्लोक मिलता है जो मोदी और ट्रंप के महायुद्ध की भविष्यवाणी करता है।",
-        "endsOn": "विक्रम के सामने सवाल है कि क्या यह भविष्यवाणी सच है या साजिश।"
-      },
-      {
-        "movement": "climax",
-        "scenes": [
-          4
-        ],
-        "summary": "विक्रम भारत के एक प्राचीन शिवालय में पहुँचता है जहाँ उसे पता चलता है कि मोदी और ट्रंप पिछले जन्मों के योद्धा थे।",
-        "endsOn": "विक्रम के पास सबूत है लेकिन उसकी जान को खतरा है।"
-      },
-      {
-        "movement": "resolution",
-        "scenes": [
-          5
-        ],
-        "summary": "विक्रम सच दुनिया के सामने रखता है और भविष्यवाणी का असली मतलब सामने आता है।",
-        "endsOn": "सच सामने आ जाता है और दोनों नेताओं का प्राचीन संबंध उजागर होता है।"
-      }
-    ],
     "sceneBeats": [
       {
         "n": 1,
         "beat": "establish",
-        "whatHappens": "डॉ. विक्रम सेन अमेरिका के न्यू मैक्सिको रेगिस्तान में एक प्राचीन हिंदू मंदिर की खोज करता है जिसमें मोदी और ट्रंप की मूर्तियाँ हैं।",
-        "continuesFrom": null,
-        "endsOn": "विक्रम हैरान है कि यह मंदिर 5000 साल पुराना कैसे हो सकता है।",
-        "openLoops": [
-          "मंदिर कितना पुराना है?",
-          "मोदी और ट्रंप की मूर्तियाँ क्यों हैं?"
-        ],
-        "words": 44
+        "whatHappens": "Open with a shocking physical impossibility, massive tonnage anomaly, or lost sound code that shatters modern construction logic. Step 1 of 2 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "Open with a shocking physical impossibility, massive tonnage anomaly, or lost sound code that shatters modern construction logic. Step 1 of 2 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "openLoops": [],
+        "words": 45
       },
       {
         "n": 2,
-        "beat": "dread",
-        "whatHappens": "विक्रम मंदिर के अंदर जाता है और दीवारों पर संस्कृत में लिखी एक भविष्यवाणी देखता है जो मोदी और ट्रंप के महायुद्ध की ओर इशारा करती है।",
-        "continuesFrom": "विक्रम मंदिर की उम्र और मूर्तियों के रहस्य से परेशान है।",
-        "endsOn": "विक्रम को समझ आता है कि यह भविष्यवाणी 3000 साल पुरानी है।",
-        "openLoops": [
-          "भविष्यवाणी का मतलब क्या है?",
-          "क्या यह सच होगी?"
-        ],
+        "beat": "establish",
+        "whatHappens": "Open with a shocking physical impossibility, massive tonnage anomaly, or lost sound code that shatters modern construction logic. Step 2 of 2 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "Open with a shocking physical impossibility, massive tonnage anomaly, or lost sound code that shatters modern construction logic. Step 2 of 2 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 1,
+        "openLoops": [],
         "words": 45
       },
       {
         "n": 3,
-        "beat": "approach",
-        "whatHappens": "विक्रम भारत के एक प्राचीन शिवालय में जाता है जहाँ उसे पता चलता है कि मोदी और ट्रंप पिछले जन्मों के योद्धा थे जिनका युद्ध अधूरा रह गया।",
-        "continuesFrom": "विक्रम भविष्यवाणी का मतलब खोज रहा है।",
-        "endsOn": "विक्रम के पास सबूत है लेकिन उसे धमकियाँ मिलने लगती हैं।",
-        "openLoops": [
-          "क्या विक्रम सच बता पाएगा?",
-          "कौन धमका रहा है?"
-        ],
+        "beat": "establish",
+        "whatHappens": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 2,
+        "openLoops": [],
         "words": 45
       },
       {
         "n": 4,
-        "beat": "reveal",
-        "whatHappens": "विक्रम को पता चलता है कि मंदिर में छिपा एक गुप्त चक्र मोदी और ट्रंप के पुनर्जन्म को दर्शाता है और यह युद्ध अब भी जारी है।",
-        "continuesFrom": "विक्रम धमकियों के बावजूद सच की खोज में है।",
-        "endsOn": "विक्रम के पास पूरा सच है और वह इसे दुनिया के सामने लाने वाला है।",
-        "openLoops": [
-          "क्या दुनिया सच मानेगी?",
-          "क्या युद्ध रुकेगा?"
-        ],
+        "beat": "establish",
+        "whatHappens": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 3,
+        "openLoops": [],
         "words": 45
       },
       {
         "n": 5,
+        "beat": "establish",
+        "whatHappens": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "Establish the sheer monolithic scale, unbroken granite cliffside, and centuries of preserved majesty. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 4,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 6,
+        "beat": "dread",
+        "whatHappens": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 5,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 7,
+        "beat": "dread",
+        "whatHappens": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 6,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 8,
+        "beat": "dread",
+        "whatHappens": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The architectural paradox: missing quarry debris, zero-mortar interlocking joints, sub-millimeter precision, or underground acoustic resonance. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 7,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 9,
+        "beat": "approach",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 1 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 1 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 8,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 10,
+        "beat": "dread",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 2 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 2 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 9,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 11,
+        "beat": "approach",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 3 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 3 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 10,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 12,
+        "beat": "dread",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 4 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 4 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 11,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 13,
+        "beat": "approach",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 5 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 5 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 12,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 14,
+        "beat": "dread",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 6 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 6 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 13,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 15,
+        "beat": "approach",
+        "whatHappens": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 7 of 7, and it must be worse than the one before it.",
+        "endsOn": "Mechanical & Acoustic Breakdown: dissecting vertical top-down carving, 136.1 Hz Om resonance, astronomical alignments, and failed modern demolition attempts. This is complication 7 of 7, and it must be worse than the one before it.",
+        "continuesFrom": 14,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 16,
+        "beat": "reveal",
+        "whatHappens": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 1 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 1 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 15,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 17,
+        "beat": "reveal",
+        "whatHappens": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 2 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 2 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 16,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 18,
+        "beat": "reveal",
+        "whatHappens": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 3 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 3 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 17,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 19,
+        "beat": "reveal",
+        "whatHappens": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 4 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Master Revelation: how ancient architects encoded sacred geometry, acoustic physics, and eternal science into living stone. Step 4 of 4 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 18,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 20,
+        "beat": "react",
+        "whatHappens": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 19,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 21,
+        "beat": "react",
+        "whatHappens": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 20,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 22,
+        "beat": "react",
+        "whatHappens": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "The Indestructible Testament: standing unchanged across millennia as proof of a forgotten high-technology civilization. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 21,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 23,
         "beat": "resolve",
-        "whatHappens": "विक्रम सच दुनिया के सामने रखता है और भविष्यवाणी का असली मतलब सामने आता है—मोदी और ट्रंप का युद्ध पिछले जन्मों का है और इस बार शांति से खत्म होगा।",
-        "continuesFrom": "विक्रम के पास पूरा सच है।",
-        "endsOn": "सच सामने आ जाता है और दोनों नेताओं का प्राचीन संबंध उजागर होता है।",
+        "whatHappens": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 1 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 22,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 24,
+        "beat": "resolve",
+        "whatHappens": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 2 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 23,
+        "openLoops": [],
+        "words": 45
+      },
+      {
+        "n": 25,
+        "beat": "resolve",
+        "whatHappens": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "endsOn": "An infinite-loop closing revelation that circles back directly to the opening hook question. Step 3 of 3 inside this movement; continue the same story from the previous scene, do not restart it and do not conclude it.",
+        "continuesFrom": 24,
         "openLoops": [],
         "words": 45
       }
     ],
-    "payoff": {
-      "scene": 5,
-      "resolves": [
-        "मंदिर की उम्र और मूर्तियों का रहस्य",
-        "भविष्यवाणी का मतलब",
-        "मोदी और ट्रंप का पिछले जन्मों का संबंध",
-        "युद्ध का अंत"
-      ]
+    "span": {
+      "totalScenes": 25,
+      "totalWords": 1120,
+      "runtimeMinutes": 10.0
     },
-    "banned": [
-      "कोई भी राजनीतिक टिप्पणी जो वर्तमान नेताओं का अपमान करे",
-      "अंग्रेजी में नैरेशन",
-      "कहानी को बीच में ही समाप्त करना",
-      "पात्रों का दोबारा परिचय"
-    ],
+    "arc": [],
+    "banned": [],
     "language": "hi"
   },
   "storyReport": {
     "bible": {
-      "accepted": true,
-      "fallback": false,
-      "problems": [],
-      "attempts": 1
+      "accepted": false,
+      "fallback": true,
+      "problems": [
+        "no logline",
+        "no arc",
+        "no sceneBeats"
+      ],
+      "attempts": 3
     },
     "chunks": [
       {
         "chunk": [
           1,
-          5
+          8
         ],
         "cached": true,
-        "words": 184
+        "words": 366
+      },
+      {
+        "chunk": [
+          9,
+          16
+        ],
+        "cached": true,
+        "words": 354
+      },
+      {
+        "chunk": [
+          17,
+          24
+        ],
+        "cached": true,
+        "words": 193
+      },
+      {
+        "chunk": [
+          25,
+          25
+        ],
+        "cached": true,
+        "words": 41
       }
     ],
-    "issues": [],
-    "issuesAfterRepair": null,
-    "repairs": []
+    "issues": [
+      "scene 17: length (25 words against a target of 45 (44% off))",
+      "scene 18: length (21 words against a target of 45 (53% off))",
+      "scene 19: length (23 words against a target of 45 (49% off))",
+      "scene 20: length (21 words against a target of 45 (53% off))",
+      "scene 21: length (26 words against a target of 45 (42% off))",
+      "scene 22: length (26 words against a target of 45 (42% off))",
+      "scene 23: length (24 words against a target of 45 (47% off))",
+      "scene 24: length (27 words against a target of 45 (40% off))"
+    ],
+    "issuesAfterRepair": [
+      "scene 23: length (24 words against a target of 45 (47% off))",
+      "scene 24: length (27 words against a target of 45 (40% off))"
+    ],
+    "repairs": [
+      "scene 17: length",
+      "scene 18: length",
+      "scene 19: length",
+      "scene 20: length",
+      "scene 21: length",
+      "scene 22: length"
+    ]
   },
   "research": {
-    "seed": "modi or trump ke yudh ki sachai",
+    "seed": "Indus Valley Civilization: The Greatest Mystery of Ancient India",
     "genre": "ancient_history",
     "keywords": {
-      "seed": "modi or trump ke yudh ki sachai",
+      "seed": "Indus Valley Civilization: The Greatest Mystery of Ancient India",
       "youtube_trending": [],
       "google_search": [],
       "questions_and_curiosity": [],
@@ -498,61 +2528,60 @@
     "ai_synthesis": {
       "concepts": [
         {
-          "title": "सिंहासन का रहस्य: मोदी और ट्रंप का प्राचीन युद्ध",
-          "hook": "क्या आप जानते हैं कि मोदी और ट्रंप के बीच की लड़ाई 5000 साल पुरानी है?",
-          "core_angle": "दो आधुनिक नेताओं की छवियों को प्राचीन राजाओं के रूप में पेश करते हुए, एक पौराणिक युद्ध की कहानी जो वर्तमान सत्ता संघर्ष को दर्शाती है।",
-          "recommended_topic_arg": "modi aur trump ke beech ka prachin yudh, jaise Mahabharat mein Kaurav aur Pandav",
-          "target_emotion": "shock"
-        },
-        {
-          "title": "ट्रंप का गुप्त हिंदू मंदिर? मोदी का रहस्य!",
-          "hook": "अमेरिका में एक प्राचीन हिंदू मंदिर है जिसका रहस्य ट्रंप और मोदी दोनों से जुड़ा है।",
-          "core_angle": "एक खोजी कहानी जो एक काल्पनिक प्राचीन मंदिर के इर्द-गिर्द घूमती है, जिसमें दावा किया जाता है कि इसके भविष्यवाणी वाले शिलालेख दोनों नेताओं के उदय की भविष्यवाणी करते हैं।",
-          "recommended_topic_arg": "Trump ka gupt Hindu mandir aur Modi ka rahasya, prachin shilalekh",
-          "target_emotion": "curiosity"
-        },
-        {
-          "title": "प्राचीन भविष्यवाणी: मोदी और ट्रंप का महायुद्ध",
-          "hook": "3000 साल पुरानी एक भविष्यवाणी, जो मोदी और ट्रंप के बीच महायुद्ध की ओर इशारा करती है।",
-          "core_angle": "एक प्राचीन पांडुलिपि की खोज जो सटीक भविष्यवाणी करती है कि कैसे दो शक्तिशाली नेता टकराएंगे और दुनिया को बदल देंगे।",
-          "recommended_topic_arg": "prachin bhavishyavani Modi aur Trump ka mahayudh, 3000 saal purani",
+          "title": "Indus Valley: जो सभ्यता अचानक गायब हो गई",
+          "hook": "एक ऐसी सभ्यता जो दुनिया की सबसे आधुनिक थी, फिर भी एक रात में गायब हो गई...",
+          "core_angle": "The psychological twist of a highly advanced civilization vanishing without a trace, leaving behind perfectly planned cities and no explanation.",
+          "recommended_topic_arg": "Indus Valley Civilization ka rahasyamayi vinash: ek advanced sabhyata ka achanak gayab hona",
           "target_emotion": "dread"
         },
         {
-          "title": "मोदी vs ट्रंप: प्राचीन सभ्यता का गुप्त युद्ध",
-          "hook": "एक गुप्त युद्ध जो प्राचीन सभ्यताओं से चला आ रहा है, और अब मोदी और ट्रंप इसके केंद्र में हैं।",
-          "core_angle": "दो प्राचीन सभ्यताओं के बीच छिपे युद्ध का खुलासा, जिसमें मोदी और ट्रंप वर्तमान में उनके वंशज हैं।",
-          "recommended_topic_arg": "Modi vs Trump prachin sabhyata ka gupt yudh, jaise Ramayan aur Mahabharat",
-          "target_emotion": "excitement"
+          "title": "मोहनजोदड़ो के 5 राज जो आज भी अनसुलझे हैं",
+          "hook": "मोहनजोदड़ो में ऐसी चीजें मिलीं जो आज की तकनीक को भी चौंका दें...",
+          "core_angle": "Five unexplainable archaeological findings from Mohenjo-daro that challenge modern understanding of ancient technology and society.",
+          "recommended_topic_arg": "Mohenjo-daro ke 5 anokhe puratatvik rahasya jo aaj bhi solve nahi hue",
+          "target_emotion": "curiosity"
         },
         {
-          "title": "जब मोदी और ट्रंप मिले: प्राचीन पत्थर की गुत्थी",
-          "hook": "जब मोदी और ट्रंप पहली बार मिले, तो एक प्राचीन पत्थर ने सब कुछ बदल दिया।",
-          "core_angle": "एक काल्पनिक कहानी जहां दोनों नेता एक प्राचीन पत्थर की खोज करते हैं जो उनके पिछले जन्मों के युद्ध को उजागर करता है।",
-          "recommended_topic_arg": "Jab Modi aur Trump mile, prachin patthar ki gutthi, pichhle janm ka yudh",
+          "title": "क्या सिंधु घाटी सभ्यता एलियंस ने बनाई थी?",
+          "hook": "क्या हड़प्पा के लोगों को किसी बाहरी शक्ति ने सिखाया था? सबूत आपको हैरान कर देंगे...",
+          "core_angle": "The controversial ancient astronaut theory applied to Indus Valley's advanced urban planning and unexplained artifacts, presented as a thought-provoking question.",
+          "recommended_topic_arg": "Kya Indus Valley Civilization alien intervention se bani thi? Harappa ke anokhe saboot",
+          "target_emotion": "shock"
+        },
+        {
+          "title": "सिंधु लिपि: दुनिया की सबसे रहस्यमयी भाषा",
+          "hook": "एक ऐसी लिपि जिसे आज तक कोई नहीं पढ़ पाया, और इसमें छिपा है एक बड़ा खतरा...",
+          "core_angle": "The undeciphered Indus script holds secrets that could rewrite history, but some believe it was deliberately encrypted to hide something dangerous.",
+          "recommended_topic_arg": "Indus script: duniya ki sabse rahasyamayi lipi jo aaj tak decode nahi hui",
+          "target_emotion": "dread"
+        },
+        {
+          "title": "सिंधु घाटी सभ्यता के 7 अविश्वसनीय आविष्कार",
+          "hook": "आज की दुनिया जिन चीजों पर गर्व करती है, वो सिंधु घाटी में 5000 साल पहले मौजूद थीं...",
+          "core_angle": "Seven astonishing inventions and technologies of the Indus Valley Civilization that were far ahead of their time, evoking wonder and national pride.",
+          "recommended_topic_arg": "Indus Valley Civilization ke 7 aavishkar jo aaj bhi hairan karte hain",
           "target_emotion": "wonder"
         }
       ],
       "seo_tags": [
-        "modi trump ancient war",
-        "prachin yudh modi trump",
-        "modi trump secret history",
-        "ancient prophecy modi trump",
-        "modi trump reincarnation",
-        "hindu temple trump",
-        "modi trump mystery",
-        "ancient india america connection",
-        "modi trump past life",
-        "modi trump rivalry"
+        "indus valley civilization",
+        "sindhu ghati sabhyata",
+        "harappa mohenjo daro",
+        "ancient india mystery",
+        "indus valley secrets",
+        "indus script",
+        "mohenjo daro facts",
+        "history in hindi",
+        "ancient civilization documentary",
+        "indus valley unexplained"
       ],
       "recommended_hashtags": [
-        "#ModiTrump",
-        "#AncientWar",
-        "#PrachinRahasya",
-        "#IndianHistory",
+        "#IndusValley",
+        "#SindhuGhati",
+        "#AncientIndia",
+        "#HistoryHindi",
         "#Mystery"
       ]
     }
-  },
-  "videoModel": "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"
+  }
 }
