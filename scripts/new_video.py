@@ -1584,6 +1584,31 @@ def main() -> int:
         help="direct URL of running Vast.ai GPU server (e.g. http://ip:8000)",
     )
     parser.add_argument(
+        "--choosegpu",
+        "--choose-gpu",
+        dest="choosegpu",
+        action="store_true",
+        help=(
+            "list available GPUs with price, download speed/cost and storage cost, then "
+            "pick the one to rent (non-interactive runs default to the cheapest)"
+        ),
+    )
+    parser.add_argument(
+        "--choosegpu-pick",
+        "--pick-gpu",
+        dest="choosegpu_pick",
+        type=int,
+        default=None,
+        help="with --choosegpu: automatically pin the offer at this 1-based list position",
+    )
+    parser.add_argument(
+        "--choosegpu-limit",
+        dest="choosegpu_limit",
+        type=int,
+        default=15,
+        help="with --choosegpu: how many offers to show (default: 15)",
+    )
+    parser.add_argument(
         "--vast-strict",
         dest="vast_strict",
         action="store_true",
@@ -2041,6 +2066,40 @@ def main() -> int:
     # A GPU is rented when the visuals need one, or when an Indic engine is selected.
     # --no-vast keeps narration local on purpose.
     no_vast = getattr(args, "no_vast", False)
+
+    # --choosegpu: show the offers with their full price/speed/storage detail and pin the
+    # one the operator picks. This runs before `needs_vast` is derived because choosing a
+    # GPU is itself a request to rent one, and it must be visible to that decision.
+    if getattr(args, "choosegpu", False):
+        if no_vast:
+            parser.error("--choosegpu cannot be combined with --no-vast (nothing would be rented).")
+        from vast_manager import VastManager as _VastManager, save_pinned_offer as _save_pin
+
+        _choose_disk = int(os.environ.get("VAST_DISK_GB", "100"))
+        try:
+            _chooser = _VastManager()
+            _chosen = _chooser.choose_offer(
+                gpu_name="RTX 4090",
+                disk_gb=_choose_disk,
+                limit=getattr(args, "choosegpu_limit", 15),
+                auto_select=getattr(args, "choosegpu_pick", None),
+            )
+        except Exception as choose_err:
+            print(f"  [Vast Manager Error] Could not list GPU offers: {choose_err}", file=sys.stderr)
+            return 1
+        if _chosen is None:
+            print("  [Vast Manager] No GPU selected; aborting.", file=sys.stderr)
+            return 1
+        _offer_id = int(_chosen.get("id"))
+        _saved = _save_pin(_offer_id)
+        if _saved:
+            print(f"  [Vast Manager] Pinned offer {_offer_id} in {_saved.name}; renting it now.")
+        else:
+            os.environ["VAST_PINNED_OFFER"] = str(_offer_id)
+            print(f"  [Vast Manager] Pinned offer {_offer_id} for this run only.")
+        # The picker's whole purpose is to drive the rental, so treat it as --vast.
+        args.vast = True
+
     needs_vast = not no_vast and (
         args.visual_mode == "video"
         or args.vast

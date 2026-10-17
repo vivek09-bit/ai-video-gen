@@ -188,6 +188,8 @@ Useful flags:
 | `--video-model` | LTX-Video Diffusers model ID (default: `jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE`, 2B distilled) |
 | `--vast` | use Vast.ai for visuals; production workflows target an RTX 4090 |
 | `--vast-instance` / `--vast-url` | start an existing instance or connect to a configured Vast.ai inference server |
+| `--choosegpu` | list available GPUs with price, download speed/cost and storage cost, then pick the one to rent (the choice is saved as `VAST_PINNED_OFFER`) |
+| `--choosegpu-pick` / `--choosegpu-limit` | with `--choosegpu`: auto-pick the Nth listed offer / how many offers to show |
 | `--no-vast-autostop` | leave the Vast.ai instance running after generation |
 | `--genre` / `--genres` | story/visual genre (horror, fantasy, scifi, documentary, anime, comedy, etc.) |
 | `--format` / `--formats` | video framing preset (`reel` [9:16], `landscape` [16:9], `square` [1:1], `portrait` [4:5], `cinema` [21:9], `classic` [4:3]) |

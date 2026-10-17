@@ -15,7 +15,8 @@ concurrently, deps install with uv, and fast hosts are preferred. A host that is
 rather than broken is stopped and kept, not destroyed, so its install survives.
 
 Tuning knobs:
-  VAST_MIN_INET_DOWN        minimum download Mbps for the strict offer filter (1000)
+  VAST_MIN_INET_DOWN        minimum download Mbps for the strict offer filter (300)
+  VAST_MAX_INET_DOWN        maximum download Mbps accepted on ANY offer (400); 0 disables
   VAST_MIN_DISK_BW          minimum disk MB/s for the strict offer filter (500)
   VAST_OFFER_WAIT_SECONDS   seconds to wait before re-searching when no offers (15)
   VAST_OFFER_SEARCH_ATTEMPTS  how many offer searches before giving up (4)
@@ -28,6 +29,9 @@ Tuning knobs:
   VAST_SERVER_TIMEOUT       hard cap for the whole boot, in seconds (3600)
   VAST_SERVER_PREFETCH      comma-separated Hugging Face repos to prefetch
   VAST_UV_TORCH_BACKEND     torch index for `uv pip install --torch-backend` (default: derived from the image tag)
+  VAST_HF_VOLUME            id of a Vast network volume holding the HF cache (paid once, not per rental)
+  VAST_HF_HOME              container path the volume is mounted at; also exported as HF_HOME
+  VAST_PINNED_OFFER         offer id chosen via `choose`/--choosegpu; rented instead of the cheapest
 
 Boot-stall policy (Option B): a stalled-but-alive install is STOPPED and kept (resumable),
 while a host that provably installed nothing (peak disk < VAST_INSTALL_FLOOR_GB) or whose
@@ -38,6 +42,9 @@ worth the storage it would keep billing.
 Usage:
   # Search cheapest RTX 4090 offers within budget
   python scripts/vast_manager.py search
+
+  # Show every in-budget offer with price, download speed/cost and storage cost, then pick one
+  python scripts/vast_manager.py choose [--gpu "RTX 4090"] [--disk 60] [--limit 15] [--pick 3]
 
   # Rent the cheapest in-budget instance, replacing hosts that fail to start
   python scripts/vast_manager.py create [--disk 50]
@@ -165,6 +172,162 @@ def hourly_rate(record: dict) -> float:
 def format_rate(rate: float) -> str:
     """Render a $/hr figure, or 'n/a' when the API did not report one."""
     return "n/a" if rate == float("inf") else f"${rate:.3f}/hr"
+
+
+def _as_float(record: dict, key: str, default: float = 0.0) -> float:
+    """Read a numeric offer/instance field, tolerating strings and null."""
+    value = record.get(key)
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+
+
+def pinned_offer() -> int | None:
+    """The offer ID the user pinned with `--choosegpu`, or None.
+
+    Pinning is how the interactive picker survives past its own process: new_video.py
+    exports VAST_PINNED_OFFER and vast_manager honours it when it rents, so the GPU the
+    operator chose is the GPU that actually gets rented instead of the cheapest one.
+    """
+    raw = (os.environ.get("VAST_PINNED_OFFER") or "").strip()
+    if not raw:
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        print(
+            f"[Vast Manager Warning] Ignoring invalid VAST_PINNED_OFFER={raw!r}",
+            file=sys.stderr,
+        )
+        return None
+
+
+def find_pinned_offer(offers: list[dict], offer_id: int) -> dict | None:
+    """Return the offer matching `offer_id` from a fresh search, or None.
+
+    A pinned offer can disappear between choosing it and renting it (someone else
+    took the slot). Returning None lets the caller say so rather than silently
+    renting a host the operator did not pick.
+    """
+    for offer in offers:
+        try:
+            if int(offer.get("id")) == int(offer_id):
+                return offer
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def save_pinned_offer(offer_id: int, env_path: Path | None = None) -> Path | None:
+    """Persist VAST_PINNED_OFFER=<id> into the project `.env`, replacing any old value.
+
+    Rewriting the single key in place (rather than appending) is what stops a stale pin
+    from accumulating: repeatedly choosing a GPU would otherwise grow the file and the
+    first matching line would win. Every other line, comment and blank, is preserved.
+    """
+    path = env_path or (ROOT / ".env")
+    line = f"VAST_PINNED_OFFER={offer_id}"
+    try:
+        existing = path.read_text(encoding="utf-8") if path.is_file() else ""
+    except OSError as err:
+        print(f"[Vast Manager Warning] Could not read {path}: {err}", file=sys.stderr)
+        return None
+
+    lines = existing.splitlines()
+    replaced = False
+    for index, text in enumerate(lines):
+        if text.strip().startswith("VAST_PINNED_OFFER="):
+            lines[index] = line
+            replaced = True
+            break
+    if not replaced:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.append("# GPU offer pinned by `vast_manager.py choose` / `new_video.py --choosegpu`")
+        lines.append(line)
+
+    try:
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    except OSError as err:
+        print(f"[Vast Manager Warning] Could not write {path}: {err}", file=sys.stderr)
+        return None
+    # Reflect it in this process too, so a chained rental in the same run uses the pin.
+    os.environ["VAST_PINNED_OFFER"] = str(offer_id)
+    return path
+
+
+def describe_offer(offer: dict, index: int | None = None, disk_gb: int = 0) -> list[str]:
+    """Human-readable lines describing one offer's price, speed, storage and trust signals.
+
+    Everything a rental decision depends on lives here: the all-in hourly rate, the
+    download/upload bandwidth AND what the host charges for it, the storage rate for the
+    requested disk, the physical location, and how reliable the host has been.
+    """
+    oid = offer.get("id")
+    prefix = f"  [{index}] " if index is not None else "  "
+    rate = hourly_rate(offer)
+    gpu = str(offer.get("gpu_name") or "GPU")
+    # Vast reports gpu_ram in MB; older/broken responses omit it entirely.
+    vram_mb = _as_float(offer, "gpu_ram", 0.0)
+
+    lines: list[str] = []
+    header = f"{prefix}Offer {oid}  {gpu}"
+    if vram_mb > 0:
+        header += f" {vram_mb / 1024:.0f}GB"
+    header += f"  ->  {format_rate(rate)}"
+    lines.append(header)
+
+    # Bandwidth: the speed AND the price the host charges for it. A "free" fast host and
+    # a cheap slow one with a per-GB fee are very different rentals for a 42 GB prefetch.
+    dl_mbps = _as_float(offer, "inet_down")
+    ul_mbps = _as_float(offer, "inet_up")
+    dl_cost = _as_float(offer, "inet_down_cost")
+    ul_cost = _as_float(offer, "inet_up_cost")
+    dl_cost_str = "free" if dl_cost <= 0 else f"${dl_cost:.4f}/GB"
+    ul_cost_str = "free" if ul_cost <= 0 else f"${ul_cost:.4f}/GB"
+    lines.append(
+        f"       download : {dl_mbps:,.0f} Mbps ({dl_cost_str})   "
+        f"upload : {ul_mbps:,.0f} Mbps ({ul_cost_str})"
+    )
+
+    # Storage: Vast bills disk per GB/hour. Show the rate and the monthly cost of the
+    # disk this run would actually ask for.
+    storage_rate = _as_float(offer, "storage_cost")
+    storage_str = "free" if storage_rate <= 0 else f"${storage_rate:.4f}/GB/hr"
+    if disk_gb and storage_rate > 0:
+        monthly = storage_rate * disk_gb
+        hourly = monthly / (24 * 30)
+        storage_str += f"  (~${monthly:.2f}/mo, ~${hourly:.4f}/hr for {disk_gb}GB)"
+    lines.append(f"       storage  : {storage_str}")
+
+    # Trust / suitability signals: reliability and verified status decide whether the
+    # cheapest host is actually a bargain or a setup that will fail and be re-rented.
+    reliability = _as_float(offer, "reliability2", _as_float(offer, "reliability", -1.0))
+    if reliability >= 0:
+        lines.append(f"       reliability: {reliability * 100:.1f}%")
+    location = offer.get("geolocation") or offer.get("location") or "unknown"
+    lines.append(
+        f"       location : {location}   "
+        f"machine : {offer.get('machine_id', '?')}   "
+        f"verified : {'yes' if offer.get('verified') else 'no'}"
+    )
+
+    cuda = offer.get("cuda_max_good")
+    disk_bw = _as_float(offer, "disk_bw")
+    cpu = offer.get("cpu_name")
+    extras: list[str] = []
+    if disk_bw:
+        extras.append(f"disk {disk_bw:,.0f} MB/s")
+    if cuda:
+        extras.append(f"CUDA {cuda}")
+    if cpu:
+        extras.append(str(cpu))
+    if extras:
+        lines.append(f"       specs    : {'  |  '.join(extras)}")
+    return lines
 
 
 # The container needs a Hugging Face token at RUNTIME, not only at install time. The
@@ -310,7 +473,18 @@ SERVER_DEPENDENCY_PROBE: str = (
 # Hugging Face repos prefetched during the install so the first request is not stuck
 # on a download. IndicF5 is the remote narration runtime; the legacy Parler repo remains
 # available only for backward-compatible voices.
-DEFAULT_PREFETCH_MODELS: tuple[str, ...] = ("ai4bharat/IndicF5",)
+#
+# LTX-Video and FLUX are listed because a deps-only image does NOT carry their weights,
+# and without this tuple every fresh instance paid ~42 GB of egress to download them
+# lazily at the first image/video request. Combined with a persistent HF_HOME volume
+# (VAST_HF_VOLUME / VAST_HF_HOME) that download is then paid once rather than per rental.
+# A pre-baked image that already ships the weights takes the VAST_IMAGE_HAS_DEPS branch
+# and skips this prefetch entirely.
+DEFAULT_PREFETCH_MODELS: tuple[str, ...] = (
+    "ai4bharat/IndicF5",
+    "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE",
+    "black-forest-labs/FLUX.1-schnell",
+)
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
 DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
@@ -581,6 +755,17 @@ class VastManager:
         the client uploads to, and the token is mandatory too because IndicF5 is gated.
         """
         parts = ["-p 8000:8000", f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}"]
+        # Point Hugging Face at the persistent volume when one is configured. Vast mounts a
+        # network volume on every instance that attaches it, so HF_HOME there turns the
+        # ~42 GB of FLUX/LTX/IndicF5 weights into a ONE-OFF cost: the first instance
+        # downloads them, every later rental finds a warm cache and downloads nothing.
+        # Without it the same 42 GB is billed again on every fresh instance.
+        hf_home = os.environ.get("VAST_HF_HOME", "").strip()
+        if hf_home:
+            parts.append(f"-e HF_HOME={hf_home}")
+            # The xet backend writes socket/lock files that have failed on overlay mounts;
+            # standard chunked HTTP is slower but never wedges a boot.
+            parts.append("-e HF_HUB_DISABLE_XET=1")
         token = hub_token()
         if token:
             parts.append(f"-e HF_TOKEN={token}")
@@ -769,8 +954,14 @@ class VastManager:
         # The probe covers the modules the server imports LAZILY as well as the top-level
         # packages; see SERVER_DEPENDENCY_PROBE for why that distinction cost a whole run.
         probe = VastManager.dependency_probe_command(quiet=True)
-        prefetch = "; ".join(f"snapshot_download({model!r})" for model in prefetch_models)
-        prefetch_cmd = f"python -c \"from huggingface_hub import snapshot_download; {prefetch}\""
+        # One snapshot_download per repo, each its own `python -c`. A single crash part-way
+        # through a combined call discarded every repo that had already finished -- which is
+        # how a 40-minute prefetch was lost to one late failure. The repos are also
+        # independent, so a failure in LTX must not stop IndicF5 from arriving.
+        prefetch_cmd = " ; ".join(
+            f"python -c \"from huggingface_hub import snapshot_download; snapshot_download({model!r})\""
+            for model in prefetch_models
+        )
         # torch is imported first and torchaudio second: a version mismatch raises an
         # unresolved-symbol OSError here, at setup, rather than fifteen minutes later at
         # synthesis where it is far harder to attribute. parler_tts and transformers are in
@@ -907,9 +1098,20 @@ class VastManager:
         """
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
         if min_inet_down is None:
-            min_inet_down = int(os.environ.get("VAST_MIN_INET_DOWN", "1000"))
+            min_inet_down = int(os.environ.get("VAST_MIN_INET_DOWN", "100"))
         if min_disk_bw is None:
             min_disk_bw = int(os.environ.get("VAST_MIN_DISK_BW", "500"))
+        # Upper bound on download bandwidth, applied to EVERY tier (it is not a speed
+        # preference, it is a cap). A host advertising far more than the run can consume is
+        # simply a more expensive one, so capping here stops the budget being spent on
+        # bandwidth the job never uses. 0 disables the cap.
+        max_inet_cap = int(os.environ.get("VAST_MAX_INET_DOWN", "500") or 0)
+        if max_inet_cap and max_inet_cap <= min_inet_down:
+            raise ValueError(
+                f"VAST_MAX_INET_DOWN ({max_inet_cap}) must be greater than the "
+                f"download floor VAST_MIN_INET_DOWN ({min_inet_down}); no offer could ever match."
+            )
+        cap_clause = f" inet_down<{max_inet_cap}" if max_inet_cap else ""
         gpu_filter = gpu_name.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "_")
 
         tiers: list[tuple[int, int, str]] = []
@@ -922,7 +1124,8 @@ class VastManager:
             bw_clause = f" disk_bw>={disk_bw}" if disk_bw else ""
             query = (
                 f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
-                f"disk_space>={min_disk} direct_port_count>0 inet_down>{inet} cpu_ram>=32{bw_clause}"
+                f"disk_space>={min_disk} direct_port_count>0 inet_down>{inet}{cap_clause} "
+                f"cpu_ram>=32{bw_clause}"
             )
             try:
                 offers = json.loads(self.run_cli(["search", "offers", query, "-o", "dph+", "--raw"]))
@@ -944,8 +1147,9 @@ class VastManager:
             # the price ceiling stay in the query, so this cannot hand back an offer that
             # is too small for the job. Returning nothing lets the caller fail loudly.
             print(
-                f"[Vast Manager] No {gpu_name} offer matched the speed tiers; retrying "
-                f"without the inet/disk-bandwidth preference."
+                f"[Vast Manager] No {gpu_name} offer matched the speed tiers; retrying with "
+                f"the inet/disk-bandwidth preference dropped but the "
+                f"{max_inet_cap or 'no'} Mbps download cap still applied."
             )
             try:
                 offers = json.loads(
@@ -954,7 +1158,7 @@ class VastManager:
                             "search",
                             "offers",
                             f"gpu_name={gpu_filter} num_gpus=1 rented=False dph<{limit} "
-                            f"disk_space>={min_disk} direct_port_count>0 cpu_ram>=32",
+                            f"disk_space>={min_disk} direct_port_count>0 cpu_ram>=32{cap_clause}",
                             "-o",
                             "dph+",
                             "--raw",
@@ -970,18 +1174,34 @@ class VastManager:
 
         # Vast filters on `dph`, which excludes storage and bandwidth. `dph_total`
         # is the rate that actually gets billed, so enforce the ceiling on that too.
+        # The bandwidth cap is re-checked here as well, because the last-resort query
+        # deliberately drops the rest of the speed clauses and would otherwise re-admit
+        # offers above it.
         affordable = [
             offer
             for offer in offers
-            if hourly_rate(offer) <= limit and str(int(offer.get("machine_id") or 0)) not in self.bad_hosts
+            if hourly_rate(offer) <= limit
+            and (not max_inet_cap or 0 < _as_float(offer, "inet_down", -1.0) < max_inet_cap)
+            and str(int(offer.get("machine_id") or 0)) not in self.bad_hosts
         ]
-        priced_out = len(offers) - len([o for o in offers if hourly_rate(o) <= limit])
+        ordered = [offer for offer in offers if hourly_rate(offer) <= limit]
+        priced_out = len(offers) - len(ordered)
         if priced_out:
             print(
                 f"[Vast Manager] Dropped {priced_out} {gpu_name} offer(s) priced above "
                 f"the ${limit:.2f}/hr all-in ceiling."
             )
-        blocked = len([o for o in offers if hourly_rate(o) <= limit]) - len(affordable)
+        capped = [
+            offer
+            for offer in ordered
+            if max_inet_cap and _as_float(offer, "inet_down", 0.0) >= max_inet_cap
+        ]
+        if capped:
+            print(
+                f"[Vast Manager] Skipped {len(capped)} {gpu_name} offer(s) above the "
+                f"{max_inet_cap} Mbps download cap (VAST_MAX_INET_DOWN)."
+            )
+        blocked = len(ordered) - len(capped) - len(affordable)
         if blocked:
             print(f"[Vast Manager] Skipped {blocked} {gpu_name} offer(s) on blacklisted machines.")
         affordable.sort(key=hourly_rate)
@@ -994,6 +1214,91 @@ class VastManager:
     def search_rtx_3090(self, max_dph: float | None = None, min_disk: int = 40) -> list[dict]:
         """Search for RTX 3090 24GB offers."""
         return self.search_gpu("RTX 3090", max_dph=max_dph, min_disk=min_disk)
+
+    def choose_offer(
+        self,
+        gpu_name: str = "RTX 4090",
+        disk_gb: int = 60,
+        max_dph: float | None = None,
+        limit: int = 15,
+        auto_select: int | None = None,
+    ) -> dict | None:
+        """Show the available offers with full pricing/speed detail and let the user pick one.
+
+        Prints every in-budget offer with its all-in rate, download/upload bandwidth and
+        bandwidth price, storage rate for the requested disk, location, reliability and
+        hardware specs, then reads a choice from stdin. `auto_select` (a 1-based index)
+        picks non-interactively, which is what scripts and CI use. Returns the chosen
+        offer dict, or None when there is nothing to choose from.
+        """
+        budget = gpu_budget(gpu_name) if max_dph is None else max_dph
+        offers = self.search_gpu_with_wait(gpu_name, max_dph=budget, min_disk=disk_gb)
+        if not offers:
+            print(
+                f"\nNo available {gpu_name} offers under ${budget:.2f}/hr with at least "
+                f"{disk_gb}GB disk.",
+                file=sys.stderr,
+            )
+            return None
+
+        shown = offers[: max(1, limit)]
+        print()
+        print("=" * 74)
+        print(f"CHOOSE A GPU: {gpu_name} (budget ${budget:.2f}/hr, disk {disk_gb}GB)")
+        print("=" * 74)
+        for index, offer in enumerate(shown, start=1):
+            for line in describe_offer(offer, index=index, disk_gb=disk_gb):
+                print(line)
+            print()
+
+        # Non-interactive selection: an explicit 1-based index wins.
+        if auto_select is not None:
+            if not 1 <= auto_select <= len(shown):
+                print(
+                    f"[Vast Manager Error] --pick {auto_select} is out of range "
+                    f"(1-{len(shown)}).",
+                    file=sys.stderr,
+                )
+                return None
+            chosen = shown[auto_select - 1]
+            print(f"[Vast Manager] Pinned offer {chosen.get('id')} (pick #{auto_select}).")
+            return chosen
+
+        # A piped/stdin-less run cannot answer a prompt; pick the cheapest and say so
+        # rather than hanging forever waiting for input that will never arrive.
+        if not sys.stdin.isatty():
+            chosen = shown[0]
+            print(
+                f"[Vast Manager] Non-interactive input: defaulting to the cheapest offer "
+                f"{chosen.get('id')}. Pass --pick N to choose a specific one."
+            )
+            return chosen
+
+        print("  q = quit.  Enter with no number = cheapest offer.")
+        while True:
+            try:
+                raw = input(f"  Pick an offer [1-{len(shown)}] (q to cancel): ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                return None
+            if raw in ("q", "quit", "exit"):
+                print("[Vast Manager] Selection cancelled.")
+                return None
+            if not raw:
+                chosen = shown[0]
+                print(f"[Vast Manager] Pinned cheapest offer {chosen.get('id')}.")
+                return chosen
+            try:
+                pick = int(raw)
+            except ValueError:
+                print("  please enter a number from the list, or q to cancel")
+                continue
+            if not 1 <= pick <= len(shown):
+                print(f"  pick a number in 1-{len(shown)}")
+                continue
+            chosen = shown[pick - 1]
+            print(f"[Vast Manager] Pinned offer {chosen.get('id')} (pick #{pick}).")
+            return chosen
 
     def _offer_wait(self, seconds: float) -> None:
         """Sleep between offer searches (seam so tests need not really wait)."""
@@ -1054,6 +1359,15 @@ class VastManager:
             image = os.environ.get("VAST_SERVER_IMAGE", DEFAULT_SERVER_IMAGE)
         rate: float | None = None
         explicit_offer = offer_id is not None
+        # An offer pinned by `--choosegpu` (VAST_PINNED_OFFER) outranks the automatic
+        # cheapest-offer choice: the whole point of the picker is that the GPU the operator
+        # chose is the GPU that gets rented.
+        if offer_id is None:
+            pinned = pinned_offer()
+            if pinned is not None:
+                offer_id = pinned
+                explicit_offer = True
+                print(f"[Vast Manager] Using pinned offer {offer_id} from VAST_PINNED_OFFER.")
         if offer_id is None:
             offers = self.search_gpu_with_wait(gpu_name, max_dph=limit, min_disk=disk_gb)
             if not offers:
@@ -1096,8 +1410,15 @@ class VastManager:
             "--direct",
             "--onstart-cmd",
             onstart_cmd or self.server_onstart_command(prefetch_models),
-            "--raw",
         ]
+        # Attach the persistent model volume when one is configured. This is what makes the
+        # HF_HOME env var above actually persist: without the mount, HF_HOME points at a
+        # path inside the container layer and is discarded when the instance is destroyed.
+        volume_id = os.environ.get("VAST_HF_VOLUME", "").strip()
+        if volume_id:
+            args.extend(["--volume", volume_id])
+            print(f"[Vast Manager] Attaching model volume {volume_id} (HF_HOME={os.environ.get('VAST_HF_HOME', '')}).")
+        args.append("--raw")
 
         raw = self.run_cli(args)
         res = json.loads(raw)
@@ -1147,6 +1468,21 @@ class VastManager:
                 f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB "
                 f"disk after repeated searches."
             )
+        # A pinned offer (from `--choosegpu`) is tried first, and only if it has vanished from
+        # the marketplace do we fall back to the cheapest in-budget host. Reordering rather
+        # than hard-filtering keeps a pin from turning a transient sell-out into a hard abort.
+        pinned = pinned_offer()
+        if pinned is not None:
+            match = find_pinned_offer(offers, pinned)
+            if match is not None:
+                print(f"[Vast Manager] Pinned offer {pinned} is still available; trying it first.")
+                offers = [match] + [o for o in offers if o is not match]
+            else:
+                print(
+                    f"[Vast Manager Warning] Pinned offer {pinned} is no longer available "
+                    "(sold out or refilled); falling back to the cheapest in-budget offer.",
+                    file=sys.stderr,
+                )
         total = min(attempts, len(offers))
         last_error: Exception | None = None
         for index, offer in enumerate(offers[:total], start=1):
@@ -1964,6 +2300,28 @@ def main() -> int:
     p_create.add_argument("--disk", type=int, default=60, help="Disk space in GB")
     p_create.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
 
+    # Choose: show offers with price/speed/storage detail and pin one for the next rental
+    p_choose = subparsers.add_parser(
+        "choose",
+        help="List GPU offers with price, download speed/cost and storage cost, then pin one",
+    )
+    p_choose.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
+    p_choose.add_argument("--disk", type=int, default=60, help="Disk space in GB (drives the storage estimate)")
+    p_choose.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
+    p_choose.add_argument("--limit", type=int, default=15, help="How many offers to show (default: 15)")
+    p_choose.add_argument(
+        "--pick",
+        type=int,
+        default=None,
+        help="Non-interactive: pin the offer at this 1-based position in the list",
+    )
+    p_choose.add_argument(
+        "--no-save",
+        dest="no_save",
+        action="store_true",
+        help="Show the offers but do not remember the choice in .env",
+    )
+
     # Prune
     p_prune = subparsers.add_parser("prune", help="Destroy broken, over-budget or long-idle instances")
     p_prune.add_argument("--dry-run", action="store_true", help="List what would be destroyed and exit")
@@ -2046,6 +2404,33 @@ def main() -> int:
                 max_dph=args.max_price,
             )
             print(f"Created instance: {inst_id} (server: {url})")
+        return 0
+
+    elif args.action == "choose":
+        chosen = mgr.choose_offer(
+            gpu_name=args.gpu,
+            disk_gb=args.disk,
+            max_dph=args.max_price,
+            limit=args.limit,
+            auto_select=args.pick,
+        )
+        if chosen is None:
+            return 1
+        offer_id = int(chosen.get("id"))
+        if args.no_save:
+            print(f"[Vast Manager] Offer {offer_id} chosen (not saved).")
+            return 0
+        saved = save_pinned_offer(offer_id)
+        if saved:
+            print(
+                f"[Vast Manager] Saved VAST_PINNED_OFFER={offer_id} to {saved.name}. "
+                f"The next rental will use offer {offer_id}."
+            )
+        else:
+            print(
+                f"[Vast Manager] Chosen offer {offer_id}. Add VAST_PINNED_OFFER={offer_id} "
+                f"to .env to make it stick, or export it for this shell."
+            )
         return 0
 
     elif args.action == "prune":

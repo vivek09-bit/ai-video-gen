@@ -731,11 +731,26 @@ def test_vast_setup_resilience() -> None:
         "the onstart must compare the torch and torchaudio versions, not merely import them"
     )
 
-    # 4. Prefetch is caller-driven: video mode is the only thing that needs LTX.
+    # 4. Prefetch is caller-driven AND defaults to the full set the pipeline can ask for.
+    #    A deps-only image ships no weights, so the default must cover LTX and FLUX too;
+    #    otherwise every fresh instance pays for them lazily at the first image/video
+    #    request (~42 GB of egress per rental).
     ltx_onstart = VastManager.server_onstart_command(prefetch_models=["jbilcke-hf/LTX-Video-2b"])
     assert "jbilcke-hf/LTX-Video-2b" in ltx_onstart
-    assert "jbilcke-hf/LTX-Video-2b" not in VastManager.server_onstart_command(), (
-        "image-mode runs must not prefetch the LTX checkpoint"
+    assert "jbilcke-hf/LTX-Video-2b" in VastManager.server_onstart_command(), (
+        "the default prefetch must include the LTX checkpoint the video pipeline needs"
+    )
+    default_onstart = VastManager.server_onstart_command()
+    assert "black-forest-labs/FLUX.1-schnell" in default_onstart, (
+        "the default prefetch must include the FLUX checkpoint the image pipeline needs"
+    )
+    assert "ai4bharat/IndicF5" in default_onstart, (
+        "the default prefetch must include the IndicF5 narration runtime"
+    )
+    # Each repo is prefetched by its OWN snapshot_download call, so one failure cannot
+    # discard the repos that already finished.
+    assert default_onstart.count("snapshot_download(") == 3, (
+        "each prefetch repo must get its own snapshot_download call"
     )
 
     # 5. The render stack is NOT part of the onstart dependency marker. The onstart only
@@ -788,7 +803,7 @@ def test_vast_setup_resilience() -> None:
         calls.append(query)
         if "inet_down>1000" in query:
             return "[]"  # strict tier matches nothing
-        return json.dumps([{"id": 99, "dph_total": 0.2, "machine_id": 5}])
+        return json.dumps([{"id": 99, "dph_total": 0.2, "machine_id": 5, "inet_down": 150}])
 
     tiered.run_cli = tiered_cli  # type: ignore[method-assign]
     offers = tiered.search_gpu("RTX 3090", min_inet_down=1000, min_disk_bw=500)
@@ -797,6 +812,12 @@ def test_vast_setup_resilience() -> None:
     assert any("inet_down>100" in q and "inet_down>1000" not in q for q in calls), (
         "the relaxed tier must be tried second"
     )
+    # 7b. The download cap applies to every tier, including the last-resort query.
+    assert all("inet_down<400" in q for q in calls), "the VAST_MAX_INET_DOWN cap must not relax"
+    tiered.run_cli = lambda args: json.dumps(  # type: ignore[method-assign]
+        [{"id": 101, "dph_total": 0.2, "machine_id": 7, "inet_down": 900}]
+    )
+    assert tiered.search_gpu("RTX 3090") == [], "an offer above the download cap must be dropped"
 
     # 8. An over-budget offer is still rejected regardless of the speed filters.
     tiered.run_cli = lambda args: json.dumps([{"id": 100, "dph_total": 9.99, "machine_id": 6}])  # type: ignore[method-assign]
@@ -1235,8 +1256,11 @@ def test_gpu_resume_and_batch() -> None:
         assert clause in final_query, (
             f"the last-resort query dropped {clause!r}: {final_query!r}"
         )
-    assert "inet_down" not in final_query, (
-        "the last-resort query may relax speed, but nothing else"
+    assert "inet_down>100" not in final_query, (
+        "the last-resort query may relax the speed floor, but nothing else"
+    )
+    assert "inet_down<400" in final_query, (
+        "the download cap is not a preference: it must survive the last-resort query"
     )
 
     # 7. Megabyte-level disk jitter must not count as install progress. A host that never
@@ -1717,6 +1741,32 @@ def test_vast_gated_model_provisioning() -> None:
         os.environ["HF_TOKEN"] = 'bad"quote'
         assert hub_token() == "", "a quote inside a token must be refused"
         assert "-e HF_TOKEN=" not in VastManager.container_env_spec()
+
+        # 2b. A configured model volume pins HF_HOME so the ~42 GB of weights live on the
+        #     volume instead of the container layer. Without HF_HOME the volume is mounted
+        #     but unused, and every rental re-downloads the same weights.
+        saved_volume = os.environ.get("VAST_HF_VOLUME")
+        saved_hf_home = os.environ.get("VAST_HF_HOME")
+        try:
+            assert "-e HF_HOME=" not in VastManager.container_env_spec(), (
+                "no volume configured must not pin HF_HOME"
+            )
+            os.environ["VAST_HF_HOME"] = "/workspace/hf"
+            assert "-e HF_HOME=/workspace/hf" in VastManager.container_env_spec(), (
+                "a configured HF_HOME must reach the container"
+            )
+            assert "-e HF_HUB_DISABLE_XET=1" in VastManager.container_env_spec(), (
+                "the xet backend must be disabled when weights land on a volume mount"
+            )
+        finally:
+            if saved_volume is None:
+                os.environ.pop("VAST_HF_VOLUME", None)
+            else:
+                os.environ["VAST_HF_VOLUME"] = saved_volume
+            if saved_hf_home is None:
+                os.environ.pop("VAST_HF_HOME", None)
+            else:
+                os.environ["VAST_HF_HOME"] = saved_hf_home
 
         # 3. Only COMPLETE reference pairs are uploaded: a clip without its transcript is
         #    unusable, and a generated _prepared_* file is an artefact, not a source clip.
