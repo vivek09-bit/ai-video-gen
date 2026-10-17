@@ -1605,8 +1605,18 @@ def main() -> int:
         "--choosegpu-limit",
         dest="choosegpu_limit",
         type=int,
-        default=15,
-        help="with --choosegpu: how many offers to show (default: 15)",
+        default=5,
+        help="with --choosegpu: how many offers to show (default: 5, selectable with keys 1-5)",
+    )
+    parser.add_argument(
+        "--choosegpu-timeout",
+        dest="choosegpu_timeout",
+        type=float,
+        default=None,
+        help=(
+            "with --choosegpu: seconds to wait for a keypress before the cheapest 1-hour "
+            "rental is picked automatically (default: VAST_PICK_TIMEOUT or 10)"
+        ),
     )
     parser.add_argument(
         "--vast-strict",
@@ -1670,6 +1680,13 @@ def main() -> int:
         parser.error("--video-seconds must be greater than zero.")
     if args.visual_mode == "video" and not 1 <= args.video_steps <= 50:
         parser.error("--video-steps must be between 1 and 50.")
+    # VAST_AUDIO_IMAGE_ONLY is a server-side contract, not a CLI mode, so it can arrive from
+    # the environment of a previous run. Refuse the contradictory combination explicitly
+    # instead of letting a stale value silently disable video generation.
+    if args.visual_mode == "video" and os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1":
+        parser.error(
+            "VAST_AUDIO_IMAGE_ONLY=1 excludes --visual-mode video; unset it or drop video mode."
+        )
 
     if args.formats:
         print("=" * 74)
@@ -2062,6 +2079,25 @@ def main() -> int:
     vast_mgr = None
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
+
+    # Audio/image-only is already expressible, so it gets no flag of its own:
+    # `--visual-mode image` + a `vast` image provider IS that contract. It has to be
+    # derived HERE, before any VastManager is constructed (--choosegpu below builds one),
+    # because the value is read by container_env_spec() and the onstart command.
+    audio_image_only_mode = (
+        args.visual_mode == "image"
+        and not getattr(args, "no_images", False)
+        and detected_image_provider == "vast"
+    )
+    if audio_image_only_mode:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+    else:
+        os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+
+    # Default disk floor: ~42GB of FLUX.1 + LTX weights needs 100GB, but the audio/image
+    # working set is ~16GB (Klein + IndicF5), so 100GB would reject viable cheap hosts and
+    # bill storage for space nothing writes. Reuse and rent read the same value on purpose.
+    default_disk_gb = "60" if audio_image_only_mode else "100"
     
     # A GPU is rented when the visuals need one, or when an Indic engine is selected.
     # --no-vast keeps narration local on purpose.
@@ -2075,14 +2111,15 @@ def main() -> int:
             parser.error("--choosegpu cannot be combined with --no-vast (nothing would be rented).")
         from vast_manager import VastManager as _VastManager, save_pinned_offer as _save_pin
 
-        _choose_disk = int(os.environ.get("VAST_DISK_GB", "100"))
+        _choose_disk = int(os.environ.get("VAST_DISK_GB", default_disk_gb))
         try:
             _chooser = _VastManager()
             _chosen = _chooser.choose_offer(
                 gpu_name="RTX 4090",
                 disk_gb=_choose_disk,
-                limit=getattr(args, "choosegpu_limit", 15),
+                limit=getattr(args, "choosegpu_limit", 5),
                 auto_select=getattr(args, "choosegpu_pick", None),
+                timeout_sec=getattr(args, "choosegpu_timeout", None),
             )
         except Exception as choose_err:
             print(f"  [Vast Manager Error] Could not list GPU offers: {choose_err}", file=sys.stderr)
@@ -2134,6 +2171,10 @@ def main() -> int:
         vast_prefetch.append("RXD03/indic-parler-tts")
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
+    elif audio_image_only_mode:
+        # Klein, never LTX. The server-side prefetch default already knows this, but the
+        # explicit list keeps the onstart log honest about what is being downloaded.
+        vast_prefetch.append("black-forest-labs/FLUX.2-klein-4B")
     render_on_vast = args.render_on == "vast"
 
     # All remote workloads use one supported target GPU, including IndicF5 narration.
@@ -2141,8 +2182,9 @@ def main() -> int:
     # FLUX alone is ~34GB of weights at bf16, on top of the container image and the
     # installed dependencies, so a 50GB disk fills up part-way through an image run. Reuse
     # and rent share this floor on purpose: a warm instance that cannot finish the job is not
-    # worth reusing, and a mismatch would only move the failure later.
-    vast_disk_gb = int(os.environ.get("VAST_DISK_GB", "100"))
+    # worth reusing, and a mismatch would only move the failure later. Audio/image mode keeps
+    # ~16GB of weights and so asks for the smaller floor (see default_disk_gb above).
+    vast_disk_gb = int(os.environ.get("VAST_DISK_GB", default_disk_gb))
 
     def stop_vast_instance() -> None:
         if needs_vast and vast_mgr and vast_instance_id and args.vast_autostop:

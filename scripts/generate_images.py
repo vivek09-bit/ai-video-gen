@@ -835,7 +835,16 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
         return "openai", key, model or "dall-e-3"
     if provider == "vast":
         key = os.environ.get("VAST_API_KEY", "")
-        return "vast", key or "vast", model or "black-forest-labs/FLUX.1-schnell"
+        # Audio/image mode serves FLUX.2-klein-4B from the instance, so the default must
+        # name it. A hardcoded FLUX.1 default is passed straight through to the server as
+        # the model it should not use, which only surfaces as a wrong-looking banner or an
+        # unexpected load attempt on a GPU that was rented for Klein.
+        default_vast_model = (
+            "black-forest-labs/FLUX.2-klein-4B"
+            if os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1"
+            else "black-forest-labs/FLUX.1-schnell"
+        )
+        return "vast", key or "vast", model or default_vast_model
 
     # Default to local SSD-1B generation
     return "local", "local", model or "segmind/SSD-1B"
@@ -1762,7 +1771,15 @@ def generate_images_for_script(
     elif resolved_provider == "pollinations":
         provider_title = f"Pollinations AI (FREE, {aspect_ratio} @ {width}x{height})"
     elif resolved_provider == "vast":
-        provider_title = f"Vast.ai Cloud RTX 3090 GPU (FLUX.1-schnell, {aspect_ratio} @ {width}x{height})"
+        # Derived from the mode, not hardcoded: in audio/image mode the server runs
+        # FLUX.2-klein-4B, and a banner naming FLUX.1-schnell would lie to the operator
+        # about which model produced the frames.
+        vast_image_model = (
+            "FLUX.2-klein-4B"
+            if os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1"
+            else "FLUX.1-schnell"
+        )
+        provider_title = f"Vast.ai Cloud RTX 4090 GPU ({vast_image_model}, {aspect_ratio} @ {width}x{height})"
     else:
         provider_title = f"{resolved_provider.upper()} ({aspect_ratio} @ {width}x{height})"
     print(f"Retrieving background images via {provider_title} ({model or 'default'}) for {total_scenes} scenes...")

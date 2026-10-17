@@ -32,6 +32,12 @@ Tuning knobs:
   VAST_HF_VOLUME            id of a Vast network volume holding the HF cache (paid once, not per rental)
   VAST_HF_HOME              container path the volume is mounted at; also exported as HF_HOME
   VAST_PINNED_OFFER         offer id chosen via `choose`/--choosegpu; rented instead of the cheapest
+  VAST_RENTAL_HOURS         rental length the `choose` picker prices for (1)
+  VAST_RENTAL_GB            weight-download size the picker prices egress for (25)
+  VAST_PICK_TIMEOUT         seconds before `choose` auto-picks the cheapest offer (10)
+  VAST_AUDIO_IMAGE_ONLY     "1" serves stills + narration only (FLUX.2-klein-4B, no LTX). Set by
+                            new_video.py when --visual-mode image meets IMAGE_PROVIDER=vast; also
+                            relaxes the disk floor to 60GB because the working set is ~16GB, not ~42GB.
 
 Boot-stall policy (Option B): a stalled-but-alive install is STOPPED and kept (resumable),
 while a host that provably installed nothing (peak disk < VAST_INSTALL_FLOOR_GB) or whose
@@ -174,6 +180,92 @@ def format_rate(rate: float) -> str:
     return "n/a" if rate == float("inf") else f"${rate:.3f}/hr"
 
 
+# A one-hour rental is the normal shape of these runs, and the all-in $/hr that Vast
+# reports does NOT include the two costs that dominate a short job: the egress for the
+# model download (a 25GB working set is paid on every fresh instance) and the storage
+# billed for the disk that download lands on. Comparing on `dph_total` alone therefore
+# picks a slow, zero-egress host over a fast, slightly dearer one and loses on both.
+RENTAL_HOURS_DEFAULT = 1.0
+# 25GB is the audio/image working set (Klein ~16GB + IndicF5 + torch wheels) and a fair
+# single number for comparing hosts. Override with VAST_RENTAL_GB.
+RENTAL_GB_DEFAULT = 25.0
+
+
+def rental_cost(
+    offer: dict,
+    hours: float = RENTAL_HOURS_DEFAULT,
+    download_gb: float = RENTAL_GB_DEFAULT,
+    disk_gb: int = 0,
+) -> dict[str, float]:
+    """Cost of actually running this offer for a short job, not just its sticker price.
+
+    Returns the components so the picker can show WHY an offer won:
+      gpu       - hourly rate times `hours`
+      download  - `download_gb` at the host's per-GB download price (0 when free,
+                  and also 0 when the host simply did not report a price -- `missing`
+                  names those fields so the display can say "not stated")
+      storage   - the requested disk at the host's per-GB-HOUR rate, times `hours`,
+                  converted from Vast's per-GB-MONTH field
+      total     - the sum, which is what the cheapest-choice ranking uses
+    """
+    rate = hourly_rate(offer)
+    gpu = 0.0 if rate == float("inf") else rate * hours
+    # Egress is charged per GB actually pulled, and the prefetch pulls roughly the whole
+    # working set on a cold instance. A free-egress host contributes 0 here.
+    # A host that does not report `inet_down_cost` at all is NOT necessarily free: Vast
+    # omits the field on plenty of offers, and treating "absent" as "$0.00/GB" silently
+    # under-prices those hosts. `_missing_fields` lets the caller say so.
+    download = _as_float(offer, "inet_down_cost") * max(0.0, download_gb)
+    # Vast reports `storage_cost` per GB per MONTH, so an hour of disk is 1/730th of it.
+    # Multiplying by `hours` alone overstated a 60GB disk at ~$12/hour instead of ~$0.016,
+    # which swamped the GPU rate and made every storage-costing host look unaffordable.
+    storage = storage_cost_per_hour(offer) * max(0, disk_gb) * hours
+    return {
+        "gpu": gpu,
+        "download": download,
+        "storage": storage,
+        "total": gpu + download + storage,
+        "missing": _missing_fields(offer, "inet_down_cost"),
+    }
+
+
+# Vast bills storage per GB per month (the same figure its UI shows as "$/GB/mo"), so a
+# one-hour rental is billed 1/(24*30) of it. The constant is named because getting it wrong
+# is invisible: the ranking still "works", it just ranks on a number 730x too large.
+HOURS_PER_MONTH = 24 * 30
+
+
+def storage_cost_per_hour(offer: dict) -> float:
+    """The host's disk price in $/GB/hour, converted from Vast's $/GB/month field."""
+    monthly_per_gb = _as_float(offer, "storage_cost")
+    if monthly_per_gb <= 0:
+        return 0.0
+    # Some API responses already normalise to hourly; a month-sized value cannot be under
+    # ~$1/GB/mo, while an hourly one is fractions of a cent. Treat anything implausibly
+    # small as already-hourly rather than dividing it twice.
+    if monthly_per_gb < 0.01:
+        return monthly_per_gb
+    return monthly_per_gb / HOURS_PER_MONTH
+
+
+def _missing_fields(offer: dict, *keys: str) -> list[str]:
+    """Keys the host did not report, so a zero can be shown as 'not stated' not 'free'."""
+    return [key for key in keys if offer.get(key) is None]
+
+
+def download_seconds(offer: dict, download_gb: float = RENTAL_GB_DEFAULT) -> float:
+    """How long the model download takes at the host's advertised speed.
+
+    A slow host is not cheaper: setup dominates a one-hour rental, and a 25GB pull at
+    100 Mbps is ~33 minutes of the hour before the first request. 0/infinite speed
+    reports as inf so the ranking puts it last rather than first.
+    """
+    mbps = _as_float(offer, "inet_down", 0.0)
+    if mbps <= 0:
+        return float("inf")
+    return download_gb * 8 * 1000 / mbps
+
+
 def _as_float(record: dict, key: str, default: float = 0.0) -> float:
     """Read a numeric offer/instance field, tolerating strings and null."""
     value = record.get(key)
@@ -286,21 +378,37 @@ def describe_offer(offer: dict, index: int | None = None, disk_gb: int = 0) -> l
     ul_mbps = _as_float(offer, "inet_up")
     dl_cost = _as_float(offer, "inet_down_cost")
     ul_cost = _as_float(offer, "inet_up_cost")
-    dl_cost_str = "free" if dl_cost <= 0 else f"${dl_cost:.4f}/GB"
-    ul_cost_str = "free" if ul_cost <= 0 else f"${ul_cost:.4f}/GB"
+    # A missing field is NOT zero. Vast omits these on many offers, and printing "free"
+    # for an unreported price quietly recommends a host whose egress may well be billed.
+    dl_reported = offer.get("inet_down_cost") is not None
+    ul_reported = offer.get("inet_up_cost") is not None
+    if not dl_reported:
+        dl_cost_str = "not stated"
+    else:
+        dl_cost_str = "free" if dl_cost <= 0 else f"${dl_cost:.4f}/GB"
+    if not ul_reported:
+        ul_cost_str = "not stated"
+    else:
+        ul_cost_str = "free" if ul_cost <= 0 else f"${ul_cost:.4f}/GB"
     lines.append(
         f"       download : {dl_mbps:,.0f} Mbps ({dl_cost_str})   "
         f"upload : {ul_mbps:,.0f} Mbps ({ul_cost_str})"
     )
 
-    # Storage: Vast bills disk per GB/hour. Show the rate and the monthly cost of the
-    # disk this run would actually ask for.
-    storage_rate = _as_float(offer, "storage_cost")
-    storage_str = "free" if storage_rate <= 0 else f"${storage_rate:.4f}/GB/hr"
-    if disk_gb and storage_rate > 0:
-        monthly = storage_rate * disk_gb
-        hourly = monthly / (24 * 30)
-        storage_str += f"  (~${monthly:.2f}/mo, ~${hourly:.4f}/hr for {disk_gb}GB)"
+    # Storage: Vast quotes `storage_cost` per GB per MONTH, so show it the way Vast does
+    # and derive the hourly figure from it. Getting this wrong printed "$0.2000/GB/hr",
+    # which is ~730x the real rate and made a 60GB disk look like $12/hour.
+    monthly_per_gb = _as_float(offer, "storage_cost")
+    if offer.get("storage_cost") is None:
+        storage_str = "not stated"
+    elif monthly_per_gb <= 0:
+        storage_str = "free"
+    else:
+        hourly_per_gb = storage_cost_per_hour(offer)
+        storage_str = f"${monthly_per_gb:.2f}/GB/mo (${hourly_per_gb:.5f}/GB/hr)"
+    if disk_gb and monthly_per_gb > 0:
+        hourly_total = storage_cost_per_hour(offer) * disk_gb
+        storage_str += f"  -> ${hourly_total:.4f}/hr for {disk_gb}GB (${hourly_total * HOURS_PER_MONTH:.2f}/mo)"
     lines.append(f"       storage  : {storage_str}")
 
     # Trust / suitability signals: reliability and verified status decide whether the
@@ -328,6 +436,139 @@ def describe_offer(offer: dict, index: int | None = None, disk_gb: int = 0) -> l
     if extras:
         lines.append(f"       specs    : {'  |  '.join(extras)}")
     return lines
+
+
+def describe_mode() -> list[str]:
+    """The effective server contract for the current environment, as printable lines.
+
+    This is the local half of the preflight: everything the onstart would do differently
+    between the two modes is read back here, so a wiring mistake is caught on the laptop
+    instead of after a GPU has been paid for. Nothing here touches the network.
+    """
+    mode = "audio/image-only" if audio_image_only() else "normal (FLUX.1 + LTX video)"
+    lines = [
+        f"mode            : {mode}",
+        f"deps marker     : {deps_marker_path()}",
+        f"prefetch ({len(prefetch_models())}): {', '.join(prefetch_models())}",
+        f"deps overrides  : {SERVER_DEPENDENCY_OVERRIDES if audio_image_only() else {}}",
+        f"probe           : {server_dependency_probe()}",
+        f"disk default    : {60 if audio_image_only() else 100}GB",
+        f"rental model    : {RENTAL_HOURS_DEFAULT:g}h @ {RENTAL_GB_DEFAULT:g}GB download",
+    ]
+    for model in prefetch_models():
+        ignored = PREFETCH_IGNORE.get(model)
+        if ignored:
+            lines.append(f"prefetch ignore : {model} skips {', '.join(ignored)}")
+    return lines
+
+
+def preflight_audio_image() -> list[str]:
+    """Check the audio/image mode contract locally; returns the failures found.
+
+    Deliberately asserts only what this repo controls. The two things that genuinely need
+    hardware -- whether `Flux2KleinPipeline` imports and how Klein fits in 24GB (phase 0 of
+    the plan) -- are printed as UNVERIFIED rather than guessed at, so a green run here is
+    never mistaken for a green rental.
+    """
+    failures: list[str] = []
+    saved = os.environ.get("VAST_AUDIO_IMAGE_ONLY")
+    try:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+        env_spec = VastManager.container_env_spec()
+        if "-p 8000:8000" not in env_spec:
+            failures.append("the port mapping is missing from the container env spec")
+        if "-e VAST_AUDIO_IMAGE_ONLY=1" not in env_spec:
+            failures.append("the container is not told it is in audio/image mode")
+
+        models = prefetch_models()
+        if "black-forest-labs/FLUX.2-klein-4B" not in models:
+            failures.append("Klein is not in the prefetch set")
+        if any("LTX" in model for model in models):
+            failures.append("an LTX repo is still in the prefetch set")
+
+        deps = VastManager.server_dependency_packages()
+        if not any(dep.startswith("diffusers>=0.37") for dep in deps):
+            failures.append("diffusers is not raised to >=0.37 for Flux2KleinPipeline")
+        if any(dep == "diffusers==0.32.2" for dep in deps):
+            failures.append("the LTX diffusers pin survived the override (uv would pick either)")
+        if not any(dep.startswith("transformers>=4.51") for dep in deps):
+            failures.append("transformers is not raised to >=4.51 for Qwen3ForCausalLM")
+
+        onstart = VastManager.server_onstart_command(prefetch_models=None)
+        if "deps_ready_aiimg" not in onstart:
+            failures.append("the onstart marker is not mode-specific (a warm instance would skip the install)")
+        if "Flux2KleinPipeline" not in onstart:
+            failures.append("the onstart does not verify the Klein import")
+        if "LTXPipeline" in onstart:
+            failures.append("the onstart still verifies LTX in audio/image mode")
+        if "ignore_patterns" not in onstart:
+            failures.append("the Klein prefetch does not skip the duplicate .safetensors")
+    finally:
+        if saved is None:
+            os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+        else:
+            os.environ["VAST_AUDIO_IMAGE_ONLY"] = saved
+    return failures
+
+
+def _rental_cost_settings(
+    hours: float | None = None, download_gb: float | None = None
+) -> tuple[float, float]:
+    """Resolve the rental assumptions from the args, then the environment, then the default."""
+    if hours is None:
+        hours = float(os.environ.get("VAST_RENTAL_HOURS", RENTAL_HOURS_DEFAULT) or RENTAL_HOURS_DEFAULT)
+    if download_gb is None:
+        download_gb = float(os.environ.get("VAST_RENTAL_GB", RENTAL_GB_DEFAULT) or RENTAL_GB_DEFAULT)
+    return max(0.1, hours), max(0.0, download_gb)
+
+
+def rank_offers(
+    offers: list[dict],
+    hours: float | None = None,
+    download_gb: float | None = None,
+    disk_gb: int = 0,
+) -> list[tuple[dict, dict[str, float]]]:
+    """Order offers by what a SHORT rental actually costs, cheapest first.
+
+    The brief is "low GPU price, but also weigh download speed/price and storage for a
+    one-hour job", so the key is the fully-loaded total, not `dph_total`:
+
+      total = (gpu$/hr + storage$/GB/mo / 730 * disk_gb) * hours + download_gb * $/GB
+
+    Ties (and near-ties within a cent) break on the faster download, because a host that
+    spends half the rental pulling weights delivers fewer finished scenes for the same
+    money. Offers Vast could not price sort last.
+    """
+    hours, download_gb = _rental_cost_settings(hours, download_gb)
+    scored: list[tuple[dict, dict[str, float]]] = []
+    for offer in offers:
+        cost = rental_cost(offer, hours=hours, download_gb=download_gb, disk_gb=disk_gb)
+        if cost["total"] <= 0:
+            cost = {**cost, "total": float("inf")}
+        scored.append((offer, cost))
+    scored.sort(key=lambda item: (round(item[1]["total"], 2), download_seconds(item[0], download_gb)))
+    return scored
+
+
+def describe_cost(
+    offer: dict,
+    cost: dict[str, float],
+    download_gb: float = RENTAL_GB_DEFAULT,
+    hours: float = RENTAL_HOURS_DEFAULT,
+) -> str:
+    """One line explaining what a short rental of this offer would bill."""
+    seconds = download_seconds(offer, download_gb)
+    eta = "unknown" if seconds == float("inf") else f"{seconds / 60:.0f}m"
+    unstated = ""
+    if cost.get("missing"):
+        # Say it out loud: the total excludes a price the host never published, so it is a
+        # LOWER BOUND, not a quote.
+        unstated = f"  [missing {', '.join(cost['missing'])} treated as $0/GB]"
+    return (
+        f"       {hours:g}h all-in: ${cost['total']:.3f}  "
+        f"(gpu ${cost['gpu']:.3f} + {download_gb:.0f}GB dl ${cost['download']:.3f} "
+        f"+ disk ${cost['storage']:.3f})   download ETA {eta}{unstated}"
+    )
 
 
 # The container needs a Hugging Face token at RUNTIME, not only at install time. The
@@ -453,6 +694,51 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
     # unresolved C++ symbol.
 )
 
+# Audio/image-only mode needs a DIFFERENT pin set, and the default one cannot move: the LTX
+# checkpoint declares `_diffusers_version: 0.32.0.dev0`, while FLUX.2-klein-4B needs
+# Flux2KleinPipeline (diffusers >= 0.37) and Qwen3ForCausalLM (transformers >= 4.51).
+# They cannot share one pin, so the set is selected by mode instead.
+KLEIN_DIFFUSERS_PIN = "diffusers>=0.37,<0.42"
+KLEIN_TRANSFORMERS_PIN = "transformers>=4.51,<6"
+
+# Replacements, never appends: two `diffusers` lines in one `uv pip install` make uv resolve
+# whichever it reads last, which is a silent coin flip.
+SERVER_DEPENDENCY_OVERRIDES: dict[str, str] = {
+    "diffusers": KLEIN_DIFFUSERS_PIN,
+    "transformers": KLEIN_TRANSFORMERS_PIN,
+}
+
+
+def audio_image_only() -> bool:
+    """True when the container must serve images + narration only, never video.
+
+    This is a server-side contract, not a CLI mode: new_video.py derives it from
+    `--visual-mode image` + a `vast` image provider and exports it before any VastManager
+    is constructed, so `container_env_spec()` and the onstart can see it without threading
+    a new argument through batch.py or test_providers.py.
+    """
+    return os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1"
+
+
+def _deps_marker_suffix() -> str:
+    """Filename suffix that keeps each mode's "deps ready" marker distinct.
+
+    A warm-reused instance provisioned in normal mode would otherwise answer "dependencies
+    already present" to an audio/image run, skip the install, and fail at the first image
+    request with ImportError -- after the rental was paid for.
+    """
+    return "_aiimg" if audio_image_only() else ""
+
+
+def deps_marker_path() -> str:
+    """The container-side marker file this mode writes and trusts."""
+    return f"$HOME/.tube2dscript_deps_ready{_deps_marker_suffix()}"
+
+
+def _package_name(package: str) -> str:
+    """The distribution name from a PEP 508 requirement string."""
+    return re.split(r"[=<>@!~;\[ ]", package, maxsplit=1)[0].strip().lower()
+
 # The import surface the server actually needs, including the modules it imports LAZILY
 # inside a request handler. Probing only the top-level packages is not enough, and that gap
 # is exactly how a broken instance was marked healthy: `f5_tts/__init__.py` never touches
@@ -470,6 +756,25 @@ SERVER_DEPENDENCY_PROBE: str = (
     "from diffusers import FluxPipeline, LTXPipeline"
 )
 
+
+def server_dependency_probe() -> str:
+    """The import probe for the CURRENT mode; it must name what the handlers construct.
+
+    The marker below certifies whatever this probe accepts, so in audio/image mode it has
+    to import the classes an image request actually loads lazily -- otherwise a healthy
+    verdict is written for a runtime that cannot answer a single image request.
+    parler_tts stays out of both probes: its absence must never block readiness.
+    """
+    if not audio_image_only():
+        return SERVER_DEPENDENCY_PROBE
+    return (
+        "import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; "
+        "from f5_tts.infer.utils_infer import infer_process; "
+        # The classes the request handlers construct lazily (see 4.2 of the plan).
+        "from diffusers import Flux2KleinPipeline; "
+        "from transformers import Qwen3ForCausalLM"
+    )
+
 # Hugging Face repos prefetched during the install so the first request is not stuck
 # on a download. IndicF5 is the remote narration runtime; the legacy Parler repo remains
 # available only for backward-compatible voices.
@@ -485,6 +790,39 @@ DEFAULT_PREFETCH_MODELS: tuple[str, ...] = (
     "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE",
     "black-forest-labs/FLUX.1-schnell",
 )
+
+# Audio/image-only mode prefetches Klein instead of FLUX.1 + LTX. The repo is 23.7GB on the
+# Hub, but 7.75GB of that is a monolithic `flux-2-klein-4b.safetensors` duplicate that the
+# diffusers pipeline never loads, so PREFETCH_IGNORE drops it (~15.9GB actual download).
+AUDIO_IMAGE_PREFETCH_MODELS: tuple[str, ...] = (
+    "ai4bharat/IndicF5",
+    "black-forest-labs/FLUX.2-klein-4B",
+)
+
+PREFETCH_IGNORE: dict[str, list[str]] = {
+    "black-forest-labs/FLUX.2-klein-4B": [
+        "flux-2-klein-4b.safetensors",
+        "*.jpg",
+        "*.png",
+    ],
+}
+
+
+def prefetch_models() -> list[str]:
+    """The default prefetch set for the current mode (callers passing None get this).
+
+    `VAST_SERVER_PREFETCH` still wins in normal mode, so an operator can narrow or extend
+    the set by hand. Audio/image mode ignores it: the whole point of the mode is that the
+    working set is Klein + IndicF5, and a stale env var from a video run would silently
+    reintroduce a 7.75GB LTX download.
+    """
+    if audio_image_only():
+        return list(AUDIO_IMAGE_PREFETCH_MODELS)
+    env_models = os.environ.get("VAST_SERVER_PREFETCH", "").strip()
+    return (
+        [item.strip() for item in env_models.split(",") if item.strip()]
+        if env_models else list(DEFAULT_PREFETCH_MODELS)
+    )
 
 # Container image. Ships a CUDA build of torch, which the install must not upgrade.
 DEFAULT_SERVER_IMAGE = "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime"
@@ -539,6 +877,150 @@ def _wav_is_bad(wav_bytes: bytes) -> bool:
     if np.std(x) < 1e-5:  # constant / pure DC
         return True
     return False
+
+
+def _read_key() -> str | None:
+    """Read one keypress without waiting for Enter, or None when stdin cannot do that.
+
+    Windows uses msvcrt; POSIX switches the tty to cbreak for the duration of the call.
+    Both are restored before returning, so a cancelled pick cannot leave the terminal in
+    a state where later prompts stop echoing.
+    """
+    if sys.platform == "win32":
+        try:
+            import msvcrt
+        except ImportError:
+            return None
+        key = msvcrt.getwch()
+        if key in ("\x00", "\xe0"):  # a function/arrow key carries a second byte
+            msvcrt.getwch()
+            return ""
+        return key
+    try:
+        import termios
+        import tty
+    except ImportError:
+        return None
+    try:
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+    except Exception:  # noqa: BLE001 - not a real tty
+        return None
+    try:
+        tty.setcbreak(fd)
+        return sys.stdin.read(1)
+    except Exception:  # noqa: BLE001 - a closed or redirected stdin
+        return None
+    finally:
+        try:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        except Exception:  # noqa: BLE001 - restoring is best effort
+            pass
+
+
+def _drain_pending_keys() -> None:
+    """Discard keypresses that were typed before the picker started listening.
+
+    Without this, a stale keystroke in the terminal buffer is read on the first poll and
+    overrides the countdown's default. Best effort by design: any platform without a
+    non-blocking key API simply has nothing to drain.
+    """
+    if sys.platform == "win32":
+        try:
+            import msvcrt
+        except ImportError:
+            return
+        # Bound the loop: a held key or a wedged console must not spin forever.
+        for _ in range(64):
+            try:
+                if not msvcrt.kbhit():
+                    break
+                msvcrt.getwch()
+            except Exception:  # noqa: BLE001 - draining is best effort
+                break
+        return
+    try:
+        import select
+        import termios
+        import tty
+    except ImportError:
+        return
+    try:
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+    except Exception:  # noqa: BLE001 - not a real tty
+        return
+    try:
+        tty.setcbreak(fd)
+        for _ in range(64):
+            if not select.select([fd], [], [], 0)[0]:
+                break
+            sys.stdin.read(1)
+    except Exception:  # noqa: BLE001 - draining is best effort
+        pass
+    finally:
+        try:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        except Exception:  # noqa: BLE001 - restoring is best effort
+            pass
+
+
+def prompt_pick_with_timeout(
+    count: int,
+    default_index: int = 1,
+    timeout_sec: float = 10.0,
+    valid_digits: str = "12345",
+) -> int | None:
+    """Let the operator press 1-5, or auto-select `default_index` when the timer expires.
+
+    Returns a 1-based index, or None when the operator cancelled (`q`).
+
+    A piped, non-tty stdin cannot deliver a keypress, so the default is returned
+    immediately rather than blocking for `timeout_sec`. The countdown redraws in place so
+    the offer list above it stays legible instead of scrolling away once per second.
+    """
+    if not sys.stdin.isatty():
+        return default_index
+    allowed = [digit for digit in valid_digits[:count]]
+    if not allowed:
+        return default_index
+    deadline = time.time() + max(0.0, timeout_sec)
+    last_shown = -1
+    # Keys pressed before the prompt appeared (or while this process was still starting)
+    # are still sitting in the terminal buffer, and `_read_key` returns them immediately.
+    # A stray "2" from an earlier keystroke therefore silently OVERRODE the auto-pick, which
+    # showed up as "auto-picking 1 in 11s" immediately followed by "Pinned offer ... pick #2".
+    # Discard whatever is already buffered so only a fresh keypress counts.
+    _drain_pending_keys()
+    while True:
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            print()
+            return default_index
+        shown = int(remaining) + 1
+        if shown != last_shown:
+            print(
+                f"\r  Press {allowed[0]}-{allowed[-1]} to pick, q to cancel "
+                f"-> auto-picking {default_index} in {shown}s   ",
+                end="",
+                flush=True,
+            )
+            last_shown = shown
+        key = _read_key()
+        if key is None:
+            # No keypress API here (redirected stdin, exotic terminal): keep the timeout,
+            # but poll slowly instead of spinning.
+            time.sleep(0.2)
+            continue
+        key = key.strip()
+        if not key:
+            continue
+        if key.lower() == "q":
+            print()
+            return None
+        if key in allowed:
+            print()
+            return int(key)
 
 
 class VastManager:
@@ -755,11 +1237,17 @@ class VastManager:
         the client uploads to, and the token is mandatory too because IndicF5 is gated.
         """
         parts = ["-p 8000:8000", f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}"]
+        # Tell the container which contract it must honour. Set here (not as a CLI flag) so
+        # the server-side contract travels with the instance and survives a stop/start.
+        if audio_image_only():
+            parts.append("-e VAST_AUDIO_IMAGE_ONLY=1")
         # Point Hugging Face at the persistent volume when one is configured. Vast mounts a
         # network volume on every instance that attaches it, so HF_HOME there turns the
-        # ~42 GB of FLUX/LTX/IndicF5 weights into a ONE-OFF cost: the first instance
-        # downloads them, every later rental finds a warm cache and downloads nothing.
-        # Without it the same 42 GB is billed again on every fresh instance.
+        # weights into a ONE-OFF cost: the first instance downloads them, every later rental
+        # finds a warm cache and downloads nothing. Without it they are billed again on every
+        # fresh instance. The set is ~42GB for FLUX.1 + LTX + IndicF5, but only ~16GB in
+        # audio/image mode (Klein + IndicF5) -- which is what decides whether a volume is
+        # worth paying for.
         hf_home = os.environ.get("VAST_HF_HOME", "").strip()
         if hf_home:
             parts.append(f"-e HF_HOME={hf_home}")
@@ -868,11 +1356,22 @@ class VastManager:
 
         Shared by the onstart install and `repair_dependencies` so a repair cannot drift
         away from the install that produced the problem in the first place.
+
+        In audio/image mode SERVER_DEPENDENCY_OVERRIDES REPLACE the default pins in place.
+        They are never appended: `uv pip install diffusers==0.32.2 diffusers>=0.37` would
+        resolve whichever line it read last, which is a silent coin flip rather than an
+        error.
         """
         image = image or os.environ.get("VAST_SERVER_IMAGE", DEFAULT_SERVER_IMAGE)
+        packages = list(SERVER_DEPENDENCIES)
+        if audio_image_only():
+            for index, package in enumerate(packages):
+                override = SERVER_DEPENDENCY_OVERRIDES.get(_package_name(package))
+                if override:
+                    packages[index] = override
         torch_version = _image_torch_version(image)
         torchaudio_pin = f"torchaudio=={torch_version}" if torch_version else "torchaudio"
-        return (*SERVER_DEPENDENCIES, torchaudio_pin)
+        return (*packages, torchaudio_pin)
 
     @classmethod
     def dependency_install_command(cls) -> str:
@@ -908,7 +1407,12 @@ class VastManager:
         printing a traceback every time it is asked whether the packages are usable.
         """
         suffix = " 2>/dev/null" if quiet else ""
-        return f"python -c {shlex.quote(SERVER_DEPENDENCY_PROBE)}{suffix}"
+        return f"python -c {shlex.quote(server_dependency_probe())}{suffix}"
+
+    @staticmethod
+    def _default_prefetch_models() -> list[str]:
+        """The mode's default prefetch set (seam so tests can read it directly)."""
+        return prefetch_models()
 
     @staticmethod
     def server_onstart_command(prefetch_models: list[str] | None = None) -> str:
@@ -943,23 +1447,28 @@ class VastManager:
             repo_url = repository
 
         if prefetch_models is None:
-            env_models = os.environ.get("VAST_SERVER_PREFETCH", "").strip()
-            prefetch_models = (
-                [item.strip() for item in env_models.split(",") if item.strip()]
-                if env_models
-                else list(DEFAULT_PREFETCH_MODELS)
-            )
+            prefetch_models = VastManager._default_prefetch_models()
 
         deps_install = VastManager.dependency_install_command()
         # The probe covers the modules the server imports LAZILY as well as the top-level
-        # packages; see SERVER_DEPENDENCY_PROBE for why that distinction cost a whole run.
+        # packages, and it is mode-aware: see server_dependency_probe for why naming the
+        # wrong classes cost a whole run.
         probe = VastManager.dependency_probe_command(quiet=True)
+        # The marker is mode-specific. A warm-reused normal-mode instance must not answer
+        # "dependencies already present" to an audio/image run: it would skip the install and
+        # then fail at the first image request with ImportError: Flux2KleinPipeline.
+        deps_marker = deps_marker_path()
         # One snapshot_download per repo, each its own `python -c`. A single crash part-way
         # through a combined call discarded every repo that had already finished -- which is
         # how a 40-minute prefetch was lost to one late failure. The repos are also
         # independent, so a failure in LTX must not stop IndicF5 from arriving.
         prefetch_cmd = " ; ".join(
-            f"python -c \"from huggingface_hub import snapshot_download; snapshot_download({model!r})\""
+            (
+                f"python -c \"from huggingface_hub import snapshot_download; "
+                f"snapshot_download({model!r}, ignore_patterns={PREFETCH_IGNORE[model]!r})\""
+                if model in PREFETCH_IGNORE
+                else f"python -c \"from huggingface_hub import snapshot_download; snapshot_download({model!r})\""
+            )
             for model in prefetch_models
         )
         # torch is imported first and torchaudio second: a version mismatch raises an
@@ -967,9 +1476,17 @@ class VastManager:
         # synthesis where it is far harder to attribute. parler_tts and transformers are in
         # here for the same reason, and for a second one: whatever this probe accepts is
         # what the marker below certifies as "ready".
+        # Same mode switch as the probe: whatever this prints is what the marker below
+        # certifies, so the two must agree or a run can be marked ready by a looser check.
+        verify_klein = (
+            "from diffusers import Flux2KleinPipeline; "
+            "from transformers import Qwen3ForCausalLM; "
+            if audio_image_only() else ""
+        )
         verify_imports = (
             "python -c \"import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; "
             "from f5_tts.infer.utils_infer import infer_process; "
+            f"{verify_klein}"
             "assert torchaudio.__version__.split('+')[0] == torch.__version__.split('+')[0], "
             "'torch and torchaudio versions must match'; "
             "print('[onstart] IndicF5 imports OK', torch.__version__, torchaudio.__version__, "
@@ -1013,7 +1530,7 @@ class VastManager:
             )
         return (
             "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
-            "if [ -f \"$HOME/.tube2dscript_deps_ready\" ] "
+            f"if [ -f \"{deps_marker}\" ] "
             f"&& {probe}; then "
             "echo '[onstart] dependencies already present, skipping install'; "
             "else "
@@ -1032,7 +1549,7 @@ class VastManager:
             f"{verify_imports}; "
             f"{verify_torch}; "
             f"if {probe}; then "
-            "touch \"$HOME/.tube2dscript_deps_ready\"; "
+            f"touch \"{deps_marker}\"; "
             "else echo '[onstart] FAILED: deps unusable, not marking them ready'; fi; "
             "fi; "
             f"{refresh_repo} "
@@ -1220,18 +1737,24 @@ class VastManager:
         gpu_name: str = "RTX 4090",
         disk_gb: int = 60,
         max_dph: float | None = None,
-        limit: int = 15,
+        limit: int = 5,
         auto_select: int | None = None,
+        timeout_sec: float | None = None,
     ) -> dict | None:
-        """Show the available offers with full pricing/speed detail and let the user pick one.
+        """Show the cheapest short rentals and let the operator pick by keypress.
 
-        Prints every in-budget offer with its all-in rate, download/upload bandwidth and
-        bandwidth price, storage rate for the requested disk, location, reliability and
-        hardware specs, then reads a choice from stdin. `auto_select` (a 1-based index)
-        picks non-interactively, which is what scripts and CI use. Returns the chosen
-        offer dict, or None when there is nothing to choose from.
+        The list is ranked by what a ~1 hour job actually costs -- GPU rate, the egress
+        for a ~25GB weight download, and the storage billed for `disk_gb` -- rather than
+        by `dph_total` alone, because setup dominates a short rental. Every card shows
+        those components so the choice can be argued with, and the auto-pick is the
+        cheapest of them.
+
+        `auto_select` (a 1-based index) skips the prompt entirely, which is what scripts
+        and CI use. Otherwise a countdown runs for `timeout_sec`; pressing 1-5 pins that
+        offer immediately, `q` cancels, and expiry pins the cheapest.
         """
         budget = gpu_budget(gpu_name) if max_dph is None else max_dph
+        hours, download_gb = _rental_cost_settings()
         offers = self.search_gpu_with_wait(gpu_name, max_dph=budget, min_disk=disk_gb)
         if not offers:
             print(
@@ -1241,17 +1764,27 @@ class VastManager:
             )
             return None
 
-        shown = offers[: max(1, limit)]
+        ranked = rank_offers(offers, hours=hours, download_gb=download_gb, disk_gb=disk_gb)
+        shown = ranked[: max(1, limit)]
         print()
         print("=" * 74)
-        print(f"CHOOSE A GPU: {gpu_name} (budget ${budget:.2f}/hr, disk {disk_gb}GB)")
+        print(
+            f"CHOOSE A GPU: {gpu_name}  (budget ${budget:.2f}/hr, disk {disk_gb}GB, "
+            f"{hours:g}h rental)"
+        )
+        print(f"Ranked by {hours:g}h all-in cost for a ~{download_gb:.0f}GB download.")
         print("=" * 74)
-        for index, offer in enumerate(shown, start=1):
+        for index, (offer, cost) in enumerate(shown, start=1):
             for line in describe_offer(offer, index=index, disk_gb=disk_gb):
                 print(line)
+            print(describe_cost(offer, cost, download_gb, hours))
+            if index == 1:
+                print("       verdict  : cheapest for this rental")
+            else:
+                delta = cost["total"] - shown[0][1]["total"]
+                print(f"       verdict  : ${delta:.3f} more than #1 for the same job")
             print()
 
-        # Non-interactive selection: an explicit 1-based index wins.
         if auto_select is not None:
             if not 1 <= auto_select <= len(shown):
                 print(
@@ -1260,45 +1793,37 @@ class VastManager:
                     file=sys.stderr,
                 )
                 return None
-            chosen = shown[auto_select - 1]
+            chosen = shown[auto_select - 1][0]
             print(f"[Vast Manager] Pinned offer {chosen.get('id')} (pick #{auto_select}).")
             return chosen
 
-        # A piped/stdin-less run cannot answer a prompt; pick the cheapest and say so
-        # rather than hanging forever waiting for input that will never arrive.
+        if timeout_sec is None:
+            timeout_sec = float(os.environ.get("VAST_PICK_TIMEOUT", "10"))
+
+        # Non-interactive selection: a piped run cannot press a key, so take the cheapest
+        # rather than hanging for the countdown and then taking the cheapest anyway.
         if not sys.stdin.isatty():
-            chosen = shown[0]
+            chosen = shown[0][0]
             print(
                 f"[Vast Manager] Non-interactive input: defaulting to the cheapest offer "
                 f"{chosen.get('id')}. Pass --pick N to choose a specific one."
             )
             return chosen
 
-        print("  q = quit.  Enter with no number = cheapest offer.")
-        while True:
-            try:
-                raw = input(f"  Pick an offer [1-{len(shown)}] (q to cancel): ").strip().lower()
-            except (EOFError, KeyboardInterrupt):
-                print()
-                return None
-            if raw in ("q", "quit", "exit"):
-                print("[Vast Manager] Selection cancelled.")
-                return None
-            if not raw:
-                chosen = shown[0]
-                print(f"[Vast Manager] Pinned cheapest offer {chosen.get('id')}.")
-                return chosen
-            try:
-                pick = int(raw)
-            except ValueError:
-                print("  please enter a number from the list, or q to cancel")
-                continue
-            if not 1 <= pick <= len(shown):
-                print(f"  pick a number in 1-{len(shown)}")
-                continue
-            chosen = shown[pick - 1]
-            print(f"[Vast Manager] Pinned offer {chosen.get('id')} (pick #{pick}).")
-            return chosen
+        pick = prompt_pick_with_timeout(len(shown), default_index=1, timeout_sec=timeout_sec)
+        if pick is None:
+            print("[Vast Manager] Selection cancelled.")
+            return None
+        choice, cost = shown[pick - 1]
+        if pick == 1:
+            print(f"[Vast Manager] Pinned cheapest offer {choice.get('id')} "
+                  f"(${cost['total']:.3f} for {hours:g}h).")
+        else:
+            print(
+                f"[Vast Manager] Pinned offer {choice.get('id')} (pick #{pick}, "
+                f"${cost['total']:.3f} for {hours:g}h)."
+            )
+        return choice
 
     def _offer_wait(self, seconds: float) -> None:
         """Sleep between offer searches (seam so tests need not really wait)."""
@@ -1679,11 +2204,12 @@ class VastManager:
         """
         install = VastManager.dependency_install_command()
         probe = VastManager.dependency_probe_command()
+        marker = deps_marker_path()
         command = (
             "cd /workspace/tube2dscript 2>/dev/null || cd /workspace; "
-            "rm -f \"$HOME/.tube2dscript_deps_ready\"; "
+            f"rm -f \"{marker}\"; "
             f"( {install} ) && {probe} "
-            "&& touch \"$HOME/.tube2dscript_deps_ready\" "
+            f"&& touch \"{marker}\" "
             "&& echo '[repair] dependencies verified and marked ready'"
         )
         print(f"[Vast Manager] Repairing dependencies on instance {instance_id} over SSH...")
@@ -2127,6 +2653,18 @@ class VastManager:
             if (engine == "parler" or "indicf5_ready" not in health) and health.get("tts_ready") is False:
                 detail = health.get("tts_error") or "the legacy TTS import path is unusable on this instance"
                 raise RuntimeError(f"Vast server {url or self.server_url} cannot synthesise remote TTS: {detail}")
+        # In audio/image mode the image half is the other half of the contract. A server
+        # that reports the wrong image import path answers HTTP 500 to every scene, and
+        # without this the only signal is that failure, mid-run. Servers predating the key
+        # are accepted: `image_ready` is absent there, not False.
+        if audio_image_only() and health.get("image_ready") is False:
+            detail = health.get("image_error") or "the image pipeline import path is unusable"
+            raise RuntimeError(
+                f"Vast server {url or self.server_url} cannot generate images in audio/image "
+                f"mode: {detail}. This instance was almost certainly provisioned with the "
+                "normal dependency pins; repair it (python scripts/vast_manager.py repair "
+                "<instance-id>) or rent a fresh one."
+            )
         return health
 
     def generate_image(
@@ -2308,7 +2846,28 @@ def main() -> int:
     p_choose.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
     p_choose.add_argument("--disk", type=int, default=60, help="Disk space in GB (drives the storage estimate)")
     p_choose.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
-    p_choose.add_argument("--limit", type=int, default=15, help="How many offers to show (default: 15)")
+    p_choose.add_argument("--limit", type=int, default=5, help="How many offers to show (default: 5)")
+    p_choose.add_argument(
+        "--hours",
+        dest="rental_hours",
+        type=float,
+        default=None,
+        help="rental length the cost ranking assumes (default: VAST_RENTAL_HOURS or 1)",
+    )
+    p_choose.add_argument(
+        "--download-gb",
+        dest="download_gb",
+        type=float,
+        default=None,
+        help="weight download the cost ranking prices in (default: VAST_RENTAL_GB or 25)",
+    )
+    p_choose.add_argument(
+        "--timeout",
+        dest="pick_timeout",
+        type=float,
+        default=None,
+        help="seconds before the cheapest offer is auto-picked (default: VAST_PICK_TIMEOUT or 10)",
+    )
     p_choose.add_argument(
         "--pick",
         type=int,
@@ -2368,7 +2927,49 @@ def main() -> int:
     p_repair.add_argument("instance_id", type=int, help="Instance ID")
     p_repair.add_argument("--timeout", type=int, default=2700, help="SSH timeout in seconds")
 
+    # Preflight: verify the mode contract on this machine, before anything is rented.
+    p_preflight = subparsers.add_parser(
+        "preflight",
+        help="Check the audio/image mode wiring locally (no GPU, no network)",
+    )
+    p_preflight.add_argument(
+        "--mode",
+        choices=["auto", "audio-image", "normal"],
+        default="auto",
+        help="Force a mode instead of reading VAST_AUDIO_IMAGE_ONLY (default: auto)",
+    )
+
     args = parser.parse_args()
+
+    # Preflight runs before VastManager() on purpose: it needs no API key, and a missing
+    # VAST_API_KEY must not hide a mode-wiring problem.
+    if args.action == "preflight":
+        if args.mode != "auto":
+            if args.mode == "audio-image":
+                os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+            else:
+                os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+        print("=" * 74)
+        print("VAST MODE PREFLIGHT (local only: no GPU, no rental, no network)")
+        print("=" * 74)
+        for line in describe_mode():
+            print(f"  {line}")
+        print()
+        failures = preflight_audio_image()
+        if failures:
+            print("FAILED:")
+            for failure in failures:
+                print(f"  - {failure}")
+            return 1
+        print("Mode wiring OK.")
+        print(
+            "UNVERIFIED (needs a throwaway rental, phase 0 of the plan):\n"
+            "  - that `from diffusers import Flux2KleinPipeline` resolves at the pinned versions\n"
+            "  - that Klein fits in 24GB with enable_model_cpu_offload()\n"
+            "  - that IndicF5 still runs under transformers>=4.51"
+        )
+        return 0
+
     mgr = VastManager()
 
     if args.action == "search":
@@ -2407,12 +3008,19 @@ def main() -> int:
         return 0
 
     elif args.action == "choose":
+        # The cost model is read from the environment, so a one-off override can travel
+        # with the command without another parameter on choose_offer.
+        if args.rental_hours is not None:
+            os.environ["VAST_RENTAL_HOURS"] = str(args.rental_hours)
+        if args.download_gb is not None:
+            os.environ["VAST_RENTAL_GB"] = str(args.download_gb)
         chosen = mgr.choose_offer(
             gpu_name=args.gpu,
             disk_gb=args.disk,
             max_dph=args.max_price,
             limit=args.limit,
             auto_select=args.pick,
+            timeout_sec=args.pick_timeout,
         )
         if chosen is None:
             return 1

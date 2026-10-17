@@ -43,6 +43,17 @@ except (AttributeError, OSError):
 PORT = int(os.environ.get("PORT", 8000))
 DEVICE = "cuda" if os.environ.get("FORCE_CPU", "0") != "1" else "cpu"
 
+# One mode switch, read once. The container is told this at create time (vast_manager's
+# container_env_spec), so it cannot change under a running server.
+AUDIO_IMAGE_ONLY = os.environ.get("VAST_AUDIO_IMAGE_ONLY", "0").strip() == "1"
+KLEIN_MODEL_ID = "black-forest-labs/FLUX.2-klein-4B"
+FLUX1_MODEL_ID = "black-forest-labs/FLUX.1-schnell"
+IMAGE_MODEL_ID = KLEIN_MODEL_ID if AUDIO_IMAGE_ONLY else FLUX1_MODEL_ID
+# Klein is distilled and documents guidance_scale=1.0; FLUX.1-schnell needs 0.0. Passing
+# 0.0 to Klein produces flat, washed-out frames rather than an error, so this cannot be left
+# to a per-request default.
+DEFAULT_GUIDANCE = 1.0 if AUDIO_IMAGE_ONLY else 0.0
+
 _FLUX_PIPE = None
 _LTX_PIPE = None
 _LTX_MODEL_ID: str | None = None
@@ -54,6 +65,7 @@ _INDICF5_ENGINE = None
 # next /health should reflect that without needing a restart.
 _TTS_IMPORT_OK = False
 _INDICF5_IMPORT_OK = False
+_IMAGE_IMPORT_OK = False
 INDICF5_REPOSITORY = "ai4bharat/IndicF5"
 INDICF5_SAMPLE_RATE = 24000
 INDICF5_AUDIO_EXTENSIONS = (".wav", ".flac", ".ogg", ".mp3")
@@ -117,6 +129,31 @@ def indicf5_import_error() -> str | None:
     except Exception as err:  # noqa: BLE001 - every failure makes inference impossible
         return f"{type(err).__name__}: {err}"
     _INDICF5_IMPORT_OK = True
+    return None
+
+
+def image_pipeline_import_error() -> str | None:
+    """Return why this mode's image pipeline cannot be imported, or None when it can.
+
+    Mirrors `indicf5_import_error()`: only a success is latched, so an instance repaired
+    while this process runs starts reporting healthily without a restart. In audio/image
+    mode this also proves the Qwen3 text encoder exists, which is the half of Klein that a
+    diffusers-only check would miss. FLUX.1-schnell stays on the permissive path (its import
+    is exercised by the first request) so a warm legacy instance is never refused.
+    """
+    global _IMAGE_IMPORT_OK
+    if _IMAGE_IMPORT_OK:
+        return None
+    try:
+        if AUDIO_IMAGE_ONLY:
+            import torch  # noqa: F401
+            from diffusers import Flux2KleinPipeline  # noqa: F401
+            from transformers import Qwen3ForCausalLM  # noqa: F401
+        else:
+            from diffusers import FluxPipeline  # noqa: F401
+    except Exception as err:  # noqa: BLE001 - any failure here makes image requests impossible
+        return f"{type(err).__name__}: {err}"
+    _IMAGE_IMPORT_OK = True
     return None
 
 
@@ -253,34 +290,63 @@ def get_vram_info() -> dict[str, Any]:
     return {"available": False}
 
 
-def load_flux_pipeline(model_id: str = "black-forest-labs/FLUX.1-schnell"):
-    """Load FLUX pipeline onto GPU in bfloat16 / fp8."""
+def load_image_pipeline(model_id: str | None = None):
+    """Load this mode's image pipeline onto the GPU in bfloat16.
+
+    One slot (`_FLUX_PIPE`) holds whichever image model is resident: only one is ever
+    loaded, so a separate Klein global would buy nothing in `_release_other_models`.
+    """
     global _FLUX_PIPE
+    model_id = model_id or IMAGE_MODEL_ID
     if _FLUX_PIPE is not None:
         return _FLUX_PIPE
 
     _release_other_models("flux")
     import torch
-    from diffusers import FluxPipeline
 
-    print(f"[Vast Server] Loading FLUX model: {model_id} on {DEVICE}...")
+    problem = image_pipeline_import_error()
+    if problem:
+        raise RuntimeError(f"Image pipeline unavailable: {problem}")
+
+    print(f"[Vast Server] Loading image model: {model_id} on {DEVICE}...")
     torch_dtype = torch.bfloat16 if DEVICE == "cuda" else torch.float32
 
     try:
-        pipe = FluxPipeline.from_pretrained(
-            model_id,
-            torch_dtype=torch_dtype,
-            token=_hub_token(),
-        )
+        if AUDIO_IMAGE_ONLY:
+            from diffusers import Flux2KleinPipeline
+
+            pipe = Flux2KleinPipeline.from_pretrained(
+                model_id,
+                torch_dtype=torch_dtype,
+                token=_hub_token(),
+            )
+        else:
+            from diffusers import FluxPipeline
+
+            pipe = FluxPipeline.from_pretrained(
+                model_id,
+                torch_dtype=torch_dtype,
+                token=_hub_token(),
+            )
         if DEVICE == "cuda":
-            # Increase timeout for first load
-            pipe.enable_model_cpu_offload() if os.environ.get("OFFLOAD_FLUX", "1") == "1" else pipe.to("cuda")
+            # ~15.8GB of BF16 weights (transformer + Qwen3 encoder) on a 24GB card; the VAE
+            # and activations do not fit beside them, so the offload is not optional here.
+            # FLUX.1-schnell needed it at 34GB for the same reason.
+            if AUDIO_IMAGE_ONLY or os.environ.get("OFFLOAD_FLUX", "1") == "1":
+                pipe.enable_model_cpu_offload()
+            else:
+                pipe.to("cuda")
         _FLUX_PIPE = pipe
-        print("[Vast Server] FLUX model loaded successfully.")
+        print("[Vast Server] Image model loaded successfully.")
     except Exception as e:
-        print(f"[Vast Server Error] Failed to load FLUX: {e}", file=sys.stderr)
+        print(f"[Vast Server Error] Failed to load image model: {e}", file=sys.stderr)
         raise
     return _FLUX_PIPE
+
+
+def load_flux_pipeline(model_id: str | None = None):
+    """Backwards-compatible name for `load_image_pipeline`."""
+    return load_image_pipeline(model_id)
 
 
 def load_ltx_pipeline(model_id: str = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"):
@@ -644,12 +710,23 @@ class VastHandler(BaseHTTPRequestHandler):
             tts_error = tts_import_error()
             indicf5_error = indicf5_import_error()
             indicf5_reference_error = None if indicf5_error else indicf5_voice_error()
+            # Probed once: the success result is latched, but a failure must not be re-run
+            # three times per health poll.
+            image_error = image_pipeline_import_error()
             self._send_json({
                 "status": "healthy",
                 "device": DEVICE,
                 "vram": vram,
+                "audio_image_only": AUDIO_IMAGE_ONLY,
+                "image_model": IMAGE_MODEL_ID,
+                # `flux_loaded` means "the image model is resident", whatever it is called.
+                # The name is kept because require_gpu() and warm instances predating Klein
+                # read it, and renaming it would strand them.
                 "flux_loaded": _FLUX_PIPE is not None,
-                "ltx_loaded": _LTX_PIPE is not None,
+                "ltx_loaded": False if AUDIO_IMAGE_ONLY else _LTX_PIPE is not None,
+                "image_ready": image_error is None,
+                "image_error": image_error,
+                "klein_ready": (image_error is None) if AUDIO_IMAGE_ONLY else None,
                 "tts_loaded": _INDIC_PARLER_ENGINE is not None,
                 "tts_greedy": getattr(_INDIC_PARLER_ENGINE, "do_sample", True) is False,
                 "tts_ready": tts_error is None,
@@ -717,11 +794,13 @@ class VastHandler(BaseHTTPRequestHandler):
         width = max(256, int(width * scale) // 16 * 16)
         height = max(256, int(height * scale) // 16 * 16)
         steps = int(req.get("steps", 4))
-        guidance = float(req.get("guidance_scale", 0.0))
+        # The mode supplies the correct default (Klein 1.0, schnell 0.0); a client that
+        # sends an explicit value still wins.
+        guidance = float(req.get("guidance_scale", DEFAULT_GUIDANCE))
         seed = req.get("seed")
 
         import torch
-        pipe = load_flux_pipeline()
+        pipe = load_image_pipeline()
 
         generator = None
         if seed is not None:
@@ -752,6 +831,19 @@ class VastHandler(BaseHTTPRequestHandler):
         })
 
     def handle_video_generate(self, req: dict):
+        # 409, not 400: the endpoint exists and the request is well-formed, but the MODE
+        # forbids it. That distinction lets the client tell a mode refusal from a bad prompt
+        # without string-matching the message.
+        if AUDIO_IMAGE_ONLY:
+            self._send_json(
+                {
+                    "status": "error",
+                    "audio_image_only": True,
+                    "error": "Video generation is disabled in audio-image-only mode",
+                },
+                status=409,
+            )
+            return
         prompt = str(req.get("prompt", "")).strip()
         if not prompt:
             self._send_json({"error": "Missing prompt"}, status=400)
@@ -944,9 +1036,16 @@ class VastHandler(BaseHTTPRequestHandler):
             res_entry = {"id": scene_id}
 
             if prompt:
-                pipe = load_flux_pipeline()
+                pipe = load_image_pipeline()
                 with torch.inference_mode():
-                    img = pipe(prompt=prompt, width=width, height=height, num_inference_steps=4, guidance_scale=0.0).images[0]
+                    img = pipe(
+                        prompt=prompt,
+                        width=width,
+                        height=height,
+                        num_inference_steps=4,
+                        # Model-derived: this used to pin 0.0, which 500s or washes out Klein.
+                        guidance_scale=DEFAULT_GUIDANCE,
+                    ).images[0]
                 buf = io.BytesIO()
                 img.save(buf, format="PNG")
                 res_entry["image_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")

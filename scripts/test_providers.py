@@ -899,6 +899,200 @@ def test_vast_boot_stall_policy() -> None:
     print("  ✓ Boot-stall policy held: stalled-but-alive -> InstanceSlow (stop); empty -> InstanceBroken.")
 
 
+def test_audio_image_only_mode() -> None:
+    """The audio/image contract is selected by mode and leaves the default path untouched."""
+    import vast_manager
+    from vast_manager import VastManager
+
+    print("Testing audio/image-only mode contract...")
+
+    saved = os.environ.get("VAST_AUDIO_IMAGE_ONLY")
+    saved_prefetch = os.environ.get("VAST_SERVER_PREFETCH")
+    try:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+        # A stale env var from a video run must not reintroduce LTX into this mode.
+        os.environ["VAST_SERVER_PREFETCH"] = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"
+
+        # 1. The container is told the mode, and the port mapping survives.
+        env_spec = VastManager.container_env_spec()
+        assert "-p 8000:8000" in env_spec, "the port mapping must survive the extra env var"
+        assert "-e VAST_AUDIO_IMAGE_ONLY=1" in env_spec, "the container must learn the mode"
+
+        # 2. Prefetch fetches Klein and NOT LTX.
+        models = vast_manager.prefetch_models()
+        assert "black-forest-labs/FLUX.2-klein-4B" in models, "Klein must be prefetched"
+        assert not any("LTX" in model for model in models), "LTX must never be prefetched here"
+
+        # 3. Deps REPLACED the default pins (appending would leave a second diffusers line).
+        deps = VastManager.server_dependency_packages()
+        assert any(dep.startswith("diffusers>=0.37") for dep in deps), "diffusers must be >=0.37"
+        assert not any(dep == "diffusers==0.32.2" for dep in deps), (
+            "diffusers==0.32.2 must not appear: uv would silently pick it"
+        )
+        assert any(dep.startswith("transformers>=4.51") for dep in deps), "transformers must be >=4.51"
+        assert not any(dep == "transformers==4.49.0" for dep in deps), (
+            "transformers==4.49.0 predates Qwen3ForCausalLM"
+        )
+
+        # 4. Marker is mode-specific, so a warm normal-mode instance cannot short-circuit
+        #    the install, and the probe names the classes this mode constructs.
+        onstart = VastManager.server_onstart_command(prefetch_models=None)
+        assert "deps_ready_aiimg" in onstart, "the marker must be mode-specific"
+        assert "Flux2KleinPipeline" in onstart, "the onstart must verify the Klein import"
+        assert "LTXPipeline" not in onstart, "the onstart must not verify LTX in this mode"
+        assert "ignore_patterns" in onstart, "the Klein prefetch must skip the duplicate .safetensors"
+    finally:
+        if saved is None:
+            os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+        else:
+            os.environ["VAST_AUDIO_IMAGE_ONLY"] = saved
+        if saved_prefetch is None:
+            os.environ.pop("VAST_SERVER_PREFETCH", None)
+        else:
+            os.environ["VAST_SERVER_PREFETCH"] = saved_prefetch
+
+    # 5. Default mode is unchanged: same pins, same prefetch, same marker, LTX allowed.
+    assert any(dep == "diffusers==0.32.2" for dep in VastManager.server_dependency_packages()), (
+        "the default pin set must not move: the LTX checkpoint declares 0.32.0.dev0"
+    )
+    assert any(dep == "transformers==4.49.0" for dep in VastManager.server_dependency_packages())
+    default_onstart = VastManager.server_onstart_command(
+        prefetch_models=["jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"]
+    )
+    assert "deps_ready_aiimg" not in default_onstart, "the default marker must keep its name"
+    assert "Flux2KleinPipeline" not in default_onstart, "the default probe must not require Klein"
+    assert "LTXPipeline" in default_onstart, "the default probe must still verify LTX"
+
+    print("  audio/image-only mode contract OK")
+
+
+def test_vast_preflight() -> None:
+    """The local preflight must pass on this repo and restore the caller's environment."""
+    import vast_manager
+
+    print("Testing Vast mode preflight (no rental)...")
+
+    saved = os.environ.get("VAST_AUDIO_IMAGE_ONLY")
+    try:
+        os.environ["VAST_AUDIO_IMAGE_ONLY"] = "1"
+        os.environ["VAST_SERVER_PREFETCH"] = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"
+        failures = vast_manager.preflight_audio_image()
+        assert failures == [], f"the audio/image contract is broken: {failures}"
+
+        # The preflight must be side-effect free: it forces the mode internally, so the
+        # caller's environment (and their stale video prefetch list) must survive intact.
+        assert os.environ["VAST_AUDIO_IMAGE_ONLY"] == "1", "the preflight must restore the env"
+        assert "LTX" in os.environ["VAST_SERVER_PREFETCH"], "the preflight must not rewrite the prefetch env"
+
+        described = "\n".join(vast_manager.describe_mode())
+        assert "audio/image-only" in described
+        assert "deps_ready_aiimg" in described
+        assert "Flux2KleinPipeline" in described
+        assert "ignore" in described
+
+        # The Vast provider default is what the server is told to load, so it must follow
+        # the mode. A hardcoded FLUX.1 default here would contradict the Klein pipeline the
+        # same run is prefetching and verifying.
+        import generate_images
+
+        provider, _key, model = generate_images.detect_provider("vast")
+        assert provider == "vast"
+        assert model == "black-forest-labs/FLUX.2-klein-4B", (
+            f"audio/image mode must default to Klein, not FLUX.1: {model}"
+        )
+    finally:
+        if saved is None:
+            os.environ.pop("VAST_AUDIO_IMAGE_ONLY", None)
+        else:
+            os.environ["VAST_AUDIO_IMAGE_ONLY"] = saved
+        os.environ.pop("VAST_SERVER_PREFETCH", None)
+
+    # Normal mode must default to FLUX.1-schnell again once the mode is unset.
+    import generate_images
+
+    _provider, _key, model = generate_images.detect_provider("vast")
+    assert model == "black-forest-labs/FLUX.1-schnell", model
+
+    print("  audio/image preflight OK")
+
+
+def test_vast_rental_cost_ranking() -> None:
+    """The picker must rank by 1-hour all-in cost, not by sticker GPU rate."""
+    import vast_manager
+
+    print("Testing short-rental cost ranking...")
+
+    def offer(oid: int, rate: float, mbps: float, dl_cost: float, storage: float) -> dict:
+        # `storage` is Vast's real unit: $ per GB per MONTH.
+        return {
+            "id": oid,
+            "gpu_name": "RTX 4090",
+            "dph_total": rate,
+            "inet_down": mbps,
+            "inet_down_cost": dl_cost,
+            "storage_cost": storage,
+        }
+
+    # A: cheapest GPU rate, but 100 Mbps and $0.01/GB egress.
+    # B: $0.06/hr dearer, but 900 Mbps and free egress.
+    # At 1 hour + 25GB + 60GB disk, B wins on total AND finishes the download 9x sooner.
+    cheap_slow = offer(1, 0.30, 100, 0.010, 0.20)
+    dear_fast = offer(2, 0.36, 900, 0.0, 0.20)
+
+    cost_a = vast_manager.rental_cost(cheap_slow, hours=1, download_gb=25, disk_gb=60)
+    cost_b = vast_manager.rental_cost(dear_fast, hours=1, download_gb=25, disk_gb=60)
+
+    assert cost_a["download"] > 0, "per-GB egress must be priced in"
+    assert cost_b["download"] == 0, "free egress must cost nothing"
+    # Storage is $0.20/GB/month, so 60GB for 1h is 0.20*60/730 = $0.0164, NOT $12.
+    assert abs(cost_a["storage"] - 0.20 * 60 / 730) < 1e-9, cost_a
+    assert cost_a["storage"] < 0.05, (
+        f"storage must be converted from $/GB/mo to an hourly figure, got {cost_a['storage']}"
+    )
+    # 0.30 + 0.25 egress + 0.0164 storage = 0.5664 vs 0.36 + 0 + 0.0164 = 0.3764
+    assert abs(cost_a["total"] - 0.5664) < 1e-3, cost_a
+    assert abs(cost_b["total"] - 0.3764) < 1e-3, cost_b
+    assert cost_a["missing"] == [], "a reported egress price is not a missing field"
+
+    # An offer that omits `inet_down_cost` must not be silently treated as free.
+    unreported = {key: value for key, value in cheap_slow.items() if key != "inet_down_cost"}
+    assert vast_manager.rental_cost(unreported)["missing"] == ["inet_down_cost"], (
+        "an unreported egress price must be flagged, not assumed to be 0"
+    )
+
+    ranked = vast_manager.rank_offers([cheap_slow, dear_fast], hours=1, download_gb=25, disk_gb=60)
+    assert ranked[0][0]["id"] == 2, "the fully-loaded cost must win, not the GPU rate"
+    assert ranked[1][0]["id"] == 1
+
+    # Download ETA makes the hidden cost visible.
+    assert vast_manager.download_seconds(dear_fast, 25) < vast_manager.download_seconds(cheap_slow, 25)
+    assert vast_manager.download_seconds(offer(3, 0.3, 0, 0, 0), 25) == float("inf")
+
+    # An unpriceable offer sorts last rather than first (inf is not "cheapest").
+    ranked_unpriced = vast_manager.rank_offers(
+        [{**cheap_slow, "dph_total": None, "dph": None}, dear_fast],
+        hours=1,
+        download_gb=25,
+        disk_gb=60,
+    )
+    assert ranked_unpriced[0][0]["id"] == 2
+
+    # The countdown auto-picks the default when stdin cannot deliver a keypress.
+    class _NotATty:
+        def isatty(self) -> bool:
+            return False
+
+    saved = sys.stdin
+    try:
+        sys.stdin = _NotATty()  # type: ignore[assignment]
+        assert vast_manager.prompt_pick_with_timeout(5, default_index=1, timeout_sec=0) == 1
+        assert vast_manager.prompt_pick_with_timeout(5, default_index=3, timeout_sec=0) == 3
+    finally:
+        sys.stdin = saved
+
+    print("  short-rental cost ranking OK")
+
+
 def test_vast_dependency_abi() -> None:
     print("Testing the pinned NumPy/pyarrow ABI, dependency repair, and fast-fail on a broken server...")
 
@@ -1852,6 +2046,9 @@ if __name__ == "__main__":
     test_vast_gpu_routing()
     test_vast_setup_resilience()
     test_vast_boot_stall_policy()
+    test_audio_image_only_mode()
+    test_vast_preflight()
+    test_vast_rental_cost_ranking()
     test_vast_dependency_abi()
     test_vast_gated_model_provisioning()
     test_indicf5_contracts()
