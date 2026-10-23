@@ -169,7 +169,7 @@ export interface Scene {
   /** Looping ambience bed, e.g. `amb_drone`. Mixed under the narration. */
   ambience: { src: string; volume: number } | null;
   /** One-shot stingers and impacts, timed from the scene start. */
-  soundCues: SoundCue[];
+  soundCues: [];
   /** Seconds of silence before narration starts. */
   padBefore: number;
   /** Seconds of silence after narration ends. */
@@ -233,7 +233,7 @@ export interface ScriptFile {
   /** Silence inserted between sentences, in seconds. */
   sentencePauseSeconds: number;
   /** Global continuous background ambience spanning the full video duration without interruption. */
-  ambience?: { src: string; volume: number } | null;
+  ambience?: null;
   captions: CaptionOptions;
   music: { src: string; volume: number; fadeOutSeconds: number } | null;
   theme: Theme;

@@ -64,7 +64,7 @@ def call_llm(prompt: str, model: str | None = None) -> str | None:
                 },
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0.7,
+            "temperature": 0.6,
         }
     ).encode("utf-8")
 

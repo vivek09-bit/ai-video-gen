@@ -1378,6 +1378,11 @@ def main() -> int:
     )
     parser.add_argument("--narration", help="use narration from this file instead of a model")
     parser.add_argument(
+        "--save-narration",
+        dest="save_narration",
+        help="save the generated narration to this file",
+    )
+    parser.add_argument(
         "--show-bible",
         dest="show_bible",
         action="store_true",

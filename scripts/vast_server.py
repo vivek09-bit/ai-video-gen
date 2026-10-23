@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Vast.ai GPU Inference Server for FLUX.1-schnell, LTX-Video & Indic Parler-TTS.
+"""Vast.ai GPU Inference Server for FLUX images & Indic narration.
 
 Runs on one remote 24GB GPU instance, hosting one requested visual pipeline:
-  1. FLUX.1-schnell image generation (RTX 4090 workflow)
-  2. LTX-Video 2B distilled video generation (RTX 4090 workflow)
-  3. AI4Bharat IndicF5 reference-conditioned Hindi TTS
-  4. Legacy Indic Parler-TTS compatibility
+  1. FLUX image generation (Klein in audio/image mode, FLUX.1-schnell otherwise)
+  2. AI4Bharat IndicF5 reference-conditioned Hindi TTS
+  3. Legacy Indic Parler-TTS compatibility
 
 Endpoints:
   GET  /health              -> System, GPU VRAM & model status
   POST /v1/images/generate  -> FLUX.1 image generation
-  POST /v1/videos/generate  -> LTX-Video MP4 generation
+  POST /v1/videos/generate  -> 501 GONE (LTX-Video removed)
   POST /v1/audio/synthesize -> IndicF5 or legacy Indic Parler-TTS audio (WAV + duration)
   POST /v1/audio/synthesize_batch -> many Indic audio segments in one round trip
   POST /v1/batch            -> images + audio for a scene list in one round trip
@@ -55,9 +54,8 @@ IMAGE_MODEL_ID = KLEIN_MODEL_ID if AUDIO_IMAGE_ONLY else FLUX1_MODEL_ID
 DEFAULT_GUIDANCE = 1.0 if AUDIO_IMAGE_ONLY else 0.0
 
 _FLUX_PIPE = None
-_LTX_PIPE = None
-_LTX_MODEL_ID: str | None = None
-_INDIC_PARLER_ENGINE = None
+# LTX was removed. No _LTX_PIPE / _LTX_MODEL_ID globals exist any more on purpose: a
+# surviving reference is then an immediate NameError instead of a silently dead pipeline.
 _INDICF5_ENGINE = None
 
 # Latched once each engine's import path is known to work. A failure is deliberately NOT
@@ -213,13 +211,12 @@ def release_meta_safe(model):
 
 def _release_other_models(active: str) -> None:
     """Keep only one large inference model resident on the 24GB GPU."""
-    global _FLUX_PIPE, _LTX_PIPE, _LTX_MODEL_ID, _INDIC_PARLER_ENGINE, _INDICF5_ENGINE
-    for name in ("flux", "ltx", "indic_parler", "indicf5"):
+    global _FLUX_PIPE, _INDIC_PARLER_ENGINE, _INDICF5_ENGINE
+    for name in ("flux", "indic_parler", "indicf5"):
         if name == active:
             continue
         value = {
             "flux": _FLUX_PIPE,
-            "ltx": _LTX_PIPE,
             "indic_parler": _INDIC_PARLER_ENGINE,
             "indicf5": _INDICF5_ENGINE,
         }[name]
@@ -232,9 +229,6 @@ def _release_other_models(active: str) -> None:
             print(f"[Vast Server Warning] Could not move {name} model to CPU before release: {err}", file=sys.stderr)
         if name == "flux":
             _FLUX_PIPE = None
-        elif name == "ltx":
-            _LTX_PIPE = None
-            _LTX_MODEL_ID = None
         elif name == "indic_parler":
             _INDIC_PARLER_ENGINE = None
         else:
@@ -398,29 +392,6 @@ def load_flux_pipeline(model_id: str | None = None):
     return load_image_pipeline(model_id)
 
 
-def load_ltx_pipeline(model_id: str = "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"):
-    """Load the distilled LTX video pipeline with CPU offload for 24GB cards."""
-    global _LTX_PIPE, _LTX_MODEL_ID
-    if _LTX_PIPE is not None and _LTX_MODEL_ID == model_id:
-        return _LTX_PIPE
-    if _LTX_PIPE is not None:
-        _release_other_models("none")
-
-    _release_other_models("ltx")
-    import torch
-    from diffusers import LTXPipeline
-
-    print(f"[Vast Server] Loading LTX-Video model: {model_id} on {DEVICE}...")
-    dtype = torch.bfloat16 if DEVICE == "cuda" else torch.float32
-    pipe = LTXPipeline.from_pretrained(model_id, torch_dtype=dtype, token=_hub_token())
-    if DEVICE == "cuda":
-        pipe.enable_model_cpu_offload()
-    else:
-        pipe.to(DEVICE)
-    _LTX_PIPE = pipe
-    _LTX_MODEL_ID = model_id
-    print("[Vast Server] LTX-Video model loaded successfully.")
-    return _LTX_PIPE
 
 
 def load_indic_parler_engine():
@@ -785,7 +756,7 @@ class VastHandler(BaseHTTPRequestHandler):
                 # The name is kept because require_gpu() and warm instances predating Klein
                 # read it, and renaming it would strand them.
                 "flux_loaded": _FLUX_PIPE is not None,
-                "ltx_loaded": False if AUDIO_IMAGE_ONLY else _LTX_PIPE is not None,
+                "ltx_loaded": False,
                 "image_ready": image_error is None,
                 "image_error": image_error,
                 "klein_ready": (image_error is None) if AUDIO_IMAGE_ONLY else None,
@@ -893,102 +864,24 @@ class VastHandler(BaseHTTPRequestHandler):
         })
 
     def handle_video_generate(self, req: dict):
-        # 409, not 400: the endpoint exists and the request is well-formed, but the MODE
-        # forbids it. That distinction lets the client tell a mode refusal from a bad prompt
-        # without string-matching the message.
-        if AUDIO_IMAGE_ONLY:
-            self._send_json(
-                {
-                    "status": "error",
-                    "audio_image_only": True,
-                    "error": "Video generation is disabled in audio-image-only mode",
-                },
-                status=409,
-            )
-            return
-        prompt = str(req.get("prompt", "")).strip()
-        if not prompt:
-            self._send_json({"error": "Missing prompt"}, status=400)
-            return
+        """LTX-Video was removed; answer with an actionable 501 instead of a 404.
 
-        width = max(256, int(req.get("width", 768)))
-        height = max(256, int(req.get("height", 512)))
-        num_frames = int(req.get("num_frames", 97))
-        fps = int(req.get("fps", 24))
-        steps = int(req.get("steps", 8))
-        model_id = str(req.get("model", "jbilcke-hf/LTX-Video-2b-0-9-8-distilled-HFIE"))
-        seed = req.get("seed")
-        # Optional base64 still: when present, animate FROM that image (image-to-video)
-        # instead of synthesising the composition from text alone. This is what lets the
-        # pipeline do audio -> images -> video with consistent art between the two.
-        image_b64 = req.get("image_base64") or req.get("image")
-        if width % 32 or height % 32 or num_frames < 9 or (num_frames - 1) % 8:
-            self._send_json({
-                "error": "LTX dimensions must be multiples of 32 and num_frames must be 8n+1 (at least 9)."
-            }, status=400)
-            return
-
-        try:
-            import torch
-            from diffusers.utils import export_to_video
-
-            pipe = load_ltx_pipeline(model_id)
-            generator = None
-            if seed is not None:
-                generator = torch.Generator(device=DEVICE).manual_seed(int(seed))
-
-            call_kwargs = {
-                "prompt": prompt,
-                "width": width,
-                "height": height,
-                "num_frames": num_frames,
-                "num_inference_steps": steps,
-                "guidance_scale": 1.0,
-                "generator": generator,
-            }
-            if image_b64:
-                try:
-                    from PIL import Image
-
-                    raw = base64.b64decode(image_b64)
-                    init_image = Image.open(io.BytesIO(raw)).convert("RGB").resize((width, height))
-                except Exception as img_err:  # noqa: BLE001 - fall back to text-to-video
-                    print(
-                        f"[Vast Server Warning] ignoring unusable init image ({img_err}); "
-                        "falling back to text-to-video",
-                        file=sys.stderr,
-                    )
-                    init_image = None
-                if init_image is not None:
-                    # LTXPipeline takes the conditioning frame as `image`; if the installed
-                    # diffusers build does not accept it, the call below raises and the
-                    # outer handler reports a clear error rather than silently degrading.
-                    call_kwargs["image"] = init_image
-
-            started = time.time()
-            used_image = "image" in call_kwargs
-            with torch.inference_mode():
-                result = pipe(**call_kwargs)
-            frames = result.frames[0]
-            with tempfile.TemporaryDirectory(prefix="ltx-video-") as temp_dir:
-                video_path = Path(temp_dir) / "scene.mp4"
-                export_to_video(frames, str(video_path), fps=fps)
-                video_bytes = video_path.read_bytes()
-
-            self._send_json({
-                "status": "success",
-                "video_base64": base64.b64encode(video_bytes).decode("ascii"),
-                "width": width,
-                "height": height,
-                "num_frames": num_frames,
-                "fps": fps,
-                "mode": "image-to-video" if used_image else "text-to-video",
-                "duration_sec": round(time.time() - started, 3),
-            })
-        except Exception as err:
-            print(f"[Vast Server Error] LTX-Video generation failed: {err}", file=sys.stderr)
-            self._send_json({"error": f"LTX-Video generation failed: {err}"}, status=500)
-
+        501, not 409 or 400: the capability is gone from the server, not forbidden for
+        this request, so retrying can never succeed.
+        """
+        self._send_json(
+            {
+                "status": "error",
+                "code": "ltx_removed",
+                "error": (
+                    "LTX-Video generation has been removed from this server. "
+                    "Use /v1/images/generate with --visual-mode image: "
+                    "FLUX.2-klein-4B stills + IndicF5 narration is the supported pipeline."
+                ),
+                "replacement": "/v1/images/generate",
+            },
+            status=501,
+        )
     def handle_audio_synthesize(self, req: dict):
         text = req.get("text", "").strip()
         voice = req.get("voice", "indic_parler_aarav").lower()
