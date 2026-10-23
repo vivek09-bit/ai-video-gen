@@ -3467,8 +3467,8 @@ def plan(
                 "bullets": [],
                 "headlinePosition": "center",
                 "shots": shots,
-                "ambience": ambience_spec,
-                "soundCues": cues,
+                # "ambience": ambience_spec,
+                # "soundCues": cues,
                 "background": {"type": "color", "color": theme_profile.bg_color or genre_profile.bg_color},
                 "cast": cast_for(index, beat, progress) if with_characters else [],
                 "acting": {
