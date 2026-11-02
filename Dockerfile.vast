@@ -4,7 +4,9 @@ FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
 # --- Phase 1: system packages ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git ffmpeg libsndfile1 ca-certificates curl \
+        openssh-server openssh-client tmux git ffmpeg libsndfile1 ca-certificates curl \
+    && mkdir -p /var/run/sshd /etc/ssh \
+    && ssh-keygen -A \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # --- Phase 2: uv package installer ---
@@ -61,7 +63,8 @@ RUN python -c 'import subprocess, torch; v = torch.__version__.split("+")[0]; ma
 COPY scripts/verify_container.py /workspace/verify_container.py
 RUN python /workspace/verify_container.py \
     && rm -f /workspace/verify_container.py \
-    && touch /root/.tube2dscript_deps_ready
+    && touch /root/.tube2dscript_deps_ready \
+    && touch /root/.no_auto_tmux /etc/skel/.no_auto_tmux ~/.no_auto_tmux 2>/dev/null || true
 
 # --- Phase 6: bake in server scripts and voice prompts ---
 COPY scripts/ /workspace/tube2dscript/scripts/
@@ -69,7 +72,7 @@ COPY public/audio/prompts/ /workspace/tube2dscript/public/audio/prompts/
 RUN find /workspace/tube2dscript -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 ENV VAST_IMAGE_HAS_DEPS=1
-EXPOSE 8000
+EXPOSE 22 8000
 
 # Default command starts the server immediately if run standalone
 CMD ["python", "/workspace/tube2dscript/scripts/vast_server.py"]

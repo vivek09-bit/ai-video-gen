@@ -35,7 +35,8 @@
     "test:pixabay": "python scripts/pixabay.py --test",
     "check:voicestudio": "python scripts/voicestudio.py --check",
     "voices:voicestudio": "python scripts/voicestudio.py --list-voices",
-    "tts:voicestudio": "python scripts/voicestudio.py --script script.json --output-dir public/audio"
+    "tts:voicestudio": "python scripts/voicestudio.py --script script.json --output-dir public/audio",
+    "capcut": "python scripts/export_capcut.py"
   },
   "dependencies": {
     "@remotion/cli": "4.0.418",

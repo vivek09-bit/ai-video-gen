@@ -133,30 +133,57 @@ def fetch_google_suggestions(query: str, lang: str = "en", country: str = "IN") 
 def generate_keyword_clusters(seed_query: str, genre: str | None = None, lang: str = "hi") -> dict:
     """Cluster seed keyword with modifiers: questions, vs/comparisons, long-tail, and viral prefixes."""
     seed = seed_query.strip()
-    
+
     # 1. Base query suggestions
     yt_direct = fetch_youtube_suggestions(seed)
     google_direct = fetch_google_suggestions(seed)
 
+    # If full query is long (>2 words), search 2-3 word subphrases so autocomplete isn't empty
+    words = [w for w in re.findall(r"[\wऀ-ॿ]+", seed) if len(w) > 2]
+    if len(yt_direct) < 5 and len(words) > 2:
+        for n in (2, 3):
+            for i in range(len(words) - n + 1):
+                sub = " ".join(words[i : i + n])
+                for item in fetch_youtube_suggestions(sub):
+                    if item not in yt_direct:
+                        yt_direct.append(item)
+                if len(yt_direct) >= 10:
+                    break
+            if len(yt_direct) >= 10:
+                break
+
+    if len(google_direct) < 5 and len(words) > 2:
+        for n in (2, 3):
+            for i in range(len(words) - n + 1):
+                sub = " ".join(words[i : i + n])
+                for item in fetch_google_suggestions(sub):
+                    if item not in google_direct:
+                        google_direct.append(item)
+                if len(google_direct) >= 8:
+                    break
+            if len(google_direct) >= 8:
+                break
+
     # 2. Modifiers for high-intent questions & curiosities
+    core_seed = " ".join(words[:2]) if len(words) > 2 else seed
     modifiers = [
-        f"what happens if {seed}",
-        f"why do {seed}",
-        f"real story {seed}",
-        f"mystery of {seed}",
-        f"top 5 {seed}",
-        f"{seed} in hindi",
-        f"{seed} facts",
-        f"{seed} explained",
+        f"what happens if {core_seed}",
+        f"why do {core_seed}",
+        f"real story {core_seed}",
+        f"mystery of {core_seed}",
+        f"top 5 {core_seed}",
+        f"{core_seed} in hindi",
+        f"{core_seed} facts",
+        f"{core_seed} explained",
     ] if lang != "hi" else [
-        f"{seed} kya hai",
-        f"{seed} real story",
-        f"{seed} hindi kahani",
-        f"{seed} sach ya jhooth",
-        f"{seed} rahasya",
-        f"{seed} facts in hindi",
-        f"{seed} viral video",
-        f"{seed} mysterious incident",
+        f"{core_seed} kya hai",
+        f"{core_seed} real story",
+        f"{core_seed} hindi kahani",
+        f"{core_seed} sach ya jhooth",
+        f"{core_seed} rahasya",
+        f"{core_seed} facts in hindi",
+        f"{core_seed} viral video",
+        f"{core_seed} mysterious incident",
     ]
 
     expanded_keywords: set[str] = set(yt_direct + google_direct)
