@@ -47,19 +47,43 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-
+try:
+    from stage_manager import (  # noqa: E402
+        PipelineStateManager,
+        STAGE_SCRIPT_SEO,
+        STAGE_VOICE,
+        STAGE_IMAGES,
+        STAGE_RENDER,
+    )
+except ImportError:
+    class PipelineStateManager:  # type: ignore
+        def save_args(self, *args, **kwargs): pass
+        def should_execute_stage(self, *args, **kwargs): return True
+    STAGE_SCRIPT_SEO = "script_seo"
+    STAGE_VOICE = "voice"
+    STAGE_IMAGES = "images"
+    STAGE_RENDER = "render"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import beats  # noqa: E402
 from generate_images import (  # noqa: E402
     detect_provider as detect_image_provider,
+    generate_images,
     generate_images_for_script,
-    load_env_file,
+    list_animation_styles,
 )
 from make_assets import ensure_assets  # noqa: E402
 import metadata  # noqa: E402
 import research  # noqa: E402
 import story  # noqa: E402
+try:
+    from story import generate_story_script  # noqa: E402
+except ImportError:
+    try:
+        from story import generate_story as generate_story_script  # noqa: E402
+    except ImportError:
+        generate_story_script = None  # Not needed when --story-file / --narration is supplied
+DEFAULT_VOICE = "hm_omega"
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = ROOT / "script.json"
@@ -68,6 +92,20 @@ GENERATED = ROOT / "src" / "generated" / "project.json"
 OLLAMA_URL = "http://localhost:11434/v1"
 
 # Load local .env if present
+def load_env_file(path: Path) -> None:
+    """Load key-value pairs from a .env file into os.environ if not already set."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.strip()
+        val = val.strip().strip("\"'")
+        if key and key not in os.environ:
+            os.environ[key] = val
+            
 load_env_file(ROOT / ".env")
 
 try:
@@ -315,7 +353,7 @@ def build_prompt(
             "- Spoken Audio Script: Write the spoken narration in fluent, natural, NATIVE Hindi in Devanagari script. It is read aloud by a Hindi TTS model, so every word must be one a native Hindi speaker would actually say — that is what produces a genuine Hindi accent instead of an English one.",
             "- Minimise English loanwords. Use a borrowed word ONLY when there is no natural everyday Hindi equivalent (e.g. 'फोन', 'ट्रेन', 'हॉस्पिटल' are acceptable because everyone says them). Do NOT interleave English words or English phrases into Hindi sentences.",
             "- Always write the narration in Devanagari. Never write spoken text in Roman/Latin letters.",
-            "- Human Cadence & Phrasing: Use short, punchy sentence structures. Vary rhythm with natural pauses and conversational connectors ('अचानक', 'लेकिन तभी', 'हैरानी की बात यह है', 'और फिर'). Avoid stiff, literary, or textbook Hindi phrasing.",
+            "- Human Cadence & Phrasing: Use short, punchy sentence structures. Vary rhythm with natural pauses and conversational connectors ('अचानक', 'लेकिन तभी', 'हैरानी की बात ये है', 'और फिर'). Avoid stiff, literary, or textbook Hindi phrasing.",
             "- Avoid archaic/literary Sanskritised words that sound robotic: 'चल दूरभाष', 'भ्रमणभाष', 'संगणक', 'लोहपथगामिनी', 'छायाचित्रक', 'चिकित्सालय', 'चिकित्सक', 'आरक्षी', 'अंतरजाल'. Prefer the simple word a real Hindi speaker uses.",
             "- Headlines & Subtitles: Scene headlines must be punchy and modern in Devanagari (automatically transliterated to Roman Hinglish for viewer readability).",
         ]
@@ -710,7 +748,7 @@ def build_script(
         "secondaryVoice": secondary_voice,
         "speed": speed,
         "sentencePauseSeconds": 0.25,
-        "ambience": planned.get("ambience"),
+        "ambience": None,
         "captions": captions,
         "theme": planned.get("theme") or gp.theme,
         "characters": characters,
@@ -1109,6 +1147,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--audio-model",
+        "--tts-engine",
+        dest="audio_model",
         choices=("auto", "kokoro", "indic_parler", "parler", "indicf5"),
         default="auto",
         help=(
@@ -1166,6 +1206,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--voice",
+        "--voice-name",
+        dest="voice",
         default=None,
         help="Voice id, alias, or blend (e.g. hm_omega, indic_parler_aarav, indicf5_aarav, hindi_female, bm_george)",
     )
@@ -1304,13 +1346,20 @@ def main() -> int:
     )
     parser.add_argument(
         "--genre",
-        choices=list(beats.GENRES.keys()),
-        help=f"story & visual genre ({', '.join(beats.GENRES.keys())}) - auto-detected from topic if omitted",
+        choices=["horror", "documentary", "educational", "scifi", "action", "epic", "historical"],
+        default=None,
+        help="Story genre preset (sets pacing, audio themes, visual style)",
     )
     parser.add_argument(
-        "--genres",
+        "--style", "--animation-style",
+        dest="animation_style",
+        default=None,
+        help="2D Animation image style (e.g. ink_doodle, flat_vector, documentary, stickman, dark_cinematic, anime_cel, whiteboard, vintage_retro)",
+    )
+    parser.add_argument(
+        "--styles",
         action="store_true",
-        help="list all supported story genres and exit",
+        help="List all supported 2D animation styles and exit",
     )
     parser.add_argument(
         "--format",
@@ -1376,7 +1425,12 @@ def main() -> int:
         "--show-prompt", action="store_true",
         help="print the brief sent to the writer, then exit",
     )
-    parser.add_argument("--narration", help="use narration from this file instead of a model")
+    parser.add_argument(
+        "--narration",
+        "--story-file",
+        dest="narration",
+        help="use narration from this file instead of a model",
+    )
     parser.add_argument(
         "--show-bible",
         dest="show_bible",
@@ -1475,6 +1529,7 @@ def main() -> int:
     parser.add_argument(
         "--imageprovider",
         "--image-provider",
+        "--image-backend",
         dest="image_provider",
         help="Image provider (local, fetch, pollinations, vast, fireworks, together, fal, replicate, openai)",
     )
@@ -1561,6 +1616,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--no-render",
+        "--skip-video",
+        dest="no_render",
         action="store_true",
         help="write script.json and synthesise the narration, but skip the render",
     )
@@ -1582,6 +1639,22 @@ def main() -> int:
         type=str,
         default=None,
         help="direct URL of running Vast.ai GPU server (e.g. http://ip:8000)",
+    )
+    parser.add_argument(
+        "--gpu",
+        "--gpu-name",
+        dest="gpu",
+        type=str,
+        default=None,
+        help="GPU model to search/rent on Vast.ai (e.g. 'RTX 4090', 'RTX 3090')",
+    )
+    parser.add_argument(
+        "--vast-offer",
+        "--offer-id",
+        dest="vast_offer",
+        type=int,
+        default=None,
+        help="specific Vast.ai offer ID to rent instead of searching",
     )
     parser.add_argument(
         "--choosegpu",
@@ -1607,6 +1680,13 @@ def main() -> int:
         type=int,
         default=15,
         help="with --choosegpu: how many offers to show (default: 15)",
+    )
+    parser.add_argument(
+        "--force-new-gpu",
+        "--new-gpu",
+        dest="force_new_gpu",
+        action="store_true",
+        help="rent a new Vast.ai instance even if an existing instance is stopped or running",
     )
     parser.add_argument(
         "--vast-strict",
@@ -1650,7 +1730,90 @@ def main() -> int:
         action="store_true",
         help="enable GPU-accelerated Remotion rendering locally if supported",
     )
+
+    stage_group = parser.add_argument_group("Stage Execution & Checkpoint Options")
+    stage_group.add_argument(
+        "--pause",
+        "--step",
+        "--interactive",
+        dest="pause_interactive",
+        action="store_true",
+        help="pause after each stage and prompt interactively to continue, pause, or quit",
+    )
+    stage_group.add_argument(
+        "--pause-after",
+        choices=("script_seo", "script", "seo", "voice", "audio", "tts", "images", "image", "visuals", "render", "video"),
+        default=None,
+        help="automatically pause execution after completing this stage (e.g. --pause-after voice)",
+    )
+    stage_group.add_argument(
+        "--resume",
+        action="store_true",
+        help="resume pipeline from last completed stage using saved state in out/pipeline_state.json",
+    )
+    stage_group.add_argument(
+        "--stage",
+        choices=("script_seo", "script", "seo", "voice", "audio", "tts", "images", "image", "visuals", "render", "video"),
+        default=None,
+        help="execute ONLY this stage and exit (e.g. --stage voice or --stage render)",
+    )
+    stage_group.add_argument(
+        "--from-stage",
+        choices=("script_seo", "script", "seo", "voice", "audio", "tts", "images", "image", "visuals", "render", "video"),
+        default=None,
+        help="start execution from this stage onwards (skipping earlier completed stages)",
+    )
+    stage_group.add_argument(
+        "--to-stage",
+        choices=("script_seo", "script", "seo", "voice", "audio", "tts", "images", "image", "visuals", "render", "video"),
+        default=None,
+        help="run stages up to and including this stage, then pause/stop",
+    )
+    stage_group.add_argument(
+        "--pipeline-status",
+        "--status",
+        action="store_true",
+        help="display current stage status and artifact checklist from out/pipeline_state.json and exit",
+    )
+    stage_group.add_argument(
+        "--reset-pipeline",
+        "--reset-stages",
+        action="store_true",
+        help="clear saved pipeline state in out/pipeline_state.json and exit",
+    )
     args = parser.parse_args()
+    if not getattr(args, "topic", None) and getattr(args, "narration", None):
+        args.topic = Path(args.narration).stem.replace("-", " ").replace("_", " ").title()
+
+    # --pipeline-status: display dashboard and exit
+    if getattr(args, "pipeline_status", False):
+        sm = PipelineStateManager()
+        sm.print_status()
+        return 0
+
+    # --reset-pipeline: reset stages and exit
+    if getattr(args, "reset_pipeline", False):
+        sm = PipelineStateManager()
+        sm.reset()
+        print("[Pipeline] State reset in out/pipeline_state.json")
+        return 0
+
+    stage_mgr = PipelineStateManager()
+
+    # If --resume is passed, restore saved CLI arguments
+    if getattr(args, "resume", False):
+        stage_mgr.restore_args(args)
+
+    if getattr(args, "animation_style", None) and not getattr(args, "visual_style", None):
+        args.visual_style = args.animation_style
+
+    # Effective pause_after combining --pause-after, legacy --stop-after, and --to-stage
+    effective_pause_after = getattr(args, "pause_after", None)
+    if not effective_pause_after and getattr(args, "stop_after", None):
+        legacy_map = {"write": STAGE_SCRIPT_SEO, "audio": STAGE_VOICE, "metadata": STAGE_SCRIPT_SEO}
+        effective_pause_after = legacy_map.get(args.stop_after)
+    if not effective_pause_after and getattr(args, "to_stage", None):
+        effective_pause_after = args.to_stage
 
     if getattr(args, "no_vast", False) and args.render_on == "vast":
         parser.error("--no-vast cannot be combined with --render-on vast (the render would need a GPU box).")
@@ -1694,7 +1857,7 @@ def main() -> int:
             print(f"  {t['key']:<18} : {t['name']:<20} | Accent: {t['accent']:<8} | Genres: {genres_str}{aliases_str}")
         return 0
 
-    if args.genres:
+    if getattr(args, "genres", False):
         print("=" * 74)
         print("AVAILABLE STORY GENRES")
         print("=" * 74)
@@ -1705,6 +1868,14 @@ def main() -> int:
     if args.voices:
         from tts import format_voices_table
         print(format_voices_table())
+        return 0
+
+    if getattr(args, "styles", False):
+        print("=" * 74)
+        print("AVAILABLE 2D ANIMATION STYLES")
+        print("=" * 74)
+        for s in list_animation_styles():
+            print(f"  {s['key']:<18} : {s['name']}")
         return 0
 
     # Auto Keyword & Topic Discovery Flow
@@ -1737,8 +1908,24 @@ def main() -> int:
         else:
             args.topic = seed_query
 
+    # If topic is not provided, try restoring from saved pipeline state
+    if not args.topic:
+        saved_params = stage_mgr.state.get("params", {})
+        if saved_params.get("topic"):
+            args.topic = saved_params["topic"]
+
     if not args.topic:
         parser.error("the following arguments are required: --topic or --auto-topic")
+
+    # Persist CLI arguments & run parameters into state
+    stage_mgr.save_args(args)
+
+    # Determine execution scope
+    resume_flag = getattr(args, "resume", False)
+    run_stage_1 = stage_mgr.should_execute_stage(STAGE_SCRIPT_SEO, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
+    run_stage_2 = stage_mgr.should_execute_stage(STAGE_VOICE, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
+    run_stage_3 = stage_mgr.should_execute_stage(STAGE_IMAGES, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
+    run_stage_4 = stage_mgr.should_execute_stage(STAGE_RENDER, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
 
     # Ensure procedural audio assets (ambiences & sfx) exist
     try:
@@ -1750,46 +1937,37 @@ def main() -> int:
     target_genre = args.genre or beats.detect_genre(args.topic).key
     gp = beats.get_genre(target_genre)
 
-    # ---- analysis + SEO research ------------------------------------------
-    # Runs by default so one command covers trend analysis and SEO, not just writing.
-    # Best effort: a missing LLM key or an offline network never blocks the run.
-    if research_report is None and not getattr(args, "no_research", False):
-        try:
-            print(f"\n[RESEARCH ENGINE] Analysing live search demand for '{args.topic}'...")
-            target_sec_guess = args.seconds or (args.minutes * 60.0)
-            research_report = research.research_viral_angles(
-                seed=args.topic,
-                genre=target_genre,
-                format_type=args.video_format or ("reel" if target_sec_guess <= 90.0 else "long-form"),
-                lang=args.language or "hindi",
-                # Passing None lets call_llm auto-detect the provider, which prefers the
-                # direct keys (DeepSeek, Fireworks, ...) over a local OmniRoute proxy.
-                model=args.model,
-            )
-            print(research.format_research_report(research_report))
-        except Exception as research_err:
-            print(f"note: research skipped ({research_err})", file=sys.stderr)
-            research_report = None
-
     # Resolve primary voice (resolves aliases, blends, or genre/language fallback)
     from tts import resolve_voice, DEFAULT_INDIC_VOICE
     requested_voice = args.voice or os.environ.get("VOICE")
+    # If the operator explicitly selected Kokoro on the CLI, ambient .env Indic defaults
+    # (e.g. VOICE=indic_parler_aarav) must not trigger a false conflict error.
+    if args.audio_model == "kokoro" and not args.voice and requested_voice:
+        req_lower = requested_voice.strip().lower()
+        if req_lower.startswith(("indic_", "indicf5")):
+            requested_voice = None
+
     # Default to a single consistent reference-conditioned Hindi narrator unless the
     # user explicitly selected Kokoro. `auto` resolves the default to IndicF5.
     if not requested_voice and args.audio_model != "kokoro":
         requested_voice = DEFAULT_INDIC_VOICE
     requested_voice_key = (requested_voice or "").strip().lower()
-    voice_requests_indicf5 = requested_voice_key.startswith("indicf5")
+    known_indicf5_stems = ("aarav", "kabir", "rohan", "priya", "ananya")
+    voice_requests_indicf5 = (
+        requested_voice_key.startswith("indicf5")
+        or requested_voice_key in known_indicf5_stems
+        or (ROOT / "public" / "audio" / "prompts" / "indicf5" / f"{requested_voice_key}.wav").exists()
+    )
     voice_requests_parler = requested_voice_key.startswith(("indic_parler", "indic_"))
     voice_requests_indic = voice_requests_indicf5 or voice_requests_parler
     indic_engine_selected = args.audio_model in ("indic_parler", "parler")
-    indicf5_selected = args.audio_model == "indicf5"
+    indicf5_selected = args.audio_model in ("indicf5", "indic_f5")
     if args.audio_model == "kokoro" and voice_requests_indic:
         parser.error("--audio-model kokoro cannot be combined with an Indic voice.")
     if indic_engine_selected and args.voice and not voice_requests_parler:
         parser.error("--audio-model indic_parler requires an Indic voice, e.g. --voice indic_parler_aarav.")
     if indicf5_selected and args.voice and not voice_requests_indicf5:
-        parser.error("--audio-model indicf5 requires an IndicF5 voice, e.g. --voice indicf5_aarav.")
+        parser.error("--audio-model indicf5 requires an IndicF5 voice, e.g. --voice indicf5_aarav or --voice aarav.")
     if indicf5_selected or (args.audio_model == "auto" and voice_requests_indicf5):
         audio_model = "indicf5"
     elif indic_engine_selected or (args.audio_model == "auto" and voice_requests_parler):
@@ -1798,8 +1976,11 @@ def main() -> int:
         audio_model = "kokoro"
     if audio_model == "indic_parler" and not voice_requests_parler:
         requested_voice = "indic_parler_aarav"
-    if audio_model == "indicf5" and not voice_requests_indicf5:
-        requested_voice = "indicf5_aarav"
+    if audio_model == "indicf5":
+        if not voice_requests_indicf5:
+            requested_voice = "indicf5_aarav"
+        elif not requested_voice.startswith("indicf5_"):
+            requested_voice = f"indicf5_{requested_voice}"
 
     primary_voice = resolve_voice(
         requested_voice,
@@ -1839,11 +2020,17 @@ def main() -> int:
         else (args.theme or os.environ.get("THEME") or "auto")
     )
 
+    narration_scenes_count = None
+    if getattr(args, "narration", None) and Path(args.narration).exists():
+        _, raw_blocks = story.parse_blocks(Path(args.narration).read_text(encoding="utf-8"))
+        if raw_blocks:
+            narration_scenes_count = len(raw_blocks)
+
     planned = beats.plan(
         args.topic,
         args.minutes,
         seconds=args.seconds,
-        scenes=args.scenes,
+        scenes=args.scenes or narration_scenes_count,
         genre=target_genre,
         theme=selected_theme,
         video_format=args.video_format,
@@ -1860,245 +2047,12 @@ def main() -> int:
 
     gp = planned.get("genreProfile") or beats.get_genre(planned.get("genre"))
 
-    print("=" * 74)
-    print("PLAN")
-    print("=" * 74)
-    print(beats.describe(planned))
-
-    prompt = build_prompt(
-        planned,
-        voice_style=args.tone or gp.tone,
-        genre_profile=gp,
-        research=research_report,
-    )
-
-    if args.show_bible:
-        print()
-        print("=" * 74)
-        print("STORY BIBLE BRIEF")
-        print("=" * 74)
-        bible_prompt = story.build_bible_prompt(
-            planned,
-            genre_profile=gp,
-            research=research_report,
-            is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
-        )
-        print(bible_prompt)
-        blueprint = planned.get("blueprint") or {}
-        print()
-        print(
-            f"length contract: {blueprint.get('sceneCount')} scenes, "
-            f"~{blueprint.get('totalWords')} words, {blueprint.get('minutes')} min "
-            f"at {blueprint.get('wpm')} wpm"
-        )
-        for movement in blueprint.get("movements") or []:
-            print(
-                f"  {movement['key']:<11} scenes {movement['range'][0]}-{movement['range'][1]} "
-                f"({movement['sceneCount']}), ~{movement['words']} words"
-            )
-        print(f"\n(~{len(bible_prompt) // 4} tokens)")
-        return 0
-
-    if args.show_prompt:
-        print()
-        print("=" * 74)
-        print("WRITER BRIEF")
-        print("=" * 74)
-        print(prompt)
-        print(f"\n(~{len(prompt) // 4} tokens)")
-        return 0
-
-    if args.dry_run:
-        print("\n(dry run: nothing written)")
-        return 0
-
-    # ---- narration -------------------------------------------------------
-    print()
-    print("=" * 74)
-    print("NARRATION")
-    print("=" * 74)
-
-    title = ""
-    blocks: list[story.WrittenScene] = []
-    bible: dict | None = None
-    story_report: dict = {}
-
-    if args.narration:
-        source = Path(args.narration)
-        if not source.exists():
-            print(f"error: {source} not found", file=sys.stderr)
-            return 1
-        title, blocks = story.parse_blocks(source.read_text(encoding="utf-8"), len(planned["scenes"]))
-        print(f"  source: {source}")
-        # Say this loudly. A narration file supplies the entire story, so the
-        # topic stops affecting the words -- only the visuals. Getting this wrong
-        # silently produces a video about something else entirely.
-        print("  NOTE  : --narration replaces the writing step completely.")
-        print(f"          the topic {args.topic!r} only shapes the visuals,")
-        print(f"          the words come from that file.")
-        if title:
-            print(f"          narration title: {title!r}")
-
-    if not blocks:
-        writer_info = resolve_llm_writer(
-            requested_model=args.model,
-            requested_provider=args.llm_provider or ("deepseek" if args.deepseek else None),
-        )
-
-        if writer_info:
-            label, base_url, api_key, model_to_use = writer_info
-            print(f"  writer: {label}, model {model_to_use}")
-            print(f"  brief : ~{len(prompt) // 4} tokens in, ~{planned['target']['totalWords']} words out")
-            title, blocks, bible, story_report = write_narration(
-                args,
-                planned,
-                gp,
-                writer_info,
-                is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
-                research_report=research_report,
-            )
-        else:
-            print("  no writer available (no LLM reachable, no --narration)")
-
-    if not blocks:
-        todo = ROOT / "out" / "narration-todo.txt"
-        todo.parent.mkdir(parents=True, exist_ok=True)
-        todo.write_text(prompt, encoding="utf-8")
-        print()
-        print("  No story was written, so there is nothing to record yet.")
-        print("  A topic alone cannot become a video: something has to write the prose.")
-        print()
-        print("  Pick one:")
-        print(f"    1. hand this brief to an agent:  {todo.relative_to(ROOT)}")
-        print("    2. write the narration yourself and pass --narration FILE")
-        print("    3. configure a writer via flags or in .env:")
-        print("         --model deepseek | omniroute | together | fireworks")
-        print("         or set DEEPSEEK_API_KEY / FIREWORKS_API_KEY / TOGETHER_API_KEY in .env")
-        print("         or run Ollama locally (auto-detected, no key, free)")
-        print()
-        print("  The shot plan above is already final, so whoever writes it only")
-        print("  supplies prose.")
-        return 0
-
-    format_profile = planned.get("formatProfile") or beats.get_format(planned.get("format"))
-    raw_lang = (args.language or "hi").lower().strip()
-    is_hindi_family = raw_lang in ("hi", "hindi", "hinglish")
-    if getattr(args, "no_hinglish_subtitles", False) or args.subtitles_script in ("devanagari", "hindi"):
-        is_hinglish_subtitles = False
-    elif args.subtitles_script == "hinglish":
-        is_hinglish_subtitles = True
-    else:
-        # auto: True for Hindi / Hinglish languages so subtitles are in Roman Hinglish
-        is_hinglish_subtitles = is_hindi_family
-
-    script, missing = build_script(
-        planned,
-        args.title or title,
-        blocks,
-        voice=primary_voice,
-        speed=effective_speed,
-        captions=caption_options(
-            args.caption_style,
-            args.captions,
-            format_profile=format_profile,
-            hinglish=is_hinglish_subtitles,
-            bottom_margin=args.caption_bottom,
-        ),
-        genre_profile=gp,
-        visual_style=args.visual_style,
-        secondary_voice=sec_voice,
-        show_headline=args.show_headline,
-    )
-    script["audioModel"] = audio_model
-    script["visualMode"] = args.visual_mode
-
-    # Keep the plot with the script. Phase 2 visual prompts and Phase 3 metadata
-    # then describe the story that was actually written, and a re-render can be
-    # pinned to it with --from-bible.
-    if planned.get("blueprint"):
-        script["blueprint"] = planned["blueprint"]
-    if bible:
-        script["storyBible"] = bible
-    if story_report:
-        script["storyReport"] = {
-            "bible": story_report.get("bible"),
-            "chunks": story_report.get("chunks"),
-            "issues": story_report.get("issues"),
-            "issuesAfterRepair": story_report.get("issuesAfterRepair"),
-            "repairs": story_report.get("repairs"),
-        }
-
-    # ---- persist research / keywords (Phase 1) ---------------------------
-    # The research report only steered the writer prompt above; keep it on the script so the
-    # visual prompts (Phase 2) and SEO tags (Phase 3) can reuse it without re-running research.
-    if research_report:
-        script["research"] = research_report
-        clusters = research_report.get("keywords") or {}
-        flat_keywords: list[str] = []
-        for _key in (
-            "youtube_trending",
-            "google_search",
-            "questions_and_curiosity",
-            "long_tail_keywords",
-        ):
-            for _item in clusters.get(_key) or []:
-                _text = str(_item).strip()
-                if _text and _text not in flat_keywords:
-                    flat_keywords.append(_text)
-        if flat_keywords:
-            script["keywords"] = flat_keywords
-        try:
-            _research_dir = ROOT / "out"
-            _research_dir.mkdir(parents=True, exist_ok=True)
-            (_research_dir / "research.json").write_text(
-                json.dumps(research_report, ensure_ascii=False, indent=2) + "\n",
-                encoding="utf-8",
-            )
-        except Exception as _research_err:  # noqa: BLE001 - sidecar is best effort
-            print(f"note: could not write out/research.json ({_research_err})", file=sys.stderr)
-
-    # ---- Vast.ai Cloud GPU Orchestration ---------------------------------
+    # ---- Vast.ai Cloud GPU Orchestration helpers -------------------------
     vast_instance_id = None
     vast_mgr = None
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
     detected_image_provider, _, _ = detect_image_provider(requested_image_provider)
-    
-    # A GPU is rented when the visuals need one, or when an Indic engine is selected.
-    # --no-vast keeps narration local on purpose.
     no_vast = getattr(args, "no_vast", False)
-
-    # --choosegpu: show the offers with their full price/speed/storage detail and pin the
-    # one the operator picks. This runs before `needs_vast` is derived because choosing a
-    # GPU is itself a request to rent one, and it must be visible to that decision.
-    if getattr(args, "choosegpu", False):
-        if no_vast:
-            parser.error("--choosegpu cannot be combined with --no-vast (nothing would be rented).")
-        from vast_manager import VastManager as _VastManager, save_pinned_offer as _save_pin
-
-        _choose_disk = int(os.environ.get("VAST_DISK_GB", "100"))
-        try:
-            _chooser = _VastManager()
-            _chosen = _chooser.choose_offer(
-                gpu_name="RTX 4090",
-                disk_gb=_choose_disk,
-                limit=getattr(args, "choosegpu_limit", 15),
-                auto_select=getattr(args, "choosegpu_pick", None),
-            )
-        except Exception as choose_err:
-            print(f"  [Vast Manager Error] Could not list GPU offers: {choose_err}", file=sys.stderr)
-            return 1
-        if _chosen is None:
-            print("  [Vast Manager] No GPU selected; aborting.", file=sys.stderr)
-            return 1
-        _offer_id = int(_chosen.get("id"))
-        _saved = _save_pin(_offer_id)
-        if _saved:
-            print(f"  [Vast Manager] Pinned offer {_offer_id} in {_saved.name}; renting it now.")
-        else:
-            os.environ["VAST_PINNED_OFFER"] = str(_offer_id)
-            print(f"  [Vast Manager] Pinned offer {_offer_id} for this run only.")
-        # The picker's whole purpose is to drive the rental, so treat it as --vast.
-        args.vast = True
 
     needs_vast = not no_vast and (
         args.visual_mode == "video"
@@ -2108,8 +2062,6 @@ def main() -> int:
         or (not args.no_images and detected_image_provider == "vast")
         or audio_model in ("indic_parler", "indicf5")
     )
-    # Visuals that cannot be produced without the GPU must fail loudly; narration has a
-    # slow local CPU path and so degrades instead.
     vast_required_early = not no_vast and (
         args.visual_mode == "video" or (not args.no_images and detected_image_provider == "vast")
     )
@@ -2126,25 +2078,19 @@ def main() -> int:
         print("  error: --no-vast cannot be combined with IMAGE_PROVIDER=vast.", file=sys.stderr)
         return 1
 
-    # Prefetch the weights this run will actually need while the container is still
-    # installing, so the first request is not stuck waiting on a download. Video mode
-    # pulls the LTX checkpoint too; image mode never touches it.
     vast_prefetch = ["ai4bharat/IndicF5"] if audio_model == "indicf5" else []
     if audio_model == "indic_parler":
         vast_prefetch.append("RXD03/indic-parler-tts")
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
+    elif detected_image_provider == "vast":
+        vast_prefetch.append(args.image_model or "black-forest-labs/FLUX.2-klein-9B")
     render_on_vast = args.render_on == "vast"
-
-    # All remote workloads use one supported target GPU, including IndicF5 narration.
-    expected_gpu = "RTX 4090"
-    # FLUX alone is ~34GB of weights at bf16, on top of the container image and the
-    # installed dependencies, so a 50GB disk fills up part-way through an image run. Reuse
-    # and rent share this floor on purpose: a warm instance that cannot finish the job is not
-    # worth reusing, and a mismatch would only move the failure later.
+    expected_gpu = getattr(args, "gpu", None) or os.environ.get("VAST_GPU_NAME") or "RTX 4090"
     vast_disk_gb = int(os.environ.get("VAST_DISK_GB", "100"))
 
     def stop_vast_instance() -> None:
+        nonlocal vast_instance_id, vast_mgr
         if needs_vast and vast_mgr and vast_instance_id and args.vast_autostop:
             try:
                 print("\n[Vast Manager] Generation complete. Stopping GPU instance to avoid idle compute charges...")
@@ -2189,45 +2135,68 @@ def main() -> int:
                 vast_mgr.start_instance(vast_instance_id)
                 server_url = vast_mgr.wait_until_ready(vast_instance_id)
             else:
-                # Vast cannot change an instance's GPU type, so a leftover instance of the
-                # wrong model would block reuse while still billing storage. Report it and
-                # let the operator decide rather than silently renting a second GPU.
-                conflicts = vast_mgr.conflicting_instances(expected_gpu)
-                if conflicts:
-                    for inst in conflicts:
+                force_new = getattr(args, "force_new_gpu", False) or getattr(args, "vast_offer", None) is not None
+                vast_instance_id, server_url = None, None
+
+                if not force_new:
+                    # Vast cannot change an instance's GPU type, so a leftover instance of the
+                    # wrong model would block reuse while still billing storage. Report it and
+                    # let the operator decide rather than silently renting a second GPU.
+                    conflicts = vast_mgr.conflicting_instances(expected_gpu)
+                    if conflicts:
+                        for inst in conflicts:
+                            print(
+                                f"  [Vast Manager] Instance {inst['id']} is a {inst['gpu_name']} "
+                                f"({inst['status']}, {inst['disk_space']}GB) but this run needs {expected_gpu}.",
+                                file=sys.stderr,
+                            )
+                        # Reported, not fatal. An account can legitimately hold instances of other
+                        # GPU models (another project, another tool), and refusing to rent over them
+                        # turned an unrelated state into a blocked production run. The reuse path
+                        # below already ignores them; set VAST_STRICT_CONFLICTS=1 to restore the
+                        # hard stop when the operator wants a clean account before spending.
+                        if os.environ.get("VAST_STRICT_CONFLICTS", "0") == "1":
+                            raise RuntimeError(
+                                f"{len(conflicts)} existing instance(s) of the wrong GPU model are "
+                                f"rented while this run needs {expected_gpu}. Prune or destroy them "
+                                f"(scripts/vast_manager.py prune), or pass --vast-instance to choose one."
+                            )
                         print(
-                            f"  [Vast Manager] Instance {inst['id']} is a {inst['gpu_name']} "
-                            f"({inst['status']}, {inst['disk_space']}GB) but this run needs {expected_gpu}.",
-                            file=sys.stderr,
+                            "  [Vast Manager] Continuing: those instances are billed separately and do "
+                            "not block this run. Use `scripts/vast_manager.py prune` to reclaim them."
                         )
-                    # Reported, not fatal. An account can legitimately hold instances of other
-                    # GPU models (another project, another tool), and refusing to rent over them
-                    # turned an unrelated state into a blocked production run. The reuse path
-                    # below already ignores them; set VAST_STRICT_CONFLICTS=1 to restore the
-                    # hard stop when the operator wants a clean account before spending.
-                    if os.environ.get("VAST_STRICT_CONFLICTS", "0") == "1":
-                        raise RuntimeError(
-                            f"{len(conflicts)} existing instance(s) of the wrong GPU model are "
-                            f"rented while this run needs {expected_gpu}. Prune or destroy them "
-                            f"(scripts/vast_manager.py prune), or pass --vast-instance to choose one."
-                        )
-                    print(
-                        "  [Vast Manager] Continuing: those instances are billed separately and do "
-                        "not block this run. Use `scripts/vast_manager.py prune` to reclaim them."
+                    # Reuse an already-rented instance of the right GPU before paying for a
+                    # new one. Broken instances (bad host / failed image pull) are destroyed
+                    # so they stop billing storage instead of being skipped.
+                    vast_instance_id, server_url = vast_mgr.find_existing_instance(
+                        expected_gpu, min_disk=vast_disk_gb
                     )
-                # Reuse an already-rented instance of the right GPU before paying for a
-                # new one. Broken instances (bad host / failed image pull) are destroyed
-                # so they stop billing storage instead of being skipped.
-                vast_instance_id, server_url = vast_mgr.find_existing_instance(
-                    expected_gpu, min_disk=vast_disk_gb
-                )
 
                 if vast_instance_id:
+                    if getattr(args, "choosegpu", False):
+                        print(
+                            f"  [Vast Manager] Found existing {expected_gpu} instance {vast_instance_id}. "
+                            f"Reusing it without re-renting (to pick a new offer from scratch, pass --force-new-gpu)."
+                        )
                     if not server_url:
                         print(f"  Found existing Vast instance {vast_instance_id}. Starting it...")
                         vast_mgr.start_instance(vast_instance_id)
                     server_url = vast_mgr.wait_until_ready(vast_instance_id)
                 else:
+                    if getattr(args, "vast_offer", None):
+                        os.environ["VAST_PINNED_OFFER"] = str(args.vast_offer)
+
+                    if getattr(args, "choosegpu", False):
+                        chosen = vast_mgr.choose_offer(
+                            gpu_name=expected_gpu,
+                            disk_gb=vast_disk_gb,
+                            limit=getattr(args, "choosegpu_limit", 15),
+                            auto_select=getattr(args, "choosegpu_pick", None),
+                        )
+                        if chosen is None:
+                            raise RuntimeError("GPU offer selection cancelled or no offers available.")
+                        os.environ["VAST_PINNED_OFFER"] = str(chosen["id"])
+
                     # Renting a NEW instance. A container's environment is fixed at create
                     # time, so a missing token cannot be repaired later without re-renting: say
                     # so before the money is spent, not after the health check fails.
@@ -2311,273 +2280,490 @@ def main() -> int:
         or getattr(args, "local_images", False)
         or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local", "vast")))
     )
-    if (args.visual_mode == "image") and should_gen_images:
+    # =========================================================================
+    # STAGE 1: SCRIPT & SEO GENERATION
+    # =========================================================================
+    script = None
+    if run_stage_1:
+        stage_mgr.record_stage_start(STAGE_SCRIPT_SEO)
         print()
         print("=" * 74)
-        print("SCENE IMAGES")
+        print("STAGE 1: SCRIPT & SEO GENERATION")
         print("=" * 74)
-        script = generate_images_for_script(
-            script,
-            provider=cli_img_prov,
-            model=args.image_model,
-            force=not args.keep_images if hasattr(args, "keep_images") else (args.force_images or True),
+        print(beats.describe(planned))
+
+        prompt = build_prompt(
+            planned,
+            voice_style=args.tone or gp.tone,
+            genre_profile=gp,
+            research=research_report,
         )
 
-    SCRIPT_PATH.write_text(
-        json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    words = sum(len(line["text"].split()) for s in script["scenes"] for line in s["lines"])
-    print(f"  wrote {SCRIPT_PATH.relative_to(ROOT)}: {len(script['scenes'])} scenes, {words} words")
-    if missing:
-        print(f"  WARNING: scenes {missing} came back empty and will hold as silent shots")
-
-    if getattr(args, "stop_after", None) == "write":
-        print("\n(--stop-after write: script.json is on disk; narration and render left to a later run)")
-        stop_vast_instance()
-        return 0
-
-    # ---- audio and video -------------------------------------------------
-    tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
-    if not args.dynamic_speed:
-        tts_cmd.append("--flat-speed")
-    if getattr(args, "purge_audio_cache", False):
-        # A corrupt segment is content-addressed, so only a purge forces a clean rebuild.
-        tts_cmd.append("--purge-audio-cache")
-
-    # Narration is the only remaining reason to hold a GPU at this point.
-    if needs_vast and not start_vast():
-        # Abort by default. Local IndicF5 and legacy Parler synthesis are slow for a long
-        # script, so a silent fallback turns a short failure into an afternoon.
-        # --allow-local-fallback restores that behaviour; --no-vast selects it deliberately.
-        if not getattr(args, "allow_local_fallback", False):
-            print(
-                "  [Vast Manager Error] The GPU could not be used and narration needs it.\n"
-                "  Aborting rather than synthesising on the CPU (hours for a long script).\n"
-                "  Use --allow-local-fallback to fall back, or --no-vast to run on the CPU deliberately.",
-                file=sys.stderr,
+        if args.show_bible:
+            print()
+            print("=" * 74)
+            print("STORY BIBLE BRIEF")
+            print("=" * 74)
+            bible_prompt = story.build_bible_prompt(
+                planned,
+                genre_profile=gp,
+                research=research_report,
+                is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
             )
-            return 1
-        if audio_model == "indic_parler":
+            print(bible_prompt)
+            blueprint = planned.get("blueprint") or {}
+            print()
             print(
-                "  Continuing without Vast.ai: Indic Parler-TTS narration will run locally on the CPU\n"
-                "  (much slower) because --allow-local-fallback was passed.",
-                file=sys.stderr,
+                f"length contract: {blueprint.get('sceneCount')} scenes, "
+                f"~{blueprint.get('totalWords')} words, {blueprint.get('minutes')} min "
+                f"at {blueprint.get('wpm')} wpm"
             )
-        elif audio_model == "indicf5":
-            print(
-                "  Continuing without Vast.ai: IndicF5 will use the local Python 3.11 fallback\n"
-                "  because --allow-local-fallback was passed.",
-                file=sys.stderr,
-            )
+            for movement in blueprint.get("movements") or []:
+                print(
+                    f"  {movement['key']:<11} scenes {movement['range'][0]}-{movement['range'][1]} "
+                    f"({movement['sceneCount']}), ~{movement['words']} words"
+                )
+            print(f"\n(~{len(bible_prompt) // 4} tokens)")
+            return 0
 
-    vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
-    # IndicF5 requires a matching reference clip/transcript on the server; the remote
-    # health check validates the default reference before this process is started.
-    strict_audio = not no_vast and not getattr(args, "allow_local_fallback", False)
-    if audio_model in ("indic_parler", "indicf5"):
-        model_label = "IndicF5" if audio_model == "indicf5" else "Indic Parler-TTS"
-        if vast_server:
-            tts_cmd.extend(["--vast", "--vast-url", vast_server])
-            # A production remote run must not silently reroute a failed segment to the
-            # local runtime; --no-vast and --allow-local-fallback are explicit opt-ins.
-            if strict_audio:
-                tts_cmd.append("--require-vast")
-        elif strict_audio:
-            print(
-                f"  [{model_label}] No Vast.ai server available and narration needs the GPU. Aborting.\n"
-                "  Use --allow-local-fallback to synthesise on the CPU instead.",
-                file=sys.stderr,
-            )
-            stop_vast_instance()
-            return 1
-        else:
-            print(
-                f"  [{model_label}] No Vast.ai server available; using the deliberate local fallback.",
-                file=sys.stderr,
-            )
-    if audio_model == "indic_parler":
-        tts_label = "Indic Parler-TTS on Vast.ai" if vast_server else "Indic Parler-TTS (local CPU)"
-    elif audio_model == "indicf5":
-        tts_label = "IndicF5 on Vast.ai" if vast_server else "IndicF5 (local Python 3.11 fallback)"
-    else:
-        tts_label = "Kokoro"
-    tts_succeeded = run_step(
-        f"narration and lip sync ({tts_label} + Rhubarb)",
-        tts_cmd,
-    )
+        if args.show_prompt:
+            print()
+            print("=" * 74)
+            print("WRITER BRIEF")
+            print("=" * 74)
+            print(prompt)
+            print(f"\n(~{len(prompt) // 4} tokens)")
+            return 0
 
-    # The instance is stopped after the render, not here: --render-on vast needs it alive.
-    if not tts_succeeded:
-        stop_vast_instance()
-        return 1
+        if args.dry_run:
+            print("\n(dry run: nothing written)")
+            return 0
 
-    # ---- scene images (video mode execution order: audio -> images -> video) ----
-    if defer_video and should_gen_images:
+        # ---- narration -------------------------------------------------------
         print()
         print("=" * 74)
-        print("SCENE IMAGES")
+        print("NARRATION")
         print("=" * 74)
-        script = generate_images_for_script(
-            script,
-            provider=cli_img_prov,
-            model=args.image_model,
-            force=not args.keep_images if hasattr(args, "keep_images") else (args.force_images or True),
-        )
-        SCRIPT_PATH.write_text(
-            json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
 
-    # ---- image-to-video clips (video mode only) ---------------------------
-    # Runs AFTER narration so the timing is already fixed and AFTER images so each clip
-    # can start from its scene's still. The clips animate the stills rather than inventing
-    # a fresh composition, which keeps the motion and the art consistent.
-    if defer_video:
-        print()
-        print("=" * 74)
-        print("IMAGE-TO-VIDEO CLIPS (LTX-Video from scene stills)")
-        print("=" * 74)
-        try:
-            from generate_videos import generate_videos_for_script
-            script = generate_videos_for_script(
-                script,
-                model=args.video_model,
-                duration_seconds=args.video_seconds,
-                steps=args.video_steps,
-                manager=vast_mgr,
-                force=bool(getattr(args, "force_videos", False)),
-            )
-            SCRIPT_PATH.write_text(
-                json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-            )
-        except Exception as video_err:
-            print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
-            stop_vast_instance()
-            return 1
+        title = ""
+        blocks: list[story.WrittenScene] = []
+        bible: dict | None = None
+        story_report: dict = {}
 
-    # --stop-after audio: the GPU's whole job is done (script + narration are on disk and
-    # the audio cache is written), so stop paying for it and skip metadata and the render.
-    if getattr(args, "stop_after", None) == "audio":
-        print("\n(--stop-after audio: script + narration written and cached; GPU stopped, nothing rendered)")
-        stop_vast_instance()
-        report(args, target_sec=planned["target"].get("seconds") if "target" in planned else None)
-        return 0
+        if args.narration:
+            source = Path(args.narration)
+            if not source.exists():
+                print(f"error: {source} not found", file=sys.stderr)
+                stage_mgr.mark_failed(STAGE_SCRIPT_SEO, f"Narration file not found: {source}")
+                return 1
+            title, blocks = story.parse_blocks(source.read_text(encoding="utf-8"), len(planned["scenes"]))
+            print(f"  source: {source}")
+            print("  NOTE  : --narration replaces the writing step completely.")
+            print(f"          the topic {args.topic!r} only shapes the visuals,")
+            print("          the words come from that file.")
+            if title:
+                print(f"          narration title: {title!r}")
 
-    # ---- multi-platform social media upload metadata ----------------------
-    if args.generate_metadata:
-        try:
-            timings_data = None
-            if GENERATED.exists():
-                proj_data = json.loads(GENERATED.read_text(encoding="utf-8"))
-                timings_data = proj_data.get("timings")
-
+        if not blocks:
             writer_info = resolve_llm_writer(
                 requested_model=args.model,
                 requested_provider=args.llm_provider or ("deepseek" if args.deepseek else None),
             )
 
-            meta = metadata.generate_metadata(
-                script,
-                timings_data=timings_data,
-                writer_info=writer_info,
-                use_ai=bool(writer_info),
-            )
+            if writer_info:
+                label, base_url, api_key, model_to_use = writer_info
+                print(f"  writer: {label}, model {model_to_use}")
+                print(f"  brief : ~{len(prompt) // 4} tokens in, ~{planned['target']['totalWords']} words out")
+                title, blocks, bible, story_report = write_narration(
+                    args,
+                    planned,
+                    gp,
+                    writer_info,
+                    is_hindi=(planned.get("language") or "hi").lower().strip() in ("hi", "hindi", "hinglish"),
+                    research_report=research_report,
+                )
+            else:
+                print("  no writer available (no LLM reachable, no --narration)")
 
-            out_base = Path(args.out).stem if args.out else "metadata"
-            meta_json_p, meta_md_p = metadata.export_metadata(meta, ROOT / "out", base_name="metadata")
-            if args.out and Path(args.out).parent.exists():
-                out_dir = Path(args.out).parent
-                if out_base != "metadata":
-                    metadata.export_metadata(meta, out_dir, base_name=out_base)
+        if not blocks:
+            todo = ROOT / "out" / "narration-todo.txt"
+            todo.parent.mkdir(parents=True, exist_ok=True)
+            todo.write_text(prompt, encoding="utf-8")
+            print()
+            print("  No story was written, so there is nothing to record yet.")
+            print("  A topic alone cannot become a video: something has to write the prose.")
+            print()
+            print("  Pick one:")
+            print(f"    1. hand this brief to an agent:  {todo.relative_to(ROOT)}")
+            print("    2. write the narration yourself and pass --narration FILE")
+            print("    3. configure a writer via flags or in .env:")
+            print("         --model deepseek | omniroute | together | fireworks")
+            print("         or set DEEPSEEK_API_KEY / FIREWORKS_API_KEY / TOGETHER_API_KEY in .env")
+            print("         or run Ollama locally (auto-detected, no key, free)")
+            print()
+            stage_mgr.mark_failed(STAGE_SCRIPT_SEO, "No narration available")
+            return 0
 
-            print("\n--- upload metadata (YouTube, Instagram, Facebook, TikTok) ---")
-            print(f"  JSON (API / Auto-Upload) : {meta_json_p}")
-            print(f"  Markdown (Copy-Paste)   : {meta_md_p}")
-        except Exception as e:
-            print(f"note: could not generate upload metadata: {e}", file=sys.stderr)
+        format_profile = planned.get("formatProfile") or beats.get_format(planned.get("format"))
+        raw_lang = (args.language or "hi").lower().strip()
+        is_hindi_family = raw_lang in ("hi", "hindi", "hinglish")
+        if getattr(args, "no_hinglish_subtitles", False) or args.subtitles_script in ("devanagari", "hindi"):
+            is_hinglish_subtitles = False
+        elif args.subtitles_script == "hinglish":
+            is_hinglish_subtitles = True
+        else:
+            is_hinglish_subtitles = is_hindi_family
 
-    # The useful checkpoint: narration and timings now exist, so the audio can be
-    # judged before committing to a render that can take hours.
-    target_sec = planned["target"].get("seconds") if "target" in planned else None
-    if getattr(args, "stop_after", None) == "metadata":
-        print("\n(--stop-after metadata: script, narration and upload metadata written; nothing rendered)")
-        stop_vast_instance()
-        report(args, target_sec=target_sec)
-        return 0
-    if args.no_render:
-        print("\n(--no-render: narration and timings written, nothing rendered)")
-        stop_vast_instance()
-        report(args, target_sec=target_sec)
-        return 0
+        script, missing = build_script(
+            planned,
+            args.title or title,
+            blocks,
+            voice=primary_voice,
+            speed=effective_speed,
+            captions=caption_options(
+                args.caption_style,
+                args.captions,
+                format_profile=format_profile,
+                hinglish=is_hinglish_subtitles,
+                bottom_margin=args.caption_bottom,
+            ),
+            genre_profile=gp,
+            visual_style=args.visual_style or getattr(args, "animation_style", None),
+            secondary_voice=sec_voice,
+            show_headline=args.show_headline,
+        )
+        script["audioModel"] = audio_model
+        script["visualMode"] = args.visual_mode
+        if getattr(args, "animation_style", None):
+            script["animationStyle"] = args.animation_style
 
-    if render_on_vast:
-        if not vast_instance_id:
-            print(
-                "  [Vast Render Error] --render-on vast needs a running instance; "
-                "pass --vast-instance <id> or let this run provision one.",
-                file=sys.stderr,
-            )
+        if planned.get("blueprint"):
+            script["blueprint"] = planned["blueprint"]
+        if bible:
+            script["storyBible"] = bible
+        if story_report:
+            script["storyReport"] = {
+                "bible": story_report.get("bible"),
+                "chunks": story_report.get("chunks"),
+                "issues": story_report.get("issues"),
+                "issuesAfterRepair": story_report.get("issuesAfterRepair"),
+                "repairs": story_report.get("repairs"),
+            }
+
+        # Persist research keywords
+        if research_report:
+            script["research"] = research_report
+            clusters = research_report.get("keywords") or {}
+            flat_keywords: list[str] = []
+            for _key in (
+                "youtube_trending",
+                "google_search",
+                "questions_and_curiosity",
+                "long_tail_keywords",
+            ):
+                for _item in clusters.get(_key) or []:
+                    _text = str(_item).strip()
+                    if _text and _text not in flat_keywords:
+                        flat_keywords.append(_text)
+            if flat_keywords:
+                script["keywords"] = flat_keywords
+            try:
+                _research_dir = ROOT / "out"
+                _research_dir.mkdir(parents=True, exist_ok=True)
+                (_research_dir / "research.json").write_text(
+                    json.dumps(research_report, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+            except Exception as _research_err:
+                print(f"note: could not write out/research.json ({_research_err})", file=sys.stderr)
+
+        SCRIPT_PATH.write_text(
+            json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        words = sum(len(line["text"].split()) for s in script["scenes"] for line in s["lines"])
+        print(f"  wrote {SCRIPT_PATH.relative_to(ROOT)}: {len(script['scenes'])} scenes, {words} words")
+        if missing:
+            print(f"  WARNING: scenes {missing} came back empty and will hold as silent shots")
+
+        # Multi-platform social metadata (Stage 1 SEO)
+        if args.generate_metadata:
+            try:
+                writer_info = resolve_llm_writer(
+                    requested_model=args.model,
+                    requested_provider=args.llm_provider or ("deepseek" if args.deepseek else None),
+                )
+                meta = metadata.generate_metadata(
+                    script,
+                    timings_data=None,
+                    writer_info=writer_info,
+                    use_ai=bool(writer_info),
+                )
+                out_base = Path(args.out).stem if args.out else "metadata"
+                meta_json_p, meta_md_p = metadata.export_metadata(meta, ROOT / "out", base_name="metadata")
+                if args.out and Path(args.out).parent.exists():
+                    out_dir = Path(args.out).parent
+                    if out_base != "metadata":
+                        metadata.export_metadata(meta, out_dir, base_name=out_base)
+                print("\n--- upload metadata (YouTube, Instagram, Facebook, TikTok) ---")
+                print(f"  JSON (API / Auto-Upload) : {meta_json_p}")
+                print(f"  Markdown (Copy-Paste)   : {meta_md_p}")
+            except Exception as e:
+                print(f"note: could not generate upload metadata: {e}", file=sys.stderr)
+
+        stage_mgr.record_stage_complete(STAGE_SCRIPT_SEO, artifacts=[SCRIPT_PATH])
+        if not stage_mgr.prompt_after_stage(
+            STAGE_SCRIPT_SEO,
+            interactive=getattr(args, "pause_interactive", False),
+            pause_after=effective_pause_after,
+            on_pause=stop_vast_instance,
+        ):
+            return 0
+    else:
+        if SCRIPT_PATH.exists():
+            script = json.loads(SCRIPT_PATH.read_text(encoding="utf-8"))
+            print(f"[STAGE 1] Loaded existing {SCRIPT_PATH.relative_to(ROOT)} ({len(script.get('scenes', []))} scenes)")
+        else:
+            print(f"error: Stage 1 was skipped but {SCRIPT_PATH} does not exist.", file=sys.stderr)
+            return 1
+
+    # =========================================================================
+    # STAGE 2: VOICE GENERATION (AUDIO & LIP SYNC)
+    # =========================================================================
+    if run_stage_2:
+        stage_mgr.record_stage_start(STAGE_VOICE)
+        print()
+        print("=" * 74)
+        print("STAGE 2: VOICE GENERATION (TTS & LIP SYNC)")
+        print("=" * 74)
+
+        tts_cmd = [sys.executable, str(ROOT / "scripts" / "tts.py")]
+        if not args.dynamic_speed:
+            tts_cmd.append("--flat-speed")
+        if getattr(args, "purge_audio_cache", False):
+            tts_cmd.append("--purge-audio-cache")
+
+        if needs_vast and not start_vast():
+            if not getattr(args, "allow_local_fallback", False):
+                print(
+                    "  [Vast Manager Error] The GPU could not be used and narration needs it.\n"
+                    "  Aborting rather than synthesising on the CPU (hours for a long script).\n"
+                    "  Use --allow-local-fallback to fall back, or --no-vast to run on the CPU deliberately.",
+                    file=sys.stderr,
+                )
+                stage_mgr.mark_failed(STAGE_VOICE, "Vast GPU unavailable for narration")
+                return 1
+            if audio_model == "indic_parler":
+                print(
+                    "  Continuing without Vast.ai: Indic Parler-TTS narration will run locally on the CPU\n"
+                    "  (much slower) because --allow-local-fallback was passed.",
+                    file=sys.stderr,
+                )
+            elif audio_model == "indicf5":
+                print(
+                    "  Continuing without Vast.ai: IndicF5 will use the local Python 3.11 fallback\n"
+                    "  because --allow-local-fallback was passed.",
+                    file=sys.stderr,
+                )
+
+        vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
+        strict_audio = not no_vast and not getattr(args, "allow_local_fallback", False)
+        if audio_model in ("indic_parler", "indicf5"):
+            model_label = "IndicF5" if audio_model == "indicf5" else "Indic Parler-TTS"
+            if vast_server:
+                tts_cmd.extend(["--vast", "--vast-url", vast_server])
+                if strict_audio:
+                    tts_cmd.append("--require-vast")
+            elif strict_audio:
+                print(
+                    f"  [{model_label}] No Vast.ai server available and narration needs the GPU. Aborting.\n"
+                    "  Use --allow-local-fallback to synthesise on the CPU instead.",
+                    file=sys.stderr,
+                )
+                stage_mgr.mark_failed(STAGE_VOICE, "Vast GPU unavailable")
+                stop_vast_instance()
+                return 1
+            else:
+                print(
+                    f"  [{model_label}] No Vast.ai server available; using the deliberate local fallback.",
+                    file=sys.stderr,
+                )
+
+        if audio_model == "indic_parler":
+            tts_label = "Indic Parler-TTS on Vast.ai" if vast_server else "Indic Parler-TTS (local CPU)"
+        elif audio_model == "indicf5":
+            tts_label = "IndicF5 on Vast.ai" if vast_server else "IndicF5 (local Python 3.11 fallback)"
+        else:
+            tts_label = "Kokoro"
+
+        tts_succeeded = run_step(
+            f"narration and lip sync ({tts_label} + Rhubarb)",
+            tts_cmd,
+        )
+
+        if not tts_succeeded:
+            stage_mgr.mark_failed(STAGE_VOICE, f"Narration synthesis failed ({tts_label})")
             stop_vast_instance()
             return 1
-        try:
-            import vast_render
 
-            render_step_ok = True
+        stage_mgr.record_stage_complete(STAGE_VOICE, artifacts=[GENERATED])
+        if not stage_mgr.prompt_after_stage(
+            STAGE_VOICE,
+            interactive=getattr(args, "pause_interactive", False),
+            pause_after=effective_pause_after,
+            on_pause=stop_vast_instance,
+        ):
+            return 0
+
+    # =========================================================================
+    # STAGE 3: VISUAL GENERATION (SCENE IMAGES & LTX-VIDEO CLIPS)
+    # =========================================================================
+    if run_stage_3:
+        stage_mgr.record_stage_start(STAGE_IMAGES)
+        print()
+        print("=" * 74)
+        print("STAGE 3: VISUAL GENERATION")
+        print("=" * 74)
+
+        if should_gen_images:
+            print("Generating scene background images...")
+            script = generate_images_for_script(
+                script,
+                provider=cli_img_prov,
+                model=args.image_model,
+                force=not args.keep_images if hasattr(args, "keep_images") else (args.force_images or True),
+                visual_style=args.visual_style or getattr(args, "animation_style", None),
+                animation_style=getattr(args, "animation_style", None),
+            )
+            SCRIPT_PATH.write_text(
+                json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+
+        if defer_video:
             print()
             print("=" * 74)
-            print("RENDER ON VAST.AI")
+            print("IMAGE-TO-VIDEO CLIPS (LTX-Video from scene stills)")
             print("=" * 74)
-            vast_render.render_on_vast(
-                vast_mgr,
-                vast_instance_id,
-                args.out,
-                # Remotion is CPU-bound in Chromium, so the win is the instance's cores.
-                concurrency=max(args.concurrency, 8),
-                gl="angle" if getattr(args, "gpu_render", False) else None,
-            )
-        except Exception as render_err:
-            print(f"[Vast Render Error] Remote render failed: {render_err}", file=sys.stderr)
-            render_step_ok = False
-        stop_vast_instance()
-        if not render_step_ok:
-            return 1
-    else:
-        render_args = f'--concurrency={args.concurrency}'
-        if getattr(args, "gpu_render", False):
-            render_args += " --gl=angle"
+            try:
+                from generate_videos import generate_videos_for_script
+                script = generate_videos_for_script(
+                    script,
+                    model=args.video_model,
+                    duration_seconds=args.video_seconds,
+                    steps=args.video_steps,
+                    manager=vast_mgr,
+                    force=bool(getattr(args, "force_videos", False)),
+                )
+                SCRIPT_PATH.write_text(
+                    json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                )
+            except Exception as video_err:
+                print(f"[LTX-Video Error] Video generation failed: {video_err}", file=sys.stderr)
+                stage_mgr.mark_failed(STAGE_IMAGES, f"Video generation failed: {video_err}")
+                stop_vast_instance()
+                return 1
 
-        if not run_step(
-            "render (Remotion)",
-            f'npx remotion render Main "{args.out}" {render_args}',
-            shell=True,
+        stage_mgr.record_stage_complete(STAGE_IMAGES, artifacts=[ROOT / "public" / "images"])
+        if not stage_mgr.prompt_after_stage(
+            STAGE_IMAGES,
+            interactive=getattr(args, "pause_interactive", False),
+            pause_after=effective_pause_after,
+            on_pause=stop_vast_instance,
         ):
-            stop_vast_instance()
-            return 1
-        stop_vast_instance()
+            return 0
 
-    # ---- auto-upload to social platforms ---------------------------------
-    if args.auto_upload or args.upload_dry_run:
-        try:
-            import uploader
-            platforms_list = [p.strip() for p in args.upload_platforms.split(",") if p.strip()]
-            meta_path = ROOT / "out" / "metadata.json"
-            srt_path = ROOT / "out" / "subtitles.srt"
-            
-            uploader.upload_all(
-                video_path=args.out,
-                metadata_path=str(meta_path) if meta_path.exists() else None,
-                platforms=platforms_list,
-                privacy=args.privacy,
-                publish_at=args.publish_at,
-                srt_path=str(srt_path) if srt_path.exists() else None,
-                dry_run=args.upload_dry_run,
-            )
-        except Exception as e:
-            print(f"note: upload encountered an error: {e}", file=sys.stderr)
-
-    # ---- report ----------------------------------------------------------
+    # =========================================================================
+    # STAGE 4: FINAL EDITING & RENDER (REMOTION)
+    # =========================================================================
     target_sec = planned["target"].get("seconds") if "target" in planned else None
-    report(args, target_sec=target_sec)
-    return 0
+    if run_stage_4:
+        if args.no_render:
+            print("\n(--no-render / --skip-video: narration and visuals written, render skipped)")
+            stage_mgr.record_stage_complete(STAGE_RENDER, artifacts=[], details={"status": "skipped", "reason": "--no-render/--skip-video"})
+            stop_vast_instance()
+            report(args, target_sec=target_sec)
+            return 0
+
+        stage_mgr.record_stage_start(STAGE_RENDER)
+        print()
+        print("=" * 74)
+        print("STAGE 4: FINAL EDITING & RENDER (REMOTION)")
+        print("=" * 74)
+
+        if render_on_vast:
+            if not vast_instance_id:
+                print(
+                    "  [Vast Render Error] --render-on vast needs a running instance; "
+                    "pass --vast-instance <id> or let this run provision one.",
+                    file=sys.stderr,
+                )
+                stage_mgr.mark_failed(STAGE_RENDER, "Vast instance needed for render")
+                stop_vast_instance()
+                return 1
+            try:
+                import vast_render
+
+                render_step_ok = True
+                print()
+                print("=" * 74)
+                print("RENDER ON VAST.AI")
+                print("=" * 74)
+                vast_render.render_on_vast(
+                    vast_mgr,
+                    vast_instance_id,
+                    args.out,
+                    concurrency=max(args.concurrency, 8),
+                    gl="angle" if getattr(args, "gpu_render", False) else None,
+                )
+            except Exception as render_err:
+                print(f"[Vast Render Error] Remote render failed: {render_err}", file=sys.stderr)
+                render_step_ok = False
+            stop_vast_instance()
+            if not render_step_ok:
+                stage_mgr.mark_failed(STAGE_RENDER, "Vast render failed")
+                return 1
+        else:
+            render_args = f'--concurrency={args.concurrency}'
+            if getattr(args, "gpu_render", False):
+                render_args += " --gl=angle"
+
+            if not run_step(
+                "render (Remotion)",
+                f'npx remotion render Main "{args.out}" {render_args}',
+                shell=True,
+            ):
+                stage_mgr.mark_failed(STAGE_RENDER, "Remotion render failed")
+                stop_vast_instance()
+                return 1
+            stop_vast_instance()
+
+        srt_path = ROOT / "out" / "subtitles.srt"
+
+        # Auto-upload
+        if args.auto_upload or args.upload_dry_run:
+            try:
+                import uploader
+                platforms_list = [p.strip() for p in args.upload_platforms.split(",") if p.strip()]
+                meta_path = ROOT / "out" / "metadata.json"
+
+                uploader.upload_all(
+                    video_path=args.out,
+                    metadata_path=str(meta_path) if meta_path.exists() else None,
+                    platforms=platforms_list,
+                    privacy=args.privacy,
+                    publish_at=args.publish_at,
+                    srt_path=str(srt_path) if srt_path.exists() else None,
+                    dry_run=args.upload_dry_run,
+                )
+            except Exception as e:
+                print(f"note: upload encountered an error: {e}", file=sys.stderr)
+
+        stage_mgr.record_stage_complete(STAGE_RENDER, artifacts=[args.out])
+        report(args, target_sec=target_sec)
+        return 0
+    else:
+        stop_vast_instance()
+        report(args, target_sec=target_sec)
+        return 0
 
 
 if __name__ == "__main__":

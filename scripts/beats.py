@@ -1166,7 +1166,7 @@ def _make_anime_genre() -> GenreProfile:
             cues=[(0.35, "sfx_riser", 0.55)],
             tension=0.5,
             emotion="worried",
-            gesture="reach",
+            gesture="none",
             acting_intensity=0.75,
             character=True,
         ),
@@ -1690,7 +1690,7 @@ def _make_documentary_genre() -> GenreProfile:
             ],
             ambience=("amb_wind", 0.3),
             effects={"vignette": 0.68, "grain": 0.22, "dust": 0.18, "zoom": 0.02, "drift": "out"},
-            cues=[(0.7, "sfx_bell", 0.6)],
+            cues=[(0.5, "sfx_bell", 0.6)],
             tension=0.05,
             emotion="calm",
             gesture="none",
@@ -1902,7 +1902,7 @@ def _make_ancient_history_genre() -> GenreProfile:
             "figure": "ancient master architect visionary sculptor silhouette stone carving",
             "eyes": "ancient stone deity face intricate carving mystical gaze",
             "rain": "monsoon rain cascading down ancient temple stone spires dramatic",
-            "fog": "mystical morning mist rising over ancient temple complex sacred valley",
+            "fog": "mysterious misty historical valley landscape",
             "void": "deep subterranean cavern beneath ancient stone temple secrets",
         },
         default_keywords="ancient indian temple monolithic architecture granite carving archaeological mystery",
@@ -2624,7 +2624,7 @@ def _make_explainer_genre() -> GenreProfile:
         "inciting": Movement("inciting", "The anomaly: why common explanations fail and what makes this phenomenon strange.", "dread", 0.12),
         "rising": Movement("rising", "Step-by-step breakdown: presenting evidence, data layers, mechanics, and experiments.", "approach", 0.32),
         "climax": Movement("climax", "The breakthrough reveal: the underlying scientific principle, mechanism, or hidden truth.", "reveal", 0.16),
-        "resolution": Movement("resolution", "Real-world impact: how this changes our understanding, daily life, or future technology.", "react", 0.14),
+        "resolution": Movement("resolution", "The real-world impact: how this changes our understanding, daily life, or future technology.", "react", 0.14),
         "button": Movement("button", "A thought-provoking concluding insight that leaves the audience pondering.", "resolve", 0.08),
     }
     return GenreProfile(
@@ -3467,8 +3467,8 @@ def plan(
                 "bullets": [],
                 "headlinePosition": "center",
                 "shots": shots,
-                # "ambience": ambience_spec,
-                # "soundCues": cues,
+                "ambience": None,
+                "soundCues": [],
                 "background": {"type": "color", "color": theme_profile.bg_color or genre_profile.bg_color},
                 "cast": cast_for(index, beat, progress) if with_characters else [],
                 "acting": {
@@ -3526,7 +3526,8 @@ def plan(
         "language": language,
         "genre": genre_profile.key,
         "genreProfile": genre_profile,
-        "ambience": global_ambience,
+        "ambience": None,
+        "music": None,
         "theme": theme_profile.to_dict(),
         "themeProfile": theme_profile,
         "format": format_profile.key,
@@ -3591,9 +3592,9 @@ def describe(planned: dict) -> str:
             f"{scene['_targetWords']:>6} {acting.get('emotion', ''):<9} {kinds}"
         )
 
-    cues = sum(len(s["soundCues"]) for s in planned["scenes"])
-    ambiences = sorted({s["ambience"]["src"] for s in planned["scenes"]})
-    sfx_types = sorted({c["sfx"] for s in planned["scenes"] for c in s["soundCues"]})
+    cues = sum(len(s.get("soundCues") or []) for s in planned["scenes"])
+    ambiences = sorted({s["ambience"]["src"] for s in planned["scenes"] if s.get("ambience") and isinstance(s.get("ambience"), dict) and "src" in s["ambience"]})
+    sfx_types = sorted({c["sfx"] for s in planned["scenes"] for c in (s.get("soundCues") or []) if isinstance(c, dict) and "sfx" in c})
 
     # Report the story shape, because completeness is the thing that used to fail.
     order: list[str] = []

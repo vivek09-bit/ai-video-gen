@@ -96,22 +96,6 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
   const timingById = new Map(timings.scenes.map((t) => [t.id, t]));
   const sceneStarts = timings.scenes.map((t) => t.start);
 
-  const musicVolume = (frame: number): number => {
-    if (!script.music) {
-      return 0;
-    }
-    const fadeIn = Math.round(fps * 1.5);
-    const fadeOut = Math.round(script.music.fadeOutSeconds * fps);
-    const rampIn = interpolate(frame, [0, fadeIn], [0, 1], { extrapolateRight: 'clamp' });
-    const rampOut = interpolate(
-      frame,
-      [durationInFrames - fadeOut, durationInFrames],
-      [1, 0],
-      { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
-    );
-    return script.music.volume * Math.min(rampIn, rampOut);
-  };
-
   return (
     <AbsoluteFill style={{ backgroundColor: '#000' }}>
       {script.scenes.map((scene, i) => {
@@ -146,8 +130,7 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
         );
       })}
 
-      {/* Narration. Each spoken line is placed at its own absolute start, which
-          is what lets several characters talk in turn inside one scene. */}
+      {/* Narration. Spoken line voiceover only. */}
       {timings.scenes.flatMap((timing) => {
         const lines =
           timing.lines && timing.lines.length > 0
@@ -164,71 +147,6 @@ export const Main: React.FC<Project> = ({ script, timings }) => {
           ) : null,
         );
       })}
-
-      {/* Global continuous background ambience spanning the entire video timeline without cut */}
-      {script.ambience ? (
-        <Audio
-          src={staticFile(resolveAudioPath(script.ambience.src, 'ambience', script.genre))}
-          loop
-          loopVolumeCurveBehavior="extend"
-          volume={Math.min(0.28, script.ambience.volume ?? 0.22)}
-        />
-      ) : null}
-
-      {/* Per-scene ambience overlay when specified (or when no global ambience) */}
-      {script.scenes.map((scene) => {
-        if (!scene.ambience || scene.ambience.src === script.ambience?.src) {
-          return null;
-        }
-        const timing = timingById.get(scene.id);
-        if (!timing) {
-          return null;
-        }
-        return (
-          <Sequence
-            key={`amb-${scene.id}`}
-            from={Math.round(timing.start * fps)}
-            durationInFrames={Math.max(1, Math.round(timing.duration * fps))}
-          >
-            <Audio
-              src={staticFile(resolveAudioPath(scene.ambience.src, 'ambience', script.genre))}
-              loop
-              loopVolumeCurveBehavior="extend"
-              volume={Math.min(0.28, scene.ambience.volume ?? 0.22)}
-            />
-          </Sequence>
-        );
-      })}
-
-      {/* One-shot stingers, risers and impacts, placed at story beats. */}
-      {script.scenes.flatMap((scene) => {
-        const timing = timingById.get(scene.id);
-        if (!timing) {
-          return [];
-        }
-        return (scene.soundCues ?? []).map((cue, index) => (
-          <Sequence
-            key={`sfx-${scene.id}-${index}`}
-            from={Math.round((timing.start + cue.at) * fps)}
-          >
-            <Audio
-              src={staticFile(resolveAudioPath(cue.sfx, 'sfx', script.genre))}
-              volume={Math.min(0.32, cue.volume ?? 0.25)}
-            />
-          </Sequence>
-        ));
-      })}
-
-      {script.music ? (
-        <Audio
-          src={staticFile(resolveAudioPath(script.music.src, 'music', script.genre))}
-          loop
-          // Without 'extend' the volume curve restarts on every loop iteration,
-          // which would replay the fade-in in the middle of the video.
-          loopVolumeCurveBehavior="extend"
-          volume={musicVolume}
-        />
-      ) : null}
 
       <ProgressBar color={script.theme.accent} />
       <FrameFade />

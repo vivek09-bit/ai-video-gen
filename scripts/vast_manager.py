@@ -259,7 +259,66 @@ def save_pinned_offer(offer_id: int, env_path: Path | None = None) -> Path | Non
     return path
 
 
-def describe_offer(offer: dict, index: int | None = None, disk_gb: int = 0) -> list[str]:
+def calculate_run_cost(
+    offer: dict,
+    run_minutes: float = 30.0,
+    download_gb: float = 16.0,
+    disk_gb: int = 50,
+) -> dict:
+    """Calculate the true session cost of renting an offer for a given run duration.
+
+    Takes into account:
+      - Download duration based on advertised inet_down (GB -> Megabits / Mbps).
+      - Compute billing during download setup time + actual video run time.
+      - Egress / download data transfer fee (inet_down_cost * download_gb).
+      - Disk storage fee prorated for the session duration (storage_cost * disk_gb / 720).
+      - Effective score adjusted for host reliability.
+    """
+    dph = hourly_rate(offer)
+    inet_down = max(10.0, _as_float(offer, "inet_down", 100.0))
+    inet_down_cost = _as_float(offer, "inet_down_cost", 0.0)
+    storage_rate = _as_float(offer, "storage_cost", 0.0)
+    reliability = _as_float(offer, "reliability2", _as_float(offer, "reliability", 0.98))
+
+    dl_hours = (download_gb * 8.0 * 1024.0) / (inet_down * 3600.0)
+    dl_minutes = dl_hours * 60.0
+    run_hours = run_minutes / 60.0
+    total_hours = run_hours + dl_hours
+
+    compute_cost = total_hours * dph if dph != float("inf") else float("inf")
+    data_cost = download_gb * inet_down_cost
+    storage_cost = total_hours * (storage_rate * disk_gb / 720.0)
+    total_cost = compute_cost + data_cost + storage_cost
+
+    rel_score = max(0.5, min(1.0, reliability if reliability > 0 else 0.95))
+    effective_cost = total_cost / rel_score
+
+    return {
+        "run_minutes": run_minutes,
+        "download_gb": download_gb,
+        "disk_gb": disk_gb,
+        "inet_down": inet_down,
+        "inet_down_cost": inet_down_cost,
+        "dl_minutes": dl_minutes,
+        "dl_hours": dl_hours,
+        "total_hours": total_hours,
+        "dph": dph,
+        "compute_cost": compute_cost,
+        "data_cost": data_cost,
+        "storage_cost": storage_cost,
+        "total_cost": total_cost,
+        "reliability": reliability,
+        "effective_cost": effective_cost,
+    }
+
+
+def describe_offer(
+    offer: dict,
+    index: int | None = None,
+    disk_gb: int = 0,
+    run_minutes: float = 30.0,
+    download_gb: float = 16.0,
+) -> list[str]:
     """Human-readable lines describing one offer's price, speed, storage and trust signals.
 
     Everything a rental decision depends on lives here: the all-in hourly rate, the
@@ -279,6 +338,20 @@ def describe_offer(offer: dict, index: int | None = None, disk_gb: int = 0) -> l
         header += f" {vram_mb / 1024:.0f}GB"
     header += f"  ->  {format_rate(rate)}"
     lines.append(header)
+
+    # True session cost calculation (default 30m session + download)
+    cost = calculate_run_cost(
+        offer,
+        run_minutes=run_minutes,
+        download_gb=download_gb,
+        disk_gb=disk_gb or 50,
+    )
+    data_cost_str = "free" if cost["data_cost"] <= 0 else f"${cost['data_cost']:.3f}"
+    lines.append(
+        f"       {int(run_minutes)}m session : ${cost['total_cost']:.3f} total  "
+        f"(DL: {cost['dl_minutes']:.1f}m @ {cost['inet_down']:,.0f}Mbps | "
+        f"compute ${cost['compute_cost']:.3f}, data {data_cost_str}, disk ${cost['storage_cost']:.3f})"
+    )
 
     # Bandwidth: the speed AND the price the host charges for it. A "free" fast host and
     # a cheap slow one with a per-GB fee are very different rentals for a 42 GB prefetch.
@@ -447,6 +520,7 @@ SERVER_DEPENDENCIES: tuple[str, ...] = (
     "huggingface-hub==0.36.2",
     "datasets==3.6.0",
     "pyarrow==20.0.0",
+    "hf-transfer==0.1.9",
     # torchaudio is deliberately NOT listed here: it is pinned to the image's exact torch
     # version at install time (see server_onstart_command). Resolving it freely installs a
     # newer torchaudio than the image's torch, which then fails at import with an
@@ -724,10 +798,10 @@ class VastManager:
         voices_dir = self.local_indicf5_voices_dir()
         if not voices_dir.is_dir():
             raise RuntimeError(f"Local IndicF5 voices directory not found: {voices_dir}")
-        paths = [p for p in sorted(voices_dir.iterdir()) if p.is_file() and p.suffix in (".wav", ".mp3", ".txt")]
+        paths = self.indicf5_voice_files()
         if not paths:
             raise RuntimeError(
-                f"No IndicF5 voice reference files (.wav/.mp3/.txt) found in "
+                f"No complete IndicF5 voice reference files (.wav + .txt) found in "
                 f"{self.local_indicf5_voices_dir()}; the instance cannot narrate IndicF5."
             )
         max_attempts = 12
@@ -754,7 +828,11 @@ class VastManager:
         inference endpoint through it), the voices directory must be pinned to the same path
         the client uploads to, and the token is mandatory too because IndicF5 is gated.
         """
-        parts = ["-p 8000:8000", f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}"]
+        parts = [
+            "-p 8000:8000",
+            f"-e INDICF5_VOICES_DIR={CONTAINER_VOICES_DIR}",
+            "-e HF_HUB_ENABLE_HF_TRANSFER=1",
+        ]
         # Point Hugging Face at the persistent volume when one is configured. Vast mounts a
         # network volume on every instance that attaches it, so HF_HOME there turns the
         # ~42 GB of FLUX/LTX/IndicF5 weights into a ONE-OFF cost: the first instance
@@ -1013,9 +1091,9 @@ class VastManager:
             )
         return (
             "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
-            "if [ -f \"$HOME/.tube2dscript_deps_ready\" ] "
-            f"&& {probe}; then "
-            "echo '[onstart] dependencies already present, skipping install'; "
+            f"if {probe}; then "
+            "echo '[onstart] dependencies already present in image, skipping apt and pip install'; "
+            "touch \"$HOME/.tube2dscript_deps_ready\"; "
             "else "
             # The AI4Bharat f5_tts dependency is installed from Git, so package installation
             # must wait for apt to provide git; otherwise a cold host races and fails randomly.
@@ -1025,16 +1103,16 @@ class VastManager:
             "command -v git >/dev/null 2>&1 || { echo '[onstart] FAILED: git is required for IndicF5'; exit 1; }; "
             f"( {deps_install} ) & PIP_PID=$!; "
             "wait $PIP_PID; echo '[onstart] python deps done'; "
-            # snapshot_download needs huggingface_hub, which the dependency install provides.
-            # Running it sooner races a cold image and wastes a misleading failed prefetch.
-            f"( {prefetch_cmd} ) & MODEL_PID=$!; "
-            "wait $MODEL_PID; echo '[onstart] model prefetch done'; "
             f"{verify_imports}; "
             f"{verify_torch}; "
             f"if {probe}; then "
             "touch \"$HOME/.tube2dscript_deps_ready\"; "
             "else echo '[onstart] FAILED: deps unusable, not marking them ready'; fi; "
             "fi; "
+            # snapshot_download runs for the requested models; if already present in the HF cache
+            # it finishes in sub-second time without redownloading.
+            f"( {prefetch_cmd} ) & MODEL_PID=$!; "
+            "wait $MODEL_PID; echo '[onstart] model prefetch done'; "
             f"{refresh_repo} "
             "cd /workspace/tube2dscript; "
             "echo 'starting server at $(hostname -i):8000'; "
@@ -1105,11 +1183,11 @@ class VastManager:
         # preference, it is a cap). A host advertising far more than the run can consume is
         # simply a more expensive one, so capping here stops the budget being spent on
         # bandwidth the job never uses. 0 disables the cap.
-        max_inet_cap = int(os.environ.get("VAST_MAX_INET_DOWN", "500") or 0)
-        if max_inet_cap and max_inet_cap <= min_inet_down:
+        max_inet_cap = int(os.environ.get("VAST_MAX_INET_DOWN", "400") or 0)
+        if max_inet_cap and max_inet_cap <= 100:
             raise ValueError(
                 f"VAST_MAX_INET_DOWN ({max_inet_cap}) must be greater than the "
-                f"download floor VAST_MIN_INET_DOWN ({min_inet_down}); no offer could ever match."
+                f"download floor (100); no offer could ever match."
             )
         cap_clause = f" inet_down<{max_inet_cap}" if max_inet_cap else ""
         gpu_filter = gpu_name.upper().replace("NVIDIA GEFORCE ", "").replace(" ", "_")
@@ -1181,7 +1259,7 @@ class VastManager:
             offer
             for offer in offers
             if hourly_rate(offer) <= limit
-            and (not max_inet_cap or 0 < _as_float(offer, "inet_down", -1.0) < max_inet_cap)
+            and (not max_inet_cap or _as_float(offer, "inet_down", 0.0) < max_inet_cap)
             and str(int(offer.get("machine_id") or 0)) not in self.bad_hosts
         ]
         ordered = [offer for offer in offers if hourly_rate(offer) <= limit]
@@ -1215,10 +1293,48 @@ class VastManager:
         """Search for RTX 3090 24GB offers."""
         return self.search_gpu("RTX 3090", max_dph=max_dph, min_disk=min_disk)
 
+    def find_best_offers(
+        self,
+        gpu_name: str = "RTX 4090",
+        run_minutes: float = 30.0,
+        download_gb: float = 16.0,
+        disk_gb: int = 50,
+        max_dph: float | None = None,
+        limit: int = 5,
+    ) -> list[tuple[dict, dict]]:
+        """Search and rank GPU offers by true session cost for the given workload.
+
+        Returns a list of (offer, cost_info) tuples sorted by effective session cost
+        (download time + GPU compute + data transfer + disk storage).
+        """
+        budget = gpu_budget(gpu_name) if max_dph is None else max_dph
+        offers = self.search_gpu_with_wait(gpu_name, max_dph=budget, min_disk=disk_gb)
+        if not offers:
+            return []
+
+        ranked: list[tuple[dict, dict]] = []
+        for offer in offers:
+            if str(int(offer.get("machine_id") or 0)) in self.bad_hosts:
+                continue
+            if offer.get("direct_port_count", 0) <= 0:
+                continue
+            cost = calculate_run_cost(
+                offer,
+                run_minutes=run_minutes,
+                download_gb=download_gb,
+                disk_gb=disk_gb,
+            )
+            if cost["total_cost"] == float("inf"):
+                continue
+            ranked.append((offer, cost))
+
+        ranked.sort(key=lambda item: item[1]["effective_cost"])
+        return ranked[:limit]
+
     def choose_offer(
         self,
         gpu_name: str = "RTX 4090",
-        disk_gb: int = 60,
+        disk_gb: int = 50,
         max_dph: float | None = None,
         limit: int = 15,
         auto_select: int | None = None,
@@ -1631,6 +1747,9 @@ class VastManager:
 
             if status not in ("running", "stopped", "created", "exited"):
                 print(f"  Skipping instance {instance_id}: status {status!r} is not reusable yet.")
+                continue
+            if wanted not in gpu_name.replace(" ", ""):
+                print(f"  Skipping instance {instance_id}: GPU is {gpu_name}, but need {expected_gpu}.")
                 continue
             if disk_space < min_disk:
                 print(f"  Skipping instance {instance_id}: {disk_space}GB disk is below the {min_disk}GB minimum.")
@@ -2289,14 +2408,16 @@ def main() -> int:
 
     # Search
     p_search = subparsers.add_parser("search", help="Search for a one-GPU Vast.ai offer")
-    p_search.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
+    p_search.add_argument("--gpu", type=str, default="RTX 4090", help="GPU model to search (e.g. 'RTX 4090', 'RTX 3090')")
     p_search.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
     p_search.add_argument("--disk", type=int, default=30, help="Min disk space in GB")
 
     # Create
     p_create = subparsers.add_parser("create", help="Rent a one-GPU Vast.ai instance within budget")
-    p_create.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
+    p_create.add_argument("--gpu", type=str, default="RTX 4090", help="GPU model to rent (e.g. 'RTX 4090', 'RTX 3090')")
     p_create.add_argument("--offer", type=int, default=None, help="Specific offer ID")
+    p_create.add_argument("--choose", action="store_true", help="Interactively choose from available offers before renting")
+    p_create.add_argument("--pick", type=int, default=None, help="Non-interactive pick position if --choose is used")
     p_create.add_argument("--disk", type=int, default=60, help="Disk space in GB")
     p_create.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
 
@@ -2305,7 +2426,7 @@ def main() -> int:
         "choose",
         help="List GPU offers with price, download speed/cost and storage cost, then pin one",
     )
-    p_choose.add_argument("--gpu", choices=["RTX 3090", "RTX 4090"], default="RTX 4090")
+    p_choose.add_argument("--gpu", type=str, default="RTX 4090", help="GPU model to choose from (e.g. 'RTX 4090', 'RTX 3090')")
     p_choose.add_argument("--disk", type=int, default=60, help="Disk space in GB (drives the storage estimate)")
     p_choose.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
     p_choose.add_argument("--limit", type=int, default=15, help="How many offers to show (default: 15)")
@@ -2321,6 +2442,25 @@ def main() -> int:
         action="store_true",
         help="Show the offers but do not remember the choice in .env",
     )
+
+    # Best: calculate true session cost (download + compute + storage) and pick the optimal offer
+    p_best = subparsers.add_parser(
+        "best",
+        help="Find and rank offers by true session cost (downloading + GPU rate + storage) for a target run time",
+    )
+    p_best.add_argument("--gpu", type=str, default="RTX 4090", help="GPU model to evaluate (e.g. 'RTX 4090', 'RTX 3090')")
+    p_best.add_argument("--minutes", type=float, default=30.0, help="Expected run time in minutes (default: 30.0)")
+    p_best.add_argument(
+        "--download-gb",
+        type=float,
+        default=16.0,
+        help="Expected model weights download size in GB (default: 16.0 for FLUX.2 Klein 9B + IndicF5)",
+    )
+    p_best.add_argument("--disk", type=int, default=60, help="Disk space in GB (default: 60)")
+    p_best.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr budget")
+    p_best.add_argument("--limit", type=int, default=5, help="Number of best offers to display (default: 5)")
+    p_best.add_argument("--pin", action="store_true", help="Pin the #1 winning offer to .env for the next rental")
+    p_best.add_argument("--create", action="store_true", help="Directly create and start an instance on the winning offer")
 
     # Prune
     p_prune = subparsers.add_parser("prune", help="Destroy broken, over-budget or long-idle instances")
@@ -2388,9 +2528,21 @@ def main() -> int:
         return 0
 
     elif args.action == "create":
-        if args.offer is not None:
+        offer_to_create = args.offer
+        if getattr(args, "choose", False):
+            chosen = mgr.choose_offer(
+                gpu_name=args.gpu,
+                disk_gb=args.disk,
+                max_dph=args.max_price,
+                auto_select=getattr(args, "pick", None),
+            )
+            if chosen is None:
+                return 1
+            offer_to_create = int(chosen["id"])
+
+        if offer_to_create is not None:
             inst_id = mgr.create_instance(
-                offer_id=args.offer,
+                offer_id=offer_to_create,
                 disk_gb=args.disk,
                 gpu_name=args.gpu,
                 max_dph=args.max_price,
@@ -2431,6 +2583,62 @@ def main() -> int:
                 f"[Vast Manager] Chosen offer {offer_id}. Add VAST_PINNED_OFFER={offer_id} "
                 f"to .env to make it stick, or export it for this shell."
             )
+        return 0
+
+    elif args.action == "best":
+        ranked = mgr.find_best_offers(
+            gpu_name=args.gpu,
+            run_minutes=args.minutes,
+            download_gb=args.download_gb,
+            disk_gb=args.disk,
+            max_dph=args.max_price,
+            limit=args.limit,
+        )
+        if not ranked:
+            print(f"[Vast Manager] No viable {args.gpu} offers found within budget.")
+            return 1
+
+        print()
+        print("=" * 76)
+        print(f"BEST {args.gpu} OFFERS FOR {int(args.minutes)}m SESSION ({args.download_gb}GB DL, {args.disk}GB DISK)")
+        print("Ranked by True Session Cost = Download Time + GPU Compute + Data + Storage")
+        print("=" * 76)
+        for idx, (offer, cost) in enumerate(ranked, start=1):
+            oid = offer.get("id")
+            gpu = offer.get("gpu_name", args.gpu)
+            vram_mb = _as_float(offer, "gpu_ram", 0.0)
+            vram_str = f" {vram_mb / 1024:.0f}GB" if vram_mb > 0 else ""
+            dph_str = format_rate(cost["dph"])
+            loc = offer.get("geolocation") or offer.get("location") or "unknown"
+            rel = cost["reliability"] * 100 if cost["reliability"] >= 0 else 0
+            dl_cost_str = "free" if cost["data_cost"] <= 0 else f"${cost['data_cost']:.3f}"
+
+            print(f"\n#{idx}  Offer ID {oid}  {gpu}{vram_str}  [{dph_str}]  Location: {loc}  Reliability: {rel:.1f}%")
+            print(f"    --> TRUE {int(args.minutes)}m COST : ${cost['total_cost']:.3f} total (Effective Score: ${cost['effective_cost']:.3f})")
+            print(f"        - Download Time   : {cost['dl_minutes']:.1f} mins @ {cost['inet_down']:,.0f} Mbps")
+            print(f"        - Compute Cost    : ${cost['compute_cost']:.3f} ({cost['total_hours'] * 60:.1f} mins billed @ {dph_str})")
+            print(f"        - Data Transfer   : {dl_cost_str} ({cost['download_gb']}GB @ ${cost['inet_down_cost']:.4f}/GB)")
+            print(f"        - Disk Storage    : ${cost['storage_cost']:.3f} ({args.disk}GB @ ${_as_float(offer, 'storage_cost'):.4f}/GB/mo)")
+
+        best_offer, best_cost = ranked[0]
+        best_id = int(best_offer.get("id"))
+        print("\n" + "=" * 76)
+        print(f"WINNER: Offer {best_id} with true {int(args.minutes)}m session cost of ${best_cost['total_cost']:.3f}")
+        print("=" * 76)
+
+        if args.pin:
+            saved = save_pinned_offer(best_id)
+            if saved:
+                print(f"[Vast Manager] Pinned offer {best_id} to {saved.name}. Next rental will use this host.")
+        if args.create:
+            print(f"[Vast Manager] Creating instance on winning offer {best_id}...")
+            inst_id = mgr.create_instance(
+                offer_id=best_id,
+                disk_gb=args.disk,
+                gpu_name=args.gpu,
+                max_dph=args.max_price,
+            )
+            print(f"[Vast Manager] Created instance: {inst_id}")
         return 0
 
     elif args.action == "prune":

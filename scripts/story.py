@@ -26,6 +26,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
+from pathlib import Path
 
 __all__ = [
     "Issue",
@@ -216,12 +217,35 @@ def parse_blocks(text: str, scene_count: int = 999) -> tuple[str, list[WrittenSc
     flush()
 
     if not raw:
-        # The model ignored the format. Split on blank lines so a sloppy response
-        # is still usable, but never invent more scenes than the plan has room for:
-        # extra paragraphs are what used to shove every real scene out of place.
+        # The model or user script ignored the format. Split on blank lines if present,
+        # otherwise split into well-paced scenes on sentence boundaries (Hindi । or . ? !).
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
         usable = [p for p in paragraphs if not is_conversational_chatter(p) and len(p.split()) > 3]
-        raw = [(None, "", [p]) for p in usable[: max(1, scene_count)]]
+        if len(usable) <= 1:
+            full_text = usable[0] if usable else text.strip()
+            raw_sentences = re.split(r"(?<=[।\.\?!])\s+|\n{2,}", full_text)
+            sentences = [s.strip() for s in raw_sentences if s.strip() and not is_conversational_chatter(s)]
+            if len(sentences) > 1:
+                words_per_scene = 25
+                chunks: list[str] = []
+                curr: list[str] = []
+                cnt = 0
+                for s in sentences:
+                    w = s.split()
+                    if cnt > 0 and (cnt + len(w)) > words_per_scene:
+                        chunks.append(" ".join(curr))
+                        curr = [s]
+                        cnt = len(w)
+                    else:
+                        curr.append(s)
+                        cnt += len(w)
+                if curr:
+                    chunks.append(" ".join(curr))
+                raw = [(None, "", [c]) for c in chunks[: max(1, scene_count)]]
+            else:
+                raw = [(None, "", [full_text])]
+        else:
+            raw = [(None, "", [p]) for p in usable[: max(1, scene_count)]]
 
     scenes: list[WrittenScene] = []
     for number, headline, lines in raw:

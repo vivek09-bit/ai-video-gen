@@ -376,6 +376,34 @@ def test_image_routing() -> None:
         prompt2 = generate_images.make_prompt(scene2, topic="ai dekho son pari", genre="fantasy", index=1)
         assert prompt1 != prompt2, "Scene 1 and Scene 2 should produce distinct image prompts"
 
+        # Stickman animation prompt testing (Background, Characters, and style anchors)
+        stick_scene = {
+            "id": "scene-010",
+            "headline": " ऑफिस में अफरा-तफरी और बॉस का गुस्सा",
+            "beat": "climax",
+            "emotion": "shock",
+            "cast": [{"id": "lead", "x": 0.5}],
+            "acting": {"emotion": "screaming", "gesture": "facepalm"},
+            "shots": [{"visual": {"type": "office"}}],
+            "lines": [{"text": "बॉस चिल्लाया और सब कुछ बिखर गया!"}],
+        }
+        stick_prompt = generate_images.make_prompt(
+            stick_scene,
+            topic="Office Funny Bloopers",
+            genre="comedy",
+            animation_style="stickman",
+            characters_dict={"lead": {"name": "Rohan", "hairstyle": "short", "accessory": "glasses"}},
+        )
+        assert generate_images.is_stickman_style("stickman")
+        assert generate_images.is_stickman_style("stickman_animation")
+        assert generate_images.is_stickman_style("stick_figure")
+        assert "Background:" in stick_prompt
+        assert "Characters:" in stick_prompt
+        assert "stickman" in stick_prompt.lower() or "stick figure" in stick_prompt.lower()
+        assert "white background" in stick_scene["backgroundPrompt"].lower() or "paper" in stick_scene["backgroundPrompt"].lower()
+        assert "stick figure" in stick_scene["characterPrompt"].lower()
+        assert "screaming" in stick_scene["characterPrompt"].lower() or "shock" in stick_scene["characterPrompt"].lower()
+
         print("  ✓ All Image provider routing and prompt checks passed.")
     finally:
         os.environ.clear()
@@ -449,21 +477,11 @@ def test_audio_and_speed() -> None:
     assert g_fantasy.default_speed == 0.94
     assert g_fantasy.default_wpm == 115
 
-    # 5. Test beats.plan integration with audio cues and ambience
+    # 5. Test beats.plan integration: ambience and sound cues are cleanly stripped
     plan_fantasy = beats.plan("ai dekho son pari", minutes=1.0, scenes=4, genre="fantasy")
-    ambiences = [s["ambience"] for s in plan_fantasy["scenes"]]
-    assert len(ambiences) == 4
-    for amb in ambiences:
-        amb_src = amb["src"] if isinstance(amb, dict) else amb
-        assert amb_src in make_assets.BEDS
-
-    cues_count = sum(len(s.get("soundCues", [])) for s in plan_fantasy["scenes"])
-    assert cues_count >= 4, f"Expected at least 4 sound cues, got {cues_count}"
     for s in plan_fantasy["scenes"]:
-        for cue in s.get("soundCues", []):
-            sfx_name = cue.get("sfx") or cue.get("id")
-            assert sfx_name in make_assets.EFFECTS
-            assert 0.0 <= cue["volume"] <= 1.0
+        assert s["ambience"] is None
+        assert s.get("soundCues") == []
 
     print("  ✓ All Dynamic sound effects and speech speed checks passed.")
 
@@ -619,6 +637,10 @@ def test_vast_gpu_routing() -> None:
     assert "gpu_name=RTX_3090" in commands[-1][2]
     assert "num_gpus=1" in commands[-1][2]
 
+    # Manual GPU offer selection with choose_offer (auto-select pick)
+    chosen = manager.choose_offer("RTX 3090", auto_select=1)
+    assert chosen is not None and chosen["id"] == 123
+
     assert manager.create_instance(offer_id=123, gpu_name="RTX 4090") == 456
     # create_instance also reads the instance back to verify the billed rate, so locate
     # the create call rather than assuming it is the most recent command.
@@ -643,6 +665,16 @@ def test_vast_gpu_routing() -> None:
         assert "GPU mismatch" in str(err)
     else:
         raise AssertionError("GPU mismatch must stop the run")
+
+    # Stopped instance discovery and GPU filtering in find_existing_instance
+    manager.run_cli = lambda args: json.dumps([
+        {"id": 991, "status": "stopped", "gpu_name": "RTX 3090", "disk_space": 100, "dph_total": 0.25},
+        {"id": 992, "status": "stopped", "gpu_name": "RTX 4090", "disk_space": 100, "dph_total": 0.35},
+    ])  # type: ignore[method-assign]
+    found_id, _ = manager.find_existing_instance("RTX 4090", min_disk=50)
+    assert found_id == 992, f"expected instance 992 (RTX 4090), got {found_id}"
+    found_id_3090, _ = manager.find_existing_instance("RTX 3090", min_disk=50)
+    assert found_id_3090 == 991, f"expected instance 991 (RTX 3090), got {found_id_3090}"
 
     print("  ✓ Vast creation requests one selected GPU and verifies the running server GPU.")
 

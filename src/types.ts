@@ -167,9 +167,9 @@ export interface Scene {
   /** Default performance for every cast member in this scene. */
   acting?: ActingSpec;
   /** Looping ambience bed, e.g. `amb_drone`. Mixed under the narration. */
-  ambience: { src: string; volume: number } | null;
+  ambience?: { src: string; volume: number } | null;
   /** One-shot stingers and impacts, timed from the scene start. */
-  soundCues: SoundCue[];
+  soundCues?: SoundCue[];
   /** Seconds of silence before narration starts. */
   padBefore: number;
   /** Seconds of silence after narration ends. */
@@ -235,7 +235,7 @@ export interface ScriptFile {
   /** Global continuous background ambience spanning the full video duration without interruption. */
   ambience?: { src: string; volume: number } | null;
   captions: CaptionOptions;
-  music: { src: string; volume: number; fadeOutSeconds: number } | null;
+  music?: { src: string; volume: number; fadeOutSeconds: number } | null;
   theme: Theme;
   characters: Record<string, CharacterSpec>;
   scenes: Scene[];

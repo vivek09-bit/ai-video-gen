@@ -26,7 +26,16 @@
     "render": "remotion render Main out/video.mp4",
     "make": "npm run assets && npm run voice && npm run render",
     "preview": "npm run voice && remotion render Main out/preview.mp4 --frames 0-300",
-    "bot": ".venv\\Scripts\\python.exe -m bot.main"
+    "bot": ".venv\\Scripts\\python.exe -m bot.main",
+    "start": "remotion preview",
+    "build": "remotion bundle",
+    "from-script": "python scripts/new_video.py --from-script",
+    "from-txt": "python scripts/from_txt.py",
+    "fetch:stock": "python scripts/pixabay.py --script script.json --output-dir public/images",
+    "test:pixabay": "python scripts/pixabay.py --test",
+    "check:voicestudio": "python scripts/voicestudio.py --check",
+    "voices:voicestudio": "python scripts/voicestudio.py --list-voices",
+    "tts:voicestudio": "python scripts/voicestudio.py --script script.json --output-dir public/audio"
   },
   "dependencies": {
     "@remotion/cli": "4.0.418",

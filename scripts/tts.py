@@ -68,6 +68,13 @@ from phonemise import Phonemiser  # noqa: E402
 from make_assets import ensure_assets  # noqa: E402
 from generate_images import load_env_file  # noqa: E402
 from transliterate import deva_word_to_hinglish, deva_to_hinglish, is_devanagari, export_srt  # noqa: E402
+try:
+    from voicestudio import VoiceStudioClient  # noqa: E402
+except ImportError:
+    try:
+        from scripts.voicestudio import VoiceStudioClient  # noqa: E402
+    except ImportError:
+        VoiceStudioClient = None
 
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
@@ -1365,8 +1372,11 @@ for ivid, ivinfo in INDIC_PARLER_VOICES.items():
     for alias in ivinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = ivid
 
-for fivid in INDICF5_LOCAL_VOICES:
+for fivid, finfo in INDICF5_LOCAL_VOICES.items():
     VOICE_ALIASES[fivid.lower()] = fivid
+    stem = finfo.get("reference", "")
+    if stem:
+        VOICE_ALIASES[stem.lower()] = fivid
 VOICE_ALIASES["indicf5"] = "indicf5_aarav"
 
 for cvid, cvinfo in CARTESIA_VOICES.items():
@@ -1856,7 +1866,7 @@ def read_gpu_cache(text: str, voice: str, speed: float):
             )
             path.unlink(missing_ok=True)
             return None
-        return wav_np
+        return clean_audio_glitches(wav_np)
     except Exception as err:  # noqa: BLE001 - a corrupt entry must never be fatal
         print(f"[Indic Parler Cache Warning] Ignoring unreadable {path.name}: {err}", file=sys.stderr)
         return None
@@ -1905,6 +1915,137 @@ def prepare_tts_text(text: str) -> str:
     return normalize_hindi_phonetics(clean_text)
 
 
+HINDI_SPLIT_BEFORE = {
+    "और", "लेकिन", "मगर", "परंतु", "बल्कि", "तो", "क्योंकि", "चूंकि",
+    "ताकि", "जिससे", "या", "तथा", "एवं", "जबकि", "अर्थात", "जो", "जिसने", "जिसका", "जिसके",
+}
+HINDI_SPLIT_AFTER = {
+    "कि", "हुए", "करके", "बिना", "दौरान",
+}
+
+
+def split_hindi_clauses(text: str, max_words: int = 14) -> list[tuple[str, str]]:
+    """Break long clauses into natural Hindi prosodic units to keep DiT flow matching stable."""
+    raw_clauses = re.split(r'([,.;:!?।॥|]+)', text)
+    clauses = []
+    i = 0
+    while i < len(raw_clauses):
+        c = raw_clauses[i].strip()
+        punct = raw_clauses[i + 1].strip() if i + 1 < len(raw_clauses) else ""
+        if c:
+            clauses.append((c, punct))
+        i += 2
+
+    sub_chunks = []
+    for clause, punct in clauses:
+        words = clause.split()
+        if len(words) <= max_words:
+            sub_chunks.append((clause, punct))
+            continue
+
+        current = []
+        for idx, w in enumerate(words):
+            current.append(w)
+            rem = len(words) - (idx + 1)
+
+            if len(current) >= 4 and rem >= 4 and w in HINDI_SPLIT_AFTER:
+                sub_chunks.append((" ".join(current), ","))
+                current = []
+                continue
+
+            if len(current) >= 5 and rem >= 4:
+                if idx + 1 < len(words) and words[idx + 1] in HINDI_SPLIT_BEFORE:
+                    sub_chunks.append((" ".join(current), ","))
+                    current = []
+                    continue
+
+            if len(current) >= 10 and rem >= 4 and w in {"था", "थी", "थे", "है", "हैं"}:
+                sub_chunks.append((" ".join(current), ","))
+                current = []
+                continue
+
+        if current:
+            sub_chunks.append((" ".join(current), punct))
+
+    return sub_chunks
+
+
+def punctuate_hindi_clauses(text: str, max_words: int = 14) -> str:
+    """Insert natural prosodic commas before Hindi conjunctions in long clauses.
+
+    Prevents Diffusion Transformer (IndicF5) flow-matching drift and vocoder tearing
+    caused by long unpunctuated sentences (>14 words).
+    """
+    raw_clauses = re.split(r"([,.;:!?।॥|]+)", text)
+    clauses = []
+    i = 0
+    while i < len(raw_clauses):
+        c = raw_clauses[i].strip()
+        punct = raw_clauses[i + 1].strip() if i + 1 < len(raw_clauses) else ""
+        if c:
+            clauses.append((c, punct))
+        i += 2
+
+    out_parts = []
+    for clause, punct in clauses:
+        words = clause.split()
+        if len(words) <= max_words:
+            out_parts.append(clause + ((" " + punct) if punct else ""))
+            continue
+
+        current = []
+        for idx, w in enumerate(words):
+            current.append(w)
+            rem = len(words) - (idx + 1)
+
+            if len(current) >= 4 and rem >= 4 and w in HINDI_SPLIT_AFTER:
+                out_parts.append(" ".join(current) + ",")
+                current = []
+                continue
+
+            if len(current) >= 5 and rem >= 4:
+                if idx + 1 < len(words) and words[idx + 1] in HINDI_SPLIT_BEFORE:
+                    out_parts.append(" ".join(current) + ",")
+                    current = []
+                    continue
+
+            if len(current) >= 10 and rem >= 4 and w in {"था", "थी", "थे", "है", "हैं"}:
+                out_parts.append(" ".join(current) + ",")
+                current = []
+                continue
+
+        if current:
+            out_parts.append(" ".join(current) + ((" " + punct) if punct else ""))
+
+    return " ".join(out_parts)
+
+
+def clean_audio_glitches(audio, max_jump: float = 0.35):
+    """Slew-rate / continuity limiter to eliminate Vocos vocoder tearing without affecting vocal harmonics."""
+    import numpy as np
+
+    x = np.asarray(audio, dtype=np.float32)
+    if x.size < 3:
+        return x
+    diff = np.diff(x)
+    bad_indices = np.where(np.abs(diff) > max_jump)[0]
+    if len(bad_indices) == 0:
+        return x
+    x = np.array(x, copy=True)
+    n = len(x)
+    for idx in bad_indices:
+        if 0 < idx < n - 2:
+            prev_val = x[idx]
+            next_val = x[idx + 2]
+            if abs(next_val - prev_val) < max_jump * 1.5:
+                x[idx + 1] = 0.5 * (prev_val + next_val)
+            else:
+                delta = x[idx + 1] - prev_val
+                if abs(delta) > max_jump:
+                    x[idx + 1] = prev_val + np.sign(delta) * max_jump
+    return x
+
+
 def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
     """Exactly the string the remote narration endpoint is asked to speak.
 
@@ -1918,6 +2059,7 @@ def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
         # the server turns into silence; drop only decorative dashes and brackets.
         kept = re.sub(r"[—–\-\"'\(\)\[\]\{\}…]+", " ", sentence)
         kept = " ".join(kept.split())
+        kept = punctuate_hindi_clauses(kept)
         return normalize_hindi_phonetics(kept or sentence)
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
@@ -2100,9 +2242,14 @@ def prebuild_vast_batch(
 
 
 def is_indicf5_local_voice(voice: str) -> bool:
-    """True when the resolved voice is one of the local IndicF5 cloner voices."""
+    """True when the resolved voice is one of the local IndicF5 cloner voices or a custom prompt."""
     primary = (voice or "").strip().lower().split(",")[0].strip()
-    return primary in INDICF5_LOCAL_VOICES
+    if primary in INDICF5_LOCAL_VOICES or primary.startswith("indicf5_") or f"indicf5_{primary}" in INDICF5_LOCAL_VOICES:
+        return True
+    for vdir in [ROOT / "public" / "audio" / "prompts" / "indicf5", INDICF5_VOICES_DIR]:
+        if (vdir / f"{primary}.wav").exists():
+            return True
+    return False
 
 
 def is_indicf5_remote_voice(voice: str) -> bool:
@@ -2112,30 +2259,36 @@ def is_indicf5_remote_voice(voice: str) -> bool:
     so this covers voices that are not in the local catalog but are still IndicF5.
     """
     primary = (voice or "").strip().lower().split(",")[0].strip()
-    return primary in INDICF5_LOCAL_VOICES or primary.startswith("indicf5_")
+    return is_indicf5_local_voice(primary)
 
 
 def indicf5_reference_name(voice: str) -> str | None:
-    """Reference clip stem for an IndicF5 voice ('indicf5_aarav' -> 'aarav'), or None."""
+    """Reference clip stem for an IndicF5 voice ('indicf5_aarav' or 'aarav' -> 'aarav')."""
     primary = (voice or "").strip().lower().split(",")[0].strip()
+    if primary.startswith("indicf5_"):
+        return primary[len("indicf5_"):]
     info = INDICF5_LOCAL_VOICES.get(primary)
     if info:
         return info["reference"]
-    if primary.startswith("indicf5_"):
-        return primary[len("indicf5_"):]
+    if f"indicf5_{primary}" in INDICF5_LOCAL_VOICES:
+        return primary
+    for vdir in [ROOT / "public" / "audio" / "prompts" / "indicf5", INDICF5_VOICES_DIR]:
+        if (vdir / f"{primary}.wav").exists():
+            return primary
     return None
 
 
 def indicf5_available() -> tuple[bool, str]:
-    """Whether the local IndicF5 example is installed and runnable."""
-    if not INDICF5_VENV_PYTHON.exists():
-        return False, (
-            f"the local IndicF5 environment is missing ({INDICF5_VENV_PYTHON}). "
-            "Create it once with: npm run indicf5:setup"
-        )
-    if not INDICF5_BATCH_SCRIPT.exists():
-        return False, f"missing {INDICF5_BATCH_SCRIPT}"
-    return True, ""
+    """Whether the local IndicF5 engine is installed and runnable."""
+    try:
+        import vocos
+        import f5_tts
+        from transformers import AutoModel
+        return True, ""
+    except ImportError as e:
+        if INDICF5_VENV_PYTHON.exists() and INDICF5_BATCH_SCRIPT.exists():
+            return True, ""
+        return False, f"missing dependencies: {e}"
 
 
 def _indicf5_read_result(child_output: str, result_path: Path) -> dict:
@@ -2156,17 +2309,125 @@ def _indicf5_read_result(child_output: str, result_path: Path) -> dict:
     )
 
 
-def _indicf5_run_batch(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
-    """Synthesise all ``(text, voice, speed)`` items in ONE IndicF5 subprocess.
+_INDICF5_INPROCESS_MODEL = None
 
-    The model lives in its own Python 3.11 venv, so it is loaded once per call there
-    rather than imported into this process. Returns {index: wav_bytes} for the successes.
-    """
+
+def _get_indicf5_ref_files(voice: str) -> tuple[Path, str]:
+    stem = indicf5_reference_name(voice) or voice.strip().lower()
+    dirs = [
+        ROOT / "public" / "audio" / "prompts" / "indicf5",
+        INDICF5_VOICES_DIR,
+    ]
+    wav_path = None
+    txt_path = None
+    for d in dirs:
+        cand_wav = d / f"{stem}.wav"
+        cand_txt = d / f"{stem}.txt"
+        if cand_wav.exists():
+            wav_path = cand_wav
+            if cand_txt.exists():
+                txt_path = cand_txt
+            break
+    if not wav_path or not wav_path.exists():
+        raise FileNotFoundError(
+            f"IndicF5 reference audio for voice '{voice}' not found (looked for {stem}.wav in {[str(p) for p in dirs]})"
+        )
+    ref_text = txt_path.read_text(encoding="utf-8").strip() if (txt_path and txt_path.exists()) else ""
+    return wav_path, ref_text
+
+
+def _get_inprocess_indicf5_model():
+    global _INDICF5_INPROCESS_MODEL
+    if _INDICF5_INPROCESS_MODEL is not None:
+        return _INDICF5_INPROCESS_MODEL
+
+    import numpy as np
+    import soundfile as sf
+    import torch
+    import torchaudio
+
+    def _sf_load(filepath, *args, **kwargs):
+        data, sample_rate = sf.read(str(filepath), dtype="float32", always_2d=True)
+        return torch.from_numpy(np.ascontiguousarray(data.T)), sample_rate
+
+    torchaudio.load = _sf_load
+
+    from transformers import AutoModel
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"[IndicF5 Local] Loading ai4bharat/IndicF5 model on {device}...", file=sys.stderr)
+    model = AutoModel.from_pretrained("ai4bharat/IndicF5", trust_remote_code=True)
+    model.eval()
+    if device != "cpu":
+        model = model.to(device)
+    _INDICF5_INPROCESS_MODEL = model
+    return model
+
+
+def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
+    import io
+    import numpy as np
+    import soundfile as sf
+    import torch
+
+    model = _get_inprocess_indicf5_model()
+    out: dict[int, bytes] = {}
+
+    for index, (text, voice, speed) in enumerate(items):
+        try:
+            wav_path, ref_text = _get_indicf5_ref_files(voice)
+            print(
+                f"[IndicF5 Local] Synthesising segment {index + 1}/{len(items)} with voice '{voice}'...",
+                file=sys.stderr,
+                flush=True,
+            )
+            matches = split_hindi_clauses(text, max_words=14)
+            audio_chunks = []
+            with torch.inference_mode():
+                for chunk_text, punct in matches:
+                    chunk_text = chunk_text.strip()
+                    if not chunk_text:
+                        continue
+                    gen = model(chunk_text, ref_audio_path=str(wav_path), ref_text=str(ref_text))
+                    if hasattr(gen, "detach"):
+                        gen = gen.detach().cpu().numpy()
+                    elif hasattr(gen, "cpu"):
+                        gen = gen.cpu().numpy()
+                    chunk_np = np.asarray(gen, dtype=np.float32).squeeze()
+                    if chunk_np.ndim > 1:
+                        chunk_np = chunk_np.mean(axis=0)
+                    if chunk_np.size > 0:
+                        audio_chunks.append(chunk_np)
+                    pause_sec = 0.20 if punct == "," else 0.40
+                    silence_samples = int(24000 * pause_sec)
+                    if silence_samples > 0:
+                        audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
+
+            if not audio_chunks:
+                continue
+            generated_audio = np.concatenate(audio_chunks)
+            generated_audio = clean_audio_glitches(generated_audio)
+            sample_rate = 24000
+            buf = io.BytesIO()
+            sf.write(buf, generated_audio, sample_rate, format="WAV")
+            out[index] = buf.getvalue()
+        except Exception as err:
+            print(f"[IndicF5 Local] Segment {index + 1} failed: {err}", file=sys.stderr)
+
+    return out
+
+
+def _indicf5_run_batch(items: list[tuple[str, str, float]]) -> dict[int, bytes]:
+    """Synthesise all ``(text, voice, speed)`` items via IndicF5."""
     global _INDICF5_BATCH_USABLE
     ok, why = indicf5_available()
     if not ok:
         _INDICF5_BATCH_USABLE = False
         raise RuntimeError(f"IndicF5 unavailable: {why}")
+
+    if not (INDICF5_VENV_PYTHON.exists() and INDICF5_BATCH_SCRIPT.exists()):
+        return _indicf5_run_inprocess(items)
+
     job = {
         "voices_dir": str(INDICF5_VOICES_DIR),
         "items": [
@@ -2244,7 +2505,7 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
                 text=norm_text, voice=primary, speed=speed
             )
             wav_np, sample_rate = sf.read(io.BytesIO(audio_bytes), dtype="float32")
-            wav_np = resample_audio(wav_np, sample_rate or SAMPLE_RATE, SAMPLE_RATE)
+            wav_np = clean_audio_glitches(resample_audio(wav_np, sample_rate or SAMPLE_RATE, SAMPLE_RATE))
             if audio_is_bad(wav_np):
                 raise RuntimeError("remote IndicF5 returned silent/non-finite audio")
             write_gpu_cache(norm_text, primary, speed, audio_bytes)
@@ -2264,7 +2525,7 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
     if not wav_bytes:
         return None
     wav_np, sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
-    wav_np = resample_audio(wav_np, sr or SAMPLE_RATE, SAMPLE_RATE)
+    wav_np = clean_audio_glitches(resample_audio(wav_np, sr or SAMPLE_RATE, SAMPLE_RATE))
     if audio_is_bad(wav_np):
         print("[IndicF5 Local Warning] silent/non-finite audio; not cached", file=sys.stderr)
         return None
@@ -2647,6 +2908,11 @@ def master_audio(audio, settings: dict | None = None):
     if settings.get("whisper"):
         audio = apply_whisper_dsp(audio, intensity=float(settings.get("whisper_intensity", 0.85)))
 
+    # Suppress neural vocoder tearing / Dirac impulses (>0.35 jump) so downstream
+    # IIR filters and compressors never ring across step discontinuities.
+    if settings.get("deglitch", False):
+        audio = clean_audio_glitches(audio)
+
     x = np.asarray(audio, dtype=np.float64)
     short = x.size < 256  # sosfiltfilt needs room for its padding
 
@@ -2685,6 +2951,8 @@ def master_audio(audio, settings: dict | None = None):
     # Then guarantee headroom, because the mix adds ambience and sound cues.
     ceiling = 10 ** (float(settings.get("peakCeilingDbfs", -1.5)) / 20.0)
     x = limit_peaks(x, ceiling)
+    if settings.get("deglitch", False):
+        x = clean_audio_glitches(x)
 
     return np.clip(x, -1.0, 1.0).astype(np.float32)
 
@@ -2750,7 +3018,10 @@ def synthesise_line(
             pieces.append(np.zeros(int(SAMPLE_RATE * gap), dtype=np.float32))
             offset += gap
 
-    return master_audio(np.concatenate(pieces), master), words
+    line_master = dict(master or {})
+    if is_indicf5_remote_voice(voice):
+        line_master["deglitch"] = True
+    return master_audio(np.concatenate(pieces), line_master), words
 
 
 # --------------------------------------------------------------------------

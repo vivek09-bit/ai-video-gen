@@ -23,14 +23,13 @@ import base64
 import hashlib
 import json
 import os
-import random
 import re
 import sys
-import time
-import urllib.error
-import urllib.parse
-import urllib.request
 from pathlib import Path
+from typing import Callable, Optional
+import urllib.request
+import urllib.error
+import time
 
 
 def load_env_file(path: str | Path = ".env") -> None:
@@ -51,6 +50,147 @@ def load_env_file(path: str | Path = ".env") -> None:
 
 # Call at import time
 load_env_file()
+
+ANIMATION_STYLES: dict[str, dict[str, str]] = {
+    "ink_doodle": {
+        "name": "Ink Doodle & Whiteboard Sketch",
+        "description": "Hand-drawn ink pen line art on textured parchment with cross-hatching and subtle watercolor washes (MinutePhysics, ASAPScience style)",
+        "prefix": "Hand-drawn ink doodle sketch, intricate black ink pen line art on textured off-white paper, delicate cross-hatching shading, minimalist hand-crafted illustration: ",
+        "suffix": ", subtle watercolor wash accents, clean negative space, artisanal storybook sketch, high quality 2D art.",
+        "best_for": "educational, science, philosophy, trivia, explainer",
+    },
+    "flat_vector": {
+        "name": "Flat 2D Vector Cartoon",
+        "description": "Modern flat vector infographic illustration with bold geometric outlines and vibrant saturated color blocking (Kurzgesagt, Infographics Show style)",
+        "prefix": "Modern flat 2D vector cartoon illustration, Kurzgesagt infographic aesthetic, crisp vector linework, bold geometric silhouettes: ",
+        "suffix": ", vibrant saturated color blocking, smooth clean gradients, minimalist graphic design, high resolution 2D vector masterpiece.",
+        "best_for": "science, tech, infographics, futuristic, comedy",
+    },
+    "documentary": {
+        "name": "2D Documentary & Historical Illustration",
+        "description": "Vintage archival etching, copperplate engraving texture, antique parchment and dramatic chiaroscuro lighting (Kings and Generals, OverSimplified style)",
+        "prefix": "2D historical documentary illustration, vintage archival etching style, fine copperplate engraving texture, dramatic historic atmosphere: ",
+        "suffix": ", antique sepia and rich muted tones, painterly digital art, dramatic chiaroscuro lighting, cinematic archival composition.",
+        "best_for": "ancient_history, mythology, war, politics, deep dive",
+    },
+    "stickman": {
+        "name": "Minimalist Stickman Animation",
+        "description": "Expressive black line stick figure cartoon in viral webcomic style (Casually Explained, GradeAUnderA, Alan Becker, CGP Grey)",
+        "prefix": "2D stickman animation style, viral comedy webcomic cartoon, bold black line stick figure illustration on clean white paper canvas: ",
+        "suffix": ", Alan Becker Animator vs Animation and Casually Explained aesthetic, hilarious exaggerated stick poses, crisp stark black linework on pure white, high contrast 2D vector animation art, masterwork.",
+        "best_for": "comedy, satire, life advice, casual explainers, storytelling",
+    },
+    "dark_cinematic": {
+        "name": "Dark Cinematic 2D Illustration",
+        "description": "Moody graphic novel illustration with deep ink shadows, thick fog, and intense chiaroscuro dread (Bedtime Stories, Wartime Stories style)",
+        "prefix": "Cinematic dark graphic novel illustration, deep ink shadows, moody chiaroscuro lighting, thick eerie fog, intense contrast: ",
+        "suffix": ", atmospheric 2D digital painting, Mike Mignola comic noir aesthetic, sharp focus, 8k resolution, haunting composition.",
+        "best_for": "horror, mystery, true crime, supernatural thriller",
+    },
+    "anime_cel": {
+        "name": "Anime Cel / Ghibli Aesthetic",
+        "description": "Hand-painted scenic watercolor backgrounds, nostalgic lighting, and lush Studio Ghibli aesthetic",
+        "prefix": "Nostalgic 2D anime cel illustration, Studio Ghibli and Makoto Shinkai aesthetic, hand-painted scenic watercolor background: ",
+        "suffix": ", lush environmental details, soft golden hour lighting, billowing clouds, beautiful painterly anime scenery.",
+        "best_for": "fantasy, drama, motivational, emotional stories",
+    },
+    "whiteboard": {
+        "name": "Whiteboard Explainer Sketch",
+        "description": "Clean dry-erase marker drawing on glossy white board with bold diagrams and doodle icons (RSA Animate style)",
+        "prefix": "Clean whiteboard explainer illustration, dry erase marker sketch on glossy bright white board, clean outline diagram: ",
+        "suffix": ", bold colored marker accents, educational presentation style, crisp clean linework, high contrast vector clarity.",
+        "best_for": "business, finance, tutorials, study guides",
+    },
+    "vintage_retro": {
+        "name": "1930s Vintage Rubber Hose",
+        "description": "Classic 1930s rubber hose cartoon style with vintage film grain, halftone dots, and nostalgic character art (Cuphead style)",
+        "prefix": "1930s vintage rubber hose cartoon illustration, classic retro animation aesthetic, vintage monochrome and muted Technicolor: ",
+        "suffix": ", authentic film grain and scratches, halftone printing dot texture, whimsical nostalgic character design.",
+        "best_for": "retro music, quirky trivia, vintage satire",
+    },
+}
+
+STYLE_ALIASES: dict[str, str] = {
+    "doodle": "ink_doodle",
+    "ink": "ink_doodle",
+    "ink_doodle": "ink_doodle",
+    "sketch": "ink_doodle",
+    "whiteboard_sketch": "ink_doodle",
+    "vector": "flat_vector",
+    "flat": "flat_vector",
+    "cartoon": "flat_vector",
+    "flat_vector": "flat_vector",
+    "kurzgesagt": "flat_vector",
+    "infographic": "flat_vector",
+    "doc": "documentary",
+    "history": "documentary",
+    "historical": "documentary",
+    "documentary": "documentary",
+    "engraving": "documentary",
+    "stick": "stickman",
+    "stickman": "stickman",
+    "stickfigure": "stickman",
+    "stick_figure": "stickman",
+    "stick_man": "stickman",
+    "stick_animation": "stickman",
+    "stickman_animation": "stickman",
+    "stick_anim": "stickman",
+    "stickanimation": "stickman",
+    "dark": "dark_cinematic",
+    "dark_cinematic": "dark_cinematic",
+    "cinematic": "dark_cinematic",
+    "horror": "dark_cinematic",
+    "noir": "dark_cinematic",
+    "anime": "anime_cel",
+    "anime_cel": "anime_cel",
+    "ghibli": "anime_cel",
+    "cel": "anime_cel",
+    "cel_shaded": "anime_cel",
+    "marker": "whiteboard",
+    "whiteboard": "whiteboard",
+    "white_board": "whiteboard",
+    "explainer": "whiteboard",
+    "retro": "vintage_retro",
+    "vintage": "vintage_retro",
+    "vintage_retro": "vintage_retro",
+    "rubberhose": "vintage_retro",
+    "rubber_hose": "vintage_retro",
+    "1930s": "vintage_retro",
+}
+
+
+def get_animation_style(name: str | None) -> dict[str, str] | None:
+    """Resolve an animation style name or alias to its style definition dict."""
+    if not name:
+        return None
+    key = name.strip().lower().replace("-", "_").replace(" ", "_")
+    if key in ANIMATION_STYLES:
+        return ANIMATION_STYLES[key]
+    target = STYLE_ALIASES.get(key)
+    if target and target in ANIMATION_STYLES:
+        return ANIMATION_STYLES[target]
+    return None
+
+
+def is_stickman_style(name: str | None) -> bool:
+    """Return True if the style name or alias maps to stickman animation."""
+    if not name:
+        return False
+    key = name.strip().lower().replace("-", "_").replace(" ", "_")
+    return key == "stickman" or STYLE_ALIASES.get(key) == "stickman"
+
+
+def list_animation_styles() -> list[dict[str, str]]:
+    """Return a list of all supported 2D animation styles with metadata."""
+    result = []
+    for key, data in ANIMATION_STYLES.items():
+        result.append({
+            "key": key,
+            "name": data["name"],
+            "description": data["description"],
+            "best_for": data.get("best_for", ""),
+        })
+    return result
 
 
 STYLE_PROMPT_PREFIX = (
@@ -129,6 +269,8 @@ def normalize_provider_name(name: str | None) -> str:
     if n in ("fetch", "stock", "free", "freeimage", "freeimages", "search", "unsplash", "lexica", "wiki"):
         return "fetch"
     if n in ("local", "lcm", "sd", "sd15", "localdiffusers", "sdcpp", "openvino", "onnx", "dreamshaper"):
+        return "local"
+    if n in ("diffusers", "diffuser", "sd", "stablediffusion", "sd15", "local"):
         return "local"
     if n in ("pollination", "pollinations", "pollinationsai", "freeai"):
         return "pollinations"
@@ -736,16 +878,28 @@ def make_search_keywords(
     return queries[0] if queries else "cinematic atmospheric background"
 
 
-def make_prompt(
+CHARACTER_TERMS = {
+    "person", "people", "man", "woman", "child", "children", "boy", "girl",
+    "figure", "silhouette", "character", "protagonist", "lead", "narrator",
+    "traveler", "stranger", "wanderer", "villager", "hero", "warrior", "knight",
+    "soldier", "king", "queen", "prince", "princess", "monarch", "emperor",
+    "fairy", "sorcerer", "wizard", "mage", "witch", "sage", "monk", "priest",
+    "ghost", "phantom", "spirit", "apparition", "demon", "monster", "beast",
+    "creature", "dragon", "wolf", "tiger", "lion", "serpent", "snake",
+    "entity", "detective", "inspector", "guard", "merchant", "farmer", "doctor",
+    "scientist", "thief", "scholar", "specter", "vampire", "eyes", "cast",
+}
+
+
+def build_background_prompt(
     scene: dict,
     topic: str = "",
     genre: str | None = None,
-    visual_style: str | None = None,
-    index: int = 0,
-    script_keywords: list[str] | None = None,
     theme: dict | str | None = None,
+    script_keywords: list[str] | None = None,
+    animation_style: str | None = None,
 ) -> str:
-    """Construct an evocative visual prompt in English tailored uniquely to this scene."""
+    """Build the background/environment prompt component."""
     try:
         import beats
         gp = beats.detect_genre(topic, genre or scene.get("genre"))
@@ -754,20 +908,22 @@ def make_prompt(
 
     beat = scene.get("beat", "").strip()
     emotion = scene.get("emotion", "").strip()
-    headline = scene.get("headline", "").strip()
 
-    # Extract scene-specific visual cues
+    # Extract scene-specific visual cues and filter out character words
     extracted_keywords = extract_script_visual_keywords(scene, topic, genre, script_keywords)
-    scene_entities = list(dict.fromkeys(" ".join(extracted_keywords).split()))[:7]
-    scene_subject = " ".join(scene_entities) if scene_entities else "atmospheric environment"
+    bg_entities = [
+        w for w in list(dict.fromkeys(" ".join(extracted_keywords).split()))
+        if w.lower() not in CHARACTER_TERMS
+    ][:7]
+    bg_subject = " ".join(bg_entities) if bg_entities else "atmospheric environment"
 
-    # Extract shot visual types
+    # Extract shot visual types for background
     visual_words = []
     shots = scene.get("shots", [])
     for s in shots:
         v = s.get("visual", {})
         v_type = v.get("type", "")
-        if v_type and v_type not in ("image", "black", "void"):
+        if v_type and v_type not in ("image", "black", "void", "figure", "eyes", "cast"):
             visual_words.append(v_type)
             if v.get("lit"):
                 visual_words.append("lit window warm illumination")
@@ -777,24 +933,196 @@ def make_prompt(
                 visual_words.append("glowing magical radiance")
             if v.get("lightning"):
                 visual_words.append("lightning storm flashes")
+            if v.get("fog"):
+                visual_words.append("creeping mist and atmospheric fog")
+            if v.get("moonlight"):
+                visual_words.append("moonlight illumination")
 
-    context_parts = [scene_subject]
+    style_name = animation_style or scene.get("animationStyle") or scene.get("visualStyle")
+    if is_stickman_style(style_name):
+        parts = [
+            f"minimalist stickman cartoon setting depicting {bg_subject}",
+            "clean stark white background paper canvas",
+            "sparse black pen doodle outlines for environmental props",
+            "clean negative space",
+            "flat 2D webcomic backdrop without 3D clutter",
+        ]
+        if visual_words:
+            unique_visuals = list(dict.fromkeys(visual_words))
+            parts.append(f"simple line art doodle of {', '.join(unique_visuals)}")
+        if beat:
+            parts.append(f"simple doodle {beat} scene layout")
+        return ", ".join(parts)
+
+    parts = [bg_subject]
     if visual_words:
         unique_visuals = list(dict.fromkeys(visual_words))
-        context_parts.append(f"featuring {', '.join(unique_visuals)}")
+        parts.append(f"featuring {', '.join(unique_visuals)}")
     if beat:
-        context_parts.append(f"{beat} scene")
+        parts.append(f"{beat} setting")
     if emotion:
-        context_parts.append(f"{emotion} mood")
+        parts.append(f"{emotion} atmosphere")
 
     theme_fragment = theme_style_fragment(theme)
     if theme_fragment:
-        context_parts.append(theme_fragment)
+        parts.append(theme_fragment)
 
-    core = ", ".join(context_parts)
-    prefix = visual_style or (gp.visual_style_prefix if gp else STYLE_PROMPT_PREFIX)
-    suffix = gp.visual_style_suffix if gp else STYLE_PROMPT_SUFFIX
-    return f"{prefix}{core}{suffix}"
+    genre_name = (genre or (gp.key if gp else "")).strip()
+    if genre_name:
+        parts.append(f"{genre_name} visual tone")
+
+    return ", ".join(parts)
+
+
+def build_character_prompt(
+    scene: dict,
+    topic: str = "",
+    genre: str | None = None,
+    characters_dict: dict | None = None,
+    animation_style: str | None = None,
+) -> str:
+    """Build the character(s)/subject prompt component."""
+    acting = scene.get("acting") or {}
+    emotion = acting.get("emotion") or scene.get("emotion", "").strip() or "serious"
+    head = acting.get("head")
+    eyes_dir = acting.get("eyes")
+    gesture = acting.get("gesture")
+
+    style_name = animation_style or scene.get("animationStyle") or scene.get("visualStyle")
+    is_stick = is_stickman_style(style_name)
+
+    # 1. Check if characters are explicitly cast in the scene
+    cast = scene.get("cast", [])
+    if cast:
+        char_descriptions = []
+        for member in cast:
+            cast_id = member.get("id") or "lead"
+            char_info = (characters_dict or {}).get(cast_id, {})
+            name = char_info.get("name") or cast_id.title()
+            hair = char_info.get("hairstyle")
+
+            member_acting = member.get("acting") or acting
+            mem_emotion = member_acting.get("emotion") or emotion
+            mem_head = member_acting.get("head") or head
+            mem_eyes = member_acting.get("eyes") or eyes_dir
+            mem_gesture = member_acting.get("gesture") or gesture
+
+            pos_desc = "left side of frame" if member.get("x", 0.5) < 0.45 else ("right side of frame" if member.get("x", 0.5) > 0.55 else "center frame")
+
+            if is_stick:
+                stick_features = []
+                if hair and hair not in ("bald", "none"):
+                    stick_features.append(f"simple doodle {hair} hair lines")
+                acc = char_info.get("accessory")
+                if acc and acc != "none":
+                    stick_features.append(f"minimalist stick {acc}")
+                feat_str = f" ({', '.join(stick_features)})" if stick_features else ""
+                desc = (
+                    f"minimalist 2D black line stick figure of {name}{feat_str}, round circle head, "
+                    f"expressive {mem_emotion} cartoon face, thin stick torso and limbs in exaggerated {mem_gesture or 'animated'} pose, "
+                    f"positioned at {pos_desc}"
+                )
+                if mem_head or mem_eyes:
+                    gaze = mem_head or mem_eyes
+                    desc += f", head turned {gaze}"
+            else:
+                hair_desc = f"{hair} hair" if hair else "detailed hairstyle"
+                desc = f"{name}, {hair_desc}, {mem_emotion} expression, positioned at {pos_desc}"
+                if mem_head or mem_eyes:
+                    gaze = mem_head or mem_eyes
+                    desc += f", looking {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", {mem_gesture} gesture"
+            char_descriptions.append(desc)
+        return "; ".join(char_descriptions)
+
+    # 2. Check for figure or eyes visual shot types
+    shots = scene.get("shots", [])
+    shot_types = [s.get("visual", {}).get("type") for s in shots if s.get("visual")]
+    if "figure" in shot_types:
+        if is_stick:
+            return f"mysterious shadowy 2D black stick figure silhouette in distance, {emotion} presence, minimalist line art composition"
+        return f"mysterious shadowy silhouette figure in distance, {emotion} presence, shrouded in ambient darkness"
+    if "eyes" in shot_types:
+        if is_stick:
+            return f"giant comically exaggerated cartoon eyes popping out, {emotion} shock, hilarious stick figure reaction"
+        return f"eerie glowing eyes piercing through darkness, {emotion} intense stare"
+
+    # 3. Check for character entities in scene narrative/corpus
+    extracted_keywords = extract_script_visual_keywords(scene, topic, genre)
+    found_chars = [
+        w for w in list(dict.fromkeys(" ".join(extracted_keywords).split()))
+        if w.lower() in CHARACTER_TERMS
+    ]
+    if found_chars:
+        char_label = " ".join(found_chars[:3])
+        if is_stick:
+            return f"hilarious 2D black line stick figure character ({char_label}), round head with exaggerated {emotion} facial expression, funny stick limbs in dynamic {gesture or 'animated'} gesture"
+        return f"{char_label} character, {emotion} expression and dramatic posture"
+
+    # 4. Solitary/Uninhabited scene fallback
+    if is_stick:
+        return f"expressive 2D black line stick figure narrator, round circle head with {emotion} cartoon expression, thin stick arms and legs in funny animated posture, engaging the audience, center frame"
+    return "uninhabited scenic composition, no people present, solitary perspective, quiet stillness"
+
+
+def make_prompt(
+    scene: dict,
+    topic: str = "",
+    genre: str | None = None,
+    visual_style: str | None = None,
+    index: int = 0,
+    script_keywords: list[str] | None = None,
+    theme: dict | str | None = None,
+    animation_style: str | None = None,
+    characters_dict: dict | None = None,
+) -> str:
+    """Construct an evocative visual prompt structured with background first and characters second."""
+    try:
+        import beats
+        gp = beats.detect_genre(topic, genre or scene.get("genre"))
+    except Exception:
+        gp = None
+
+    # Resolve animation style profile if selected
+    anim_style = (
+        get_animation_style(animation_style)
+        or get_animation_style(visual_style)
+        or get_animation_style(scene.get("animationStyle"))
+    )
+    resolved_style = animation_style or visual_style or scene.get("animationStyle")
+
+    bg_prompt = build_background_prompt(
+        scene,
+        topic=topic,
+        genre=genre,
+        theme=theme,
+        script_keywords=script_keywords,
+        animation_style=resolved_style,
+    )
+    char_prompt = build_character_prompt(
+        scene,
+        topic=topic,
+        genre=genre,
+        characters_dict=characters_dict,
+        animation_style=resolved_style,
+    )
+
+    # Persist prompt components on scene for downstream inspection and tooling
+    scene["backgroundPrompt"] = bg_prompt
+    scene["characterPrompt"] = char_prompt
+
+    if anim_style:
+        prefix = anim_style["prefix"]
+        suffix = anim_style["suffix"]
+    else:
+        prefix = visual_style or (gp.visual_style_prefix if gp else STYLE_PROMPT_PREFIX)
+        suffix = gp.visual_style_suffix if gp else STYLE_PROMPT_SUFFIX
+
+    suffix_clean = suffix if (suffix.startswith(",") or suffix.startswith(" ")) else f", {suffix}"
+    full_prompt = f"{prefix}Background: {bg_prompt.rstrip('. ')}; Characters: {char_prompt.rstrip('. ')}{suffix_clean}"
+    scene["prompt"] = full_prompt
+    return full_prompt
 
 
 def detect_provider(requested_provider: str | None = None) -> tuple[str, str, str]:
@@ -807,7 +1135,7 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     provider = normalize_provider_name(requested_provider or raw_env_provider)
     model = os.environ.get("IMAGE_MODEL", "").strip()
 
-    if provider in ("fetch", "free", "stock", "unsplash", "lexica"):
+    if provider in ("fetch", "free", "stock", "unsplash", "lexica", "wiki"):
         return "fetch", "free", model or "free-search"
     if provider == "local":
         local_model = model if (model and model.lower() not in ("flux", "default", "free-search", "none")) else "segmind/SSD-1B"
@@ -999,11 +1327,11 @@ def is_turbo_model(model_name: str | None) -> bool:
 
 
 def is_ssd_model(model_name: str | None) -> bool:
-    """Check if model name refers to Segmind SSD-1B or default local pipeline."""
+    """Check if model name refers to Segmind SSD-1B."""
     if not model_name:
-        return True
+        return False
     m = model_name.lower().strip()
-    return "ssd" in m or "ssd-1b" in m or "segmind" in m or m in ("default", "local", "")
+    return "ssd" in m or "ssd-1b" in m or "segmind" in m
 
 
 def is_flux_model(model_name: str | None) -> bool:
@@ -1011,7 +1339,15 @@ def is_flux_model(model_name: str | None) -> bool:
     if not model_name:
         return False
     m = model_name.lower().strip()
-    return "flux" in m
+    return "flux" in m or "klein" in m
+
+
+def is_klein_model(model_name: str | None) -> bool:
+    """Check if model name specifically refers to FLUX.2 Klein."""
+    if not model_name:
+        return False
+    m = model_name.lower().strip()
+    return "klein" in m or "flux-2" in m or "flux2" in m
 
 
 def get_local_diffusion_pipeline(model_name: str = ""):
@@ -1068,20 +1404,54 @@ def get_local_diffusion_pipeline(model_name: str = ""):
             print(f"  [Local SSD-1B Notice] Failed to load SSD-1B ({e}). Falling back to LCM DreamShaper...")
             target = "SimianLuo/LCM_Dreamshaper_v7"
 
-    # 3. Handle FLUX if specified
+    # 3. Handle FLUX.2 Klein 4B Q4_0 / FLUX if specified
     elif is_flux_model(target):
+        is_klein = is_klein_model(target) or "q4" in target.lower()
         print(f"  [Local FLUX] Initializing FLUX pipeline for '{target}'...")
-        try:
-            from diffusers import Flux2KleinPipeline
-            base_model_id = "black-forest-labs/FLUX.2-klein-4B"
-            pipe = Flux2KleinPipeline.from_pretrained(
-                base_model_id,
-                torch_dtype=torch.bfloat16 if hasattr(torch, "bfloat16") else torch.float32,
-            )
-            _LOCAL_DIFFUSION_PIPELINE = pipe
-        except Exception as e:
-            print(f"  [Local FLUX] FLUX load notice ({e}). Falling back to optimized LCM / SD pipeline...")
-            target = "SimianLuo/LCM_Dreamshaper_v7"
+        pipe = None
+        if is_klein:
+            try:
+                from diffusers import Flux2KleinPipeline, Flux2Transformer2DModel, GGUFQuantizationConfig
+                repo_id = "unsloth/FLUX.2-klein-4B-GGUF"
+                filename = "flux-2-klein-4b-Q4_0.gguf"
+                print(f"  [Local FLUX.2 Klein Q4_0] Loading quantized transformer ({repo_id}/{filename})...")
+                transformer = Flux2Transformer2DModel.from_single_file(
+                    f"https://huggingface.co/{repo_id}/blob/main/{filename}",
+                    quantization_config=GGUFQuantizationConfig(compute_dtype=torch.float32),
+                    torch_dtype=torch.float32,
+                    config="black-forest-labs/FLUX.2-klein-4B",
+                    subfolder="transformer",
+                )
+                pipe = Flux2KleinPipeline.from_pretrained(
+                    "black-forest-labs/FLUX.2-klein-4B",
+                    transformer=transformer,
+                    torch_dtype=torch.float32,
+                )
+                _LOCAL_DIFFUSION_PIPELINE = pipe
+            except ImportError:
+                print(
+                    "  [Local FLUX.2 Klein Notice] Native Diffusers Flux2KleinPipeline requires diffusers >= 0.37.0.\n"
+                    "  For maximum local speed on CPU/iGPU, run stable-diffusion.cpp with SD_LOCAL_URL=http://localhost:8080\n"
+                    "  or cloud GPU via --vast.\n"
+                    "  Falling back to optimized LCM DreamShaper..."
+                )
+                target = "SimianLuo/LCM_Dreamshaper_v7"
+            except Exception as e:
+                print(f"  [Local FLUX.2 Klein Notice] GGUF Klein load notice ({e}). Falling back to LCM DreamShaper...")
+                target = "SimianLuo/LCM_Dreamshaper_v7"
+
+        if pipe is None and _LOCAL_DIFFUSION_PIPELINE is None and target != "SimianLuo/LCM_Dreamshaper_v7":
+            try:
+                from diffusers import FluxPipeline
+                base_model_id = "black-forest-labs/FLUX.1-schnell" if "schnell" in target.lower() else target
+                pipe = FluxPipeline.from_pretrained(
+                    base_model_id,
+                    torch_dtype=torch.float32,
+                )
+                _LOCAL_DIFFUSION_PIPELINE = pipe
+            except Exception as e:
+                print(f"  [Local FLUX Notice] FLUX load notice ({e}). Falling back to optimized LCM / SD pipeline...")
+                target = "SimianLuo/LCM_Dreamshaper_v7"
 
     # 3. Default / SD 1.5 LCM Pipeline
     if _LOCAL_DIFFUSION_PIPELINE is None:
@@ -1215,6 +1585,7 @@ def generate_local_lcm(
     if local_url:
         local_url = local_url.rstrip("/")
         endpoints = [
+            f"{local_url}/v1/images/generations",
             f"{local_url}/sdapi/v1/txt2img",
             f"{local_url}/txt2img",
         ]
@@ -1225,6 +1596,7 @@ def generate_local_lcm(
             "height": height,
             "cfg_scale": guidance_scale,
             "seed": seed if seed is not None else -1,
+            "response_format": "b64_json",
         }).encode("utf-8")
         headers = {"Content-Type": "application/json"}
         for ep in endpoints:
@@ -1232,6 +1604,14 @@ def generate_local_lcm(
                 req = urllib.request.Request(ep, data=payload, headers=headers, method="POST")
                 with urllib.request.urlopen(req, timeout=120) as resp:
                     res_data = json.loads(resp.read().decode("utf-8"))
+                    if "data" in res_data and isinstance(res_data["data"], list) and res_data["data"]:
+                        first = res_data["data"][0]
+                        if "b64_json" in first:
+                            return base64.b64decode(first["b64_json"])
+                        if "url" in first:
+                            u_req = urllib.request.Request(first["url"], headers={"User-Agent": "tube2dscript/1.0"})
+                            with urllib.request.urlopen(u_req, timeout=60) as u_resp:
+                                return u_resp.read()
                     if "images" in res_data and res_data["images"]:
                         return base64.b64decode(res_data["images"][0])
                     if "image" in res_data:
@@ -1255,13 +1635,13 @@ def generate_local_lcm(
     else:
         sd_w, sd_h = calculate_sd_dimensions(width, height, is_flux=is_flux)
 
-    # SDXL-Turbo requires 1 step and guidance_scale=0.0 (or <=1.0)
+    # Distilled FLUX.2 Klein 4B / FLUX requires ~4 steps and guidance_scale=1.0
     if is_turbo:
         inf_steps = 1
         cfg = 0.0
     elif is_flux:
-        inf_steps = steps if (steps and steps > 0) else 3
-        cfg = 0.0
+        inf_steps = steps if (steps and steps > 0) else 4
+        cfg = guidance_scale if guidance_scale is not None else 1.0
     else:
         inf_steps = steps if (steps and steps > 0) else 4
         cfg = guidance_scale if guidance_scale else 1.5
@@ -1695,208 +2075,142 @@ def generate_openai(prompt: str, key: str, model: str = "dall-e-3") -> str:
     raise RuntimeError(f"OpenAI response did not contain image url: {data}")
 
 
-def download_image(url: str, dest: Path) -> None:
-    """Download image binary to destination path."""
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "tube2dscript/1.0"})
-    with urllib.request.urlopen(req, timeout=60) as resp, open(dest, "wb") as f:
-        f.write(resp.read())
+def generate_cloudflare(prompt, output_path):
+    account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+    api_token = os.getenv("CLOUDFLARE_API_TOKEN")
+    model = os.getenv("IMAGE_MODEL", "@cf/black-forest-labs/flux-1-schnell")
+    if not model or not model.startswith("@cf/"):
+        model = "@cf/black-forest-labs/flux-1-schnell"
 
+    if not account_id or not api_token:
+        print("[WARN] Cloudflare credentials not found (CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN required), falling back to local")
+        return generate_local(prompt, output_path)
 
-def generate_images_for_script(
-    script_data: dict,
-    *,
-    out_dir: str | Path = "public/images",
-    provider: str | None = None,
-    api_key: str | None = None,
-    model: str | None = None,
-    force: bool = False,
-) -> dict:
-    """Generate background images for each scene in script_data and return updated dict."""
-    det_provider, det_key, det_model = detect_provider(provider)
-    resolved_provider = normalize_provider_name(provider) or det_provider or "fetch"
-    api_key = api_key or det_key
-    model = model or det_model
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json"
+    }
+    # Cloudflare FLUX.1 [schnell] strictly permits only: prompt (max 2048 chars) and steps (1-8, default 4)
+    payload = {
+        "prompt": prompt[:2048].strip(),
+        "steps": 4
+    }
 
-    if resolved_provider not in ("pollinations", "fetch") and (not api_key or api_key.startswith("...")):
-        print(
-            f"WARNING: Image provider '{resolved_provider}' requested, but valid API key is not set.\n"
-            f"Falling back to pre-generated Free Related Image Search (Lexica / Unsplash / Stock).",
-            file=sys.stderr,
-        )
-        resolved_provider = "fetch"
-        api_key = "free"
-        model = "free-search"
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        if response.status_code != 200:
+            print(f"[WARN] Cloudflare API error ({response.status_code}): {response.text}")
+            return generate_local(prompt, output_path)
 
-    out_path = Path(out_dir)
-    out_path.mkdir(parents=True, exist_ok=True)
-
-    topic = script_data.get("topic", script_data.get("title", ""))
-    genre = script_data.get("genre")
-    visual_style = script_data.get("visualStyle")
-    # Research keywords gathered upstream (Phase 1) bias prompts for scenes the writer left
-    # without explicit visual keywords.
-    script_keywords = script_data.get("keywords") or None
-    # Theme (Phase 5) pushes the palette/mood into the visual prompt.
-    theme = script_data.get("theme")
-    scenes = script_data.get("scenes", [])
-    total_scenes = len(scenes)
-
-    width = script_data.get("width") or 1920
-    height = script_data.get("height") or 1080
-    aspect_ratio = script_data.get("aspectRatio") or ("9:16" if height > width else "1:1" if height == width else "16:9")
-    sd_latent_width = script_data.get("sdLatentWidth")
-    sd_latent_height = script_data.get("sdLatentHeight")
-
-    if resolved_provider == "fetch":
-        provider_title = "Free Related Image Search (Lexica / Unsplash / Stock)"
-    elif resolved_provider == "local":
-        if is_ssd_model(model):
-            provider_title = f"Local SSD-1B + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
-        elif is_turbo_model(model):
-            provider_title = f"Local SDXL-Turbo ({aspect_ratio} @ {width}x{height})"
-        elif is_flux_model(model):
-            provider_title = f"Local FLUX ({aspect_ratio} @ {width}x{height})"
+        content_type = response.headers.get("Content-Type", "")
+        if "application/json" in content_type:
+            data = response.json()
+            if not data.get("success", True) and "result" not in data:
+                print(f"[WARN] Cloudflare request unsuccessful: {data.get('errors')}")
+                return generate_local(prompt, output_path)
+            image_b64 = data.get("result", {}).get("image")
+            if not image_b64:
+                print("[WARN] Cloudflare response contained no image data, falling back to local")
+                return generate_local(prompt, output_path)
+            image_bytes = base64.b64decode(image_b64)
         else:
-            provider_title = f"Local SD 1.5 + LCM-LoRA ({aspect_ratio} @ {width}x{height})"
-    elif resolved_provider == "pollinations":
-        provider_title = f"Pollinations AI (FREE, {aspect_ratio} @ {width}x{height})"
-    elif resolved_provider == "vast":
-        provider_title = f"Vast.ai Cloud RTX 3090 GPU (FLUX.1-schnell, {aspect_ratio} @ {width}x{height})"
+            image_bytes = response.content
+
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image.save(output_path)
+        print(f"[OK] Cloudflare image generated: {output_path}")
+        return output_path
+    except Exception as e:
+        print(f"[WARN] Cloudflare failed: {e}")
+        return generate_local(prompt, output_path)
+
+
+def generate_vast(
+    prompt: str,
+    key: str = "",
+    model: str = "",
+    width: int = 1280,
+    height: int = 720,
+    steps: int = 4,
+    guidance_scale: float = 1.0,
+) -> bytes:
+    """Generate image on remote GPU via Vast server endpoint."""
+    vast_url = os.environ.get("VAST_SERVER_URL", "").rstrip("/")
+    if not vast_url:
+        raise RuntimeError("VAST_SERVER_URL is not set. Launch vast GPU first via --vast.")
+
+    url = f"{vast_url}/v1/images/generate"
+    payload = json.dumps({
+        "prompt": prompt,
+        "model": model,
+        "width": width,
+        "height": height,
+        "steps": steps if steps > 0 else 4,
+        "guidance_scale": guidance_scale,
+    }).encode("utf-8")
+
+    headers = {"Content-Type": "application/json"}
+    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=180) as resp:
+        res_data = json.loads(resp.read().decode("utf-8"))
+        if res_data.get("status") == "success" and "image_base64" in res_data:
+            return base64.b64decode(res_data["image_base64"])
+        elif "error" in res_data:
+            raise RuntimeError(f"Vast image generation failed: {res_data['error']}")
+    raise RuntimeError(f"Unexpected Vast response: {res_data}")
+
+
+def generate_image(prompt, output_path):
+    provider = os.getenv("IMAGE_PROVIDER", "local").lower()
+    if provider == "local":
+        return generate_local(prompt, output_path)
+    elif provider == "huggingface":
+        return generate_huggingface(prompt, output_path)
+    elif provider == "fireworks":
+        return generate_fireworks(prompt, output_path)
+    elif provider == "together":
+        return generate_together(prompt, output_path)
+    elif provider == "fal":
+        return generate_fal(prompt, output_path)
+    elif provider == "replicate":
+        return generate_replicate(prompt, output_path)
+    elif provider == "openai":
+        return generate_openai(prompt, output_path)
+    elif provider in ("cloudflare", "cf"):
+        return generate_cloudflare(prompt, output_path)
     else:
-        provider_title = f"{resolved_provider.upper()} ({aspect_ratio} @ {width}x{height})"
-    print(f"Retrieving background images via {provider_title} ({model or 'default'}) for {total_scenes} scenes...")
+        print(f"[WARN] Unknown image provider: {provider}, falling back to local")
+        return generate_local(prompt, output_path)
 
-    burns_modes = ["in", "out", "left", "right"]
 
-    for i, scene in enumerate(scenes):
-        scene_id = scene.get("id", f"scene-{i+1:03d}")
-        shots = scene.get("shots", [])
-        if not shots:
-            continue
-
-        prompt = make_prompt(
-            scene, topic, genre=genre, visual_style=visual_style, index=i,
-            script_keywords=script_keywords, theme=theme,
-        )
-        image_filename = f"{scene_id}.png"
-        image_dest = out_path / image_filename
-        rel_static_path = f"images/{image_filename}"
-
-        if not force and image_dest.is_file() and image_dest.stat().st_size > 1000:
-            print(f"  [{i+1}/{total_scenes}] Scene {i+1}: cached ({image_filename})")
-        else:
-            scene_label = scene.get("headline", "") or f"Scene {i+1}"
-            if resolved_provider == "fetch":
-                query_preview = make_search_keywords(scene, topic, genre=genre, script_keywords=script_keywords)
-                print(f"  [{i+1}/{total_scenes}] Fetching matching image for {scene_label[:30]} (query: '{query_preview[:45]}')...")
-            else:
-                print(f"  [{i+1}/{total_scenes}] Generating image for {scene_label[:30]} ({aspect_ratio})...")
-
-            try:
-                if resolved_provider == "fetch":
-                    img_data = fetch_free_related_image(scene, topic, index=i, genre=genre, script_keywords=script_keywords)
-                elif resolved_provider == "local":
-                    # Deterministic scene seed
-                    scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
-                    img_data = generate_local_lcm(
-                        prompt,
-                        model=model,
-                        seed=scene_seed,
-                        width=width,
-                        height=height,
-                        sd_width=sd_latent_width,
-                        sd_height=sd_latent_height,
-                    )
-                elif resolved_provider == "pollinations":
-                    if i > 0:
-                        time.sleep(1.5)  # Pace free requests
-                    # Deterministic scene seed
-                    scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
-                    img_data = generate_pollinations(
-                        prompt,
-                        model,
-                        api_key=api_key,
-                        seed=scene_seed,
-                        width=width,
-                        height=height,
-                    )
-                elif resolved_provider in ("huggingface", "hf", "gradio"):
-                    try:
-                        img_data = generate_gradio_hf(prompt, api_key, model=model, width=width, height=height)
-                    except Exception as hf_err:
-                        print(f"  [HF Gradio Failover] Hugging Face Space generation failed ({hf_err}). Switching automatically to local SSD-1B / SDXL-Turbo on CPU...")
-                        scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
-                        try:
-                            img_data = generate_local_lcm(
-                                prompt,
-                                model="segmind/SSD-1B",
-                                seed=scene_seed,
-                                width=width,
-                                height=height,
-                                sd_width=sd_latent_width,
-                                sd_height=sd_latent_height,
-                            )
-                        except Exception as local_err:
-                            print(f"  [Local SSD-1B Failover] Local SSD-1B failed ({local_err}). Trying local SDXL-Turbo...")
-                            try:
-                                img_data = generate_local_lcm(
-                                    prompt,
-                                    model="stabilityai/sdxl-turbo",
-                                    seed=scene_seed,
-                                    width=width,
-                                    height=height,
-                                    sd_width=sd_latent_width,
-                                    sd_height=sd_latent_height,
-                                )
-                            except Exception as turbo_err:
-                                print(f"  [Failover to Stock Search] Local generation failed ({turbo_err}). Using free related image search...")
-                                img_data = fetch_free_related_image(scene, topic, index=i, genre=genre, script_keywords=script_keywords)
-                elif resolved_provider == "fireworks":
-                    img_data = generate_fireworks(prompt, api_key, model)
-                elif resolved_provider == "together":
-                    img_data = generate_together(prompt, api_key, model)
-                elif resolved_provider == "fal":
-                    img_data = generate_fal(prompt, api_key, model)
-                elif resolved_provider == "replicate":
-                    img_data = generate_replicate(prompt, api_key, model)
-                elif resolved_provider == "openai":
-                    img_data = generate_openai(prompt, api_key, model)
-                elif resolved_provider == "vast":
-                    from vast_manager import VastManager
-                    vast_mgr = VastManager()
-                    scene_seed = int(hashlib.md5(f"{topic}_{scene_id}_{i}".encode("utf-8")).hexdigest()[:8], 16)
-                    img_data = vast_mgr.generate_image(
-                        prompt,
-                        width=width,
-                        height=height,
-                        steps=4,
-                        seed=scene_seed,
-                    )
-                else:
-                    raise ValueError(f"Unknown image provider: {resolved_provider}")
-
-                save_image_data(img_data, image_dest)
-                print(f"       -> Saved {image_filename}")
-            except Exception as err:
-                print(f"       ! Error retrieving image for Scene {i+1}: {err}", file=sys.stderr)
-                continue
-
-        # Update visual in shots to use the new image
-        for s_idx, shot in enumerate(shots):
-            burn = burns_modes[(i + s_idx) % len(burns_modes)]
-            shot["visual"] = {
-                "type": "image",
-                "src": rel_static_path,
-                "kenBurns": burn,
-                "dim": 0.15,
-                "prompt": prompt,
-            }
-
-    if resolved_provider == "local" or ("_LOCAL_PIPE" in globals() and _LOCAL_PIPE is not None):
-        cleanup_local_pipeline()
-
-    return script_data
+def generate_local(
+    prompt: str,
+    output_path: str,
+    model: str = "",
+    width: int = 1280,
+    height: int = 720,
+) -> str:
+    """Generate image locally via SD/LCM and write to output_path."""
+    target_model = model or os.environ.get("IMAGE_MODEL", "segmind/SSD-1B")
+    dest = Path(output_path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        data = generate_local_lcm(prompt, model=target_model, width=width, height=height)
+        dest.write_bytes(data)
+        return str(dest)
+    except Exception as e:
+        print(f"  [Local Generation Warning] {e}. Generating procedural fallback...")
+        try:
+            from PIL import Image, ImageDraw
+            img = Image.new("RGB", (width, height), color=(20, 24, 30))
+            draw = ImageDraw.Draw(img)
+            draw.text((width // 4, height // 2), f"Scene: {dest.stem}", fill=(220, 220, 220))
+            img.save(dest, format="PNG")
+        except Exception:
+            dest.write_bytes(b"")
+        return str(dest)
 
 
 def main() -> None:
@@ -1919,27 +2233,163 @@ def main() -> None:
     )
     parser.add_argument("--force", action="store_true", help="Force regeneration of existing images")
 
-    args = parser.parse_args()
-    script_file = Path(args.script)
-    if not script_file.is_file():
-        sys.exit(f"Error: Script file '{args.script}' not found.")
-
-    with open(script_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    updated = generate_images_for_script(
-        data,
-        out_dir=args.out,
-        provider=args.provider,
-        model=args.model,
-        force=args.force,
+    parser.add_argument(
+        "--visual-style",
+        type=str,
+        default=None,
+        help="Custom visual style prefix (e.g. 'Cinematic anime cel...')",
+    )
+    parser.add_argument(
+        "--style", "--animation-style",
+        dest="animation_style",
+        type=str,
+        default=None,
+        help="2D Animation style preset (e.g. ink_doodle, flat_vector, documentary, stickman, dark_cinematic, anime_cel, whiteboard, vintage_retro)",
+    )
+    parser.add_argument(
+        "--styles",
+        action="store_true",
+        help="List all supported 2D animation styles and exit",
     )
 
-    with open(script_file, "w", encoding="utf-8") as f:
-        json.dump(updated, f, ensure_ascii=False, indent=2)
+    args = parser.parse_args()
 
-    print(f"Updated {args.script} with generated images.")
+    if getattr(args, "styles", False):
+        print("\n=== Supported 2D Animation Styles ===")
+        for s in list_animation_styles():
+            print(f"  • {s['key']:<15} | {s['name']}")
+            print(f"    Description : {s['description']}")
+            print(f"    Best For    : {s['best_for']}\n")
+        return
 
+    generate_images_for_script(
+        script=args.script,
+        output_dir=args.out,
+        provider=getattr(args, "provider", None),
+        model=getattr(args, "model", None),
+        force=getattr(args, "force", False),
+        visual_style=args.visual_style,
+        animation_style=getattr(args, "animation_style", None),
+    )
+
+    print(f"Generated images for {args.script}")
+
+
+def generate_images_for_script(
+    script: dict | str | Path,
+    output_dir: str | Path = "public/images",
+    provider: str | None = None,
+    model: str | None = None,
+    force: bool = False,
+    visual_style: str | None = None,
+    animation_style: str | None = None,
+    **kwargs,
+) -> dict:
+    """Generate still images for each scene in script.json."""
+    root_dir = Path(__file__).resolve().parent.parent
+    if isinstance(script, (str, Path)):
+        script_path = Path(script)
+        script_data = json.loads(script_path.read_text(encoding="utf-8"))
+    else:
+        script_path = None
+        script_data = script
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    prov, key, default_model = detect_provider(provider)
+    effective_model = model or default_model
+    topic = script_data.get("topic", "")
+    genre = script_data.get("genre", "documentary")
+    width = int(script_data.get("width") or 1920)
+    height = int(script_data.get("height") or 1080)
+    vis_style = visual_style or script_data.get("visualStyle")
+
+    scenes = script_data.get("scenes", [])
+    for idx, scene in enumerate(scenes):
+        scene_id = scene.get("id") or f"scene-{idx + 1:03d}"
+        dest = out_dir / f"{scene_id}.png"
+
+        rel_path = str(dest.relative_to(root_dir).as_posix()) if root_dir in dest.parents else str(dest.as_posix())
+        if dest.exists() and not force:
+            scene["image"] = rel_path
+            continue
+
+        prompt = make_prompt(
+            scene,
+            topic=topic,
+            genre=genre,
+            index=idx,
+            visual_style=vis_style,
+            animation_style=animation_style or scene.get("animationStyle"),
+            theme=script_data.get("theme"),
+            characters_dict=script_data.get("characters"),
+        )
+
+        bg_prompt = scene.get("backgroundPrompt") or ""
+        char_prompt = scene.get("characterPrompt") or ""
+        print(f"\n  [Image Gen] {scene_id}:")
+        print(f"    Background : {bg_prompt}")
+        print(f"    Characters : {char_prompt}")
+
+        try:
+            if prov == "fetch":
+                queries = build_search_queries(scene, topic=topic, genre=genre)
+                data = fetch_free_related_image(queries, width=width, height=height)
+                save_image_data(data, dest)
+            elif prov == "vast":
+                data = generate_vast(prompt, key=key, model=effective_model, width=width, height=height)
+                save_image_data(data, dest)
+            elif prov == "pollinations":
+                data = generate_pollinations(prompt, model=effective_model, api_key=key, width=width, height=height)
+                save_image_data(data, dest)
+            elif prov == "huggingface":
+                data = generate_huggingface(prompt, key=key, model=effective_model, width=width, height=height)
+                save_image_data(data, dest)
+            elif prov == "fireworks":
+                data = generate_fireworks(prompt, key=key, model=effective_model)
+                save_image_data(data, dest)
+            elif prov == "together":
+                data = generate_together(prompt, key=key, model=effective_model)
+                save_image_data(data, dest)
+            elif prov == "fal":
+                url = generate_fal(prompt, key=key, model=effective_model)
+                save_image_data(url, dest)
+            elif prov == "replicate":
+                url = generate_replicate(prompt, key=key, model=effective_model)
+                save_image_data(url, dest)
+            elif prov == "openai":
+                url = generate_openai(prompt, key=key, model=effective_model)
+                save_image_data(url, dest)
+            elif prov in ("cloudflare", "cf"):
+                generate_cloudflare(prompt, str(dest))
+            else:  # local diffusers / SD
+                data = generate_local_lcm(prompt, model=effective_model, steps=kwargs.get("steps", 2), width=width, height=height)
+                save_image_data(data, dest)
+
+            scene["image"] = rel_path
+            print(f"  [Image] {scene_id} -> {dest.name}")
+        except Exception as exc:
+            print(f"  [Image Error] Failed to generate {scene_id} ({exc}). Using procedural fallback.")
+            try:
+                from PIL import Image, ImageDraw
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                img = Image.new("RGB", (width, height), color=(20, 24, 30))
+                draw = ImageDraw.Draw(img)
+                draw.text((width // 4, height // 2), f"Scene {idx + 1}: {scene_id}", fill=(220, 220, 220))
+                img.save(dest, format="PNG")
+                scene["image"] = rel_path
+            except Exception:
+                pass
+
+    if script_path:
+        script_path.write_text(json.dumps(script_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    return script_data
+
+
+generate_images = generate_images_for_script
+generate_scene_images = generate_images_for_script
 
 if __name__ == "__main__":
     main()

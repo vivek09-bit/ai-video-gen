@@ -43,6 +43,14 @@ except (AttributeError, OSError):
 PORT = int(os.environ.get("PORT", 8000))
 DEVICE = "cuda" if os.environ.get("FORCE_CPU", "0") != "1" else "cpu"
 
+if DEVICE == "cuda":
+    try:
+        import torch
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+    except Exception:
+        pass
+
 _FLUX_PIPE = None
 _LTX_PIPE = None
 _LTX_MODEL_ID: str | None = None
@@ -261,20 +269,68 @@ def load_flux_pipeline(model_id: str = "black-forest-labs/FLUX.1-schnell"):
 
     _release_other_models("flux")
     import torch
-    from diffusers import FluxPipeline
 
     print(f"[Vast Server] Loading FLUX model: {model_id} on {DEVICE}...")
     torch_dtype = torch.bfloat16 if DEVICE == "cuda" else torch.float32
 
     try:
-        pipe = FluxPipeline.from_pretrained(
-            model_id,
-            torch_dtype=torch_dtype,
-            token=_hub_token(),
-        )
+        if "3" in model_id.lower() or "flux-3" in model_id.lower():
+            target_repo = "black-forest-labs/flux-3-image-klein" if "/" not in model_id else model_id
+            try:
+                from diffusers import ModularPipeline
+                print(f"[Vast Server] Loading FLUX.3 ModularPipeline for {target_repo}...")
+                pipe = ModularPipeline.from_pretrained(target_repo, token=_hub_token())
+                pipe.load_components(dtype=torch_dtype)
+            except Exception as e_mod:
+                print(f"[Vast Server Warning] ModularPipeline unavailable ({e_mod}), trying FluxPipeline...")
+                from diffusers import FluxPipeline
+                pipe = FluxPipeline.from_pretrained(
+                    target_repo,
+                    torch_dtype=torch_dtype,
+                    token=_hub_token(),
+                )
+        elif "klein" in model_id.lower():
+            if "/" not in model_id:
+                target_repo = (
+                    "black-forest-labs/FLUX.2-klein-9B"
+                    if "9b" in model_id.lower()
+                    else "black-forest-labs/FLUX.2-klein-4B"
+                )
+            else:
+                target_repo = model_id
+            try:
+                from diffusers import Flux2KleinPipeline
+                pipe = Flux2KleinPipeline.from_pretrained(
+                    target_repo,
+                    torch_dtype=torch_dtype,
+                    token=_hub_token(),
+                )
+            except ImportError:
+                from diffusers import FluxPipeline
+                pipe = FluxPipeline.from_pretrained(
+                    target_repo,
+                    torch_dtype=torch_dtype,
+                    token=_hub_token(),
+                )
+        else:
+            from diffusers import FluxPipeline
+            pipe = FluxPipeline.from_pretrained(
+                model_id,
+                torch_dtype=torch_dtype,
+                token=_hub_token(),
+            )
+
         if DEVICE == "cuda":
-            # Increase timeout for first load
-            pipe.enable_model_cpu_offload() if os.environ.get("OFFLOAD_FLUX", "1") == "1" else pipe.to("cuda")
+            # On 24GB GPUs (RTX 4090 / 3090), keeping FLUX.3 Klein (5.6B) fully in VRAM
+            # eliminates 3-5 seconds of PCIe transfer overhead per generation.
+            should_offload = os.environ.get("OFFLOAD_FLUX", "0") == "1"
+            if should_offload and hasattr(pipe, "enable_model_cpu_offload"):
+                try:
+                    pipe.enable_model_cpu_offload()
+                except Exception:
+                    pipe.to("cuda")
+            else:
+                pipe.to("cuda")
         _FLUX_PIPE = pipe
         print("[Vast Server] FLUX model loaded successfully.")
     except Exception as e:
@@ -548,16 +604,98 @@ def _resample_speed(audio, speed: float):
         return audio
 
 
+_HINDI_SPLIT_BEFORE = {
+    "\u0914\u0930", "\u0932\u0947\u0915\u093f\u0928", "\u092e\u0917\u0930", "\u092a\u0930\u0902\u0924\u0941", "\u092c\u0932\u094d\u0915\u093f", "\u0924\u094b", "\u0915\u094d\u092f\u094b\u0902\u0915\u093f", "\u091a\u0942\u0902\u0915\u093f",
+    "\u0924\u093e\u0915\u093f", "\u091c\u093f\u0938\u0938\u0947", "\u092f\u093e", "\u0924\u0925\u093e", "\u090f\u0935\u0902", "\u091c\u092c\u0915\u093f", "\u0905\u0930\u094d\u0925\u093e\u0924", "\u091c\u094b", "\u091c\u093f\u0938\u0928\u0947", "\u091c\u093f\u0938\u0915\u093e", "\u091c\u093f\u0938\u0915\u0947",
+}
+_HINDI_SPLIT_AFTER = {
+    "\u0915\u093f", "\u0939\u0941\u090f", "\u0915\u0930\u0915\u0947", "\u092c\u093f\u0928\u093e", "\u0926\u094c\u0930\u093e\u0928",
+}
+
+
+def _split_hindi_clauses(text: str, max_words: int = 14) -> list[tuple[str, str]]:
+    """Break long clauses into natural Hindi prosodic units to keep DiT flow matching stable."""
+    import re
+
+    raw_clauses = re.split(r'([,.;:!?\u0964\u0965|]+)', text)
+    clauses = []
+    i = 0
+    while i < len(raw_clauses):
+        c = raw_clauses[i].strip()
+        punct = raw_clauses[i + 1].strip() if i + 1 < len(raw_clauses) else ""
+        if c:
+            clauses.append((c, punct))
+        i += 2
+
+    sub_chunks = []
+    for clause, punct in clauses:
+        words = clause.split()
+        if len(words) <= max_words:
+            sub_chunks.append((clause, punct))
+            continue
+
+        current = []
+        for idx, w in enumerate(words):
+            current.append(w)
+            rem = len(words) - (idx + 1)
+
+            if len(current) >= 4 and rem >= 4 and w in _HINDI_SPLIT_AFTER:
+                sub_chunks.append((" ".join(current), ","))
+                current = []
+                continue
+
+            if len(current) >= 5 and rem >= 4:
+                if idx + 1 < len(words) and words[idx + 1] in _HINDI_SPLIT_BEFORE:
+                    sub_chunks.append((" ".join(current), ","))
+                    current = []
+                    continue
+
+            if len(current) >= 10 and rem >= 4 and w in {"\u0925\u093e", "\u0925\u0940", "\u0925\u0947", "\u0939\u0948", "\u0939\u0948\u0902"}:
+                sub_chunks.append((" ".join(current), ","))
+                current = []
+                continue
+
+        if current:
+            sub_chunks.append((" ".join(current), punct))
+
+    return sub_chunks
+
+
+def _clean_audio_glitches(audio, max_jump: float = 0.35):
+    """Slew-rate / continuity limiter to eliminate Vocos vocoder tearing without affecting vocal harmonics."""
+    import numpy as np
+
+    x = np.asarray(audio, dtype=np.float32)
+    if x.size < 3:
+        return x
+    diff = np.diff(x)
+    bad_indices = np.where(np.abs(diff) > max_jump)[0]
+    if len(bad_indices) == 0:
+        return x
+    x = np.array(x, copy=True)
+    n = len(x)
+    for idx in bad_indices:
+        if 0 < idx < n - 2:
+            prev_val = x[idx]
+            next_val = x[idx + 2]
+            if abs(next_val - prev_val) < max_jump * 1.5:
+                x[idx + 1] = 0.5 * (prev_val + next_val)
+            else:
+                delta = x[idx + 1] - prev_val
+                if abs(delta) > max_jump:
+                    x[idx + 1] = prev_val + np.sign(delta) * max_jump
+    return x
+
+
 def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
     """Generate one valid IndicF5 waveform from its selected cloning reference.
 
-    The text is split at punctuation so a short silence can be inserted between clauses,
-    which is what makes the delivery sound paced rather than rushed. An optional ``speed``
-    (< 1.0 = slower) time-stretches the finished waveform without altering pitch.
+    The text is split at punctuation and natural Hindi clauses so a short silence can be
+    inserted between clauses, preventing DiT flow-matching drift and keeping the delivery
+    paced rather than rushed.
     """
     import numpy as np
     import torch
-    import re
 
     model = load_indicf5_engine()
     reference_path, reference_text = _prepare_indicf5_reference(voice)
@@ -577,8 +715,7 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
         "|": 0.40,
     }
 
-    pattern = re.compile(r'([^,.;:!?\u0964\u0965|]+)([,.;:!?\u0964\u0965|]*)')
-    matches = pattern.findall(text)
+    matches = _split_hindi_clauses(text, max_words=14)
     if not matches:
         matches = [(text, "")]
 
@@ -610,7 +747,9 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
         raise RuntimeError("IndicF5 received empty text or produced no audio chunks")
 
     audio_np = np.concatenate(audio_chunks)
+    audio_np = _clean_audio_glitches(audio_np)
     audio_np = _resample_speed(audio_np, speed)
+    audio_np = _clean_audio_glitches(audio_np)
     peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
     if peak > 1.0:
         audio_np = audio_np / peak
@@ -679,17 +818,17 @@ class VastHandler(BaseHTTPRequestHandler):
         # would only see RemoteDisconnected, with the real cause buried in the
         # server log. Always answer with a JSON error payload instead.
         try:
-            if self.path == "/v1/images/generate":
+            if self.path in ("/v1/images/generate", "/generate/image"):
                 self.handle_image_generate(req)
-            elif self.path == "/v1/videos/generate":
+            elif self.path in ("/v1/videos/generate", "/generate/video"):
                 self.handle_video_generate(req)
-            elif self.path == "/v1/audio/synthesize":
+            elif self.path in ("/v1/audio/synthesize", "/synthesize/audio"):
                 self.handle_audio_synthesize(req)
-            elif self.path == "/v1/audio/synthesize_batch":
+            elif self.path in ("/v1/audio/synthesize_batch", "/synthesize/audio_batch"):
                 self.handle_audio_synthesize_batch(req)
-            elif self.path == "/v1/batch":
+            elif self.path in ("/v1/batch", "/batch"):
                 self.handle_batch(req)
-            elif self.path == "/v1/shutdown":
+            elif self.path in ("/v1/shutdown", "/shutdown"):
                 self._send_json({"message": "Server shutting down..."})
                 sys.exit(0)
             else:
@@ -721,7 +860,8 @@ class VastHandler(BaseHTTPRequestHandler):
         seed = req.get("seed")
 
         import torch
-        pipe = load_flux_pipeline()
+        flux_model = req.get("model") or os.environ.get("FLUX_MODEL", "black-forest-labs/FLUX.1-schnell")
+        pipe = load_flux_pipeline(model_id=flux_model)
 
         generator = None
         if seed is not None:
@@ -729,14 +869,27 @@ class VastHandler(BaseHTTPRequestHandler):
 
         t0 = time.time()
         with torch.inference_mode():
-            image = pipe(
-                prompt=prompt,
-                width=width,
-                height=height,
-                num_inference_steps=steps,
-                guidance_scale=guidance,
-                generator=generator,
-            ).images[0]
+            if hasattr(pipe, "load_components"):
+                call_args = {"prompt": prompt, "output": "images"}
+                if width:
+                    call_args["width"] = width
+                if height:
+                    call_args["height"] = height
+                if steps:
+                    call_args["num_inference_steps"] = steps
+                if generator is not None:
+                    call_args["generator"] = generator
+                res = pipe(**call_args)
+                image = res[0] if isinstance(res, (list, tuple)) else getattr(res, "images", [res])[0]
+            else:
+                image = pipe(
+                    prompt=prompt,
+                    width=width,
+                    height=height,
+                    num_inference_steps=steps,
+                    guidance_scale=guidance,
+                    generator=generator,
+                ).images[0]
         gen_time = round(time.time() - t0, 3)
 
         buf = io.BytesIO()
@@ -946,7 +1099,11 @@ class VastHandler(BaseHTTPRequestHandler):
             if prompt:
                 pipe = load_flux_pipeline()
                 with torch.inference_mode():
-                    img = pipe(prompt=prompt, width=width, height=height, num_inference_steps=4, guidance_scale=0.0).images[0]
+                    if hasattr(pipe, "load_components"):
+                        res = pipe(prompt=prompt, width=width, height=height, num_inference_steps=4, output="images")
+                        img = res[0] if isinstance(res, (list, tuple)) else getattr(res, "images", [res])[0]
+                    else:
+                        img = pipe(prompt=prompt, width=width, height=height, num_inference_steps=4, guidance_scale=0.0).images[0]
                 buf = io.BytesIO()
                 img.save(buf, format="PNG")
                 res_entry["image_base64"] = base64.b64encode(buf.getvalue()).decode("ascii")

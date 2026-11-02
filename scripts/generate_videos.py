@@ -102,6 +102,7 @@ def generate_videos_for_script(
             index=index,
             script_keywords=script_keywords,
             theme=theme,
+            animation_style=script_data.get("animationStyle"),
         )
         video_name = f"{scene_id}.mp4"
         video_path = output_dir / video_name

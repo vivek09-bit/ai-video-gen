@@ -1,20 +1,21 @@
-# Match the exact base image vast_manager.py pins (DEFAULT_SERVER_IMAGE).
-# The tag names the torch build, and torchaudio must come from the same one.
+# Match the base image vast_manager.py pins (DEFAULT_SERVER_IMAGE).
+# CUDA 12.4 + PyTorch 2.4.0 runtime for RTX 4090 / 3090.
 FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
 
-# --- Phase 1: system packages (mirrors apt_packages in server_onstart_command) ---
+# --- Phase 1: system packages ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git ffmpeg libsndfile1 ca-certificates curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
-# --- Phase 2: uv ---
+# --- Phase 2: uv package installer ---
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
-# --- Phase 3: pinned Python deps (copy the exact list from SERVER_DEPENDENCIES) ---
-# torchaudio is pinned to the image's own torch version, not left floating.
+# --- Phase 3: pinned Python deps with latest diffusers for FLUX 3 Image Klein ---
+# torchaudio is pinned to the image's exact torch version (2.4.0).
+# Clear caches immediately in the same layer to save ~2-3 GB of disk space.
 RUN uv pip install --system --torch-backend=cu124 \
-        diffusers==0.32.2 \
+        "diffusers @ git+https://github.com/huggingface/diffusers.git" \
         accelerate==1.15.0 \
         sentencepiece \
         protobuf==7.36.2 \
@@ -22,38 +23,53 @@ RUN uv pip install --system --torch-backend=cu124 \
         imageio-ffmpeg \
         "f5_tts @ git+https://github.com/AI4Bharat/IndicF5.git@13f7c4d627cc10111aea8fe9c0039462cacacdc7" \
         vocos==0.1.0 \
-        transformers==4.49.0 \
+        "transformers>=4.49.0" \
         transformers-stream-generator==0.0.5 \
         numpy==1.26.4 \
         scipy==1.17.1 \
         soundfile==0.14.0 \
-        huggingface-hub==0.36.2 \
-        datasets==3.6.0 \
+        "datasets>=3.6.0" \
         pyarrow==20.0.0 \
-        torchaudio==2.4.0
+        torchaudio==2.4.0 \
+    && uv cache clean \
+    && rm -rf /root/.cache/uv /root/.cache/pip /tmp/*
 
-# --- Phase 4: pre-download model weights (the big one) ---
-# HF_TOKEN is a BuildKit secret so the gated token never lands in a layer.
-# ai4bharat/IndicF5 is GATED, so the build must authenticate.
-#
-# This bakes ONLY IndicF5 (~1.5 GB). LTX-Video and FLUX are deliberately left out: at
-# ~9-24 GB each they do not fit a 25 GB Docker Desktop disk, and an image carrying them
-# is 50 GB+ to push and to pull on every Vast.ai rental.
-#
-# CONSEQUENCE: this image is deps + IndicF5 only, so it must be used with
-# VAST_IMAGE_HAS_DEPS=0. The onstart then prefetches the full DEFAULT_PREFETCH_MODELS set
-# (IndicF5 + LTX + FLUX). Claiming HAS_DEPS=1 would skip that prefetch and hand the
-# ~42 GB download to the first image/video request instead -- billed as instance egress.
-# Point VAST_HF_VOLUME/VAST_HF_HOME at a network volume so that download happens once.
-RUN --mount=type=secret,id=hf_token \
-    HF_TOKEN="$(cat /run/secrets/hf_token)" \
-    python -c "from huggingface_hub import snapshot_download; snapshot_download('ai4bharat/IndicF5')"
-
-# --- Phase 5: verify the exact import surface the server needs ---
-RUN python -c "import numpy, torch, torchaudio, diffusers, transformers, soundfile, scipy, vocos; \
-    from f5_tts.infer.utils_infer import infer_process; \
-    assert torchaudio.__version__.split('+')[0] == torch.__version__.split('+')[0]; \
-    from diffusers import FluxPipeline, LTXPipeline; \
-    print('image deps OK', torch.__version__, torchaudio.__version__)"
+# --- Phase 4: pre-download model weights (IndicF5 + FLUX.3 Klein 5.6B BF16) ---
+# HF_HUB_DISABLE_XET=1 prevents 401 Unauthorized errors caused by 1-hour CAS token expiry on large models.
+ENV HF_HUB_DISABLE_XET=1 \
+    HF_HUB_ENABLE_HF_TRANSFER=0
 
 WORKDIR /workspace
+COPY scripts/prefetch_models.py /workspace/prefetch_models.py
+
+# Layer 4a: IndicF5 (~1.4 GB, ~2 mins) cached independently
+RUN --mount=type=secret,id=hf_token \
+    HF_TOKEN="$(cat /run/secrets/hf_token 2>/dev/null || echo '')" \
+    python /workspace/prefetch_models.py indicf5
+
+# Layer 4b: FLUX.3 Klein (5.6B BF16 Diffusers layout, ~20.3 GB; filters out 23 GB duplicate ComfyUI weights)
+RUN --mount=type=secret,id=hf_token \
+    HF_TOKEN="$(cat /run/secrets/hf_token 2>/dev/null || echo '')" \
+    python /workspace/prefetch_models.py flux \
+    && rm -f /workspace/prefetch_models.py
+
+# --- Phase 5: ensure torchaudio & torchvision match torch version, verify imports, and set readiness marker ---
+RUN python -c 'import subprocess, torch; v = torch.__version__.split("+")[0]; mapping = {"2.4.0": ("0.19.0", "2.4.0"), "2.5.0": ("0.20.0", "2.5.0"), "2.5.1": ("0.20.1", "2.5.1"), "2.6.0": ("0.21.0", "2.6.0")}; tv, ta = mapping.get(v, ("0.21.0", "2.6.0")); subprocess.run(["pip", "install", "--no-cache-dir", "--no-deps", "--force-reinstall", "--index-url", "https://download.pytorch.org/whl/cu124", f"torchvision=={tv}+cu124", f"torchaudio=={ta}+cu124"], check=True)' \
+    && pip install --no-cache-dir "optree>=0.13.0" \
+    && rm -rf /root/.cache/uv /root/.cache/pip /tmp/*
+
+COPY scripts/verify_container.py /workspace/verify_container.py
+RUN python /workspace/verify_container.py \
+    && rm -f /workspace/verify_container.py \
+    && touch /root/.tube2dscript_deps_ready
+
+# --- Phase 6: bake in server scripts and voice prompts ---
+COPY scripts/ /workspace/tube2dscript/scripts/
+COPY public/audio/prompts/ /workspace/tube2dscript/public/audio/prompts/
+RUN find /workspace/tube2dscript -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+ENV VAST_IMAGE_HAS_DEPS=1
+EXPOSE 8000
+
+# Default command starts the server immediately if run standalone
+CMD ["python", "/workspace/tube2dscript/scripts/vast_server.py"]
