@@ -1384,6 +1384,13 @@ for cvid, cvinfo in CARTESIA_VOICES.items():
     for alias in cvinfo.get("aliases", []):
         VOICE_ALIASES[alias.lower().replace("-", "_")] = cvid
 
+VOICE_ALIASES.update({
+    "kokoro_aarav": "hm_omega",
+    "kokoro_kabir": "hm_psi",
+    "kokoro_priya": "hf_alpha",
+    "kokoro_ananya": "hf_beta",
+})
+
 # Backwards compatibility map
 EN_VOICES = {
     vid: f"{vinfo['lang_name']} {vinfo['gender']}, {vinfo['style']}"
@@ -2027,6 +2034,9 @@ def clean_audio_glitches(audio, max_jump: float = 0.35):
     x = np.asarray(audio, dtype=np.float32)
     if x.size < 3:
         return x
+    peak = float(np.max(np.abs(x))) if x.size else 0.0
+    if peak > 1.0:
+        x = x / 32768.0 if peak > 100.0 else x / peak
     diff = np.diff(x)
     bad_indices = np.where(np.abs(diff) > max_jump)[0]
     if len(bad_indices) == 0:
@@ -2400,6 +2410,10 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
                     chunk_np = np.asarray(gen, dtype=np.float32).squeeze()
                     if chunk_np.ndim > 1:
                         chunk_np = chunk_np.mean(axis=0)
+                    peak = float(np.max(np.abs(chunk_np))) if chunk_np.size else 0.0
+                    if peak > 1.0:
+                        chunk_np = chunk_np / 32768.0 if peak > 100.0 else chunk_np / peak
+                    chunk_np = np.clip(chunk_np, -1.0, 1.0)
                     if chunk_np.size > 0:
                         audio_chunks.append(chunk_np)
                     pause_sec = 0.20 if punct == "," else 0.40
@@ -2413,8 +2427,15 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
             generated_audio = clean_audio_glitches(generated_audio)
             sample_rate = 24000
             buf = io.BytesIO()
-            sf.write(buf, generated_audio, sample_rate, format="WAV")
-            out[index] = buf.getvalue()
+            sf.write(buf, generated_audio, sample_rate, format="WAV", subtype="PCM_16")
+            wav_bytes = buf.getvalue()
+            out[index] = wav_bytes
+
+            # Persist each segment immediately to disk so interruptions never lose progress
+            norm_text = prepare_remote_text(text, keep_punctuation=True)
+            primary = voice.lower()
+            write_gpu_cache(norm_text, primary, speed, wav_bytes)
+            _VAST_AUDIO_CACHE[(norm_text, primary, round(speed, 3))] = generated_audio
         except Exception as err:
             print(f"[IndicF5 Local] Segment {index + 1} failed: {err}", file=sys.stderr)
 

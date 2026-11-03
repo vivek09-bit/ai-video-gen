@@ -1,9 +1,9 @@
 {
-  "title": "Ancient Humans vs Deadly Rain",
-  "topic": "Ancient Humans vs Deadly Rain",
+  "title": "Ajnala’s Martyrs’ Well: The Untold Story of 1857 | 157 Years Later, History Revealed",
+  "topic": "Ajnala’s Martyrs’ Well: The Untold Story of 1857 | 157 Years Later, History Revealed",
   "language": "hi",
   "genre": "documentary",
-  "visualStyle": "stickman",
+  "visualStyle": null,
   "format": "landscape",
   "aspectRatio": "16:9",
   "width": 1920,
@@ -29,15 +29,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "nordic_frost",
-    "name": "Nordic Frost",
-    "accent": "#38bdf8",
-    "text": "#f1f5f9",
-    "muted": "#94a3b8",
-    "panel": "rgba(15, 23, 42, 0.72)",
+    "key": "sepia_vintage",
+    "name": "Sepia Vintage",
+    "accent": "#d97706",
+    "text": "#fef3c7",
+    "muted": "#fde68a",
+    "panel": "rgba(35, 25, 15, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#040810"
+    "bg_color": "#0d0804"
   },
   "characters": {},
   "scenes": [
@@ -51,9 +51,10 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 2,
           "effects": {
@@ -69,10 +70,9 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 1,
           "effects": {
@@ -92,7 +92,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -108,7 +108,7 @@
       "lines": [
         {
           "character": null,
-          "text": "कल्पना कीजिए कि आपने दो दिनों से खाना नहीं खाया है।"
+          "text": "पंजाब के अजनाला में एक ऐसा कुआं था जिसके अंदर 1857 की एक पूरी कहानी दफन थी।"
         }
       ]
     },
@@ -122,9 +122,10 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 2,
           "effects": {
@@ -140,10 +141,9 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 1,
           "effects": {
@@ -163,7 +163,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -179,7 +179,7 @@
       "lines": [
         {
           "character": null,
-          "text": "आपने जंगली जानवरों के एक झुंड का पीछा करते हुए अपने दिमाग में उनके पूरे रास्ते का नक्शा बना लिया था।"
+          "text": "लेकिन दुनिया को इसकी सच्चाई बहुत साल बाद पता चली। साल था 1857 भारत के कई हिस्सों में सैनिक विद्रोह कर रहे थे।"
         }
       ]
     },
@@ -234,7 +234,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -250,7 +250,7 @@
       "lines": [
         {
           "character": null,
-          "text": "लेकिन जैसे ही आप शिकार करने के लिए निकलते हैं अचानक बहुत तेज बारिश शुरू हो जाती है।"
+          "text": "वे ईस्ट इंडिया कंपनी के शासन के खिलाफ थे।"
         }
       ]
     },
@@ -264,9 +264,10 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 2,
           "effects": {
@@ -282,10 +283,9 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 1,
           "effects": {
@@ -305,12 +305,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.24,
+        "intensity": 0.25,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -321,7 +321,7 @@
       "lines": [
         {
           "character": null,
-          "text": "यह कोई हल्कीफुल्की फुहार नहीं है बल्कि हवा के तेज झोंकों के साथ होने वाली ऐसी लगातार बारिश है जो पूरे दिन, पूरी रात और अगले दिन तक रुकने का नाम नहीं लेती।"
+          "text": "[चीखने की आवाज़] लाहौर की मियां छावनी में तैनात 26वीं नेटिव इन्फेंट्री के भारतीय सैनिक भी इस उथल-पुथल का हिस्सा बन गए।"
         }
       ]
     },
@@ -335,10 +335,9 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 2,
           "effects": {
@@ -354,9 +353,10 @@
         },
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 1,
           "effects": {
@@ -376,7 +376,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -392,7 +392,7 @@
       "lines": [
         {
           "character": null,
-          "text": "इस मूसलाधार बारिश में आप शिकार नहीं कर सकते क्योंकि गीली मिट्टी ने जानवरों के पैरों के सभी निशान मिटा दिए हैं।"
+          "text": "जुलाई 1857 में विद्रोह के बाद लगभग 500 सैनिक छावनी से निकल गए और रावी नदी की ओर बढ़ने लगे।"
         }
       ]
     },
@@ -445,7 +445,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -461,7 +461,7 @@
       "lines": [
         {
           "character": null,
-          "text": "गीली और पथरीली जमीन पर नंगे पैर चलने से आपका एंकल मुड़ने का खतरा है जो सीधे मौत के फरमान के बराबर है।"
+          "text": "है लेकिन रावी के पास उनका सामना ब्रिटिश समर्थक बलों से हुआ। संघर्ष में बड़ी संख्या में सैनिक मारे गए।"
         }
       ]
     },
@@ -475,8 +475,9 @@
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 0.85
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.5
           },
           "weight": 2,
           "effects": {
@@ -492,9 +493,8 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
+            "type": "candle",
+            "glow": 0.85
           },
           "weight": 1,
           "effects": {
@@ -514,7 +514,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -530,7 +530,7 @@
       "lines": [
         {
           "character": null,
-          "text": "पास की नदी का जलस्तर बढ़ रहा है और आपकी जीवन बचाने वाली आग धीरे-धीरे बुझ रही है।"
+          "text": "जो सैनिक बच गए वे अपनी जान बचाने के लिए अलग-अलग दिशाओं में बिखर गए।"
         }
       ]
     },
@@ -583,7 +583,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -599,7 +599,7 @@
       "lines": [
         {
           "character": null,
-          "text": "आज जब बारिश होती है तो हम खिड़कियां बंद करके गर्म कॉफी पीते हैं।"
+          "text": "लेकिन उनमें से कई जल्द ही पकड़ ही पकड़ लिए गए। ऐतिहासिक रिकॉर्ड्स में लगभग 20082 सैनिकों के पकड़े जाने का उल्लेख मिलता है।"
         }
       ]
     },
@@ -654,12 +654,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.55,
+        "intensity": 0.56,
         "head": "right",
         "eyes": "right",
         "gesture": "explain"
@@ -670,7 +670,7 @@
       "lines": [
         {
           "character": null,
-          "text": "कंबल में घुसकर आराम महसूस करते हैं और सोफे पर बैठकर Netflix का आनंद लेते हैं।"
+          "text": "उन्हें अजनाला लाया गया। कैद किए गए सैनिकों को एक बंद जगह में रखा गया।"
         }
       ]
     },
@@ -723,7 +723,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -739,7 +739,7 @@
       "lines": [
         {
           "character": null,
-          "text": "लेकिन 500 साल पहले हमारे पूर्वजों के लिए बारिश रिलैक्सिंग बैकग्राउंड नॉइज़ नहीं बल्कि जीवन और मृत्यु का ऐसा संकट थी जो उन्हें तीन घातक तरीकों से मार सकता था।"
+          "text": "उन्हें शायद उम्मीद थी कि उनके साथ कानूनी प्रक्रिया अपनाई जाएगी। लेकिन 1 अगस्त 1857 को इस कहानी ने बेहद भयावह मोड़ लिया।"
         }
       ]
     },
@@ -794,12 +794,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.58,
+        "intensity": 0.59,
         "head": "center",
         "eyes": "center",
         "gesture": "explain"
@@ -810,7 +810,7 @@
       "lines": [
         {
           "character": null,
-          "text": "तो आखिर प्राचीन मनुष्य क्या करते थे जब पूरे वीक लगातार बारिश होती थी।"
+          "text": "सरकारी रिकॉर्ड्स के अनुसार 237 कैदियों को गोली मार दी गई। बाकी 45 कैदियों को एक छोटी और बंद जगह में रखा गया।"
         }
       ]
     },
@@ -824,9 +824,8 @@
       "shots": [
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
+            "type": "candle",
+            "glow": 0.85
           },
           "weight": 2,
           "effects": {
@@ -842,8 +841,9 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 0.85
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.5
           },
           "weight": 1,
           "effects": {
@@ -863,12 +863,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.45,
+        "intensity": 0.46,
         "head": "right",
         "eyes": "right",
         "gesture": "none"
@@ -879,7 +879,7 @@
       "lines": [
         {
           "character": null,
-          "text": "उनका जवाब मानव इतिहास और हमारे एववोल्यूशन का सबसे बड़ा सीक्रेट है।"
+          "text": "रिकॉर्ड के अनुसार गर्मी और दम घुटने के कारण उनकी भी मौत हो गई।"
         }
       ]
     },
@@ -893,9 +893,10 @@
       "shots": [
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 2,
           "effects": {
@@ -911,10 +912,9 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 1,
           "effects": {
@@ -923,7 +923,7 @@
             "dust": 0.25,
             "zoom": 0.035,
             "drift": "in",
-            "shake": 0.18
+            "shake": 0.19
           },
           "transition": {
             "type": "crossfade",
@@ -935,12 +935,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.61,
+        "intensity": 0.62,
         "head": "left",
         "eyes": "left",
         "gesture": "explain"
@@ -951,7 +951,7 @@
       "lines": [
         {
           "character": null,
-          "text": "प्राचीन समय में बारिश होने पर सबसे पहला खतरा बोडम नहीं बल्कि पूरी ह्यूमन पॉपुलेशन का नष्ट हो जाना था।"
+          "text": "इसके बाद उन 282 मृत सैनिकों के शवों को अजनाला के एक पुराने कुएं में डाल दिया गया।"
         }
       ]
     },
@@ -1004,12 +1004,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.46,
+        "intensity": 0.48,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -1020,84 +1020,12 @@
       "lines": [
         {
           "character": null,
-          "text": "लंबे समय तक चलने वाले रेनस्टॉर्म के दौरान मानव शरीर पर तीन घातक हमले होते थे। पहला खतरा था भीषण ठंड और हाइपोथर्मिया।"
+          "text": "कुएं को मिट्टी और दूसरे सामान से भर दिया गया। समय बीतता गया और उसके आसपास निर्माण भी होता चला गया।"
         }
       ]
     },
     {
       "id": "scene-015",
-      "beat": "approach",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in",
-            "shake": 0.19
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#040810"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.63,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "मेडिकल रियलिटी यह है कि एक गीला मानव शरीर सूखे शरीर की तुलना में 25 गुना तेजी से शरीर की गर्मी खो देता है।"
-        }
-      ]
-    },
-    {
-      "id": "scene-016",
       "beat": "reveal",
       "headline": "",
       "subtext": "",
@@ -1147,99 +1075,6 @@
           "visual": {
             "type": "candle",
             "glow": 1.0
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.34,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#040810"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.86,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "अगर एनवायरमेंटल टेंपरेचर 50° फारेनहाइट यानी अराउंड 10° सेल्सियस से नीचे चला जाए तो वाटरप्रूफ कपड़ों और मजबूत शेल्टर्स के बिना किसी भी इंसान के शरीर का कोर बॉडी टेंपरेचर कुछ ही घंटों में हाइपोथर्मिया रेंज तक गिर सकता था।"
-        }
-      ]
-    },
-    {
-      "id": "scene-017",
-      "beat": "reveal",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 1.0
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -1260,14 +1095,14 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.88,
-        "head": "center",
-        "eyes": "center",
+        "intensity": 0.87,
+        "head": "right",
+        "eyes": "right",
         "gesture": "explain"
       },
       "padBefore": 0.0,
@@ -1276,12 +1111,12 @@
       "lines": [
         {
           "character": null,
-          "text": "ठंड से मौत की यह समस्या केवल बर्फीले यूरोप तक सीमित नहीं थी बल्कि अफ्रीका के वर्षा ऋतु वाले ऊंचे क्षेत्रों में भी पाषाण युग के मनुष्यों की जान ले लेती थी।"
+          "text": "धीरे-धीरे यह घटना लोगों की नजरों से लगभग गायब हो गई। लेकिन उस कुएं की कहानी पूरी तरह खत्म नहीं हुई थी।"
         }
       ]
     },
     {
-      "id": "scene-018",
+      "id": "scene-016",
       "beat": "reveal",
       "headline": "",
       "subtext": "",
@@ -1353,14 +1188,14 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.9,
-        "head": "right",
-        "eyes": "right",
+        "intensity": 0.89,
+        "head": "left",
+        "eyes": "left",
         "gesture": "explain"
       },
       "padBefore": 0.0,
@@ -1369,12 +1204,12 @@
       "lines": [
         {
           "character": null,
-          "text": "दूसरा खतरा था अचानक आने वाली विनाशकारी बाढ़।"
+          "text": "एक पुरानी किताब में इस घटना का रिकॉर्ड मौजूद था। इसी पुराने रिकॉर्ड ने दबे हुए इतिहास की ओर फिर ध्यान खींचा।"
         }
       ]
     },
     {
-      "id": "scene-019",
+      "id": "scene-017",
       "beat": "reveal",
       "headline": "",
       "subtext": "",
@@ -1383,8 +1218,10 @@
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 2,
           "effects": {
@@ -1401,10 +1238,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -1422,15 +1257,17 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
             "vignette": 0.8,
             "grain": 0.35,
             "dust": 0.25,
-            "shake": 0.37,
+            "shake": 0.36,
             "zoom": 0.04,
             "drift": "in"
           },
@@ -1444,14 +1281,14 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.91,
-        "head": "left",
-        "eyes": "left",
+        "intensity": 0.9,
+        "head": "center",
+        "eyes": "center",
         "gesture": "explain"
       },
       "padBefore": 0.0,
@@ -1460,7 +1297,147 @@
       "lines": [
         {
           "character": null,
-          "text": "पाषाण युग के मनुष्य जीवित रहने के लिए मुख्य रूप से गुफाओं और चट्टानों के नीचे बने शेल्टर्स में रहते थे।"
+          "text": "बाद में वैज्ञानिस्टिक्स ने मिले अवशेषों की जांच शुरू की। इसमें फॉरेंसिक एंथ्रोपोलॉजी और दंत जांच जैसी वैज्ञानिक तकनीकों का इस्तेमाल हुआ।"
+        }
+      ]
+    },
+    {
+      "id": "scene-018",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.3,
+            "lit": true
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.25,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "fog",
+            "density": 0.4,
+            "glow": 0.6
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.25,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": null,
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0d0804"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.46,
+        "head": "right",
+        "eyes": "right",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "शोध में कुछ अवशेषों के संकेत पंजाब के स्थानीय लोगों से अलग है और पूर्वी भारत के अलग-अलग क्षेत्रों से जुड़े मिले।"
+        }
+      ]
+    },
+    {
+      "id": "scene-019",
+      "beat": "react",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "fog",
+            "density": 0.4,
+            "glow": 0.6
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.25,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "house",
+            "fog": 0.3,
+            "lit": true
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.7,
+            "grain": 0.25,
+            "dust": 0.2,
+            "zoom": 0.02,
+            "drift": "out"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": null,
+      "soundCues": [],
+      "background": {
+        "type": "color",
+        "color": "#0d0804"
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.47,
+        "head": "left",
+        "eyes": "left",
+        "gesture": "none"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "डीएनए और आइसोटोप अध्ययन जैसी तकनीकों से [संगीत] भी इन अवशेषों के बारे में जानकारी जुटाने की कोशिश की गई।"
         }
       ]
     },
@@ -1514,12 +1491,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.47,
+        "intensity": 0.48,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -1530,13 +1507,13 @@
       "lines": [
         {
           "character": null,
-          "text": "यह शेल्टर्स अक्सर हिल साइड्स के बेस पर या नदियों के पास स्थित होते थे।"
+          "text": "[संगीत] आज यह स्थान शहीदा खूह यानी शहीदों का कुआं के नाम से जाना जाता है।"
         }
       ]
     },
     {
       "id": "scene-021",
-      "beat": "react",
+      "beat": "resolve",
       "headline": "",
       "subtext": "",
       "bullets": [],
@@ -1545,14 +1522,14 @@
         {
           "visual": {
             "type": "house",
-            "fog": 0.3,
+            "fog": 0.2,
             "lit": true
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
+            "vignette": 0.68,
+            "grain": 0.22,
+            "dust": 0.18,
             "zoom": 0.02,
             "drift": "out"
           },
@@ -1562,15 +1539,15 @@
         },
         {
           "visual": {
-            "type": "fog",
-            "density": 0.4,
-            "glow": 0.6
+            "type": "forest",
+            "fog": 0.3,
+            "moonlight": 0.7
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
+            "vignette": 0.68,
+            "grain": 0.22,
+            "dust": 0.18,
             "zoom": 0.02,
             "drift": "out"
           },
@@ -1584,12 +1561,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.47,
+        "intensity": 0.37,
         "head": "right",
         "eyes": "right",
         "gesture": "none"
@@ -1600,13 +1577,13 @@
       "lines": [
         {
           "character": null,
-          "text": "जब बहुत तेज बारिश होती थी, तो यही गुफाएं बाढ़ के जाल में बदल जाती थी।"
+          "text": "1857 में [संगीत] जिस कुएं में एक कहानी दबा दी गई थी।"
         }
       ]
     },
     {
       "id": "scene-022",
-      "beat": "react",
+      "beat": "resolve",
       "headline": "",
       "subtext": "",
       "bullets": [],
@@ -1614,15 +1591,15 @@
       "shots": [
         {
           "visual": {
-            "type": "fog",
-            "density": 0.4,
-            "glow": 0.6
+            "type": "house",
+            "fog": 0.2,
+            "lit": true
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
+            "vignette": 0.68,
+            "grain": 0.22,
+            "dust": 0.18,
             "zoom": 0.02,
             "drift": "out"
           },
@@ -1632,15 +1609,15 @@
         },
         {
           "visual": {
-            "type": "house",
+            "type": "forest",
             "fog": 0.3,
-            "lit": true
+            "moonlight": 0.7
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
+            "vignette": 0.68,
+            "grain": 0.22,
+            "dust": 0.18,
             "zoom": 0.02,
             "drift": "out"
           },
@@ -1654,12 +1631,12 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#040810"
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.48,
+        "intensity": 0.38,
         "head": "left",
         "eyes": "left",
         "gesture": "none"
@@ -1670,160 +1647,19 @@
       "lines": [
         {
           "character": null,
-          "text": "आर्कियोलॉजिस्ट को केव एक्सकवेशन में बाढ़ के पानी द्वारा जमा की गई तलछट की मोटी परतें मिली हैं।"
-        }
-      ]
-    },
-    {
-      "id": "scene-023",
-      "beat": "resolve",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.2,
-            "lit": true
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.3,
-            "moonlight": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#040810"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.37,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "जिससे प्रूव होता है कि बाढ़ का पानी उन गुफाओं के अंदर रहने वाले मनुष्यों तक पहुंच गया था और उन्हें उन गुफाओं को हमेशा के लिए छोड़ना पड़ा था।"
-        }
-      ]
-    },
-    {
-      "id": "scene-024",
-      "beat": "resolve",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.3,
-            "moonlight": 0.7
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.2,
-            "lit": true
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#040810"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.38,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "तीसरा और सबसे भयावह खतरा था शिकारी जानवरों का एक ही स्थान पर सिमट आना।"
+          "text": "557 साल बाद उसी कुएं ने इतिहास का एक भूला हुआ पन्ना फिर खोल दिया।"
         }
       ]
     }
   ],
   "audioModel": "indicf5",
   "visualMode": "image",
-  "animationStyle": "stickman",
   "blueprint": {
-    "minutes": 1.0,
-    "seconds": 60.0,
-    "sceneCount": 24,
-    "totalWords": 115,
-    "wordsPerScene": 5,
+    "minutes": 3.61,
+    "seconds": 216.6,
+    "sceneCount": 22,
+    "totalWords": 415,
+    "wordsPerScene": 19,
     "wpm": 115,
     "movements": [
       {
@@ -1834,7 +1670,7 @@
           2
         ],
         "sceneCount": 2,
-        "words": 10,
+        "words": 38,
         "range": [
           1,
           2
@@ -1849,7 +1685,7 @@
           5
         ],
         "sceneCount": 3,
-        "words": 15,
+        "words": 57,
         "range": [
           3,
           5
@@ -1864,7 +1700,7 @@
           8
         ],
         "sceneCount": 3,
-        "words": 15,
+        "words": 57,
         "range": [
           6,
           8
@@ -1879,204 +1715,59 @@
           11,
           12,
           13,
-          14,
-          15
+          14
         ],
-        "sceneCount": 7,
-        "words": 35,
+        "sceneCount": 6,
+        "words": 114,
         "range": [
           9,
-          15
+          14
         ]
       },
       {
         "key": "climax",
         "weight": 0.16,
         "scenes": [
+          15,
           16,
-          17,
-          18,
-          19
+          17
         ],
-        "sceneCount": 4,
-        "words": 20,
+        "sceneCount": 3,
+        "words": 57,
         "range": [
-          16,
-          19
+          15,
+          17
         ]
       },
       {
         "key": "resolution",
         "weight": 0.14,
         "scenes": [
-          20,
-          21,
-          22
+          18,
+          19,
+          20
         ],
         "sceneCount": 3,
-        "words": 15,
+        "words": 57,
         "range": [
-          20,
-          22
+          18,
+          20
         ]
       },
       {
         "key": "button",
         "weight": 0.08,
         "scenes": [
-          23,
-          24
+          21,
+          22
         ],
         "sceneCount": 2,
-        "words": 10,
+        "words": 38,
         "range": [
-          23,
-          24
+          21,
+          22
         ]
       }
     ]
-  },
-  "research": {
-    "seed": "Ancient Humans vs Deadly Rain",
-    "genre": "documentary",
-    "keywords": {
-      "seed": "Ancient Humans vs Deadly Rain",
-      "youtube_trending": [
-        "ancient humans",
-        "ancient humans were scary",
-        "ancient humans hunting",
-        "ancient humans edit",
-        "ancient humans documentary",
-        "ancient humans movie",
-        "ancient humans vs modern human",
-        "ancient humans were terrifying",
-        "ancient humans vs dinosaurs",
-        "ancient humans halo"
-      ],
-      "google_search": [
-        "ancient humans",
-        "ancient humans height",
-        "ancient humans are called",
-        "ancient humans halo",
-        "ancient humans found in amazon forest",
-        "ancient humans drawing",
-        "ancient humans pictures",
-        "ancient humans name"
-      ],
-      "questions_and_curiosity": [
-        "what happens when ancient humans got lost",
-        "why did ancient humans start drinking alcohol",
-        "what happens when ancient humans got injured",
-        "why did ancient humans enter the frozen north",
-        "what happens when ancient humans meet neanderthals",
-        "what happens when ancient humans meet strangers",
-        "why did ancient humans begin cooking",
-        "what happens when ancient humans get sick",
-        "why did ancient humans evolve in africa",
-        "why did ancient humans die young"
-      ],
-      "long_tail_keywords": [
-        "ancient humans pictures",
-        "ancient humans lifespan",
-        "ancient humans drawing",
-        "ancient humans were terrifying",
-        "ancient humans found in amazon forest",
-        "ancient humans were scary",
-        "ancient humans documentary",
-        "the secret lives of ancient humans",
-        "ancient humans",
-        "ancient humans height",
-        "ancient humans vs modern human",
-        "ancient humans edit"
-      ]
-    },
-    "ai_synthesis": {
-      "concepts": [
-        {
-          "title": "जब बारिश ने पूरी मानव जाति को मिटाने की कसम खाई",
-          "hook": "सोचिए, अगर आसमान से लगातार 100 साल तक पानी गिरे, तो क्या बचेगा कोई?",
-          "core_angle": "The psychological twist: Ancient humans faced not just rain but a century-long deluge that turned the world into a death trap, and survival meant breaking every instinct.",
-          "recommended_topic_arg": "Ancient humans vs deadly rain: How a 100-year mega-rain almost wiped out early humans, and the extreme adaptations they made to survive",
-          "target_emotion": "dread"
-        },
-        {
-          "title": "बारिश की बूंदें जो जान लेती थीं",
-          "hook": "आज बारिश जीवन देती है, लेकिन पुराने इंसानों के लिए यह ज़हर थी।",
-          "core_angle": "The psychological twist: Rain carried invisible killers—ancient humans didn't know that water itself could be lethal, leading to mysterious deaths and panic.",
-          "recommended_topic_arg": "The deadly rain that poisoned ancient humans: How contaminated water and acid rain killed early humans and how they discovered safe water",
-          "target_emotion": "shock"
-        },
-        {
-          "title": "वो बारिश जिसने इंसान को गुफा में कैद कर दिया",
-          "hook": "क्या आप जानते हैं, एक समय ऐसा आया जब इंसान महीनों तक गुफा से बाहर नहीं निकल सका?",
-          "core_angle": "The psychological twist: Endless rain forced ancient humans into isolation, causing psychological breakdown and societal collapse—a survival story of confinement.",
-          "recommended_topic_arg": "When endless rain trapped ancient humans in caves: The psychological and social impact of prolonged isolation during prehistoric deluges",
-          "target_emotion": "curiosity"
-        },
-        {
-          "title": "बारिश से बचने के लिए इंसानों ने क्या किया?",
-          "hook": "अगर आपके पास छत न हो और बारिश कभी न रुके, तो आप क्या करेंगे?",
-          "core_angle": "The psychological twist: Ancient humans didn't just hide—they invented entirely new technologies and social structures, turning a disaster into a catalyst for civilization.",
-          "recommended_topic_arg": "How ancient humans survived deadly rain: The ingenious inventions and strategies that turned a deadly threat into a stepping stone for civilization",
-          "target_emotion": "wonder"
-        },
-        {
-          "title": "बारिश का वो तूफान जिसने निएंडरथल को मिटा दिया",
-          "hook": "क्या मौसम ने निएंडरथल को खत्म कर दिया? एक भयानक बारिश की कहानी।",
-          "core_angle": "The psychological twist: A catastrophic rain event may have been the final nail in the coffin for Neanderthals, giving modern humans an edge—a story of survival and extinction.",
-          "recommended_topic_arg": "The deadly rain that wiped out Neanderthals: How a prehistoric climate catastrophe gave modern humans the advantage",
-          "target_emotion": "dread"
-        }
-      ],
-      "seo_tags": [
-        "ancient humans",
-        "deadly rain",
-        "prehistoric disaster",
-        "ancient survival",
-        "mega rain",
-        "ancient humans documentary",
-        "neanderthal extinction",
-        "ancient humans vs nature",
-        "rain apocalypse",
-        "ancient humans hindi"
-      ],
-      "recommended_hashtags": [
-        "#AncientHumans",
-        "#DeadlyRain",
-        "#Prehistoric",
-        "#Documentary",
-        "#Hindi"
-      ]
-    }
-  },
-  "keywords": [
-    "ancient humans",
-    "ancient humans were scary",
-    "ancient humans hunting",
-    "ancient humans edit",
-    "ancient humans documentary",
-    "ancient humans movie",
-    "ancient humans vs modern human",
-    "ancient humans were terrifying",
-    "ancient humans vs dinosaurs",
-    "ancient humans halo",
-    "ancient humans height",
-    "ancient humans are called",
-    "ancient humans found in amazon forest",
-    "ancient humans drawing",
-    "ancient humans pictures",
-    "ancient humans name",
-    "what happens when ancient humans got lost",
-    "why did ancient humans start drinking alcohol",
-    "what happens when ancient humans got injured",
-    "why did ancient humans enter the frozen north",
-    "what happens when ancient humans meet neanderthals",
-    "what happens when ancient humans meet strangers",
-    "why did ancient humans begin cooking",
-    "what happens when ancient humans get sick",
-    "why did ancient humans evolve in africa",
-    "why did ancient humans die young",
-    "ancient humans lifespan",
-    "the secret lives of ancient humans"
-  ]
+  }
 }

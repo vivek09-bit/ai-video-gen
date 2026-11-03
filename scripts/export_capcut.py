@@ -204,7 +204,8 @@ def export_to_capcut(
                 "category_name": "local",
                 "material_name": visual_path.name,
                 "crop_ratio": "free",
-                "has_audio": is_video,
+                # Mute background video audio so it doesn't double-play with the narration track
+                "has_audio": False,
             })
 
             video_segments.append({
@@ -213,7 +214,7 @@ def export_to_capcut(
                 "source_timerange": {"start": 0, "duration": duration_us},
                 "target_timerange": {"start": current_time_us, "duration": duration_us},
                 "speed": 1.0,
-                "volume": 1.0,
+                "volume": 0.0,
                 "clip": {
                     "scale": {"x": 1.0, "y": 1.0},
                     "rotation": 0.0,
