@@ -22,6 +22,7 @@ import argparse
 import base64
 import hashlib
 import json
+import io
 import os
 import re
 import sys
@@ -30,6 +31,9 @@ from typing import Callable, Optional
 import urllib.request
 import urllib.error
 import time
+
+import requests
+from PIL import Image
 
 
 def load_env_file(path: str | Path = ".env") -> None:

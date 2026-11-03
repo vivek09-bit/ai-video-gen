@@ -813,7 +813,7 @@ def report(args, target_sec: float | None = None) -> None:
         return
     timing = json.loads(GENERATED.read_text(encoding="utf-8"))["timings"]
     actual = timing["totalDuration"]
-    target_seconds = target_sec if target_sec is not None else (args.seconds if getattr(args, "seconds", None) else args.minutes * 60)
+    target_seconds = target_sec if target_sec is not None else (args.seconds if getattr(args, "seconds", None) else (args.minutes or 1.0) * 60)
     delta = actual - target_seconds
     print(f"  target : {target_seconds / 60:.2f} min ({target_seconds:.0f}s)")
     print(f"  actual : {actual / 60:.2f} min ({actual:.0f}s)")
@@ -1231,7 +1231,12 @@ def main() -> int:
         action="store_true",
         help="skip the live search-demand analysis and SEO research step",
     )
-    parser.add_argument("--minutes", type=float, default=1.0, help="target length in minutes (default 1.0)")
+    parser.add_argument(
+        "--minutes",
+        type=float,
+        default=None,
+        help="target length in minutes (default: auto-calculated from --narration text, or 1.0)",
+    )
     parser.add_argument(
         "--seconds",
         "--sec",
@@ -2091,14 +2096,21 @@ def main() -> int:
     )
 
     narration_scenes_count = None
+    target_minutes = args.minutes
     if getattr(args, "narration", None) and Path(args.narration).exists():
         _, raw_blocks = story.parse_blocks(Path(args.narration).read_text(encoding="utf-8"))
         if raw_blocks:
             narration_scenes_count = len(raw_blocks)
+            if target_minutes is None and not args.seconds:
+                total_script_words = sum(s.words for s in raw_blocks)
+                target_minutes = max(0.2, round(total_script_words / max(60, effective_wpm), 2))
+
+    if target_minutes is None:
+        target_minutes = 1.0
 
     planned = beats.plan(
         args.topic,
-        args.minutes,
+        target_minutes,
         seconds=args.seconds,
         scenes=args.scenes or narration_scenes_count,
         genre=target_genre,

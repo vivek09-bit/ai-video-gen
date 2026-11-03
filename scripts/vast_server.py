@@ -701,6 +701,9 @@ def _clean_audio_glitches(audio, max_jump: float = 0.35):
     x = np.asarray(audio, dtype=np.float32)
     if x.size < 3:
         return x
+    peak = float(np.max(np.abs(x))) if x.size else 0.0
+    if peak > 1.0:
+        x = x / 32768.0 if peak > 100.0 else x / peak
     diff = np.diff(x)
     bad_indices = np.where(np.abs(diff) > max_jump)[0]
     if len(bad_indices) == 0:
@@ -764,6 +767,10 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
             chunk_np = np.asarray(audio).squeeze().astype(np.float32)
             if chunk_np.ndim > 1:
                 chunk_np = chunk_np.mean(axis=0)
+            peak = float(np.max(np.abs(chunk_np))) if chunk_np.size else 0.0
+            if peak > 1.0:
+                chunk_np = chunk_np / 32768.0 if peak > 100.0 else chunk_np / peak
+            chunk_np = np.clip(chunk_np, -1.0, 1.0)
             if chunk_np.size > 0:
                 audio_chunks.append(chunk_np)
 
