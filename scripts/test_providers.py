@@ -735,63 +735,74 @@ def test_vast_setup_resilience() -> None:
     assert slow_bad == [], "a slow host must not be blacklisted"
 
     # 3. The install is guarded by a marker so a restarted instance never reinstalls.
-    onstart = VastManager.server_onstart_command()
-    assert ".tube2dscript_deps_ready" in onstart, "onstart must guard the install with a marker"
-    assert "uv pip install --system" in onstart, "onstart must install with uv"
-    assert "command -v git" in onstart, "the Git-backed IndicF5 runtime requires a git preflight"
-    assert onstart.index("apt done") < onstart.index("uv pip install"), (
-        "dependency installation must wait for apt to provide git"
-    )
-    assert "git clone" in onstart and onstart.index("apt done") < onstart.index("git clone"), (
-        "the repo must be cloned only after apt guarantees git"
-    )
-    assert "torch.version.cuda" in onstart, "onstart must report the CUDA build it ended up with"
+    old_deps_flag = os.environ.pop("VAST_IMAGE_HAS_DEPS", None)
+    old_onstart_flag = os.environ.pop("VAST_SERVER_ONSTART_CMD", None)
+    old_image_flag = os.environ.pop("VAST_SERVER_IMAGE", None)
+    try:
+        onstart = VastManager.server_onstart_command()
+        assert ".tube2dscript_deps_ready" in onstart, "onstart must guard the install with a marker"
+        assert "uv pip install --system" in onstart, "onstart must install with uv"
+        assert "command -v git" in onstart, "the Git-backed IndicF5 runtime requires a git preflight"
+        assert onstart.index("apt done") < onstart.index("uv pip install"), (
+            "dependency installation must wait for apt to provide git"
+        )
+        assert "git clone" in onstart and onstart.index("apt done") < onstart.index("git clone"), (
+            "the repo must be cloned only after apt guarantees git"
+        )
+        assert "torch.version.cuda" in onstart, "onstart must report the CUDA build it ended up with"
 
-    # 5. The torch family must be resolved from the image's own CUDA index, otherwise a
-    #    torchaudio wheel built for a different CUDA version may be pulled in, which the
-    #    image's torch cannot load; that surfaced only at first synthesis as
-    #    "Could not load .../torchaudio/lib/libtorchaudio.so" and an opaque HTTP 500.
-    assert "--torch-backend=cu124" in onstart, (
-        "the onstart must pin the torch index to the image's CUDA build (cuda12.4 -> cu124)"
-    )
-    assert "torchaudio" in onstart, "torchaudio must be installed and verified explicitly"
-    assert "torchaudio==2.4.0" in onstart, (
-        "torchaudio must be PINNED to the image's torch version: resolving it freely "
-        "installs a newer torchaudio whose ABI does not match the image's torch"
-    )
-    assert "torchaudio.__version__" in onstart, (
-        "the onstart must compare the torch and torchaudio versions, not merely import them"
-    )
+        # 5. The torch family must be resolved from the image's own CUDA index, otherwise a
+        #    torchaudio wheel built for a different CUDA version may be pulled in, which the
+        #    image's torch cannot load; that surfaced only at first synthesis as
+        #    "Could not load .../torchaudio/lib/libtorchaudio.so" and an opaque HTTP 500.
+        assert "--torch-backend=cu124" in onstart, (
+            "the onstart must pin the torch index to the image's CUDA build (cuda12.4 -> cu124)"
+        )
+        assert "torchaudio" in onstart, "torchaudio must be installed and verified explicitly"
+        assert "torchaudio==2.4.0" in onstart, (
+            "torchaudio must be PINNED to the image's torch version: resolving it freely "
+            "installs a newer torchaudio whose ABI does not match the image's torch"
+        )
+        assert "torchaudio.__version__" in onstart, (
+            "the onstart must compare the torch and torchaudio versions, not merely import them"
+        )
 
-    # 4. Prefetch is caller-driven AND defaults to the full set the pipeline can ask for.
-    #    A deps-only image ships no weights, so the default must cover LTX and FLUX too;
-    #    otherwise every fresh instance pays for them lazily at the first image/video
-    #    request (~42 GB of egress per rental).
-    ltx_onstart = VastManager.server_onstart_command(prefetch_models=["jbilcke-hf/LTX-Video-2b"])
-    assert "jbilcke-hf/LTX-Video-2b" in ltx_onstart
-    assert "jbilcke-hf/LTX-Video-2b" in VastManager.server_onstart_command(), (
-        "the default prefetch must include the LTX checkpoint the video pipeline needs"
-    )
-    default_onstart = VastManager.server_onstart_command()
-    assert "black-forest-labs/FLUX.1-schnell" in default_onstart, (
-        "the default prefetch must include the FLUX checkpoint the image pipeline needs"
-    )
-    assert "ai4bharat/IndicF5" in default_onstart, (
-        "the default prefetch must include the IndicF5 narration runtime"
-    )
-    # Each repo is prefetched by its OWN snapshot_download call, so one failure cannot
-    # discard the repos that already finished.
-    assert default_onstart.count("snapshot_download(") == 3, (
-        "each prefetch repo must get its own snapshot_download call"
-    )
+        # 4. Prefetch is caller-driven AND defaults to the full set the pipeline can ask for.
+        #    A deps-only image ships no weights, so the default must cover LTX and FLUX too;
+        #    otherwise every fresh instance pays for them lazily at the first image/video
+        #    request (~42 GB of egress per rental).
+        ltx_onstart = VastManager.server_onstart_command(prefetch_models=["jbilcke-hf/LTX-Video-2b"])
+        assert "jbilcke-hf/LTX-Video-2b" in ltx_onstart
+        assert "jbilcke-hf/LTX-Video-2b" in VastManager.server_onstart_command(), (
+            "the default prefetch must include the LTX checkpoint the video pipeline needs"
+        )
+        default_onstart = VastManager.server_onstart_command()
+        assert "black-forest-labs/FLUX.1-schnell" in default_onstart, (
+            "the default prefetch must include the FLUX checkpoint the image pipeline needs"
+        )
+        assert "ai4bharat/IndicF5" in default_onstart, (
+            "the default prefetch must include the IndicF5 narration runtime"
+        )
+        # Each repo is prefetched by its OWN snapshot_download call, so one failure cannot
+        # discard the repos that already finished.
+        assert default_onstart.count("snapshot_download(") == 3, (
+            "each prefetch repo must get its own snapshot_download call"
+        )
 
-    # 5. The render stack is NOT part of the onstart dependency marker. The onstart only
-    #    runs at container creation, so anything inside that marker would never reach a
-    #    warm-reused instance -- which is exactly what Fix 1 hands back.
-    plain_stack = VastManager.server_onstart_command()
-    assert "nodejs" not in plain_stack and "fonts-noto-core" not in plain_stack, (
-        "the render stack must not be installed by the onstart script"
-    )
+        # 5. The render stack is NOT part of the onstart dependency marker. The onstart only
+        #    runs at container creation, so anything inside that marker would never reach a
+        #    warm-reused instance -- which is exactly what Fix 1 hands back.
+        plain_stack = VastManager.server_onstart_command()
+        assert "nodejs" not in plain_stack and "fonts-noto-core" not in plain_stack, (
+            "the render stack must not be installed by the onstart script"
+        )
+    finally:
+        if old_deps_flag is not None:
+            os.environ["VAST_IMAGE_HAS_DEPS"] = old_deps_flag
+        if old_onstart_flag is not None:
+            os.environ["VAST_SERVER_ONSTART_CMD"] = old_onstart_flag
+        if old_image_flag is not None:
+            os.environ["VAST_SERVER_IMAGE"] = old_image_flag
     ssh_stack = VastManager.render_stack_shell()
     assert "nodejs" in ssh_stack, "the render stack must install Node"
     assert "fonts-noto-core" in ssh_stack, (
@@ -828,28 +839,36 @@ def test_vast_setup_resilience() -> None:
 
     # 7. The speed filter relaxes instead of returning nothing.
     calls: list[str] = []
-    tiered = VastManager(api_key="test-key")
+    old_cap = os.environ.get("VAST_MAX_INET_DOWN")
+    os.environ["VAST_MAX_INET_DOWN"] = "400"
+    try:
+        tiered = VastManager(api_key="test-key")
 
-    def tiered_cli(args: list[str]) -> str:
-        query = args[2] if args[0] == "search" and len(args) > 2 else ""
-        calls.append(query)
-        if "inet_down>1000" in query:
-            return "[]"  # strict tier matches nothing
-        return json.dumps([{"id": 99, "dph_total": 0.2, "machine_id": 5, "inet_down": 150}])
+        def tiered_cli(args: list[str]) -> str:
+            query = args[2] if args[0] == "search" and len(args) > 2 else ""
+            calls.append(query)
+            if "inet_down>1000" in query:
+                return "[]"  # strict tier matches nothing
+            return json.dumps([{"id": 99, "dph_total": 0.2, "machine_id": 5, "inet_down": 150}])
 
-    tiered.run_cli = tiered_cli  # type: ignore[method-assign]
-    offers = tiered.search_gpu("RTX 3090", min_inet_down=1000, min_disk_bw=500)
-    assert len(offers) == 1, "the relaxed tier must still find an offer"
-    assert any("inet_down>1000" in q for q in calls), "the strict tier must be tried first"
-    assert any("inet_down>100" in q and "inet_down>1000" not in q for q in calls), (
-        "the relaxed tier must be tried second"
-    )
-    # 7b. The download cap applies to every tier, including the last-resort query.
-    assert all("inet_down<400" in q for q in calls), "the VAST_MAX_INET_DOWN cap must not relax"
-    tiered.run_cli = lambda args: json.dumps(  # type: ignore[method-assign]
-        [{"id": 101, "dph_total": 0.2, "machine_id": 7, "inet_down": 900}]
-    )
-    assert tiered.search_gpu("RTX 3090") == [], "an offer above the download cap must be dropped"
+        tiered.run_cli = tiered_cli  # type: ignore[method-assign]
+        offers = tiered.search_gpu("RTX 3090", min_inet_down=1000, min_disk_bw=500)
+        assert len(offers) == 1, "the relaxed tier must still find an offer"
+        assert any("inet_down>1000" in q for q in calls), "the strict tier must be tried first"
+        assert any("inet_down>100" in q and "inet_down>1000" not in q for q in calls), (
+            "the relaxed tier must be tried second"
+        )
+        # 7b. The download cap applies to every tier, including the last-resort query.
+        assert all("inet_down<400" in q for q in calls), "the VAST_MAX_INET_DOWN cap must not relax"
+        tiered.run_cli = lambda args: json.dumps(  # type: ignore[method-assign]
+            [{"id": 101, "dph_total": 0.2, "machine_id": 7, "inet_down": 900}]
+        )
+        assert tiered.search_gpu("RTX 3090") == [], "an offer above the download cap must be dropped"
+    finally:
+        if old_cap is None:
+            os.environ.pop("VAST_MAX_INET_DOWN", None)
+        else:
+            os.environ["VAST_MAX_INET_DOWN"] = old_cap
 
     # 8. An over-budget offer is still rejected regardless of the speed filters.
     tiered.run_cli = lambda args: json.dumps([{"id": 100, "dph_total": 9.99, "machine_id": 6}])  # type: ignore[method-assign]
@@ -1273,27 +1292,35 @@ def test_gpu_resume_and_batch() -> None:
     #    without enough disk or RAM cannot host the job, and renting it fails later in a
     #    far more confusing way than refusing here.
     queries: list[str] = []
-    probe = VastManager(api_key="test-key")
+    old_cap_6 = os.environ.get("VAST_MAX_INET_DOWN")
+    os.environ["VAST_MAX_INET_DOWN"] = "400"
+    try:
+        probe = VastManager(api_key="test-key")
 
-    def _empty_cli(args: list[str]) -> str:
-        query = args[2] if args[0] == "search" and len(args) > 2 else ""
-        queries.append(query)
-        return "[]"
+        def _empty_cli(args: list[str]) -> str:
+            query = args[2] if args[0] == "search" and len(args) > 2 else ""
+            queries.append(query)
+            return "[]"
 
-    probe.run_cli = _empty_cli  # type: ignore[method-assign]
-    assert probe.search_gpu("RTX 3090", min_disk=50) == []
-    assert queries, "the offer search must have run"
-    final_query = queries[-1]
-    for clause in ("gpu_name=RTX_3090", "num_gpus=1", "rented=False", "disk_space>=50", "cpu_ram>=32", "dph<0.4"):
-        assert clause in final_query, (
-            f"the last-resort query dropped {clause!r}: {final_query!r}"
+        probe.run_cli = _empty_cli  # type: ignore[method-assign]
+        assert probe.search_gpu("RTX 3090", min_disk=50) == []
+        assert queries, "the offer search must have run"
+        final_query = queries[-1]
+        for clause in ("gpu_name=RTX_3090", "num_gpus=1", "rented=False", "disk_space>=50", "cpu_ram>=32", "dph<0.4"):
+            assert clause in final_query, (
+                f"the last-resort query dropped {clause!r}: {final_query!r}"
+            )
+        assert "inet_down>100" not in final_query, (
+            "the last-resort query may relax the speed floor, but nothing else"
         )
-    assert "inet_down>100" not in final_query, (
-        "the last-resort query may relax the speed floor, but nothing else"
-    )
-    assert "inet_down<400" in final_query, (
-        "the download cap is not a preference: it must survive the last-resort query"
-    )
+        assert "inet_down<400" in final_query, (
+            "the download cap is not a preference: it must survive the last-resort query"
+        )
+    finally:
+        if old_cap_6 is None:
+            os.environ.pop("VAST_MAX_INET_DOWN", None)
+        else:
+            os.environ["VAST_MAX_INET_DOWN"] = old_cap_6
 
     # 7. Megabyte-level disk jitter must not count as install progress. A host that never
     #    installs anything is broken, not slow: waiting out the whole budget wastes the run,

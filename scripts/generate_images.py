@@ -159,25 +159,25 @@ STYLE_ALIASES: dict[str, str] = {
 }
 
 
-def get_animation_style(name: str | None) -> dict[str, str] | None:
-    """Resolve an animation style name or alias to its style definition dict."""
+def resolve_style_key(name: str | None) -> str | None:
+    """Resolve an animation style name or alias to its canonical key."""
     if not name:
         return None
-    key = name.strip().lower().replace("-", "_").replace(" ", "_")
-    if key in ANIMATION_STYLES:
-        return ANIMATION_STYLES[key]
-    target = STYLE_ALIASES.get(key)
-    if target and target in ANIMATION_STYLES:
-        return ANIMATION_STYLES[target]
-    return None
+    k = name.strip().lower().replace("-", "_").replace(" ", "_")
+    if k in ANIMATION_STYLES:
+        return k
+    return STYLE_ALIASES.get(k)
+
+
+def get_animation_style(name: str | None) -> dict[str, str] | None:
+    """Resolve an animation style name or alias to its style definition dict."""
+    canonical = resolve_style_key(name)
+    return ANIMATION_STYLES.get(canonical) if canonical else None
 
 
 def is_stickman_style(name: str | None) -> bool:
     """Return True if the style name or alias maps to stickman animation."""
-    if not name:
-        return False
-    key = name.strip().lower().replace("-", "_").replace(" ", "_")
-    return key == "stickman" or STYLE_ALIASES.get(key) == "stickman"
+    return resolve_style_key(name) == "stickman"
 
 
 def list_animation_styles() -> list[dict[str, str]]:
@@ -939,19 +939,98 @@ def build_background_prompt(
                 visual_words.append("moonlight illumination")
 
     style_name = animation_style or scene.get("animationStyle") or scene.get("visualStyle")
-    if is_stickman_style(style_name):
+    style_key = resolve_style_key(style_name)
+
+    if style_key == "stickman":
         parts = [
-            f"minimalist stickman cartoon setting depicting {bg_subject}",
-            "clean stark white background paper canvas",
-            "sparse black pen doodle outlines for environmental props",
-            "clean negative space",
-            "flat 2D webcomic backdrop without 3D clutter",
+            f"minimalist 2D stickman cartoon setting of {bg_subject}",
+            "clean stark white paper canvas background",
+            "minimal black pen line art outlines for environmental props",
+            "spacious clean white negative space, zero 3D clutter, flat 2D line art",
         ]
         if visual_words:
-            unique_visuals = list(dict.fromkeys(visual_words))
-            parts.append(f"simple line art doodle of {', '.join(unique_visuals)}")
-        if beat:
-            parts.append(f"simple doodle {beat} scene layout")
+            clean_v = [w for w in set(visual_words) if not any(k in w for k in ("mist", "fog", "creeping", "volumetric"))]
+            if clean_v:
+                parts.append(f"simple line art doodle of {', '.join(clean_v)}")
+        return ", ".join(parts)
+
+    if style_key == "documentary":
+        parts = [
+            f"2D historical archival etching of {bg_subject}",
+            "aged antique parchment paper background with subtle vintage wear",
+            "detailed copperplate engraving linework with fine cross-hatching",
+            "classic 18th century historical print aesthetic, rich sepia and muted earth pigments",
+        ]
+        if visual_words:
+            parts.append(f"featuring historical {', '.join(set(visual_words))}")
+        return ", ".join(parts)
+
+    if style_key == "flat_vector":
+        parts = [
+            f"modern flat 2D vector infographic environment depicting {bg_subject}",
+            "crisp geometric vector silhouettes with clean razor-sharp outlines",
+            "vibrant solid color blocking with subtle smooth gradients",
+            "minimalist Kurzgesagt infographic aesthetic, zero photographic clutter",
+        ]
+        if visual_words:
+            clean_v = [w for w in set(visual_words) if not any(k in w for k in ("mist", "fog", "creeping", "volumetric"))]
+            if clean_v:
+                parts.append(f"flat vector geometric {', '.join(clean_v)}")
+        return ", ".join(parts)
+
+    if style_key == "ink_doodle":
+        parts = [
+            f"hand-drawn ink pen sketch of {bg_subject} on textured warm ivory paper",
+            "delicate black fountain pen line art with cross-hatching and stippled shading",
+            "soft watercolor wash tint accents",
+            "artisanal MinutePhysics notebook doodle aesthetic with clean negative space",
+        ]
+        if visual_words:
+            parts.append(f"pen sketch of {', '.join(set(visual_words))}")
+        return ", ".join(parts)
+
+    if style_key == "dark_cinematic":
+        parts = [
+            f"dark graphic novel noir environment depicting {bg_subject}",
+            "dramatic heavy black ink shadows with high-contrast chiaroscuro lighting",
+            "moody atmospheric graphic composition, angular comic book silhouettes",
+            "Mike Mignola comic noir aesthetic with deep ink blacks",
+        ]
+        if visual_words:
+            parts.append(f"atmospheric {', '.join(set(visual_words))}")
+        return ", ".join(parts)
+
+    if style_key == "anime_cel":
+        parts = [
+            f"scenic 2D anime watercolor background depicting {bg_subject}",
+            "hand-painted Studio Ghibli environmental landscape with lush painted details",
+            "soft cinematic golden-hour atmospheric lighting and painterly sky",
+            "classic Japanese animation scenery with delicate linework",
+        ]
+        if visual_words:
+            parts.append(f"lush painted {', '.join(set(visual_words))}")
+        return ", ".join(parts)
+
+    if style_key == "whiteboard":
+        parts = [
+            f"clean whiteboard animation setting illustrating {bg_subject}",
+            "glossy bright white dry-erase whiteboard background with subtle reflective sheen",
+            "bold black dry-erase marker outline drawings and diagrammatic icons",
+            "RSA Animate educational visual scribe aesthetic, high contrast clarity",
+        ]
+        if visual_words:
+            parts.append(f"dry-erase marker doodle of {', '.join(set(visual_words))}")
+        return ", ".join(parts)
+
+    if style_key == "vintage_retro":
+        parts = [
+            f"classic 1930s rubber-hose cartoon background depicting {bg_subject}",
+            "vintage hand-inked animation cel on aged painted cardboard",
+            "authentic 1930s film grain, subtle dust scratches, and halftone dot printing texture",
+            "Fleischer Studios and Cuphead retro theatrical cartoon backdrop, muted Technicolor",
+        ]
+        if visual_words:
+            parts.append(f"vintage cartoon {', '.join(set(visual_words))}")
         return ", ".join(parts)
 
     parts = [bg_subject]
@@ -981,7 +1060,7 @@ def build_character_prompt(
     characters_dict: dict | None = None,
     animation_style: str | None = None,
 ) -> str:
-    """Build the character(s)/subject prompt component."""
+    """Build the character(s)/subject prompt component tailored to the visual animation style."""
     acting = scene.get("acting") or {}
     emotion = acting.get("emotion") or scene.get("emotion", "").strip() or "serious"
     head = acting.get("head")
@@ -989,7 +1068,7 @@ def build_character_prompt(
     gesture = acting.get("gesture")
 
     style_name = animation_style or scene.get("animationStyle") or scene.get("visualStyle")
-    is_stick = is_stickman_style(style_name)
+    style_key = resolve_style_key(style_name)
 
     # 1. Check if characters are explicitly cast in the scene
     cast = scene.get("cast", [])
@@ -1000,6 +1079,7 @@ def build_character_prompt(
             char_info = (characters_dict or {}).get(cast_id, {})
             name = char_info.get("name") or cast_id.title()
             hair = char_info.get("hairstyle")
+            acc = char_info.get("accessory")
 
             member_acting = member.get("acting") or acting
             mem_emotion = member_acting.get("emotion") or emotion
@@ -1008,12 +1088,12 @@ def build_character_prompt(
             mem_gesture = member_acting.get("gesture") or gesture
 
             pos_desc = "left side of frame" if member.get("x", 0.5) < 0.45 else ("right side of frame" if member.get("x", 0.5) > 0.55 else "center frame")
+            gaze = mem_head or mem_eyes
 
-            if is_stick:
+            if style_key == "stickman":
                 stick_features = []
                 if hair and hair not in ("bald", "none"):
                     stick_features.append(f"simple doodle {hair} hair lines")
-                acc = char_info.get("accessory")
                 if acc and acc != "none":
                     stick_features.append(f"minimalist stick {acc}")
                 feat_str = f" ({', '.join(stick_features)})" if stick_features else ""
@@ -1022,17 +1102,105 @@ def build_character_prompt(
                     f"expressive {mem_emotion} cartoon face, thin stick torso and limbs in exaggerated {mem_gesture or 'animated'} pose, "
                     f"positioned at {pos_desc}"
                 )
-                if mem_head or mem_eyes:
-                    gaze = mem_head or mem_eyes
+                if gaze:
                     desc += f", head turned {gaze}"
-            else:
-                hair_desc = f"{hair} hair" if hair else "detailed hairstyle"
-                desc = f"{name}, {hair_desc}, {mem_emotion} expression, positioned at {pos_desc}"
-                if mem_head or mem_eyes:
-                    gaze = mem_head or mem_eyes
+
+            elif style_key == "documentary":
+                hair_desc = f"{hair} hair" if hair else "period-appropriate hairstyle"
+                acc_desc = f", wearing {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"authentic 2D historical archival figure of {name}, {hair_desc}{acc_desc}, "
+                    f"solemn {mem_emotion} expression, period attire, fine copperplate engraved detail, "
+                    f"positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", looking {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", {mem_gesture} posture"
+
+            elif style_key == "flat_vector":
+                hair_desc = f"{hair} hair" if hair else "geometric hairstyle"
+                acc_desc = f", stylized {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"clean modern 2D flat vector character of {name}, {hair_desc}{acc_desc}, "
+                    f"crisp geometric silhouette, bold solid color fills, stylized {mem_emotion} face, "
+                    f"{mem_gesture or 'dynamic'} pose, positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", facing {gaze}"
+
+            elif style_key == "ink_doodle":
+                hair_desc = f"{hair} hair" if hair else "hand-drawn hair"
+                acc_desc = f", with {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"hand-drawn black ink pen sketch of {name}, intricate cross-hatching, {hair_desc}{acc_desc}, "
+                    f"lively {mem_emotion} facial expression, organic textured ink linework, "
+                    f"positioned at {pos_desc}"
+                )
+                if gaze:
                     desc += f", looking {gaze}"
                 if mem_gesture and mem_gesture != "none":
                     desc += f", {mem_gesture} gesture"
+
+            elif style_key == "dark_cinematic":
+                hair_desc = f"{hair} hair" if hair else "shadowed hair"
+                acc_desc = f", with {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"dramatic graphic novel noir character of {name}, {hair_desc}{acc_desc}, "
+                    f"heavy black ink shadows, sharp rim lighting, intense {mem_emotion} expression, "
+                    f"positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", glancing {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", {mem_gesture} posture"
+
+            elif style_key == "anime_cel":
+                hair_desc = f"{hair} hair" if hair else "anime hairstyle"
+                acc_desc = f", anime {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"vibrant 2D anime cel animation character of {name}, stylized {hair_desc}{acc_desc}, "
+                    f"large expressive anime eyes with emotional highlights, {mem_emotion} expression, "
+                    f"clean anime linework, positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", head turned {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", {mem_gesture} action"
+
+            elif style_key == "whiteboard":
+                hair_desc = f"{hair} hair" if hair else "marker-sketched hair"
+                acc_desc = f", drawn with {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"dry-erase marker whiteboard cartoon of {name}, bold marker linework, {hair_desc}{acc_desc}, "
+                    f"expressive simple {mem_emotion} cartoon face, educational marker sketch pose, "
+                    f"positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", facing {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", gesturing {mem_gesture}"
+
+            elif style_key == "vintage_retro":
+                hair_desc = f"{hair} hair" if hair else "classic 1930s cartoon hair"
+                acc_desc = f", wearing {acc}" if acc and acc != "none" else ""
+                desc = (
+                    f"classic 1930s rubber-hose cartoon character of {name}, vintage pie-eyes, white gloves, {hair_desc}{acc_desc}, "
+                    f"bouncy noodle limbs in exaggerated {mem_emotion} pose, retro animation cel aesthetic, "
+                    f"positioned at {pos_desc}"
+                )
+                if gaze:
+                    desc += f", looking {gaze}"
+
+            else:
+                hair_desc = f"{hair} hair" if hair else "detailed hairstyle"
+                acc_desc = f", wearing {acc}" if acc and acc != "none" else ""
+                desc = f"{name}, {hair_desc}{acc_desc}, {mem_emotion} expression, positioned at {pos_desc}"
+                if gaze:
+                    desc += f", looking {gaze}"
+                if mem_gesture and mem_gesture != "none":
+                    desc += f", {mem_gesture} gesture"
+
             char_descriptions.append(desc)
         return "; ".join(char_descriptions)
 
@@ -1040,13 +1208,42 @@ def build_character_prompt(
     shots = scene.get("shots", [])
     shot_types = [s.get("visual", {}).get("type") for s in shots if s.get("visual")]
     if "figure" in shot_types:
-        if is_stick:
-            return f"mysterious shadowy 2D black stick figure silhouette in distance, {emotion} presence, minimalist line art composition"
-        return f"mysterious shadowy silhouette figure in distance, {emotion} presence, shrouded in ambient darkness"
+        if style_key == "stickman":
+            return f"mysterious 2D black stick figure silhouette in distance, {emotion} posture, minimalist line art composition"
+        if style_key == "documentary":
+            return f"distant 2D archival historical figure silhouette, antique copperplate engraving scale, {emotion} presence"
+        if style_key == "flat_vector":
+            return f"clean geometric 2D flat vector human silhouette in distance, crisp solid color shape, minimal graphic design"
+        if style_key == "ink_doodle":
+            return f"delicate hand-inked pen silhouette figure in distance, fine cross-hatching, organic textured paper sketch"
+        if style_key == "dark_cinematic":
+            return f"dramatic graphic novel noir silhouette shrouded in heavy ink shadows, sharp high-contrast rim lighting, {emotion} presence"
+        if style_key == "anime_cel":
+            return f"scenic 2D anime character silhouette in distance against dramatic painted sky, cel-shaded anime aesthetic"
+        if style_key == "whiteboard":
+            return f"quick dry-erase marker cartoon silhouette sketched in background, bold marker outline on clean whiteboard"
+        if style_key == "vintage_retro":
+            return f"1930s vintage rubber-hose cartoon silhouette in distance, retro animation cel proportions, vintage film texture"
+        return f"mysterious shadowy silhouette figure in distance, {emotion} presence, cinematic ambient lighting"
+
     if "eyes" in shot_types:
-        if is_stick:
+        if style_key == "stickman":
             return f"giant comically exaggerated cartoon eyes popping out, {emotion} shock, hilarious stick figure reaction"
-        return f"eerie glowing eyes piercing through darkness, {emotion} intense stare"
+        if style_key == "documentary":
+            return f"intense historical engraved portrait focus on human eyes, antique copperplate cross-hatching, deep {emotion} gaze"
+        if style_key == "flat_vector":
+            return f"stylized flat 2D vector eye graphic close-up, sharp geometric lines, clean solid colors, expressive {emotion} glance"
+        if style_key == "ink_doodle":
+            return f"intricate hand-drawn fountain pen eye sketch, fine black ink cross-hatching, expressive {emotion} gaze"
+        if style_key == "dark_cinematic":
+            return f"piercing eyes emerging from deep black comic noir shadows, stark chiaroscuro lighting, intense {emotion} stare"
+        if style_key == "anime_cel":
+            return f"detailed 2D anime eye close-up, vibrant multi-layered iris highlights, emotional {emotion} expression, beautiful anime art"
+        if style_key == "whiteboard":
+            return f"expressive dry-erase marker cartoon eyes sketch, bold black marker strokes with simple {emotion} highlights"
+        if style_key == "vintage_retro":
+            return f"classic 1930s vintage cartoon pie-cut eyes, dramatic wide cartoon expression, retro rubber-hose animation detail"
+        return f"intense focused eyes in dramatic lighting, {emotion} expressive gaze"
 
     # 3. Check for character entities in scene narrative/corpus
     extracted_keywords = extract_script_visual_keywords(scene, topic, genre)
@@ -1056,13 +1253,41 @@ def build_character_prompt(
     ]
     if found_chars:
         char_label = " ".join(found_chars[:3])
-        if is_stick:
+        if style_key == "stickman":
             return f"hilarious 2D black line stick figure character ({char_label}), round head with exaggerated {emotion} facial expression, funny stick limbs in dynamic {gesture or 'animated'} gesture"
+        if style_key == "documentary":
+            return f"archival 2D historical illustration of {char_label}, antique copperplate engraving realism, period attire, {emotion} presence"
+        if style_key == "flat_vector":
+            return f"modern flat 2D vector character illustration depicting {char_label}, crisp geometric shapes, solid color fills, {emotion} posture"
+        if style_key == "ink_doodle":
+            return f"hand-drawn black ink pen sketch of {char_label}, fine cross-hatched shading, expressive {emotion} character demeanor"
+        if style_key == "dark_cinematic":
+            return f"moody graphic novel character illustration of {char_label}, dramatic heavy ink shadows, intense {emotion} demeanor"
+        if style_key == "anime_cel":
+            return f"expressive 2D anime character illustration of {char_label}, clean cel linework, stylized hair and vibrant {emotion} expression"
+        if style_key == "whiteboard":
+            return f"dry-erase marker whiteboard illustration of {char_label}, bold marker outlines and diagrammatic cartoon charm"
+        if style_key == "vintage_retro":
+            return f"vintage 1930s rubber-hose cartoon character of {char_label}, classic retro animation styling, whimsical {emotion} pose"
         return f"{char_label} character, {emotion} expression and dramatic posture"
 
     # 4. Solitary/Uninhabited scene fallback
-    if is_stick:
+    if style_key == "stickman":
         return f"expressive 2D black line stick figure narrator, round circle head with {emotion} cartoon expression, thin stick arms and legs in funny animated posture, engaging the audience, center frame"
+    if style_key == "documentary":
+        return "uninhabited archival historical setting, antique copperplate engraving detail, stillness and historic gravity, no people present"
+    if style_key == "flat_vector":
+        return "uninhabited flat vector graphic composition, clean geometric architecture and negative space, modern infographic clarity, no people present"
+    if style_key == "ink_doodle":
+        return "uninhabited hand-inked architectural sketch, delicate fountain pen lines and cross-hatching, serene paper stillness, no people present"
+    if style_key == "dark_cinematic":
+        return "uninhabited graphic novel noir scenery, deep atmospheric ink shadows, silent moody tension, no people present"
+    if style_key == "anime_cel":
+        return "serene scenic 2D anime background art, beautiful hand-painted landscape, peaceful Ghibli atmosphere, no people present"
+    if style_key == "whiteboard":
+        return "clean whiteboard diagram composition, educational marker charts and visual concepts, bright organized layout, no people present"
+    if style_key == "vintage_retro":
+        return "uninhabited 1930s vintage cartoon background scenery, antique painted animation cel backdrop, nostalgic retro stillness, no people present"
     return "uninhabited scenic composition, no people present, solitary perspective, quiet stillness"
 
 
@@ -1163,7 +1388,7 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
         return "openai", key, model or "dall-e-3"
     if provider == "vast":
         key = os.environ.get("VAST_API_KEY", "")
-        return "vast", key or "vast", model or "black-forest-labs/FLUX.1-schnell"
+        return "vast", key or "vast", model or "black-forest-labs/flux-3-image-klein"
 
     # Default to local SSD-1B generation
     return "local", "local", model or "segmind/SSD-1B"
@@ -2153,7 +2378,7 @@ def generate_vast(
 
     headers = {"Content-Type": "application/json"}
     req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=180) as resp:
+    with urllib.request.urlopen(req, timeout=300) as resp:
         res_data = json.loads(resp.read().decode("utf-8"))
         if res_data.get("status") == "success" and "image_base64" in res_data:
             return base64.b64decode(res_data["image_base64"])

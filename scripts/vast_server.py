@@ -261,7 +261,7 @@ def get_vram_info() -> dict[str, Any]:
     return {"available": False}
 
 
-def load_flux_pipeline(model_id: str = "black-forest-labs/FLUX.1-schnell"):
+def load_flux_pipeline(model_id: str = "black-forest-labs/flux-3-image-klein"):
     """Load FLUX pipeline onto GPU in bfloat16 / fp8."""
     global _FLUX_PIPE
     if _FLUX_PIPE is not None:
@@ -277,18 +277,23 @@ def load_flux_pipeline(model_id: str = "black-forest-labs/FLUX.1-schnell"):
         if "3" in model_id.lower() or "flux-3" in model_id.lower():
             target_repo = "black-forest-labs/flux-3-image-klein" if "/" not in model_id else model_id
             try:
+                # Pop prompt_upsampler (an 18.8GB external model) so the pipeline loads
+                # only the prefetched 5.6B BF16 distilled weights in seconds.
+                from diffusers.modular_pipelines import Flux3DistilledAutoBlocks
+                blocks = Flux3DistilledAutoBlocks()
+                blocks.sub_blocks.pop("prompt_upsampler", None)
+                print(f"[Vast Server] Loading FLUX.3 distilled pipeline for {target_repo}...")
+                pipe = blocks.init_pipeline(target_repo)
+                pipe.load_components(dtype=torch_dtype, token=_hub_token())
+            except Exception as e_blocks:
+                print(f"[Vast Server Warning] Flux3DistilledAutoBlocks ({e_blocks}), trying ModularPipeline...")
                 from diffusers import ModularPipeline
-                print(f"[Vast Server] Loading FLUX.3 ModularPipeline for {target_repo}...")
                 pipe = ModularPipeline.from_pretrained(target_repo, token=_hub_token())
-                pipe.load_components(dtype=torch_dtype)
-            except Exception as e_mod:
-                print(f"[Vast Server Warning] ModularPipeline unavailable ({e_mod}), trying FluxPipeline...")
-                from diffusers import FluxPipeline
-                pipe = FluxPipeline.from_pretrained(
-                    target_repo,
-                    torch_dtype=torch_dtype,
-                    token=_hub_token(),
-                )
+                if hasattr(pipe, "blocks") and hasattr(pipe.blocks, "sub_blocks"):
+                    pipe.blocks.sub_blocks.pop("prompt_upsampler", None)
+                specs = getattr(pipe, "_component_specs", {})
+                component_names = [k for k in specs.keys() if "prompt_upsampler" not in k] or None
+                pipe.load_components(names=component_names, dtype=torch_dtype, token=_hub_token())
         elif "klein" in model_id.lower():
             if "/" not in model_id:
                 target_repo = (
@@ -499,7 +504,18 @@ def _prepare_indicf5_reference(voice: str) -> tuple[str, str]:
                    if (voices_dir / f"{stem}{extension}").is_file()), None)
     transcript = voices_dir / f"{stem}.txt"
     if source is None or not transcript.is_file():
-        raise RuntimeError(f"IndicF5 voice '{stem}' has no reference clip/transcript in {voices_dir}")
+        # Fall back to shipped prompts if the configured directory is missing this voice
+        repo = Path(__file__).resolve().parent.parent
+        shipped = repo / "public" / "audio" / "prompts" / "indicf5"
+        shipped_source = next((shipped / f"{stem}{extension}" for extension in INDICF5_AUDIO_EXTENSIONS
+                               if (shipped / f"{stem}{extension}").is_file()), None)
+        shipped_transcript = shipped / f"{stem}.txt"
+        if shipped_source is not None and shipped_transcript.is_file():
+            source = shipped_source
+            transcript = shipped_transcript
+            voices_dir = shipped
+        else:
+            raise RuntimeError(f"IndicF5 voice '{stem}' has no reference clip/transcript in {voices_dir}")
     reference_text = " ".join(transcript.read_text(encoding="utf-8-sig").split())
     if not reference_text:
         raise RuntimeError(f"IndicF5 voice '{stem}' has an empty reference transcript")
@@ -559,12 +575,29 @@ def load_indicf5_engine():
     torchaudio.load = load_with_soundfile
     print(f"[Vast Server] Loading IndicF5 model {INDICF5_REPOSITORY} on {DEVICE}...")
     _INDICF5_ENGINE = AutoModel.from_pretrained(
-        INDICF5_REPOSITORY, trust_remote_code=True, token=_hub_token()
+        INDICF5_REPOSITORY,
+        trust_remote_code=True,
+        token=_hub_token(),
+        low_cpu_mem_usage=False,
     )
+    target_device = torch.device(DEVICE)
     if hasattr(_INDICF5_ENGINE, "to"):
-        _INDICF5_ENGINE.to(DEVICE)
+        _INDICF5_ENGINE.to(target_device)
+    if hasattr(_INDICF5_ENGINE, "ema_model") and hasattr(_INDICF5_ENGINE.ema_model, "to"):
+        _INDICF5_ENGINE.ema_model.to(target_device)
+        if hasattr(_INDICF5_ENGINE.ema_model, "_orig_mod"):
+            _INDICF5_ENGINE.ema_model._orig_mod.to(target_device)
+    if hasattr(_INDICF5_ENGINE, "vocoder") and hasattr(_INDICF5_ENGINE.vocoder, "to"):
+        _INDICF5_ENGINE.vocoder.to(target_device)
+        if hasattr(_INDICF5_ENGINE.vocoder, "_orig_mod"):
+            _INDICF5_ENGINE.vocoder._orig_mod.to(target_device)
     if hasattr(_INDICF5_ENGINE, "eval"):
         _INDICF5_ENGINE.eval()
+    # Override `device` property so INF5Model.forward never resolves to meta device
+    try:
+        type(_INDICF5_ENGINE).device = property(lambda self: target_device)
+    except Exception:
+        pass
     print("[Vast Server] IndicF5 model loaded successfully.")
     return _INDICF5_ENGINE
 
@@ -720,7 +753,7 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
         matches = [(text, "")]
 
     audio_chunks = []
-    with torch.inference_mode():
+    with torch.no_grad():
         for chunk_text, punct in matches:
             chunk_text = chunk_text.strip()
             if not chunk_text:
@@ -860,7 +893,7 @@ class VastHandler(BaseHTTPRequestHandler):
         seed = req.get("seed")
 
         import torch
-        flux_model = req.get("model") or os.environ.get("FLUX_MODEL", "black-forest-labs/FLUX.1-schnell")
+        flux_model = req.get("model") or os.environ.get("FLUX_MODEL", "black-forest-labs/flux-3-image-klein")
         pipe = load_flux_pipeline(model_id=flux_model)
 
         generator = None
@@ -880,7 +913,15 @@ class VastHandler(BaseHTTPRequestHandler):
                 if generator is not None:
                     call_args["generator"] = generator
                 res = pipe(**call_args)
-                image = res[0] if isinstance(res, (list, tuple)) else getattr(res, "images", [res])[0]
+                if isinstance(res, (list, tuple)) and len(res) > 0:
+                    image = res[0]
+                elif isinstance(res, dict):
+                    imgs = res.get("images") or res.get("image")
+                    image = imgs[0] if isinstance(imgs, (list, tuple)) else imgs
+                elif hasattr(res, "images"):
+                    image = res.images[0]
+                else:
+                    image = res
             else:
                 image = pipe(
                     prompt=prompt,

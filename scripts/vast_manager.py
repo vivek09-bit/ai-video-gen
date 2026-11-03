@@ -123,7 +123,11 @@ def _image_torch_version(image: str) -> str:
     when the tag carries no usable version.
     """
     match = re.search(r"(\d+\.\d+\.\d+)", image or "")
-    return match.group(1) if match else ""
+    if match:
+        return match.group(1)
+    if "tube2dscript" in (image or ""):
+        return "2.4.0"
+    return ""
 
 
 def _image_torch_backend(image: str) -> str:
@@ -139,7 +143,7 @@ def _image_torch_backend(image: str) -> str:
     match = re.search(r"cuda(\d+)\.(\d+)", image or "")
     if match:
         return f"cu{match.group(1)}{match.group(2)}"
-    if "2.4.0" in (image or ""):
+    if "2.4.0" in (image or "") or "tube2dscript" in (image or ""):
         return "cu124"
     return "auto"
 
@@ -205,6 +209,14 @@ def pinned_offer() -> int | None:
         return None
 
 
+class PinnedOfferUnavailableError(RuntimeError):
+    """Raised when an explicitly selected/pinned GPU offer is no longer available on the market."""
+
+    def __init__(self, offer_id: int):
+        super().__init__(f"Selected GPU offer {offer_id} is no longer available (sold out or refilled).")
+        self.offer_id = offer_id
+
+
 def find_pinned_offer(offers: list[dict], offer_id: int) -> dict | None:
     """Return the offer matching `offer_id` from a fresh search, or None.
 
@@ -262,7 +274,7 @@ def save_pinned_offer(offer_id: int, env_path: Path | None = None) -> Path | Non
 def calculate_run_cost(
     offer: dict,
     run_minutes: float = 30.0,
-    download_gb: float = 16.0,
+    download_gb: float = 28.0,
     disk_gb: int = 50,
 ) -> dict:
     """Calculate the true session cost of renting an offer for a given run duration.
@@ -317,7 +329,7 @@ def describe_offer(
     index: int | None = None,
     disk_gb: int = 0,
     run_minutes: float = 30.0,
-    download_gb: float = 16.0,
+    download_gb: float = 28.0,
 ) -> list[str]:
     """Human-readable lines describing one offer's price, speed, storage and trust signals.
 
@@ -333,12 +345,6 @@ def describe_offer(
     vram_mb = _as_float(offer, "gpu_ram", 0.0)
 
     lines: list[str] = []
-    header = f"{prefix}Offer {oid}  {gpu}"
-    if vram_mb > 0:
-        header += f" {vram_mb / 1024:.0f}GB"
-    header += f"  ->  {format_rate(rate)}"
-    lines.append(header)
-
     # True session cost calculation (default 30m session + download)
     cost = calculate_run_cost(
         offer,
@@ -346,6 +352,13 @@ def describe_offer(
         download_gb=download_gb,
         disk_gb=disk_gb or 50,
     )
+
+    header = f"{prefix}Offer {oid}  {gpu}"
+    if vram_mb > 0:
+        header += f" {vram_mb / 1024:.0f}GB"
+    header += f"  ->  {format_rate(rate)}  [est. ${cost['total_cost']:.3f} all-in]"
+    lines.append(header)
+
     data_cost_str = "free" if cost["data_cost"] <= 0 else f"${cost['data_cost']:.3f}"
     lines.append(
         f"       {int(run_minutes)}m session : ${cost['total_cost']:.3f} total  "
@@ -674,10 +687,25 @@ class VastManager:
         "-o", "ConnectTimeout=20",
         "-o", "ServerAliveInterval=30",
         "-o", "ServerAliveCountMax=40",
+        "-o", "SetEnv=TMUX=1",
     )
+
+    @classmethod
+    def _user_ssh_identity_args(cls) -> list[str]:
+        """Find local SSH private keys (e.g. id_ed25519, id_rsa) and return -i args if present."""
+        ssh_dir = Path.home() / ".ssh"
+        for key_name in ("id_ed25519", "id_rsa", "id_ecdsa"):
+            key_file = ssh_dir / key_name
+            if key_file.is_file():
+                return ["-i", str(key_file)]
+        return []
 
     @staticmethod
     def _ssh_binary(name: str) -> str:
+        if sys.platform == "win32":
+            win_ssh = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "OpenSSH" / f"{name}.exe"
+            if win_ssh.is_file():
+                return str(win_ssh)
         found = shutil.which(name)
         if not found:
             raise RuntimeError(
@@ -709,10 +737,16 @@ class VastManager:
     def run_ssh(self, instance_id: int, command: str, timeout: int = 600) -> str:
         """Run a shell command on the instance over SSH and return its stdout."""
         host, port, user = self.ssh_target(instance_id)
-        cmd = [self._ssh_binary("ssh"), *self.SSH_OPTIONS, "-p", str(port), f"{user}@{host}", command]
+        cmd = [self._ssh_binary("ssh"), *self.SSH_OPTIONS, *self._user_ssh_identity_args(), "-p", str(port), f"{user}@{host}", command]
         try:
             res = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=timeout,
+                stdin=subprocess.DEVNULL,
             )
         except subprocess.TimeoutExpired as e:
             raise RuntimeError(f"SSH command timed out after {timeout}s on instance {instance_id}: {command[:120]}") from e
@@ -729,10 +763,16 @@ class VastManager:
         host, port, user = self.ssh_target(instance_id)
         remote = f"{user}@{host}:{remote_path}"
         source, destination = (local_path, remote) if upload else (remote, local_path)
-        cmd = [self._ssh_binary("scp"), *self.SSH_OPTIONS, "-P", str(port), "-q", source, destination]
+        cmd = [self._ssh_binary("scp"), *self.SSH_OPTIONS, *self._user_ssh_identity_args(), "-P", str(port), "-q", source, destination]
         try:
             res = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=3600, stdin=subprocess.DEVNULL
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=3600,
+                stdin=subprocess.DEVNULL,
             )
         except subprocess.TimeoutExpired as e:
             raise RuntimeError(f"File transfer timed out for instance {instance_id}") from e
@@ -804,6 +844,24 @@ class VastManager:
                 f"No complete IndicF5 voice reference files (.wav + .txt) found in "
                 f"{self.local_indicf5_voices_dir()}; the instance cannot narrate IndicF5."
             )
+        # If the instance already has IndicF5 reference clips baked into the image or volume,
+        # skip SSH upload entirely to avoid unnecessary transfer latency.
+        url = self.server_url
+        if not url:
+            try:
+                info = self.get_instance_info(instance_id)
+                url = self._resolve_server_url(info)
+            except Exception:
+                url = None
+        if url:
+            try:
+                health = self.check_health(url)
+                if health.get("indicf5_ready"):
+                    print(f"[Vast Manager] IndicF5 reference voices already present and ready on instance {instance_id}.")
+                    return len(paths)
+            except Exception:
+                pass
+
         max_attempts = 12
         for attempt in range(1, max_attempts + 1):
             try:
@@ -817,6 +875,93 @@ class VastManager:
                     raise
                 print(f"[Vast Manager Warning] Attempt {attempt}/{max_attempts} pushing IndicF5 voices failed (SSH key propagating?): {e}. Retrying in 6s...")
                 time.sleep(6)
+
+    def push_server_code(self, instance_id: int, timeout: int = 60, force: bool = True) -> bool:
+        """Push local scripts/vast_server.py to the container and reload the server so fixes apply immediately."""
+        url = self.server_url
+        if not url:
+            try:
+                info = self.get_instance_info(instance_id)
+                url = self._resolve_server_url(info)
+            except Exception:
+                url = None
+
+        local_script = ROOT / "scripts" / "vast_server.py"
+        if not local_script.is_file():
+            return False
+
+        # Verify SSH connection with retries for proxy routing and sshd startup propagation
+        max_attempts = 12
+        ssh_ready = False
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.run_ssh(
+                    instance_id,
+                    "mkdir -p /var/run/sshd /etc/ssh; pgrep -x sshd >/dev/null || /usr/sbin/sshd 2>/dev/null || true; touch /root/.no_auto_tmux ~/.no_auto_tmux 2>/dev/null; echo ok",
+                    timeout=15,
+                )
+                ssh_ready = True
+                break
+            except Exception as ssh_err:
+                if attempt == max_attempts:
+                    print(
+                        f"[Vast Manager Warning] SSH not ready on instance {instance_id} after {max_attempts} attempts ({ssh_err}); preserving existing server.",
+                        file=sys.stderr,
+                    )
+                    return False
+                print(f"[Vast Manager] Waiting for SSH port proxy on instance {instance_id} (attempt {attempt}/{max_attempts})...")
+                time.sleep(5)
+
+        destinations = [
+            "/workspace/tube2dscript/scripts/vast_server.py",
+            "/workspace/scripts/vast_server.py",
+        ]
+        pushed = False
+        for dest in destinations:
+            for push_att in range(3):
+                try:
+                    self.push_file(instance_id, local_script, dest)
+                    pushed = True
+                    break
+                except Exception:
+                    time.sleep(2)
+        if not pushed:
+            return False
+
+        reload_cmd = (
+            "touch ~/.no_auto_tmux /root/.no_auto_tmux 2>/dev/null || true; "
+            "pkill -f 'python.*vast_server.py' 2>/dev/null || true; sleep 2; "
+            "cd /workspace/tube2dscript 2>/dev/null || cd /workspace; "
+            "PYTHON_BIN=$(command -v /opt/conda/bin/python || command -v python3 || command -v python || echo 'python'); "
+            "nohup $PYTHON_BIN scripts/vast_server.py > /workspace/server.log 2>&1 < /dev/null & sleep 2"
+        )
+        max_attempts = 6
+        reloaded = False
+        for attempt in range(1, max_attempts + 1):
+            try:
+                self.run_ssh(instance_id, reload_cmd, timeout=timeout)
+                reloaded = True
+                break
+            except Exception as e:
+                if attempt == max_attempts:
+                    print(f"[Vast Manager Warning] Could not reload server on instance {instance_id}: {e}", file=sys.stderr)
+                    return False
+                print(f"[Vast Manager Warning] Attempt {attempt}/{max_attempts} reloading server failed (SSH key propagating?): {e}. Retrying in 5s...")
+                time.sleep(5)
+
+        if not reloaded:
+            return False
+
+        print(f"[Vast Manager] Synced latest scripts/vast_server.py to instance {instance_id} and waiting for server to become healthy...")
+        for _ in range(30):
+            time.sleep(1)
+            try:
+                if self.check_health(url).get("status") == "healthy":
+                    print(f"[Vast Manager] Server is healthy and running updated code.")
+                    return True
+            except Exception:
+                pass
+        return True
 
     @staticmethod
     def container_env_spec() -> str:
@@ -934,7 +1079,15 @@ class VastManager:
         try:
             # stdin is closed so a command that unexpectedly prompts for confirmation
             # fails fast instead of blocking the whole run forever.
-            res = subprocess.run(cmd, capture_output=True, text=True, check=True, stdin=subprocess.DEVNULL)
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=True,
+                stdin=subprocess.DEVNULL,
+            )
             return res.stdout.strip()
         except subprocess.CalledProcessError as e:
             err = e.stderr.strip() or e.stdout.strip()
@@ -1081,15 +1234,23 @@ class VastManager:
         # debugging a plain base image (VAST_SERVER_IMAGE unset).
         if os.environ.get("VAST_IMAGE_HAS_DEPS", "").strip() == "1":
             return (
-                "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
+                "touch /root/.no_auto_tmux ~/.no_auto_tmux /etc/skel/.no_auto_tmux 2>/dev/null || true; "
+                "mkdir -p /var/run/sshd /etc/ssh; ssh-keygen -A 2>/dev/null || true; "
+                "(command -v sshd >/dev/null 2>&1 || apt-get update && apt-get install -y --no-install-recommends openssh-server openssh-client tmux 2>/dev/null || true); "
+                "(pgrep -x sshd >/dev/null 2>&1 || /usr/sbin/sshd 2>/dev/null || service ssh start 2>/dev/null || true); "
+                "mkdir -p /workspace/indicf5-voices /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
                 f"{refresh_repo} "
+                "cp -rn /workspace/tube2dscript/public/audio/prompts/indicf5/* /workspace/indicf5-voices/ 2>/dev/null || true; "
                 "cd /workspace/tube2dscript; "
                 "echo 'starting server at $(hostname -i):8000'; "
-                "nohup python scripts/vast_server.py > /workspace/server.log 2>&1 & "
+                "nohup $(command -v /opt/conda/bin/python || command -v python3 || command -v python || echo 'python') scripts/vast_server.py > /workspace/server.log 2>&1 < /dev/null & "
                 "sleep 5; echo '--- server.log after start ---'; tail -30 /workspace/server.log; "
                 "echo 'onstart done, keeping container alive'; sleep infinity"
             )
         return (
+            "touch /root/.no_auto_tmux ~/.no_auto_tmux 2>/dev/null || true; "
+            "mkdir -p /var/run/sshd /etc/ssh; ssh-keygen -A 2>/dev/null || true; "
+            "(pgrep -x sshd >/dev/null 2>&1 || /usr/sbin/sshd 2>/dev/null || service ssh start 2>/dev/null || true); "
             "mkdir -p /workspace; exec > /workspace/onstart.log 2>&1; set -x; cd /workspace; "
             f"if {probe}; then "
             "echo '[onstart] dependencies already present in image, skipping apt and pip install'; "
@@ -1159,6 +1320,8 @@ class VastManager:
         min_disk: int = 40,
         min_inet_down: int | None = None,
         min_disk_bw: int | None = None,
+        run_minutes: float = 30.0,
+        download_gb: float = 28.0,
     ) -> list[dict]:
         """Search for a single GPU of the requested model inside the budget ceiling.
 
@@ -1282,7 +1445,41 @@ class VastManager:
         blocked = len(ordered) - len(capped) - len(affordable)
         if blocked:
             print(f"[Vast Manager] Skipped {blocked} {gpu_name} offer(s) on blacklisted machines.")
-        affordable.sort(key=hourly_rate)
+
+        # Enforce download fee ceiling: keep offers with download fees under $0.01/GB ($0.00x/GB)
+        max_inet_down_cost = float(os.environ.get("VAST_MAX_INET_DOWN_COST", "0.01"))
+        cheap_net = [
+            offer
+            for offer in affordable
+            if _as_float(offer, "inet_down_cost", 0.0) < max_inet_down_cost
+        ]
+        if cheap_net:
+            skipped_exp_net = len(affordable) - len(cheap_net)
+            if skipped_exp_net:
+                print(
+                    f"[Vast Manager] Filtered out {skipped_exp_net} {gpu_name} offer(s) with download "
+                    f"fees >= ${max_inet_down_cost:.2f}/GB (enforcing $0.00x/GB rates)."
+                )
+            affordable = cheap_net
+        elif affordable:
+            print(
+                f"[Vast Manager Warning] All available {gpu_name} offers charge >= ${max_inet_down_cost:.2f}/GB "
+                f"for download. Keeping offers but sorting by total cost.",
+                file=sys.stderr,
+            )
+
+        # Rank by actual cheapest total cost (compute + data download fee + disk storage prorated)
+        affordable.sort(
+            key=lambda o: (
+                calculate_run_cost(
+                    o,
+                    run_minutes=run_minutes,
+                    download_gb=download_gb,
+                    disk_gb=min_disk,
+                )["total_cost"],
+                hourly_rate(o),
+            )
+        )
         return affordable
 
     def search_rtx_4090(self, max_dph: float | None = None, min_disk: int = 40) -> list[dict]:
@@ -1338,8 +1535,10 @@ class VastManager:
         max_dph: float | None = None,
         limit: int = 15,
         auto_select: int | None = None,
+        run_minutes: float = 30.0,
+        download_gb: float = 28.0,
     ) -> dict | None:
-        """Show the available offers with full pricing/speed detail and let the user pick one.
+        """Show the available offers ranked by true total cost and let the user pick one.
 
         Prints every in-budget offer with its all-in rate, download/upload bandwidth and
         bandwidth price, storage rate for the requested disk, location, reliability and
@@ -1348,7 +1547,13 @@ class VastManager:
         offer dict, or None when there is nothing to choose from.
         """
         budget = gpu_budget(gpu_name) if max_dph is None else max_dph
-        offers = self.search_gpu_with_wait(gpu_name, max_dph=budget, min_disk=disk_gb)
+        offers = self.search_gpu_with_wait(
+            gpu_name,
+            max_dph=budget,
+            min_disk=disk_gb,
+            run_minutes=run_minutes,
+            download_gb=download_gb,
+        )
         if not offers:
             print(
                 f"\nNo available {gpu_name} offers under ${budget:.2f}/hr with at least "
@@ -1360,10 +1565,16 @@ class VastManager:
         shown = offers[: max(1, limit)]
         print()
         print("=" * 74)
-        print(f"CHOOSE A GPU: {gpu_name} (budget ${budget:.2f}/hr, disk {disk_gb}GB)")
+        print(f"CHOOSE A GPU: {gpu_name} (Ranked by actual session cost: compute + data + disk)")
         print("=" * 74)
         for index, offer in enumerate(shown, start=1):
-            for line in describe_offer(offer, index=index, disk_gb=disk_gb):
+            for line in describe_offer(
+                offer,
+                index=index,
+                disk_gb=disk_gb,
+                run_minutes=run_minutes,
+                download_gb=download_gb,
+            ):
                 print(line)
             print()
 
@@ -1427,6 +1638,8 @@ class VastManager:
         min_disk: int = 40,
         wait_sec: float | None = None,
         attempts: int | None = None,
+        run_minutes: float = 30.0,
+        download_gb: float = 28.0,
     ) -> list[dict]:
         """Search for offers, re-trying while the marketplace momentarily has none.
 
@@ -1444,7 +1657,13 @@ class VastManager:
         attempts = max(1, attempts)
 
         for attempt in range(1, attempts + 1):
-            offers = self.search_gpu(gpu_name, max_dph=max_dph, min_disk=min_disk)
+            offers = self.search_gpu(
+                gpu_name,
+                max_dph=max_dph,
+                min_disk=min_disk,
+                run_minutes=run_minutes,
+                download_gb=download_gb,
+            )
             if offers:
                 if attempt > 1:
                     print(f"[Vast Manager] Found {len(offers)} {gpu_name} offer(s) on attempt {attempt}.")
@@ -1568,6 +1787,9 @@ class VastManager:
         attempts: int = 3,
         max_dph: float | None = None,
         prefetch_models: list[str] | None = None,
+        run_minutes: float = 30.0,
+        download_gb: float = 28.0,
+        strict_pinned: bool = False,
     ) -> tuple[int, str]:
         """Rent a GPU, moving to the next offer when a host cannot pull the image.
 
@@ -1578,25 +1800,43 @@ class VastManager:
         resume hint rather than quietly burning a second setup.
         """
         limit = gpu_budget(gpu_name) if max_dph is None else max_dph
-        offers = self.search_gpu_with_wait(gpu_name, max_dph=limit, min_disk=disk_gb)
+        offers = self.search_gpu_with_wait(
+            gpu_name,
+            max_dph=limit,
+            min_disk=disk_gb,
+            run_minutes=run_minutes,
+            download_gb=download_gb,
+        )
         if not offers:
             raise RuntimeError(
                 f"No available {gpu_name} offers under ${limit:.2f}/hr with at least {disk_gb}GB "
                 f"disk after repeated searches."
             )
         # A pinned offer (from `--choosegpu`) is tried first, and only if it has vanished from
-        # the marketplace do we fall back to the cheapest in-budget host. Reordering rather
+        # the marketplace do we fall back to the actual cheapest in-budget host. Reordering rather
         # than hard-filtering keeps a pin from turning a transient sell-out into a hard abort.
         pinned = pinned_offer()
         if pinned is not None:
             match = find_pinned_offer(offers, pinned)
+            if match is None:
+                try:
+                    raw_offer = self.run_cli(["search", "offers", f"id={pinned}", "--raw"])
+                    direct_matches = json.loads(raw_offer) if raw_offer else []
+                    if direct_matches:
+                        match = direct_matches[0]
+                except Exception:
+                    pass
+
             if match is not None:
-                print(f"[Vast Manager] Pinned offer {pinned} is still available; trying it first.")
-                offers = [match] + [o for o in offers if o is not match]
+                print(f"[Vast Manager] Pinned offer {pinned} is available; trying it first.")
+                offers = [match] + [o for o in offers if int(o.get("id", 0)) != pinned]
+            elif strict_pinned:
+                raise PinnedOfferUnavailableError(pinned)
             else:
+                best_alt = offers[0].get("id") if offers else "none"
                 print(
                     f"[Vast Manager Warning] Pinned offer {pinned} is no longer available "
-                    "(sold out or refilled); falling back to the cheapest in-budget offer.",
+                    f"(sold out or refilled); falling back to actual cheapest offer {best_alt}.",
                     file=sys.stderr,
                 )
         total = min(attempts, len(offers))
@@ -2200,14 +2440,14 @@ class VastManager:
         before this check existed cannot answer it, and refusing them would strand them.
         """
         last_err = None
-        for attempt in range(3):
+        for attempt in range(6):
             try:
                 health = self.check_health(url)
                 break
             except Exception as e:
                 last_err = e
-                print(f"[Vast Manager]   health check attempt {attempt + 1}/3 failed: {type(e).__name__}; retrying...")
-                time.sleep(10)
+                print(f"[Vast Manager]   health check attempt {attempt + 1}/6 failed: {type(e).__name__}; retrying...")
+                time.sleep(5)
         else:
             raise RuntimeError(f"Vast server not reachable at {url}: {last_err}") from last_err
         actual = str(health.get("vram", {}).get("device_name", "")).upper()
@@ -2418,7 +2658,7 @@ def main() -> int:
     p_create.add_argument("--offer", type=int, default=None, help="Specific offer ID")
     p_create.add_argument("--choose", action="store_true", help="Interactively choose from available offers before renting")
     p_create.add_argument("--pick", type=int, default=None, help="Non-interactive pick position if --choose is used")
-    p_create.add_argument("--disk", type=int, default=60, help="Disk space in GB")
+    p_create.add_argument("--disk", type=int, default=80, help="Disk space in GB (default: 80)")
     p_create.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
 
     # Choose: show offers with price/speed/storage detail and pin one for the next rental
@@ -2427,7 +2667,7 @@ def main() -> int:
         help="List GPU offers with price, download speed/cost and storage cost, then pin one",
     )
     p_choose.add_argument("--gpu", type=str, default="RTX 4090", help="GPU model to choose from (e.g. 'RTX 4090', 'RTX 3090')")
-    p_choose.add_argument("--disk", type=int, default=60, help="Disk space in GB (drives the storage estimate)")
+    p_choose.add_argument("--disk", type=int, default=80, help="Disk space in GB (drives the storage estimate)")
     p_choose.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr (default: per-GPU budget)")
     p_choose.add_argument("--limit", type=int, default=15, help="How many offers to show (default: 15)")
     p_choose.add_argument(
@@ -2456,7 +2696,7 @@ def main() -> int:
         default=16.0,
         help="Expected model weights download size in GB (default: 16.0 for FLUX.2 Klein 9B + IndicF5)",
     )
-    p_best.add_argument("--disk", type=int, default=60, help="Disk space in GB (default: 60)")
+    p_best.add_argument("--disk", type=int, default=80, help="Disk space in GB (default: 80)")
     p_best.add_argument("--max-price", type=float, default=None, help="Max all-in $/hr budget")
     p_best.add_argument("--limit", type=int, default=5, help="Number of best offers to display (default: 5)")
     p_best.add_argument("--pin", action="store_true", help="Pin the #1 winning offer to .env for the next rental")

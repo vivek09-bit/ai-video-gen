@@ -1,6 +1,6 @@
 {
-  "title": "Script",
-  "topic": "Script",
+  "title": "Ancient Humans vs Deadly Rain",
+  "topic": "Ancient Humans vs Deadly Rain",
   "language": "hi",
   "genre": "documentary",
   "visualStyle": "stickman",
@@ -29,15 +29,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "desert_dusk",
-    "name": "Desert Dusk",
-    "accent": "#f97316",
-    "text": "#fff7ed",
-    "muted": "#ffedd5",
-    "panel": "rgba(40, 22, 10, 0.75)",
+    "key": "nordic_frost",
+    "name": "Nordic Frost",
+    "accent": "#38bdf8",
+    "text": "#f1f5f9",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.72)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0e0602"
+    "bg_color": "#040810"
   },
   "characters": {},
   "scenes": [
@@ -51,10 +51,9 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 2,
           "effects": {
@@ -70,9 +69,10 @@
         },
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 1,
           "effects": {
@@ -92,7 +92,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -122,10 +122,9 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 2,
           "effects": {
@@ -141,9 +140,10 @@
         },
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 1,
           "effects": {
@@ -163,7 +163,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -234,7 +234,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -305,7 +305,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -335,9 +335,10 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 2,
           "effects": {
@@ -353,10 +354,9 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 1,
           "effects": {
@@ -376,7 +376,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -445,7 +445,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -475,9 +475,8 @@
       "shots": [
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
+            "type": "candle",
+            "glow": 0.85
           },
           "weight": 2,
           "effects": {
@@ -493,8 +492,9 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 0.85
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.5
           },
           "weight": 1,
           "effects": {
@@ -514,7 +514,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -583,7 +583,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -613,10 +613,9 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 2,
           "effects": {
@@ -632,9 +631,10 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 1,
           "effects": {
@@ -654,7 +654,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -723,7 +723,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -794,7 +794,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -824,8 +824,9 @@
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 0.85
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.5
           },
           "weight": 2,
           "effects": {
@@ -841,9 +842,8 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
+            "type": "candle",
+            "glow": 0.85
           },
           "weight": 1,
           "effects": {
@@ -863,7 +863,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -893,10 +893,9 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 2,
           "effects": {
@@ -912,9 +911,10 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 1,
           "effects": {
@@ -935,7 +935,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1004,7 +1004,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1034,10 +1034,9 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 2,
           "effects": {
@@ -1053,9 +1052,10 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 1,
           "effects": {
@@ -1076,7 +1076,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1106,10 +1106,8 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 2,
           "effects": {
@@ -1126,8 +1124,10 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -1145,10 +1145,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -1169,7 +1167,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1262,7 +1260,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1292,8 +1290,10 @@
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 2,
           "effects": {
@@ -1310,10 +1310,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -1331,8 +1329,10 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -1353,7 +1353,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1383,10 +1383,8 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 2,
           "effects": {
@@ -1403,8 +1401,10 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -1422,10 +1422,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -1446,7 +1444,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1516,7 +1514,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1586,7 +1584,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1616,9 +1614,9 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true
+            "type": "fog",
+            "density": 0.4,
+            "glow": 0.6
           },
           "weight": 2,
           "effects": {
@@ -1634,9 +1632,9 @@
         },
         {
           "visual": {
-            "type": "fog",
-            "density": 0.4,
-            "glow": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true
           },
           "weight": 1,
           "effects": {
@@ -1656,7 +1654,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1686,9 +1684,9 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.3,
-            "moonlight": 0.7
+            "type": "house",
+            "fog": 0.2,
+            "lit": true
           },
           "weight": 2,
           "effects": {
@@ -1704,9 +1702,9 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.2,
-            "lit": true
+            "type": "forest",
+            "fog": 0.3,
+            "moonlight": 0.7
           },
           "weight": 1,
           "effects": {
@@ -1726,7 +1724,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1796,7 +1794,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0e0602"
+        "color": "#040810"
       },
       "cast": [],
       "acting": {
@@ -1937,5 +1935,148 @@
         ]
       }
     ]
-  }
+  },
+  "research": {
+    "seed": "Ancient Humans vs Deadly Rain",
+    "genre": "documentary",
+    "keywords": {
+      "seed": "Ancient Humans vs Deadly Rain",
+      "youtube_trending": [
+        "ancient humans",
+        "ancient humans were scary",
+        "ancient humans hunting",
+        "ancient humans edit",
+        "ancient humans documentary",
+        "ancient humans movie",
+        "ancient humans vs modern human",
+        "ancient humans were terrifying",
+        "ancient humans vs dinosaurs",
+        "ancient humans halo"
+      ],
+      "google_search": [
+        "ancient humans",
+        "ancient humans height",
+        "ancient humans are called",
+        "ancient humans halo",
+        "ancient humans found in amazon forest",
+        "ancient humans drawing",
+        "ancient humans pictures",
+        "ancient humans name"
+      ],
+      "questions_and_curiosity": [
+        "what happens when ancient humans got lost",
+        "why did ancient humans start drinking alcohol",
+        "what happens when ancient humans got injured",
+        "why did ancient humans enter the frozen north",
+        "what happens when ancient humans meet neanderthals",
+        "what happens when ancient humans meet strangers",
+        "why did ancient humans begin cooking",
+        "what happens when ancient humans get sick",
+        "why did ancient humans evolve in africa",
+        "why did ancient humans die young"
+      ],
+      "long_tail_keywords": [
+        "ancient humans pictures",
+        "ancient humans lifespan",
+        "ancient humans drawing",
+        "ancient humans were terrifying",
+        "ancient humans found in amazon forest",
+        "ancient humans were scary",
+        "ancient humans documentary",
+        "the secret lives of ancient humans",
+        "ancient humans",
+        "ancient humans height",
+        "ancient humans vs modern human",
+        "ancient humans edit"
+      ]
+    },
+    "ai_synthesis": {
+      "concepts": [
+        {
+          "title": "जब बारिश ने पूरी मानव जाति को मिटाने की कसम खाई",
+          "hook": "सोचिए, अगर आसमान से लगातार 100 साल तक पानी गिरे, तो क्या बचेगा कोई?",
+          "core_angle": "The psychological twist: Ancient humans faced not just rain but a century-long deluge that turned the world into a death trap, and survival meant breaking every instinct.",
+          "recommended_topic_arg": "Ancient humans vs deadly rain: How a 100-year mega-rain almost wiped out early humans, and the extreme adaptations they made to survive",
+          "target_emotion": "dread"
+        },
+        {
+          "title": "बारिश की बूंदें जो जान लेती थीं",
+          "hook": "आज बारिश जीवन देती है, लेकिन पुराने इंसानों के लिए यह ज़हर थी।",
+          "core_angle": "The psychological twist: Rain carried invisible killers—ancient humans didn't know that water itself could be lethal, leading to mysterious deaths and panic.",
+          "recommended_topic_arg": "The deadly rain that poisoned ancient humans: How contaminated water and acid rain killed early humans and how they discovered safe water",
+          "target_emotion": "shock"
+        },
+        {
+          "title": "वो बारिश जिसने इंसान को गुफा में कैद कर दिया",
+          "hook": "क्या आप जानते हैं, एक समय ऐसा आया जब इंसान महीनों तक गुफा से बाहर नहीं निकल सका?",
+          "core_angle": "The psychological twist: Endless rain forced ancient humans into isolation, causing psychological breakdown and societal collapse—a survival story of confinement.",
+          "recommended_topic_arg": "When endless rain trapped ancient humans in caves: The psychological and social impact of prolonged isolation during prehistoric deluges",
+          "target_emotion": "curiosity"
+        },
+        {
+          "title": "बारिश से बचने के लिए इंसानों ने क्या किया?",
+          "hook": "अगर आपके पास छत न हो और बारिश कभी न रुके, तो आप क्या करेंगे?",
+          "core_angle": "The psychological twist: Ancient humans didn't just hide—they invented entirely new technologies and social structures, turning a disaster into a catalyst for civilization.",
+          "recommended_topic_arg": "How ancient humans survived deadly rain: The ingenious inventions and strategies that turned a deadly threat into a stepping stone for civilization",
+          "target_emotion": "wonder"
+        },
+        {
+          "title": "बारिश का वो तूफान जिसने निएंडरथल को मिटा दिया",
+          "hook": "क्या मौसम ने निएंडरथल को खत्म कर दिया? एक भयानक बारिश की कहानी।",
+          "core_angle": "The psychological twist: A catastrophic rain event may have been the final nail in the coffin for Neanderthals, giving modern humans an edge—a story of survival and extinction.",
+          "recommended_topic_arg": "The deadly rain that wiped out Neanderthals: How a prehistoric climate catastrophe gave modern humans the advantage",
+          "target_emotion": "dread"
+        }
+      ],
+      "seo_tags": [
+        "ancient humans",
+        "deadly rain",
+        "prehistoric disaster",
+        "ancient survival",
+        "mega rain",
+        "ancient humans documentary",
+        "neanderthal extinction",
+        "ancient humans vs nature",
+        "rain apocalypse",
+        "ancient humans hindi"
+      ],
+      "recommended_hashtags": [
+        "#AncientHumans",
+        "#DeadlyRain",
+        "#Prehistoric",
+        "#Documentary",
+        "#Hindi"
+      ]
+    }
+  },
+  "keywords": [
+    "ancient humans",
+    "ancient humans were scary",
+    "ancient humans hunting",
+    "ancient humans edit",
+    "ancient humans documentary",
+    "ancient humans movie",
+    "ancient humans vs modern human",
+    "ancient humans were terrifying",
+    "ancient humans vs dinosaurs",
+    "ancient humans halo",
+    "ancient humans height",
+    "ancient humans are called",
+    "ancient humans found in amazon forest",
+    "ancient humans drawing",
+    "ancient humans pictures",
+    "ancient humans name",
+    "what happens when ancient humans got lost",
+    "why did ancient humans start drinking alcohol",
+    "what happens when ancient humans got injured",
+    "why did ancient humans enter the frozen north",
+    "what happens when ancient humans meet neanderthals",
+    "what happens when ancient humans meet strangers",
+    "why did ancient humans begin cooking",
+    "what happens when ancient humans get sick",
+    "why did ancient humans evolve in africa",
+    "why did ancient humans die young",
+    "ancient humans lifespan",
+    "the secret lives of ancient humans"
+  ]
 }

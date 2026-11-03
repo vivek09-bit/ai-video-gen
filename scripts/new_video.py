@@ -604,6 +604,43 @@ def parse_written(text: str, scene_count: int = 999) -> tuple[str, list[tuple[st
     return title, [(scene.headline, scene.visual, scene.body) for scene in scenes]
 
 
+def extract_narration_topic(file_path: Path, max_chars: int = 1200) -> str:
+    """Extract a concise, descriptive subject/topic from a narration file for SEO and planning."""
+    if not file_path.is_file():
+        return file_path.stem.replace("-", " ").replace("_", " ").title()
+    try:
+        content = file_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        return file_path.stem.replace("-", " ").replace("_", " ").title()
+
+    # 1. Check for explicit TITLE: line in text
+    for line in content.splitlines()[:10]:
+        stripped = line.strip()
+        if stripped.upper().startswith("TITLE:"):
+            t = stripped.split(":", 1)[1].strip()
+            if t:
+                return t
+
+    # 2. Try fast LLM extraction if an API writer is available
+    writer_info = resolve_llm_writer()
+    if writer_info:
+        sample = content[:max_chars]
+        prompt = (
+            "Given this video narration, write a short, click-worthy 3 to 6 word descriptive topic title "
+            "(in English) capturing the main subject. Output ONLY the topic title, nothing else.\n\n"
+            f"{sample}"
+        )
+        try:
+            suggested = ask_llm(writer_info[1], writer_info[2], writer_info[3], prompt, max_tokens=30, temperature=0.3)
+            clean = re.sub(r'["\n\r]+', "", (suggested or "")).strip()
+            if clean and len(clean.split()) <= 10:
+                return clean
+        except Exception:
+            pass
+
+    return file_path.stem.replace("-", " ").replace("_", " ").title()
+
+
 # --------------------------------------------------------------------------
 # Assembly
 # --------------------------------------------------------------------------
@@ -1537,7 +1574,8 @@ def main() -> int:
         "--imagemodel",
         "--image-model",
         dest="image_model",
-        help="Image model (e.g. segmind/SSD-1B, SimianLuo/LCM_Dreamshaper_v7, flux-schnell, flux-dev, flux-pro, recraft)",
+        default=os.environ.get("IMAGE_MODEL") or "black-forest-labs/flux-3-image-klein",
+        help="Image model (e.g. black-forest-labs/flux-3-image-klein, segmind/SSD-1B, flux-schnell)",
     )
     parser.add_argument("--force-images", action="store_true", help="force re-generating images even if cached")
     parser.add_argument(
@@ -1622,6 +1660,11 @@ def main() -> int:
         help="write script.json and synthesise the narration, but skip the render",
     )
     parser.add_argument(
+        "--capcut",
+        action="store_true",
+        help="automatically export generated assets into a native CapCut Desktop draft project",
+    )
+    parser.add_argument(
         "--vast",
         action="store_true",
         help="use Vast.ai GPU generation; production image, video, and IndicF5 narration use an RTX 4090", 
@@ -1687,6 +1730,13 @@ def main() -> int:
         dest="force_new_gpu",
         action="store_true",
         help="rent a new Vast.ai instance even if an existing instance is stopped or running",
+    )
+    parser.add_argument(
+        "--vast-disk",
+        dest="vast_disk",
+        type=int,
+        default=None,
+        help="disk space in GB on Vast.ai (default: 80, needed for 23GB FLUX.3 Docker image)",
     )
     parser.add_argument(
         "--vast-strict",
@@ -1783,7 +1833,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     if not getattr(args, "topic", None) and getattr(args, "narration", None):
-        args.topic = Path(args.narration).stem.replace("-", " ").replace("_", " ").title()
+        args.topic = extract_narration_topic(Path(args.narration))
 
     # --pipeline-status: display dashboard and exit
     if getattr(args, "pipeline_status", False):
@@ -1880,8 +1930,8 @@ def main() -> int:
 
     # Auto Keyword & Topic Discovery Flow
     research_report = None
-    if args.auto_topic is not None or (args.topic and args.research_only):
-        raw_seed = args.topic if (args.topic and args.research_only) else (args.auto_topic if (args.auto_topic and args.auto_topic != "auto") else None)
+    if args.auto_topic is not None:
+        raw_seed = args.auto_topic if (args.auto_topic and args.auto_topic != "auto") else None
         res_genre = args.genre or (beats.detect_genre(raw_seed).key if raw_seed else "horror")
         seed_query = raw_seed or f"viral {res_genre} stories"
         print(f"\n[RESEARCH ENGINE] Gathering real-time search trends & high-retention angles for '{seed_query}'...")
@@ -1926,6 +1976,26 @@ def main() -> int:
     run_stage_2 = stage_mgr.should_execute_stage(STAGE_VOICE, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
     run_stage_3 = stage_mgr.should_execute_stage(STAGE_IMAGES, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
     run_stage_4 = stage_mgr.should_execute_stage(STAGE_RENDER, explicit_stage=args.stage, from_stage=args.from_stage, to_stage=args.to_stage, resume=resume_flag)
+
+    # Live SEO & Search Demand Analysis for the active topic (unless --no-research is set)
+    if not research_report and not getattr(args, "no_research", False) and run_stage_1:
+        res_genre = args.genre or beats.detect_genre(args.topic).key
+        print(f"\n[RESEARCH ENGINE] Gathering real-time search trends & high-retention angles for '{args.topic}'...")
+        try:
+            res_report = research.research_viral_angles(
+                seed=args.topic,
+                genre=res_genre,
+                format_type=args.video_format or "reel",
+                lang=args.language or "hindi",
+                model=args.model,
+            )
+            print(research.format_research_report(res_report))
+            research_report = res_report
+        except Exception as _r_err:
+            print(f"note: search trend research unavailable ({_r_err})", file=sys.stderr)
+
+        if getattr(args, "research_only", False):
+            return 0
 
     # Ensure procedural audio assets (ambiences & sfx) exist
     try:
@@ -2084,10 +2154,10 @@ def main() -> int:
     if args.visual_mode == "video":
         vast_prefetch.append(args.video_model)
     elif detected_image_provider == "vast":
-        vast_prefetch.append(args.image_model or "black-forest-labs/FLUX.2-klein-9B")
+        vast_prefetch.append(args.image_model or "black-forest-labs/flux-3-image-klein")
     render_on_vast = args.render_on == "vast"
     expected_gpu = getattr(args, "gpu", None) or os.environ.get("VAST_GPU_NAME") or "RTX 4090"
-    vast_disk_gb = int(os.environ.get("VAST_DISK_GB", "100"))
+    vast_disk_gb = int(getattr(args, "vast_disk", None) or os.environ.get("VAST_DISK_GB", "80"))
 
     def stop_vast_instance() -> None:
         nonlocal vast_instance_id, vast_mgr
@@ -2123,7 +2193,7 @@ def main() -> int:
         if auto_rented_for_audio:
             print(f"  ({audio_model} narration requested: renting a GPU for it. Use --no-vast to stay on the CPU.)")
         try:
-            from vast_manager import VastManager, hub_token
+            from vast_manager import PinnedOfferUnavailableError, VastManager, hub_token
             vast_mgr = VastManager()
             if getattr(args, "vast_url", None):
                 server_url = args.vast_url
@@ -2187,37 +2257,67 @@ def main() -> int:
                         os.environ["VAST_PINNED_OFFER"] = str(args.vast_offer)
 
                     if getattr(args, "choosegpu", False):
-                        chosen = vast_mgr.choose_offer(
+                        while True:
+                            chosen = vast_mgr.choose_offer(
+                                gpu_name=expected_gpu,
+                                disk_gb=vast_disk_gb,
+                                limit=getattr(args, "choosegpu_limit", 15),
+                                auto_select=getattr(args, "choosegpu_pick", None),
+                            )
+                            if chosen is None:
+                                raise RuntimeError("GPU offer selection cancelled or no offers available.")
+                            os.environ["VAST_PINNED_OFFER"] = str(chosen["id"])
+
+                            if audio_model in ("indic_parler", "indicf5") and not hub_token():
+                                print(
+                                    "  [Vast Manager Warning] No HF_TOKEN / HUGGINGFACE_API_KEY is set. "
+                                    "ai4bharat/IndicF5 is a GATED Hugging Face repository, so this instance "
+                                    "will not be able to download or load the narration model.",
+                                    file=sys.stderr,
+                                )
+                            print(f"  Renting selected one-GPU {expected_gpu} offer {chosen['id']}...")
+                            try:
+                                vast_instance_id, server_url = vast_mgr.provision_instance(
+                                    gpu_name=expected_gpu,
+                                    disk_gb=vast_disk_gb,
+                                    prefetch_models=vast_prefetch or None,
+                                    strict_pinned=True,
+                                )
+                                break
+                            except PinnedOfferUnavailableError as unavail_err:
+                                print(
+                                    f"\n  [Safeguard Alert] Selected offer {unavail_err.offer_id} is no longer available "
+                                    f"(sold out or taken by another user).\n"
+                                    f"  Refreshing marketplace and showing available offers again...\n",
+                                    file=sys.stderr,
+                                )
+                                os.environ.pop("VAST_PINNED_OFFER", None)
+                                continue
+                    else:
+                        if getattr(args, "vast_offer", None):
+                            os.environ["VAST_PINNED_OFFER"] = str(args.vast_offer)
+
+                        # Renting a NEW instance. A container's environment is fixed at create
+                        # time, so a missing token cannot be repaired later without re-renting: say
+                        # so before the money is spent, not after the health check fails.
+                        if audio_model in ("indic_parler", "indicf5") and not hub_token():
+                            print(
+                                "  [Vast Manager Warning] No HF_TOKEN / HUGGINGFACE_API_KEY is set. "
+                                "ai4bharat/IndicF5 is a GATED Hugging Face repository, so this instance "
+                                "will not be able to download or load the narration model.",
+                                file=sys.stderr,
+                            )
+                        # Nothing reusable: rent the cheapest in-budget GPU, moving to the
+                        # next offer if a host cannot pull the image.
+                        print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
+                        # NOTE: the keywords below are checked against the real signature by
+                        # test_vast_call_sites() in scripts/test_providers.py. This import is
+                        # lazy, so static analysis cannot see a mismatch here.
+                        vast_instance_id, server_url = vast_mgr.provision_instance(
                             gpu_name=expected_gpu,
                             disk_gb=vast_disk_gb,
-                            limit=getattr(args, "choosegpu_limit", 15),
-                            auto_select=getattr(args, "choosegpu_pick", None),
+                            prefetch_models=vast_prefetch or None,
                         )
-                        if chosen is None:
-                            raise RuntimeError("GPU offer selection cancelled or no offers available.")
-                        os.environ["VAST_PINNED_OFFER"] = str(chosen["id"])
-
-                    # Renting a NEW instance. A container's environment is fixed at create
-                    # time, so a missing token cannot be repaired later without re-renting: say
-                    # so before the money is spent, not after the health check fails.
-                    if audio_model in ("indic_parler", "indicf5") and not hub_token():
-                        print(
-                            "  [Vast Manager Warning] No HF_TOKEN / HUGGINGFACE_API_KEY is set. "
-                            "ai4bharat/IndicF5 is a GATED Hugging Face repository, so this instance "
-                            "will not be able to download or load the narration model.",
-                            file=sys.stderr,
-                        )
-                    # Nothing reusable: rent the cheapest in-budget GPU, moving to the
-                    # next offer if a host cannot pull the image.
-                    print(f"  Renting a one-GPU {expected_gpu} instance within budget...")
-                    # NOTE: the keywords below are checked against the real signature by
-                    # test_vast_call_sites() in scripts/test_providers.py. This import is
-                    # lazy, so static analysis cannot see a mismatch here.
-                    vast_instance_id, server_url = vast_mgr.provision_instance(
-                        gpu_name=expected_gpu,
-                        disk_gb=vast_disk_gb,
-                        prefetch_models=vast_prefetch or None,
-                    )
             # The reference clips live in the git-ignored examples tree, so a freshly cloned
             # instance does not have them and its health check would report IndicF5 as
             # unavailable. Seed them before validating, so the default narration path needs no
@@ -2229,6 +2329,14 @@ def main() -> int:
                     print(
                         f"  [Vast Manager Warning] Could not upload the IndicF5 reference clips: "
                         f"{voices_err}",
+                        file=sys.stderr,
+                    )
+            if vast_instance_id is not None:
+                try:
+                    vast_mgr.push_server_code(vast_instance_id)
+                except Exception as sync_err:
+                    print(
+                        f"  [Vast Manager Warning] Could not sync latest server code: {sync_err}",
                         file=sys.stderr,
                     )
             health = vast_mgr.require_gpu(
@@ -2246,12 +2354,6 @@ def main() -> int:
             os.environ.pop("VAST_SERVER_URL", None)
             os.environ.pop("USE_VAST", None)
             return False
-
-    # Rent before the visuals only when the visuals themselves need the GPU. With local
-    # images the rental is deferred to the narration step, so the instance never bills
-    # while the CPU grinds through the image set.
-    if vast_required_early and not start_vast():
-        return 1
 
     # ---- generate exactly one visual type --------------------------------
     # Priority: explicit CLI flag > IMAGE_PROVIDER env > mode defaults.
@@ -2624,6 +2726,11 @@ def main() -> int:
         print("STAGE 3: VISUAL GENERATION")
         print("=" * 74)
 
+        if needs_vast and (cli_img_prov == "vast" or defer_video) and not os.environ.get("VAST_SERVER_URL"):
+            if not start_vast():
+                stage_mgr.mark_failed(STAGE_IMAGES, "Vast GPU unavailable for visual generation")
+                return 1
+
         if should_gen_images:
             print("Generating scene background images...")
             script = generate_images_for_script(
@@ -2670,6 +2777,14 @@ def main() -> int:
             on_pause=stop_vast_instance,
         ):
             return 0
+
+    # Export to CapCut Desktop project if requested
+    if getattr(args, "capcut", False) or os.environ.get("EXPORT_CAPCUT", "").strip() == "1":
+        try:
+            import export_capcut
+            export_capcut.export_to_capcut()
+        except Exception as capcut_err:
+            print(f"[CapCut Export Warning] Failed to export to CapCut: {capcut_err}", file=sys.stderr)
 
     # =========================================================================
     # STAGE 4: FINAL EDITING & RENDER (REMOTION)

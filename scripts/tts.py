@@ -2356,7 +2356,11 @@ def _get_inprocess_indicf5_model():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"[IndicF5 Local] Loading ai4bharat/IndicF5 model on {device}...", file=sys.stderr)
-    model = AutoModel.from_pretrained("ai4bharat/IndicF5", trust_remote_code=True)
+    model = AutoModel.from_pretrained(
+        "ai4bharat/IndicF5",
+        trust_remote_code=True,
+        low_cpu_mem_usage=False,
+    )
     model.eval()
     if device != "cpu":
         model = model.to(device)
