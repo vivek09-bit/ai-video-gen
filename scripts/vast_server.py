@@ -670,13 +670,12 @@ def _resample_speed(audio, speed: float):
         return audio
 
 
-def _split_hindi_sentences(text: str, max_words: int = 35) -> list[tuple[str, str]]:
-    """Split Hindi text on major sentence terminators (\u0964, \u0965, ?, !, \\n) only when exceeding max_words.
+def _split_hindi_sentences(text: str, max_words: int = 22) -> list[tuple[str, str]]:
+    """Split Hindi text on every sentence terminator (\u0964, \u0965, ., ?, !, |, \\n).
 
-    Never splits at commas or inside relative clauses: F5-TTS Diffusion Transformer cross-attention
-    requires complete syntactic context to establish stable phoneme trajectories. Slicing at commas
-    produces isolated subordinate clauses (e.g. '\u091c\u093f\u0938\u0915\u0940...') where DiT Euler ODE flow-matching
-    degenerates into a stationary harmonic drone (~93.3 Hz).
+    Never merges multiple complete sentences together into large blobs: F5-TTS Diffusion Transformer
+    cross-attention stays sharp and accurate when generating one complete sentence at a time (6-20 words).
+    Merging independent sentences overloads DiT cross-attention, causing word scrambling and prompt bleeding.
     """
     import re
 
@@ -684,33 +683,52 @@ def _split_hindi_sentences(text: str, max_words: int = 35) -> list[tuple[str, st
     if not clean:
         return []
 
-    words = clean.split()
-    if len(words) <= max_words:
-        return [(clean, "")]
-
-    raw_parts = re.split(r'([\u0964\u0965?!\n]+)', clean)
-    chunks: list[tuple[str, str]] = []
-    current_text = ""
-    current_term = ""
+    raw_parts = re.split(r'([\u0964\u0965.?!|\n]+)', clean)
+    sentences: list[str] = []
     i = 0
     while i < len(raw_parts):
         part = raw_parts[i].strip()
         term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
         if part:
-            combined = f"{part} {term}".strip() if term else part
-            candidate = f"{current_text} {combined}".strip() if current_text else combined
-            if len(candidate.split()) <= max_words:
-                current_text = candidate
-                current_term = term or current_term
-            else:
-                if current_text:
-                    chunks.append((current_text, current_term))
-                current_text = combined
-                current_term = term
+            combined = f"{part}{term}".strip() if term else part
+            sentences.append(combined)
         i += 2
 
-    if current_text:
-        chunks.append((current_text, current_term))
+    if not sentences:
+        return [(clean, "")]
+
+    # Merge very short sentences (< 4 words, e.g. '\u0915\u094d\u092f\u094b\u0902?') with the following sentence
+    merged: list[str] = []
+    idx = 0
+    while idx < len(sentences):
+        cur = sentences[idx]
+        while len(cur.split()) < 4 and idx + 1 < len(sentences):
+            idx += 1
+            cur = f"{cur} {sentences[idx]}".strip()
+        merged.append(cur)
+        idx += 1
+
+    chunks: list[tuple[str, str]] = []
+    for s in merged:
+        words = s.split()
+        if len(words) <= max_words:
+            chunks.append((s, ""))
+        else:
+            # Split an exceptionally long sentence (> 22 words) on comma boundaries
+            comma_parts = [p.strip() for p in re.split(r'([,\uff0c]+)', s) if p.strip()]
+            cur_chunk = ""
+            for p in comma_parts:
+                if p in (",", "\uff0c"):
+                    cur_chunk += ","
+                    continue
+                cand = (cur_chunk + " " + p).strip() if cur_chunk else p
+                if len(cand.split()) > max_words and cur_chunk:
+                    chunks.append((cur_chunk.strip(), ""))
+                    cur_chunk = p
+                else:
+                    cur_chunk = cand
+            if cur_chunk:
+                chunks.append((cur_chunk.strip(), ""))
 
     return chunks or [(clean, "")]
 
@@ -807,7 +825,7 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
             pass
 
     # Split text on major sentence terminators (keep complete sentences intact)
-    sentences = _split_hindi_sentences(clean_text, max_words=35)
+    sentences = _split_hindi_sentences(clean_text, max_words=22)
 
     pieces: list[np.ndarray] = []
     with torch.no_grad():

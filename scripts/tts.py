@@ -88,7 +88,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 19
+AUDIO_PIPELINE_VERSION = 20
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -1949,45 +1949,63 @@ HINDI_SPLIT_AFTER = {
 }
 
 
-def split_hindi_sentences(text: str, max_words: int = 30) -> list[tuple[str, str]]:
-    """Split Hindi text on major sentence terminators (।, ॥, ?, !, \\n) only when exceeding max_words.
+def split_hindi_sentences(text: str, max_words: int = 22) -> list[tuple[str, str]]:
+    """Split Hindi text on every sentence terminator (।, ॥, ., ?, !, |, \\n).
 
-    Never splits at commas: F5-TTS Diffusion Transformer cross-attention requires complete
-    sentence context (at least 6-10 words) to establish stable phoneme trajectories. Slicing
-    at commas produces 1-2 word fragments where DiT ODE flow-matching degenerates into
-    repetitive syllable loops ("pup pup pup") and alien babble.
+    Never merges multiple complete sentences together into large blobs: F5-TTS Diffusion Transformer
+    cross-attention stays sharp and accurate when generating one complete sentence at a time (6-20 words).
+    Merging independent sentences overloads DiT cross-attention, causing word scrambling and prompt bleeding.
     """
     clean = " ".join((text or "").split())
     if not clean:
         return []
 
-    words = clean.split()
-    if len(words) <= max_words:
-        return [(clean, "")]
-
-    raw_parts = re.split(r'([।॥?!\n]+)', clean)
-    chunks: list[tuple[str, str]] = []
-    current_text = ""
-    current_term = ""
+    raw_parts = re.split(r'([।॥.?!|\n]+)', clean)
+    sentences: list[str] = []
     i = 0
     while i < len(raw_parts):
         part = raw_parts[i].strip()
         term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
         if part:
-            combined = f"{part} {term}".strip() if term else part
-            candidate = f"{current_text} {combined}".strip() if current_text else combined
-            if len(candidate.split()) <= max_words:
-                current_text = candidate
-                current_term = term or current_term
-            else:
-                if current_text:
-                    chunks.append((current_text, current_term))
-                current_text = combined
-                current_term = term
+            combined = f"{part}{term}".strip() if term else part
+            sentences.append(combined)
         i += 2
 
-    if current_text:
-        chunks.append((current_text, current_term))
+    if not sentences:
+        return [(clean, "")]
+
+    # Merge very short sentences (< 4 words, e.g. 'क्यों?') with the following sentence
+    merged: list[str] = []
+    idx = 0
+    while idx < len(sentences):
+        cur = sentences[idx]
+        while len(cur.split()) < 4 and idx + 1 < len(sentences):
+            idx += 1
+            cur = f"{cur} {sentences[idx]}".strip()
+        merged.append(cur)
+        idx += 1
+
+    chunks: list[tuple[str, str]] = []
+    for s in merged:
+        words = s.split()
+        if len(words) <= max_words:
+            chunks.append((s, ""))
+        else:
+            # Split an exceptionally long sentence (> 22 words) on comma boundaries
+            comma_parts = [p.strip() for p in re.split(r'([,，]+)', s) if p.strip()]
+            cur_chunk = ""
+            for p in comma_parts:
+                if p in (",", "，"):
+                    cur_chunk += ","
+                    continue
+                cand = (cur_chunk + " " + p).strip() if cur_chunk else p
+                if len(cand.split()) > max_words and cur_chunk:
+                    chunks.append((cur_chunk.strip(), ""))
+                    cur_chunk = p
+                else:
+                    cur_chunk = cand
+            if cur_chunk:
+                chunks.append((cur_chunk.strip(), ""))
 
     return chunks or [(clean, "")]
 
@@ -2457,6 +2475,8 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
                     chunk_text = chunk_text.strip()
                     if not chunk_text:
                         continue
+                    if not chunk_text.endswith(("।", "॥", ".", "!", "?")):
+                        chunk_text = chunk_text.rstrip(",， ") + "।"
                     gen = model(chunk_text, ref_audio_path=str(wav_path), ref_text=str(ref_text))
                     if hasattr(gen, "detach"):
                         gen = gen.detach().cpu().numpy()
@@ -2743,7 +2763,7 @@ class Voice:
         # Local IndicF5 zero-shot cloner (examples/indicf5). Checked BEFORE the Indic
         # Parler-TTS branch because 'indicf5_aarav' also starts with 'indic'.
         if is_indicf5_local_voice(primary):
-            indicf5_audio = synthesize_indicf5_local(clean_text, primary, speed=speed)
+            indicf5_audio = synthesize_indicf5_local(text, primary, speed=speed)
             if indicf5_audio is not None and len(indicf5_audio) > 0:
                 return apply_fades(trim_edge_silence(indicf5_audio, threshold=0.005, padding=0.005))
             vinfo = INDICF5_LOCAL_VOICES.get(primary.lower())
