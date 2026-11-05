@@ -2134,6 +2134,10 @@ def main() -> int:
     gp = planned.get("genreProfile") or beats.get_genre(planned.get("genre"))
 
     # ---- Vast.ai Cloud GPU Orchestration helpers -------------------------
+    if getattr(args, "vast_url", None):
+        os.environ["VAST_SERVER_URL"] = args.vast_url
+        os.environ["TTS_SERVER_URL"] = args.vast_url
+        os.environ["USE_VAST"] = "1"
     vast_instance_id = None
     vast_mgr = None
     requested_image_provider = args.image_provider or os.environ.get("IMAGE_PROVIDER")
@@ -2690,7 +2694,7 @@ def main() -> int:
                     file=sys.stderr,
                 )
 
-        vast_server = os.environ.get("VAST_SERVER_URL", "").strip()
+        vast_server = getattr(args, "vast_url", None) or os.environ.get("VAST_SERVER_URL", "").strip()
         strict_audio = not no_vast and not getattr(args, "allow_local_fallback", False)
         if audio_model in ("indic_parler", "indicf5"):
             model_label = "IndicF5" if audio_model == "indicf5" else "Indic Parler-TTS"

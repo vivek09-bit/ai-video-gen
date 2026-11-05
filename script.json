@@ -1,6 +1,6 @@
 {
-  "title": "कलयुग के अंत के बाद आखिर क्या होगा",
-  "topic": "कलयुग के अंत के बाद आखिर क्या होगा",
+  "title": "Your Topic",
+  "topic": "Your Topic",
   "language": "hi",
   "genre": "documentary",
   "visualStyle": null,
@@ -9,7 +9,7 @@
   "width": 1080,
   "height": 1920,
   "fps": 30,
-  "voice": "hm_omega",
+  "voice": "indicf5_aarav",
   "secondaryVoice": null,
   "speed": 0.94,
   "tailPaddingSeconds": 1.2,
@@ -30,15 +30,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "midnight_blue",
-    "name": "Midnight Blue",
-    "accent": "#38bdf8",
-    "text": "#f8fafc",
-    "muted": "#94a3b8",
-    "panel": "rgba(15, 23, 42, 0.75)",
+    "key": "sepia_vintage",
+    "name": "Sepia Vintage",
+    "accent": "#d97706",
+    "text": "#fef3c7",
+    "muted": "#fde68a",
+    "panel": "rgba(35, 25, 15, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#050c18"
+    "bg_color": "#0d0804"
   },
   "characters": {},
   "scenes": [
@@ -92,10 +92,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-001.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -114,12 +112,8 @@
           "text": "कलयुग के अंत के बाद आखिर क्या होगा शास्त्रों के अनुसार 1200 दिव्य वर्ष यानी कि 432000 साल का होगा कलयुग जिनमें से अभी कुछ 5000 साल ही बीते हैं और फिलहाल।"
         }
       ],
-      "visualPrompt": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
-      "visualKeywords": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
-      "backgroundPrompt": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-001.png"
+      "visualPrompt": "Ancient Hindu cosmology visualization: a colossal cosmic wheel of time etched with Sanskrit numerals, Kali Yuga depicted as a dark iron age segment glowing dimly against a vast starry void, golden Vedic scrolls and brass astrolabe floating nearby, dramatic chiaroscuro lighting, documentary-style cinematic wide shot, deep indigo and ember tones.",
+      "visualKeywords": "Ancient Hindu cosmology visualization: a colossal cosmic wheel of time etched with Sanskrit numerals, Kali Yuga depicted as a dark iron age segment glowing dimly against a vast starry void, golden Vedic scrolls and brass astrolabe floating nearby, dramatic chiaroscuro lighting, documentary-style cinematic wide shot, deep indigo and ember tones."
     },
     {
       "id": "scene-002",
@@ -169,10 +163,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-002.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -191,12 +183,8 @@
           "text": "हम जिस एज में हैं उसे कहा जाता है कलयुग का गोल्डन एज जो कि माना जाता है टोटल 10000 सालों का होगा इन 10000 सालों के।"
         }
       ],
-      "visualPrompt": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
-      "visualKeywords": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
-      "backgroundPrompt": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-002.png"
+      "visualPrompt": "A wise Indian sadhu with ash-smeared forehead, rudraksha beads and saffron robes seated cross-legged beside a blazing sacred havan kund, gesturing toward a glowing golden segment of a cosmic time-wheel, temple pillars and drifting incense smoke, warm firelight on weathered face, documentary close-up, shallow depth of field.",
+      "visualKeywords": "A wise Indian sadhu with ash-smeared forehead, rudraksha beads and saffron robes seated cross-legged beside a blazing sacred havan kund, gesturing toward a glowing golden segment of a cosmic time-wheel, temple pillars and drifting incense smoke, warm firelight on weathered face, documentary close-up, shallow depth of field."
     },
     {
       "id": "scene-003",
@@ -208,9 +196,10 @@
       "shots": [
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 2,
           "effects": {
@@ -226,10 +215,9 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 1,
           "effects": {
@@ -248,10 +236,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-003.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -270,12 +256,8 @@
           "text": "बाद जब अधर्म अपने चरम सीमा पर होगा तब हमारी गंगा नदी सूखकर वापस अपने वैकुंठ धाम लौट जाएंगी और सभी देवी देवता भी पृथ्वी चोरकर अपने-अपने धाम लौट जाएंगे तब।"
         }
       ],
-      "visualPrompt": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
-      "visualKeywords": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
-      "backgroundPrompt": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-003.png"
+      "visualPrompt": "A dried cracked riverbed where the sacred Ganga once flowed, faint translucent celestial light ascending skyward as devas depart, ornate stone ghats and abandoned temple steps under a blood-orange dusk sky, distant Himalayan peaks, dust motes in low sun, desolate cinematic documentary composition, muted ochre and grey palette.",
+      "visualKeywords": "A dried cracked riverbed where the sacred Ganga once flowed, faint translucent celestial light ascending skyward as devas depart, ornate stone ghats and abandoned temple steps under a blood-orange dusk sky, distant Himalayan peaks, dust motes in low sun, desolate cinematic documentary composition, muted ochre and grey palette."
     },
     {
       "id": "scene-004",
@@ -325,10 +307,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-004.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -347,12 +327,8 @@
           "text": "पुराणों के अनुसार भगवान विष्णु अपने 10वें आफ यानी कि कल की अवतार में अवतरित होंगे और केवल ती दिनों के अंदर वह धरती से सारे अधर्म का विनाश करके।"
         }
       ],
-      "visualPrompt": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
-      "visualKeywords": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
-      "backgroundPrompt": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-004.png"
+      "visualPrompt": "Lord Vishnu as Kalki avatar: celestial blue-skinned deity in golden armor and yellow silk robes, riding a white rearing horse with a blazing sword raised, storm clouds and lightning behind, sacred fire glow illuminating divine ornaments, dramatic low-angle mythological epic composition, cinematic chiaroscuro, deep blues and gold.",
+      "visualKeywords": "Lord Vishnu as Kalki avatar: celestial blue-skinned deity in golden armor and yellow silk robes, riding a white rearing horse with a blazing sword raised, storm clouds and lightning behind, sacred fire glow illuminating divine ornaments, dramatic low-angle mythological epic composition, cinematic chiaroscuro, deep blues and gold."
     },
     {
       "id": "scene-005",
@@ -364,8 +340,10 @@
       "shots": [
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 2,
           "effects": {
@@ -382,10 +360,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -403,8 +379,10 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -424,10 +402,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-005.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -446,12 +422,8 @@
           "text": "पुनर्धिल्लू यानी 12 सूरज उदित होंगे जिसकी वजह से जब।"
         }
       ],
-      "visualPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
-      "visualKeywords": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
-      "backgroundPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-005.png"
+      "visualPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dry riverbeds and withered banyan trees, intense white-gold heat haze, silhouetted ancient temple spires, dramatic overexposed documentary wide shot, fiery orange and crimson palette, cinematic lens flare.",
+      "visualKeywords": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dry riverbeds and withered banyan trees, intense white-gold heat haze, silhouetted ancient temple spires, dramatic overexposed documentary wide shot, fiery orange and crimson palette, cinematic lens flare."
     },
     {
       "id": "scene-006",
@@ -502,10 +474,8 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "image",
-        "src": "images/scene-006.png",
-        "kenBurns": "in",
-        "dim": 0
+        "type": "color",
+        "color": "#0d0804"
       },
       "cast": [],
       "acting": {
@@ -524,15 +494,11 @@
           "text": "सारा जल सूख जाएगा उसके बाद फिर से एक बार एक नए युग की शुरुआत होगी जय श्री कृष्ण।"
         }
       ],
-      "visualPrompt": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
-      "visualKeywords": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
-      "backgroundPrompt": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
-      "characterPrompt": "integrated scene subject",
-      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
-      "image": "images/scene-006.png"
+      "visualPrompt": "Dawn of a new Satya Yuga: fresh monsoon rain falling on parched earth, a single green sprout emerging from cracked soil, soft golden sunrise breaking through parting storm clouds, distant Himalayan peaks and a small white temple, hopeful documentary cinematic composition, luminous teal and gold tones.",
+      "visualKeywords": "Dawn of a new Satya Yuga: fresh monsoon rain falling on parched earth, a single green sprout emerging from cracked soil, soft golden sunrise breaking through parting storm clouds, distant Himalayan peaks and a small white temple, hopeful documentary cinematic composition, luminous teal and gold tones."
     }
   ],
-  "audioModel": "kokoro",
+  "audioModel": "indicf5",
   "visualMode": "image",
   "blueprint": {
     "minutes": 1.3,
@@ -611,123 +577,123 @@
     ]
   },
   "research": {
-    "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
+    "seed": "Your Topic",
     "genre": "documentary",
     "keywords": {
-      "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
+      "seed": "Your Topic",
       "youtube_trending": [
-        "कलयुग अंत का आरंभ मूवी",
-        "कलयुग अंत का आरंभ",
-        "कलयुग अंत कब होगा",
-        "कलयुग अंत का आरंभ फुल मूवी",
-        "कलयुग अंत",
-        "कलयुग अंत मूवी",
-        "कलयुग अंत का आरंभ hai movie",
-        "कलयुग अंत आरंभ मूवी",
-        "कलयुग अंत का आरंभ full episode",
-        "कलयुग अंत करण"
+        "your topic",
+        "your topic + creative commons",
+        "your topic is wild n out",
+        "topic your love",
+        "topic your spray",
+        "your idol topic",
+        "not your topic",
+        "your love atb topic a7s",
+        "your love atb topic and a7s lyrics"
       ],
       "google_search": [
-        "कलयुग अंत का आरंभ मूवी",
-        "कलयुग अंत का आरंभ मूवी 2026",
-        "कलयुग अंत का आरंभ",
-        "कलयुग अंत कब होगा",
-        "कलयुग अंत का आरंभ-chapter 2-",
-        "कलयुग अंतिम चरण",
-        "कलयुग अंत कैसे होगा",
-        "कलयुग अंत"
+        "your topic",
+        "your topic recovery",
+        "your topic home",
+        "your topic 1000 like instagram",
+        "your topic recover",
+        "your topic raksha",
+        "your topic meaning",
+        "your topic is describe the scene of an airport"
       ],
       "questions_and_curiosity": [],
       "long_tail_keywords": [
-        "kalyug ant kab hoga",
-        "कलयुग अंत करण",
-        "कलयुग अंत का आरंभ मूवी 2026",
-        "कलयुग अंत का आरंभ-chapter 2-",
-        "कलयुग अंत का आरंभ फुल मूवी",
-        "कलयुग अंत का आरंभ hai movie",
-        "kalyug ant ka aarambh movie",
-        "कलयुग अंत का आरंभ full episode",
-        "कलयुग अंत का आरंभ मूवी",
-        "कलयुग अंत मूवी",
-        "कलयुग अंत आरंभ मूवी",
-        "कलयुग अंत कैसे होगा"
+        "your love atb topic a7s",
+        "your topic is describe the scene of an airport",
+        "your topic meaning",
+        "topic your love",
+        "topic your spray",
+        "not your topic",
+        "your topic raksha",
+        "your topic + creative commons",
+        "your topic recover",
+        "your topic tv",
+        "your topic home",
+        "your topic is wild n out"
       ]
     },
     "ai_synthesis": {
       "concepts": [
         {
-          "title": "कलयुग के बाद सिर्फ 7 दिन बचे?",
-          "hook": "कलयुग खत्म होने के बाद भगवान क्या करेंगे? जानिए वो 7 दिन जो सब कुछ बदल देंगे।",
-          "core_angle": "The transition period between Kali Yuga and Satya Yuga is not empty—it's a 7-day divine cleanup where Kalki judges souls, and the twist is that even the 'good' have hidden karma to face.",
-          "recommended_topic_arg": "कलयुग के अंत के बाद के 7 दिनों की रहस्यमयी कहानी, जिसमें कल्कि अवतार न्याय करते हैं और आत्माओं का पुनर्जन्म होता है।",
+          "title": "Airport Scene: The Hidden Truth Nobody Talks About",
+          "hook": "एयरपोर्ट पर हर दिन कुछ ऐसा होता है जो आपकी नज़रों से छुपा है...",
+          "core_angle": "The psychological tension between travelers' visible calm and the invisible chaos of security, lost luggage, and emotional goodbyes.",
+          "recommended_topic_arg": "Describe the scene of an airport and reveal the hidden emotional and logistical stories behind the scenes.",
           "target_emotion": "curiosity"
         },
         {
-          "title": "कलयुग खत्म, फिर कौन बनेगा भगवान?",
-          "hook": "कलयुग के बाद धरती पर भगवान का राज कैसे होगा? क्या आप जानते हैं अगला अवतार कौन होगा?",
-          "core_angle": "After Kali Yuga, the concept of 'God' changes—Kalki establishes a new dharma where humans live as gods, and the twist is that the new world order is not ruled by a king but by collective consciousness.",
-          "recommended_topic_arg": "कलयुग के अंत के बाद सतयुग की स्थापना और नए धर्म का उदय, जिसमें मानवता देवत्व प्राप्त करती है।",
-          "target_emotion": "wonder"
-        },
-        {
-          "title": "कलयुग के बाद ये 5 चीज़ें हमेशा के लिए खत्म!",
-          "hook": "कलयुग खत्म होते ही ये 5 चीज़ें दुनिया से गायब हो जाएंगी, और आप हैरान रह जाएंगे।",
-          "core_angle": "The end of Kali Yuga doesn't just bring a new age—it erases five fundamental human flaws (greed, anger, lust, attachment, ego) from existence, but the twist is that without these flaws, humans lose their individuality.",
-          "recommended_topic_arg": "कलयुग के अंत के बाद मानव स्वभाव से जुड़ी 5 बुराइयों का अंत और उसके गहरे मनोवैज्ञानिक प्रभाव।",
+          "title": "Why 'Your Topic' Is the Most Searched Mystery",
+          "hook": "अगर आपने आज 'your topic' सर्च किया है, तो ये वीडियो आपके लिए है...",
+          "core_angle": "The gap between what people search for and what they actually find, creating a cycle of curiosity and misinformation.",
+          "recommended_topic_arg": "Explore the meaning and mystery behind the search term 'your topic' and why it trends globally.",
           "target_emotion": "shock"
         },
         {
-          "title": "कलयुग के बाद क्या विज्ञान भी बदलेगा?",
-          "hook": "क्या कलयुग के अंत के बाद विज्ञान और धर्म एक हो जाएंगे? जानिए वो सच जो कोई नहीं बताता।",
-          "core_angle": "After Kali Yuga, the gap between science and spirituality closes—ancient technology (vimanas, telepathy) returns, and the twist is that modern science was actually a Kali Yuga illusion that will be exposed.",
-          "recommended_topic_arg": "कलयुग के अंत के बाद विज्ञान और अध्यात्म का मिलन, और सतयुग की दिव्य तकनीक का रहस्य।",
-          "target_emotion": "excitement"
+          "title": "The Recovery Secret That Changes Everything",
+          "hook": "रिकवरी का ये तरीका आपने कभी नहीं देखा होगा...",
+          "core_angle": "The emotional journey of recovery from loss—whether data, health, or relationships—and the unexpected psychological boost it provides.",
+          "recommended_topic_arg": "Uncover the untold story of 'your topic recovery' and how it impacts people's lives.",
+          "target_emotion": "dread"
         },
         {
-          "title": "कलयुग के बाद मौत का क्या होगा?",
-          "hook": "कलयुग खत्म होने के बाद इंसान मरेगा या नहीं? जानिए मृत्यु के बाद के जीवन का अनसुना सच।",
-          "core_angle": "In Satya Yuga, death as we know it ceases—humans transcend physical bodies, but the twist is that without death, the concept of 'living' loses meaning, and souls must choose between immortality and reincarnation.",
-          "recommended_topic_arg": "कलयुग के अंत के बाद मृत्यु के स्वरूप में बदलाव और आत्मा के अमरत्व का दार्शनिक रहस्य।",
-          "target_emotion": "dread"
+          "title": "Your Love: The Untold Story of Connection",
+          "hook": "प्यार में 'your love' का मतलब क्या है? ये वीडियो आपको हिला देगा...",
+          "core_angle": "The contrast between idealized love and the messy reality of modern relationships, as reflected in search trends.",
+          "recommended_topic_arg": "Dive into the meaning of 'your love' and the emotional stories behind the search.",
+          "target_emotion": "wonder"
+        },
+        {
+          "title": "1000 Likes on Instagram: The Dark Side of Validation",
+          "hook": "1000 लाइक्स पाने के लिए लोग क्या-क्या करते हैं...",
+          "core_angle": "The psychological cost of chasing social media validation and the hidden desperation behind viral content.",
+          "recommended_topic_arg": "Investigate the trend of 'your topic 1000 like instagram' and the lengths people go to for likes.",
+          "target_emotion": "excitement"
         }
       ],
       "seo_tags": [
-        "कलयुग अंत के बाद",
-        "कलयुग के बाद क्या होगा",
-        "कल्कि अवतार",
-        "सतयुग की शुरुआत",
-        "कलयुग अंत 2026",
-        "कलयुग के 7 दिन",
-        "कलयुग और विज्ञान",
-        "कलयुग में मृत्यु",
-        "कलयुग के बाद धर्म",
-        "कलयुग अंत रहस्य"
+        "your topic",
+        "your topic recovery",
+        "your topic home",
+        "your topic 1000 like instagram",
+        "your love atb topic a7s",
+        "airport scene description",
+        "your topic meaning",
+        "topic your love",
+        "topic your spray",
+        "not your topic"
       ],
       "recommended_hashtags": [
-        "#कलयुग",
-        "#कल्किअवतार",
-        "#सतयुग",
-        "#हिंदूधर्म",
-        "#रहस्य"
+        "#YourTopic",
+        "#Mystery",
+        "#Recovery",
+        "#LoveStory",
+        "#InstagramLikes"
       ]
     }
   },
   "keywords": [
-    "कलयुग अंत का आरंभ मूवी",
-    "कलयुग अंत का आरंभ",
-    "कलयुग अंत कब होगा",
-    "कलयुग अंत का आरंभ फुल मूवी",
-    "कलयुग अंत",
-    "कलयुग अंत मूवी",
-    "कलयुग अंत का आरंभ hai movie",
-    "कलयुग अंत आरंभ मूवी",
-    "कलयुग अंत का आरंभ full episode",
-    "कलयुग अंत करण",
-    "कलयुग अंत का आरंभ मूवी 2026",
-    "कलयुग अंत का आरंभ-chapter 2-",
-    "कलयुग अंतिम चरण",
-    "कलयुग अंत कैसे होगा",
-    "kalyug ant kab hoga",
-    "kalyug ant ka aarambh movie"
+    "your topic",
+    "your topic + creative commons",
+    "your topic is wild n out",
+    "topic your love",
+    "topic your spray",
+    "your idol topic",
+    "not your topic",
+    "your love atb topic a7s",
+    "your love atb topic and a7s lyrics",
+    "your topic recovery",
+    "your topic home",
+    "your topic 1000 like instagram",
+    "your topic recover",
+    "your topic raksha",
+    "your topic meaning",
+    "your topic is describe the scene of an airport",
+    "your topic tv"
   ]
 }

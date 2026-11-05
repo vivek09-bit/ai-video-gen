@@ -62,7 +62,7 @@ _INDICF5_ENGINE = None
 # next /health should reflect that without needing a restart.
 _TTS_IMPORT_OK = False
 _INDICF5_IMPORT_OK = False
-INDICF5_REPOSITORY = "ai4bharat/IndicF5"
+INDICF5_REPOSITORY = os.environ.get("INDICF5_MODEL", "ai4bharat/IndicF5")
 INDICF5_SAMPLE_RATE = 24000
 INDICF5_AUDIO_EXTENSIONS = (".wav", ".flac", ".ogg", ".mp3")
 
@@ -573,13 +573,29 @@ def load_indicf5_engine():
         return torch.from_numpy(np.ascontiguousarray(data.T)), sample_rate
 
     torchaudio.load = load_with_soundfile
-    print(f"[Vast Server] Loading IndicF5 model {INDICF5_REPOSITORY} on {DEVICE}...")
-    _INDICF5_ENGINE = AutoModel.from_pretrained(
-        INDICF5_REPOSITORY,
-        trust_remote_code=True,
-        token=_hub_token(),
-        low_cpu_mem_usage=False,
-    )
+    repos_to_try = [INDICF5_REPOSITORY]
+    if "rsolanki1822/IndicF5-mirror" not in repos_to_try:
+        repos_to_try.append("rsolanki1822/IndicF5-mirror")
+
+    last_load_err = None
+    _INDICF5_ENGINE = None
+    for repo_name in repos_to_try:
+        try:
+            print(f"[Vast Server] Loading IndicF5 model from {repo_name} on {DEVICE}...")
+            _INDICF5_ENGINE = AutoModel.from_pretrained(
+                repo_name,
+                trust_remote_code=True,
+                token=_hub_token(),
+                low_cpu_mem_usage=False,
+            )
+            print(f"[Vast Server] Successfully loaded IndicF5 from {repo_name}")
+            break
+        except Exception as e:
+            print(f"[Vast Server] Failed to load {repo_name} ({type(e).__name__}: {e}). Trying mirror...", file=sys.stderr)
+            last_load_err = e
+
+    if _INDICF5_ENGINE is None:
+        raise last_load_err
     target_device = torch.device(DEVICE)
     if hasattr(_INDICF5_ENGINE, "to"):
         _INDICF5_ENGINE.to(target_device)

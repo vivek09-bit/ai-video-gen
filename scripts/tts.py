@@ -2145,14 +2145,7 @@ def remote_tts_enabled() -> bool:
         or os.environ.get("KAGGLE_TTS_URL", "").strip()
         or os.environ.get("VAST_SERVER_URL", "").strip()
     )
-    if not server_url:
-        return False
-    if os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL"):
-        return True
-    return (
-        os.environ.get("USE_VAST", "0") == "1"
-        or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
-    )
+    return bool(server_url)
 
 
 def prebuild_vast_batch(
@@ -3227,6 +3220,8 @@ def main() -> int:
         os.environ["USE_VAST"] = "1"
     if args.vast_url:
         os.environ["VAST_SERVER_URL"] = args.vast_url
+        os.environ["TTS_SERVER_URL"] = args.vast_url
+        os.environ["USE_VAST"] = "1"
     if args.require_vast:
         if not (args.vast or args.vast_url or os.environ.get("VAST_SERVER_URL")):
             parser.error("--require-vast needs --vast or a configured Vast server URL.")

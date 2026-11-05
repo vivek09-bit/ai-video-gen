@@ -37,7 +37,10 @@ def setup_environment():
 def start_server_and_tunnel():
     print(f"[3/4] Launching IndicF5 TTS server on port {PORT}...")
     server_cmd = [sys.executable, "scripts/vast_server.py"]
-    server_proc = subprocess.Popen(server_cmd, env=dict(os.environ, PORT=str(PORT)))
+    server_env = dict(os.environ, PORT=str(PORT))
+    if not server_env.get("HF_TOKEN") and not server_env.get("HUGGINGFACE_API_KEY"):
+        server_env.setdefault("INDICF5_MODEL", "rsolanki1822/IndicF5-mirror")
+    server_proc = subprocess.Popen(server_cmd, env=server_env)
 
     time.sleep(3)
     if server_proc.poll() is not None:
