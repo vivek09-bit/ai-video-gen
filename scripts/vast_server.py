@@ -609,9 +609,53 @@ def load_indicf5_engine():
 
         _orig_dit_loader = getattr(_f5_u, "load_model", None)
         if _orig_dit_loader:
-            def _cpu_safe_load_model(*args, **kwargs):
+            def _cpu_safe_load_model(model_cls, model_cfg, *args, **kwargs):
+                ckpt_path = kwargs.pop("ckpt_path", None)
+                if args:
+                    ckpt_path = args[0]
+                    args = args[1:]
+                mel_spec_type = kwargs.pop("mel_spec_type", "vocos")
+                vocab_file = kwargs.pop("vocab_file", "")
+                ode_method = kwargs.pop("ode_method", "euler")
+                device = kwargs.pop("device", "cpu")
+                use_ema = kwargs.pop("use_ema", True)
+
                 with torch.device("cpu"):
-                    return _orig_dit_loader(*args, **kwargs)
+                    if ckpt_path and os.path.exists(str(ckpt_path)):
+                        try:
+                            return _orig_dit_loader(
+                                model_cls, model_cfg, ckpt_path,
+                                mel_spec_type=mel_spec_type, vocab_file=vocab_file,
+                                ode_method=ode_method, use_ema=use_ema, device=device, **kwargs
+                            )
+                        except Exception:
+                            pass
+                    from f5_tts.model import CFM
+                    from f5_tts.infer.utils_infer import (
+                        get_tokenizer, n_mel_channels, n_fft, hop_length, win_length, target_sample_rate
+                    )
+                    if not vocab_file:
+                        from importlib.resources import files
+                        try:
+                            vocab_file = str(files("f5_tts").joinpath("infer/examples/vocab.txt"))
+                        except Exception:
+                            vocab_file = ""
+                    vocab_char_map, vocab_size = get_tokenizer(vocab_file, "custom")
+                    model = CFM(
+                        transformer=model_cls(**model_cfg, text_num_embeds=vocab_size, mel_dim=n_mel_channels),
+                        mel_spec_kwargs=dict(
+                            n_fft=n_fft,
+                            hop_length=hop_length,
+                            win_length=win_length,
+                            n_mel_channels=n_mel_channels,
+                            target_sample_rate=target_sample_rate,
+                            mel_spec_type=mel_spec_type,
+                        ),
+                        odeint_kwargs=dict(method=ode_method),
+                        vocab_char_map=vocab_char_map,
+                    ).to(device)
+                    return model
+
             _f5_u.load_model = _cpu_safe_load_model
     except Exception:
         pass
