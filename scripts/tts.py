@@ -38,6 +38,12 @@ import hashlib
 import json
 import os
 import re
+
+# Disable TF backend in transformers to avoid broken TF/protobuf collisions on Kaggle/Linux
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+os.environ.setdefault("USE_TORCH", "1")
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 import subprocess
 import sys
 import tempfile

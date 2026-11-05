@@ -24,6 +24,12 @@ from pathlib import Path
 PORT = int(os.environ.get("PORT", 8000))
 
 def setup_environment(model: str = "all"):
+    # Disable TensorFlow backend in transformers to avoid broken TF/Protobuf runtime_version collision on Kaggle Python 3.13
+    os.environ["USE_TF"] = "0"
+    os.environ["USE_FLAX"] = "0"
+    os.environ["USE_TORCH"] = "1"
+    os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
     print("[0/4] Syncing latest tube2dscript repository code...")
     try:
         subprocess.run(["git", "pull", "origin", "main"], check=False)
@@ -31,7 +37,7 @@ def setup_environment(model: str = "all"):
         pass
 
     print("[1/4] Checking & installing required packages...")
-    packages = ["soundfile", "transformers", "vocos", "librosa", "pydub"]
+    packages = ["soundfile", "transformers", "vocos", "librosa", "pydub", "protobuf>=4.25.3"]
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *packages], check=False)
 
     if model in ("all", "indicf5"):
@@ -68,6 +74,10 @@ def start_server_and_tunnel(args=None):
         PORT=str(port),
         TORCH_COMPILE_DISABLE="1",
         INDICF5_SPEED="0.82",
+        USE_TF="0",
+        USE_FLAX="0",
+        USE_TORCH="1",
+        TF_ENABLE_ONEDNN_OPTS="0",
     )
 
     # Read Hugging Face token from CLI, env, Kaggle Secrets, or local .env

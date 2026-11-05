@@ -25,6 +25,13 @@ import io
 import json
 import os
 import sys
+
+# Prevent transformers from probing or importing broken TensorFlow / Protobuf on Linux/Kaggle
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+os.environ.setdefault("USE_TORCH", "1")
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+
 import tempfile
 import threading
 import time
