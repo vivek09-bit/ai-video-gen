@@ -2102,7 +2102,14 @@ def main() -> int:
     narration_scenes_count = None
     target_minutes = args.minutes
     if getattr(args, "narration", None) and Path(args.narration).exists():
-        _, raw_blocks = story.parse_blocks(Path(args.narration).read_text(encoding="utf-8"))
+        narration_raw = Path(args.narration).read_text(encoding="utf-8")
+        try:
+            import process_script
+            narration_raw = process_script.strip_subtitle_tags(narration_raw)
+            narration_raw = process_script.unwrap_transcript_lines(narration_raw)
+        except Exception:
+            pass
+        _, raw_blocks = story.parse_blocks(narration_raw)
         if raw_blocks:
             narration_scenes_count = len(raw_blocks)
             if target_minutes is None and not args.seconds:
@@ -2478,7 +2485,25 @@ def main() -> int:
                 print(f"error: {source} not found", file=sys.stderr)
                 stage_mgr.mark_failed(STAGE_SCRIPT_SEO, f"Narration file not found: {source}")
                 return 1
-            title, blocks = story.parse_blocks(source.read_text(encoding="utf-8"), len(planned["scenes"]))
+            raw_text = source.read_text(encoding="utf-8")
+            try:
+                import process_script
+                if process_script.SUBTITLE_TAGS_PATTERN.search(raw_text) or process_script.needs_punctuation(raw_text):
+                    print("  [Script Preprocessor] Raw transcript detected (missing punctuation / subtitle tags).")
+                    print("  [Script Preprocessor] Restoring natural Hindi punctuation and clean sentence pauses...")
+                    p_writer = resolve_llm_writer(
+                        requested_model=args.model,
+                        requested_provider=args.llm_provider or ("deepseek" if args.deepseek else None),
+                    )
+                    if p_writer:
+                        raw_text = process_script.punctuate_hindi_llm(raw_text, writer_info=p_writer)
+                    else:
+                        raw_text = process_script.punctuate_hindi_rules(raw_text)
+                    print("  [Script Preprocessor] Hindi script cleaned and punctuated.")
+            except Exception as proc_err:
+                print(f"  [Script Preprocessor Warning] {proc_err}", file=sys.stderr)
+
+            title, blocks = story.parse_blocks(raw_text, len(planned["scenes"]))
             print(f"  source: {source}")
             print("  NOTE  : --narration replaces the writing step completely.")
             print(f"          the topic {args.topic!r} only shapes the visuals,")

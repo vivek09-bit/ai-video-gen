@@ -163,6 +163,9 @@ def _clean_body(lines: Sequence[str], visual: str) -> tuple[str, str]:
             continue
         cleaned = re.sub(r"\[visual:\s*[^\]]+\]", "", line, flags=re.IGNORECASE)
         cleaned = re.sub(r"\(visual:\s*[^\)]+\)", "", cleaned, flags=re.IGNORECASE)
+        # Strip audio cues, sound effect tags, and subtitle bracket noise like [संगीत], [चीख], [Music]
+        cleaned = re.sub(r"\[\s*(?:संगीत|हँसी|तालियाँ|चीख|चीखने की आवाज़|गहरी सांस|आवाज़|शोर|सांस|अचानक ज़ोर से सांस|music|applause|laughter|cheering|sound effects?|gasp|sigh)[^\]]*\]", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\(\s*(?:संगीत|हँसी|तालियाँ|चीख|चीखने की आवाज़|गहरी सांस|आवाज़|शोर|सांस|अचानक ज़ोर से सांस|music|applause|laughter|cheering|sound effects?|gasp|sigh)[^\)]*\)", "", cleaned, flags=re.IGNORECASE)
         kept.append(cleaned)
 
     body = " ".join(" ".join(kept).split())
@@ -226,7 +229,9 @@ def parse_blocks(text: str, scene_count: int = 999) -> tuple[str, list[WrittenSc
 
         units: list[str] = []
         for p in usable:
-            p_units = [u.strip() for u in re.split(r"(?<=[।\.\?!])\s+|\n+", p) if u.strip()]
+            # Unwrap auto-caption line breaks within paragraph to preserve complete sentences
+            p_unwrapped = " ".join(line.strip() for line in p.splitlines() if line.strip())
+            p_units = [u.strip() for u in re.split(r"(?<=[।\.\?!])\s+", p_unwrapped) if u.strip()]
             for u in p_units:
                 u_words = u.split()
                 if len(u_words) > 35:
