@@ -1,6 +1,6 @@
 {
-  "title": "Your Topic",
-  "topic": "Your Topic",
+  "title": "कलयुग के अंत के बाद आखिर क्या होगा",
+  "topic": "कलयुग के अंत के बाद आखिर क्या होगा",
   "language": "hi",
   "genre": "documentary",
   "visualStyle": null,
@@ -30,15 +30,15 @@
     "hinglish": true
   },
   "theme": {
-    "key": "sepia_vintage",
-    "name": "Sepia Vintage",
-    "accent": "#d97706",
-    "text": "#fef3c7",
-    "muted": "#fde68a",
-    "panel": "rgba(35, 25, 15, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0d0804"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -93,7 +93,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -112,8 +112,8 @@
           "text": "कलयुग के अंत के बाद आखिर क्या होगा शास्त्रों के अनुसार 1200 दिव्य वर्ष यानी कि 432000 साल का होगा कलयुग जिनमें से अभी कुछ 5000 साल ही बीते हैं और फिलहाल।"
         }
       ],
-      "visualPrompt": "Ancient Hindu cosmology visualization: a colossal cosmic wheel of time etched with Sanskrit numerals, Kali Yuga depicted as a dark iron age segment glowing dimly against a vast starry void, golden Vedic scrolls and brass astrolabe floating nearby, dramatic chiaroscuro lighting, documentary-style cinematic wide shot, deep indigo and ember tones.",
-      "visualKeywords": "Ancient Hindu cosmology visualization: a colossal cosmic wheel of time etched with Sanskrit numerals, Kali Yuga depicted as a dark iron age segment glowing dimly against a vast starry void, golden Vedic scrolls and brass astrolabe floating nearby, dramatic chiaroscuro lighting, documentary-style cinematic wide shot, deep indigo and ember tones."
+      "visualPrompt": "Ancient Hindu cosmology visualized: a colossal cosmic brass water-clock and astronomical yantra chart, a saffron-robed sadhu with rudraksha beads and ash tilak pointing at a glowing 432,000-year Kali Yuga timeline etched in Sanskrit, dim temple sanctum lit by flickering oil diyas, deep shadows, documentary chiaroscuro.",
+      "visualKeywords": "Ancient Hindu cosmology visualized: a colossal cosmic brass water-clock and astronomical yantra chart, a saffron-robed sadhu with rudraksha beads and ash tilak pointing at a glowing 432,000-year Kali Yuga timeline etched in Sanskrit, dim temple sanctum lit by flickering oil diyas, deep shadows, documentary chiaroscuro."
     },
     {
       "id": "scene-002",
@@ -164,7 +164,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -183,8 +183,8 @@
           "text": "हम जिस एज में हैं उसे कहा जाता है कलयुग का गोल्डन एज जो कि माना जाता है टोटल 10000 सालों का होगा इन 10000 सालों के।"
         }
       ],
-      "visualPrompt": "A wise Indian sadhu with ash-smeared forehead, rudraksha beads and saffron robes seated cross-legged beside a blazing sacred havan kund, gesturing toward a glowing golden segment of a cosmic time-wheel, temple pillars and drifting incense smoke, warm firelight on weathered face, documentary close-up, shallow depth of field.",
-      "visualKeywords": "A wise Indian sadhu with ash-smeared forehead, rudraksha beads and saffron robes seated cross-legged beside a blazing sacred havan kund, gesturing toward a glowing golden segment of a cosmic time-wheel, temple pillars and drifting incense smoke, warm firelight on weathered face, documentary close-up, shallow depth of field."
+      "visualPrompt": "Golden age of Kali Yuga depicted as a radiant dawn over an ancient Indian kingdom, sandstone temples and ghats glowing amber, a bearded Vedic scholar in white dhoti and angavastram holding palm-leaf manuscripts, sacred fire smoke drifting, warm golden-hour light, cinematic wide documentary composition.",
+      "visualKeywords": "Golden age of Kali Yuga depicted as a radiant dawn over an ancient Indian kingdom, sandstone temples and ghats glowing amber, a bearded Vedic scholar in white dhoti and angavastram holding palm-leaf manuscripts, sacred fire smoke drifting, warm golden-hour light, cinematic wide documentary composition."
     },
     {
       "id": "scene-003",
@@ -196,10 +196,9 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 2,
           "effects": {
@@ -215,9 +214,10 @@
         },
         {
           "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 1,
           "effects": {
@@ -237,7 +237,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -256,8 +256,8 @@
           "text": "बाद जब अधर्म अपने चरम सीमा पर होगा तब हमारी गंगा नदी सूखकर वापस अपने वैकुंठ धाम लौट जाएंगी और सभी देवी देवता भी पृथ्वी चोरकर अपने-अपने धाम लौट जाएंगे तब।"
         }
       ],
-      "visualPrompt": "A dried cracked riverbed where the sacred Ganga once flowed, faint translucent celestial light ascending skyward as devas depart, ornate stone ghats and abandoned temple steps under a blood-orange dusk sky, distant Himalayan peaks, dust motes in low sun, desolate cinematic documentary composition, muted ochre and grey palette.",
-      "visualKeywords": "A dried cracked riverbed where the sacred Ganga once flowed, faint translucent celestial light ascending skyward as devas depart, ornate stone ghats and abandoned temple steps under a blood-orange dusk sky, distant Himalayan peaks, dust motes in low sun, desolate cinematic documentary composition, muted ochre and grey palette."
+      "visualPrompt": "A dried, cracked riverbed of the sacred Ganga under a blood-red sky, abandoned temple steps and empty brass urns, celestial deities in ornate gold crowns and silk garments ascending as translucent light forms toward Vaikuntha, storm clouds and dust, dramatic apocalyptic chiaroscuro.",
+      "visualKeywords": "A dried, cracked riverbed of the sacred Ganga under a blood-red sky, abandoned temple steps and empty brass urns, celestial deities in ornate gold crowns and silk garments ascending as translucent light forms toward Vaikuntha, storm clouds and dust, dramatic apocalyptic chiaroscuro."
     },
     {
       "id": "scene-004",
@@ -308,7 +308,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -327,8 +327,8 @@
           "text": "पुराणों के अनुसार भगवान विष्णु अपने 10वें आफ यानी कि कल की अवतार में अवतरित होंगे और केवल ती दिनों के अंदर वह धरती से सारे अधर्म का विनाश करके।"
         }
       ],
-      "visualPrompt": "Lord Vishnu as Kalki avatar: celestial blue-skinned deity in golden armor and yellow silk robes, riding a white rearing horse with a blazing sword raised, storm clouds and lightning behind, sacred fire glow illuminating divine ornaments, dramatic low-angle mythological epic composition, cinematic chiaroscuro, deep blues and gold.",
-      "visualKeywords": "Lord Vishnu as Kalki avatar: celestial blue-skinned deity in golden armor and yellow silk robes, riding a white rearing horse with a blazing sword raised, storm clouds and lightning behind, sacred fire glow illuminating divine ornaments, dramatic low-angle mythological epic composition, cinematic chiaroscuro, deep blues and gold."
+      "visualPrompt": "Lord Vishnu's tenth avatar Kalki riding a white horse with a blazing sword, celestial blue skin and golden armor, charging across a battlefield of crumbling adharma, stormy sky split by lightning, sacred fire and flying dust, epic mythological cinematic lighting, dynamic low-angle composition.",
+      "visualKeywords": "Lord Vishnu's tenth avatar Kalki riding a white horse with a blazing sword, celestial blue skin and golden armor, charging across a battlefield of crumbling adharma, stormy sky split by lightning, sacred fire and flying dust, epic mythological cinematic lighting, dynamic low-angle composition."
     },
     {
       "id": "scene-005",
@@ -340,10 +340,8 @@
       "shots": [
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 2,
           "effects": {
@@ -360,8 +358,10 @@
         },
         {
           "visual": {
-            "type": "candle",
-            "glow": 1.0
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
           },
           "weight": 1,
           "effects": {
@@ -379,10 +379,8 @@
         },
         {
           "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
+            "type": "candle",
+            "glow": 1.0
           },
           "weight": 1,
           "effects": {
@@ -403,7 +401,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -422,8 +420,8 @@
           "text": "पुनर्धिल्लू यानी 12 सूरज उदित होंगे जिसकी वजह से जब।"
         }
       ],
-      "visualPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dry riverbeds and withered banyan trees, intense white-gold heat haze, silhouetted ancient temple spires, dramatic overexposed documentary wide shot, fiery orange and crimson palette, cinematic lens flare.",
-      "visualKeywords": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dry riverbeds and withered banyan trees, intense white-gold heat haze, silhouetted ancient temple spires, dramatic overexposed documentary wide shot, fiery orange and crimson palette, cinematic lens flare."
+      "visualPrompt": "Apocalyptic sky with twelve blazing suns rising together over a scorched Indian landscape, rivers and lakes evaporating into steam, ancient stone temples silhouetted against blinding orange-white light, cracked earth glowing red, extreme heat haze, dramatic documentary wide shot.",
+      "visualKeywords": "Apocalyptic sky with twelve blazing suns rising together over a scorched Indian landscape, rivers and lakes evaporating into steam, ancient stone temples silhouetted against blinding orange-white light, cracked earth glowing red, extreme heat haze, dramatic documentary wide shot."
     },
     {
       "id": "scene-006",
@@ -475,7 +473,7 @@
       "soundCues": [],
       "background": {
         "type": "color",
-        "color": "#0d0804"
+        "color": "#050c18"
       },
       "cast": [],
       "acting": {
@@ -494,8 +492,8 @@
           "text": "सारा जल सूख जाएगा उसके बाद फिर से एक बार एक नए युग की शुरुआत होगी जय श्री कृष्ण।"
         }
       ],
-      "visualPrompt": "Dawn of a new Satya Yuga: fresh monsoon rain falling on parched earth, a single green sprout emerging from cracked soil, soft golden sunrise breaking through parting storm clouds, distant Himalayan peaks and a small white temple, hopeful documentary cinematic composition, luminous teal and gold tones.",
-      "visualKeywords": "Dawn of a new Satya Yuga: fresh monsoon rain falling on parched earth, a single green sprout emerging from cracked soil, soft golden sunrise breaking through parting storm clouds, distant Himalayan peaks and a small white temple, hopeful documentary cinematic composition, luminous teal and gold tones."
+      "visualPrompt": "Rebirth of a new Satya Yuga: a single radiant dawn sun over a fresh green earth, sacred lotus blooming on clear water, a golden Krishna idol with flute glowing softly, distant Himalayan peaks and temple spires, soft divine golden light, serene hopeful cinematic composition.",
+      "visualKeywords": "Rebirth of a new Satya Yuga: a single radiant dawn sun over a fresh green earth, sacred lotus blooming on clear water, a golden Krishna idol with flute glowing softly, distant Himalayan peaks and temple spires, soft divine golden light, serene hopeful cinematic composition."
     }
   ],
   "audioModel": "indicf5",
@@ -577,123 +575,121 @@
     ]
   },
   "research": {
-    "seed": "Your Topic",
+    "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
     "genre": "documentary",
     "keywords": {
-      "seed": "Your Topic",
+      "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
       "youtube_trending": [
-        "your topic",
-        "your topic + creative commons",
-        "your topic is wild n out",
-        "topic your love",
-        "topic your spray",
-        "your idol topic",
-        "not your topic",
-        "your love atb topic a7s",
-        "your love atb topic and a7s lyrics"
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत का आरंभ",
+        "कलयुग अंत कब होगा",
+        "कलयुग अंत का आरम्भ",
+        "कलयुग अंत",
+        "कलयुग अंत का आरंभ फुल मूवी",
+        "कलयुग अंत का आरंभ full movie",
+        "कलयुग अंत का आरंभ फिल्म",
+        "कलयुग अंत का आरंभ-chapter 2-",
+        "कलयुग अंत का आरंभ सिर्फ सनातन ऐप पर"
       ],
       "google_search": [
-        "your topic",
-        "your topic recovery",
-        "your topic home",
-        "your topic 1000 like instagram",
-        "your topic recover",
-        "your topic raksha",
-        "your topic meaning",
-        "your topic is describe the scene of an airport"
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत का आरंभ मूवी 2026",
+        "कलयुग अंत का आरंभ",
+        "कलयुग अंत कब होगा",
+        "कलयुग अंत का आरंभ-chapter 2-",
+        "कलयुग अंतिम चरण",
+        "कलयुग अंत कैसे होगा",
+        "कलयुग अंत"
       ],
       "questions_and_curiosity": [],
       "long_tail_keywords": [
-        "your love atb topic a7s",
-        "your topic is describe the scene of an airport",
-        "your topic meaning",
-        "topic your love",
-        "topic your spray",
-        "not your topic",
-        "your topic raksha",
-        "your topic + creative commons",
-        "your topic recover",
-        "your topic tv",
-        "your topic home",
-        "your topic is wild n out"
+        "कलयुग अंत का आरंभ मूवी 2026",
+        "कलयुग अंत का आरंभ",
+        "कलयुग अंत का आरंभ फुल मूवी",
+        "कलयुग अंत कब होगा",
+        "कलयुग अंत का आरंभ सिर्फ सनातन ऐप पर",
+        "कलयुग अंत का आरम्भ",
+        "कलयुग अंत",
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत का आरंभ full movie",
+        "kalyug ant kab hoga",
+        "कलयुग अंत का आरंभ-chapter 2-",
+        "कलयुग अंत का आरंभ फिल्म"
       ]
     },
     "ai_synthesis": {
       "concepts": [
         {
-          "title": "Airport Scene: The Hidden Truth Nobody Talks About",
-          "hook": "एयरपोर्ट पर हर दिन कुछ ऐसा होता है जो आपकी नज़रों से छुपा है...",
-          "core_angle": "The psychological tension between travelers' visible calm and the invisible chaos of security, lost luggage, and emotional goodbyes.",
-          "recommended_topic_arg": "Describe the scene of an airport and reveal the hidden emotional and logistical stories behind the scenes.",
+          "title": "कलयुग खत्म होते ही धरती पर पहला दिन कैसा होगा?",
+          "hook": "जिस पल कलयुग का अंत होगा, उसके अगले ही दिन धरती पर कुछ ऐसा होगा जो आपने कभी सोचा भी नहीं!",
+          "core_angle": "The first 24 hours after Kaliyuga ends, described through Puranic signs, cosmic shifts, and what common people will experience.",
+          "recommended_topic_arg": "कलयुग के अंत के तुरंत बाद धरती पर पहला दिन कैसा होगा, पुराणों और शास्त्रों के अनुसार विस्तार से बताएं",
           "target_emotion": "curiosity"
         },
         {
-          "title": "Why 'Your Topic' Is the Most Searched Mystery",
-          "hook": "अगर आपने आज 'your topic' सर्च किया है, तो ये वीडियो आपके लिए है...",
-          "core_angle": "The gap between what people search for and what they actually find, creating a cycle of curiosity and misinformation.",
-          "recommended_topic_arg": "Explore the meaning and mystery behind the search term 'your topic' and why it trends globally.",
+          "title": "कलयुग के बाद कौन सा युग आएगा? जानिए चौंकाने वाला सच",
+          "hook": "कलयुग के बाद सीधे सतयुग नहीं आता! बीच में एक ऐसा युग है जिसके बारे में कोई नहीं बताता।",
+          "core_angle": "The forgotten transitional period between Kaliyuga and Satyuga, including the Kalki avatar's role and the Sandhya Yuga.",
+          "recommended_topic_arg": "कलयुग के बाद कौन सा युग आएगा, क्या सीधे सतयुग आएगा या बीच में कोई संध्या युग है, कल्कि अवतार की भूमिका सहित समझाएं",
           "target_emotion": "shock"
         },
         {
-          "title": "The Recovery Secret That Changes Everything",
-          "hook": "रिकवरी का ये तरीका आपने कभी नहीं देखा होगा...",
-          "core_angle": "The emotional journey of recovery from loss—whether data, health, or relationships—and the unexpected psychological boost it provides.",
-          "recommended_topic_arg": "Uncover the untold story of 'your topic recovery' and how it impacts people's lives.",
+          "title": "कलयुग के अंत से पहले दिखेंगे ये 7 भयानक संकेत",
+          "hook": "अगर आपको ये 7 संकेत दिखने लगें, तो समझ लीजिए कलयुग का अंत बहुत करीब है!",
+          "core_angle": "Seven terrifying signs from Hindu scriptures that signal the end of Kaliyuga is imminent, with modern parallels.",
+          "recommended_topic_arg": "कलयुग के अंत से पहले दिखने वाले 7 भयानक संकेत क्या हैं, शास्त्रों में बताए गए लक्षण और आज के समय में उनका मिलान करें",
           "target_emotion": "dread"
         },
         {
-          "title": "Your Love: The Untold Story of Connection",
-          "hook": "प्यार में 'your love' का मतलब क्या है? ये वीडियो आपको हिला देगा...",
-          "core_angle": "The contrast between idealized love and the messy reality of modern relationships, as reflected in search trends.",
-          "recommended_topic_arg": "Dive into the meaning of 'your love' and the emotional stories behind the search.",
+          "title": "कलयुग के बाद इंसान कैसा होगा? शरीर और मन में बदलाव",
+          "hook": "कलयुग खत्म होने के बाद इंसान का शरीर और दिमाग पूरी तरह बदल जाएगा—जानिए कैसे!",
+          "core_angle": "How human body, mind, lifespan, and society will transform after Kaliyuga ends, based on Puranic descriptions of Satyuga.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद इंसान का शरीर, मन, उम्र और समाज कैसे बदलेगा, सतयुग के मानव के गुण और जीवनशैली का वर्णन करें",
           "target_emotion": "wonder"
         },
         {
-          "title": "1000 Likes on Instagram: The Dark Side of Validation",
-          "hook": "1000 लाइक्स पाने के लिए लोग क्या-क्या करते हैं...",
-          "core_angle": "The psychological cost of chasing social media validation and the hidden desperation behind viral content.",
-          "recommended_topic_arg": "Investigate the trend of 'your topic 1000 like instagram' and the lengths people go to for likes.",
+          "title": "कलयुग के अंत के बाद भी रहेंगे ये 3 राक्षसी तत्व?",
+          "hook": "कलयुग खत्म होने के बाद भी धरती पर 3 ऐसी शक्तियां बची रहेंगी जो सतयुग को खतरे में डाल सकती हैं!",
+          "core_angle": "The three lingering negative forces or karmic remnants that survive into the next age, creating hidden tension even in Satyuga.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद भी कौन से 3 नकारात्मक तत्व या राक्षसी शक्तियां बची रह सकती हैं, शास्त्रों के आधार पर संभावित खतरों का विश्लेषण करें",
           "target_emotion": "excitement"
         }
       ],
       "seo_tags": [
-        "your topic",
-        "your topic recovery",
-        "your topic home",
-        "your topic 1000 like instagram",
-        "your love atb topic a7s",
-        "airport scene description",
-        "your topic meaning",
-        "topic your love",
-        "topic your spray",
-        "not your topic"
+        "कलयुग अंत के बाद क्या होगा",
+        "कलयुग खत्म होने के बाद",
+        "कलयुग के बाद सतयुग",
+        "कल्कि अवतार कब आएंगे",
+        "कलयुग के अंत के संकेत",
+        "सतयुग कैसा होगा",
+        "कलयुग अंत 2026",
+        "हिंदू पुराण कलयुग",
+        "कलयुग से सतयुग तक",
+        "युग परिवर्तन कथा"
       ],
       "recommended_hashtags": [
-        "#YourTopic",
-        "#Mystery",
-        "#Recovery",
-        "#LoveStory",
-        "#InstagramLikes"
+        "#कलयुग",
+        "#सतयुग",
+        "#कल्किअवतार",
+        "#हिंदूधर्म",
+        "#पुराण"
       ]
     }
   },
   "keywords": [
-    "your topic",
-    "your topic + creative commons",
-    "your topic is wild n out",
-    "topic your love",
-    "topic your spray",
-    "your idol topic",
-    "not your topic",
-    "your love atb topic a7s",
-    "your love atb topic and a7s lyrics",
-    "your topic recovery",
-    "your topic home",
-    "your topic 1000 like instagram",
-    "your topic recover",
-    "your topic raksha",
-    "your topic meaning",
-    "your topic is describe the scene of an airport",
-    "your topic tv"
+    "कलयुग अंत का आरंभ मूवी",
+    "कलयुग अंत का आरंभ",
+    "कलयुग अंत कब होगा",
+    "कलयुग अंत का आरम्भ",
+    "कलयुग अंत",
+    "कलयुग अंत का आरंभ फुल मूवी",
+    "कलयुग अंत का आरंभ full movie",
+    "कलयुग अंत का आरंभ फिल्म",
+    "कलयुग अंत का आरंभ-chapter 2-",
+    "कलयुग अंत का आरंभ सिर्फ सनातन ऐप पर",
+    "कलयुग अंत का आरंभ मूवी 2026",
+    "कलयुग अंतिम चरण",
+    "कलयुग अंत कैसे होगा",
+    "kalyug ant kab hoga"
   ]
 }
