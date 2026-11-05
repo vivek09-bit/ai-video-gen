@@ -2001,7 +2001,8 @@ def generate_local_lcm(
 
     img = result.images[0]
     if (img.width, img.height) != (width, height):
-        img = img.resize((width, height), Image.Resampling.LANCZOS)
+        from PIL import ImageOps
+        img = ImageOps.fit(img, (width, height), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -2412,11 +2413,23 @@ def generate_cloudflare(
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json"
     }
-    # Cloudflare FLUX.1 [schnell] strictly permits only: prompt (max 2048 chars) and steps (1-8, default 4)
+    # Guide composition according to target aspect ratio so centered cropping never clips main subjects
+    aspect_hint = ""
+    if width and height:
+        if width < height:
+            aspect_hint = "vertical 9:16 portrait orientation, centered subject"
+        elif width > height:
+            aspect_hint = "widescreen 16:9 cinematic landscape orientation, wide shot"
+
+    effective_prompt = f"{prompt.strip()}, {aspect_hint}" if aspect_hint and aspect_hint not in prompt else prompt.strip()
     payload = {
-        "prompt": prompt[:2048].strip(),
-        "steps": 4
+        "prompt": effective_prompt[:2048].strip(),
+        "steps": 4,
     }
+    # Cloudflare SDXL models support explicit width and height
+    if "stabilityai" in cf_model or "lightning" in cf_model:
+        payload["width"] = max(256, min(2048, (width // 8) * 8))
+        payload["height"] = max(256, min(2048, (height // 8) * 8))
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=60)
@@ -2447,9 +2460,11 @@ def generate_cloudflare(
             image_bytes = response.content
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        from PIL import Image, ImageOps
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         if width and height and (image.width, image.height) != (width, height):
-            image = image.resize((width, height), Image.Resampling.LANCZOS)
+            # Fit proportionally with centered crop to target aspect ratio without stretching
+            image = ImageOps.fit(image, (width, height), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
         image.save(output_path)
         print(f"[OK] Cloudflare image generated: {output_path}")
         return output_path
@@ -2496,12 +2511,12 @@ def generate_vast(
     raise RuntimeError(f"Unexpected Vast response: {res_data}")
 
 
-def generate_image(prompt, output_path):
+def generate_image(prompt, output_path, width: int = 1280, height: int = 720):
     provider = os.getenv("IMAGE_PROVIDER", "local").lower()
     if provider == "local":
-        return generate_local(prompt, output_path)
+        return generate_local(prompt, output_path, width=width, height=height)
     elif provider == "huggingface":
-        return generate_huggingface(prompt, output_path)
+        return generate_huggingface(prompt, output_path, width=width, height=height)
     elif provider == "fireworks":
         return generate_fireworks(prompt, output_path)
     elif provider == "together":
@@ -2513,10 +2528,10 @@ def generate_image(prompt, output_path):
     elif provider == "openai":
         return generate_openai(prompt, output_path)
     elif provider in ("cloudflare", "cf"):
-        return generate_cloudflare(prompt, output_path)
+        return generate_cloudflare(prompt, output_path, width=width, height=height)
     else:
         print(f"[WARN] Unknown image provider: {provider}, falling back to local")
-        return generate_local(prompt, output_path)
+        return generate_local(prompt, output_path, width=width, height=height)
 
 
 def generate_local(
