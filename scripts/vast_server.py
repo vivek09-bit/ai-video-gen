@@ -596,6 +596,39 @@ def load_indicf5_engine():
     except ImportError:
         pass
 
+    # Ensure vocoder, CFM model, and mel filterbanks construct on concrete CPU tensors
+    # regardless of any active meta-device context from Transformers / Accelerate / Dynamo.
+    try:
+        import f5_tts.infer.utils_infer as _f5_u
+        _orig_vocoder_loader = getattr(_f5_u, "load_vocoder", None)
+        if _orig_vocoder_loader:
+            def _cpu_safe_load_vocoder(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_vocoder_loader(*args, **kwargs)
+            _f5_u.load_vocoder = _cpu_safe_load_vocoder
+
+        _orig_dit_loader = getattr(_f5_u, "load_model", None)
+        if _orig_dit_loader:
+            def _cpu_safe_load_model(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_dit_loader(*args, **kwargs)
+            _f5_u.load_model = _cpu_safe_load_model
+    except Exception:
+        pass
+
+    try:
+        import torchaudio.functional as _ta_f
+        import torchaudio.functional.functional as _ta_ff
+        _orig_fbanks = getattr(_ta_f, "melscale_fbanks", None)
+        if _orig_fbanks:
+            def _cpu_safe_fbanks(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_fbanks(*args, **kwargs)
+            _ta_f.melscale_fbanks = _cpu_safe_fbanks
+            _ta_ff.melscale_fbanks = _cpu_safe_fbanks
+    except Exception:
+        pass
+
     last_load_err = None
     _INDICF5_ENGINE = None
     try:
