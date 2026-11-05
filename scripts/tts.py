@@ -88,7 +88,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 18
+AUDIO_PIPELINE_VERSION = 19
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
