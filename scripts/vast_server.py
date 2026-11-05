@@ -577,36 +577,85 @@ def load_indicf5_engine():
     if "rsolanki1822/IndicF5-mirror" not in repos_to_try:
         repos_to_try.append("rsolanki1822/IndicF5-mirror")
 
+    from contextlib import contextmanager
+    import transformers.modeling_utils as _t_mu
+
+    @contextmanager
+    def _no_empty_weights(*args, **kwargs):
+        yield
+
+    # Avoid PyTorch meta device collisions in Vocos filterbank initialization
+    # (prevents: "RuntimeError: Tensor on device cpu is not on the expected device meta!")
+    _orig_empty_weights = getattr(_t_mu, "init_empty_weights", None)
+    _t_mu.init_empty_weights = _no_empty_weights
+    _orig_acc_empty = None
+    try:
+        import accelerate
+        _orig_acc_empty = getattr(accelerate, "init_empty_weights", None)
+        accelerate.init_empty_weights = _no_empty_weights
+    except ImportError:
+        pass
+
     last_load_err = None
     _INDICF5_ENGINE = None
-    for repo_name in repos_to_try:
-        try:
-            print(f"[Vast Server] Loading IndicF5 model from {repo_name} on {DEVICE}...")
-            _INDICF5_ENGINE = AutoModel.from_pretrained(
-                repo_name,
-                trust_remote_code=True,
-                token=_hub_token(),
-                low_cpu_mem_usage=False,
-            )
-            print(f"[Vast Server] Successfully loaded IndicF5 from {repo_name}")
-            break
-        except Exception as e:
-            print(f"[Vast Server] Failed to load {repo_name} ({type(e).__name__}: {e}). Trying mirror...", file=sys.stderr)
-            last_load_err = e
+    try:
+        for repo_name in repos_to_try:
+            try:
+                print(f"[Vast Server] Loading IndicF5 model from {repo_name} on {DEVICE}...")
+                _INDICF5_ENGINE = AutoModel.from_pretrained(
+                    repo_name,
+                    trust_remote_code=True,
+                    token=_hub_token(),
+                    low_cpu_mem_usage=False,
+                )
+                print(f"[Vast Server] Successfully loaded IndicF5 from {repo_name}")
+                break
+            except Exception as e:
+                print(f"[Vast Server] Failed to load {repo_name} ({type(e).__name__}: {e}). Trying mirror...", file=sys.stderr)
+                last_load_err = e
+    finally:
+        if _orig_empty_weights is not None:
+            _t_mu.init_empty_weights = _orig_empty_weights
+        if _orig_acc_empty is not None:
+            try:
+                import accelerate
+                accelerate.init_empty_weights = _orig_acc_empty
+            except Exception:
+                pass
 
     if _INDICF5_ENGINE is None:
         raise last_load_err
+
+    def _materialize_if_meta(mod):
+        if mod is None:
+            return
+        try:
+            if any(getattr(p, "is_meta", False) for p in mod.parameters()):
+                mod.to_empty(device="cpu")
+        except Exception:
+            pass
+
     target_device = torch.device(DEVICE)
-    if hasattr(_INDICF5_ENGINE, "to"):
-        _INDICF5_ENGINE.to(target_device)
-    if hasattr(_INDICF5_ENGINE, "ema_model") and hasattr(_INDICF5_ENGINE.ema_model, "to"):
-        _INDICF5_ENGINE.ema_model.to(target_device)
-        if hasattr(_INDICF5_ENGINE.ema_model, "_orig_mod"):
-            _INDICF5_ENGINE.ema_model._orig_mod.to(target_device)
-    if hasattr(_INDICF5_ENGINE, "vocoder") and hasattr(_INDICF5_ENGINE.vocoder, "to"):
-        _INDICF5_ENGINE.vocoder.to(target_device)
-        if hasattr(_INDICF5_ENGINE.vocoder, "_orig_mod"):
-            _INDICF5_ENGINE.vocoder._orig_mod.to(target_device)
+    for mod in (
+        _INDICF5_ENGINE,
+        getattr(_INDICF5_ENGINE, "ema_model", None),
+        getattr(_INDICF5_ENGINE, "vocoder", None),
+    ):
+        if mod is None:
+            continue
+        _materialize_if_meta(mod)
+        if hasattr(mod, "_orig_mod"):
+            _materialize_if_meta(mod._orig_mod)
+        if hasattr(mod, "to"):
+            try:
+                mod.to(target_device)
+            except Exception:
+                pass
+        if hasattr(mod, "_orig_mod") and hasattr(mod._orig_mod, "to"):
+            try:
+                mod._orig_mod.to(target_device)
+            except Exception:
+                pass
     if hasattr(_INDICF5_ENGINE, "eval"):
         _INDICF5_ENGINE.eval()
     # Override `device` property so INF5Model.forward never resolves to meta device

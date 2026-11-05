@@ -15,8 +15,8 @@ Kaggle provides **30 hours per week of free NVIDIA GPU (Tesla P100 16GB VRAM)**.
 ### Step 2: Paste and Run this single cell in Kaggle
 
 ```python
-# 1. Clone repository & install requirements
-!git clone https://github.com/vivek09-bit/ai-video-gen.git tube2dscript
+# 1. Clone repository (or update to latest if already cloned)
+!git clone https://github.com/vivek09-bit/ai-video-gen.git tube2dscript 2>/dev/null || (cd tube2dscript && git pull origin main)
 %cd tube2dscript
 
 # 2. Run the Kaggle GPU server & Cloudflare tunnel
