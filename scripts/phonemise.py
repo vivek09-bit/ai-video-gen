@@ -105,6 +105,11 @@ def estimate_syllables(text: str) -> int:
     if not text:
         return 1
 
+    digits = re.findall(r"\d+", text)
+    if digits:
+        total_digits = sum(len(d) for d in digits)
+        return max(1, int(total_digits * 1.5))
+
     if any(DEVA_START <= ord(ch) <= DEVA_END for ch in text):
         consonants = sum(1 for ch in text if ord(ch) in DEVA_CONSONANTS)
         independent = sum(1 for ch in text if ord(ch) in DEVA_INDEPENDENT_VOWELS)

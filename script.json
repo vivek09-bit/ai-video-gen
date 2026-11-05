@@ -1,43 +1,44 @@
 {
-  "title": "Ajnala’s Martyrs’ Well: The Untold Story of 1857 | 157 Years Later, History Revealed",
-  "topic": "Ajnala’s Martyrs’ Well: The Untold Story of 1857 | 157 Years Later, History Revealed",
+  "title": "कलयुग के अंत के बाद आखिर क्या होगा",
+  "topic": "कलयुग के अंत के बाद आखिर क्या होगा",
   "language": "hi",
   "genre": "documentary",
   "visualStyle": null,
-  "format": "landscape",
-  "aspectRatio": "16:9",
-  "width": 1920,
-  "height": 1080,
+  "format": "reel",
+  "aspectRatio": "9:16",
+  "width": 1080,
+  "height": 1920,
   "fps": 30,
-  "voice": "indicf5_aarav",
+  "voice": "hm_omega",
   "secondaryVoice": null,
   "speed": 0.94,
+  "tailPaddingSeconds": 1.2,
   "sentencePauseSeconds": 0.25,
   "ambience": null,
   "captions": {
     "enabled": true,
     "wordsPerCue": 5,
-    "bottom": 0.14,
-    "fontSize": 48,
+    "bottom": 0.28,
+    "fontSize": 55,
     "uppercase": false,
     "highlight": true,
     "position": "bottom",
     "outline": 0,
     "panel": true,
-    "maxWidth": 0.92,
+    "maxWidth": 0.88,
     "rise": 14,
     "hinglish": true
   },
   "theme": {
-    "key": "sepia_vintage",
-    "name": "Sepia Vintage",
-    "accent": "#d97706",
-    "text": "#fef3c7",
-    "muted": "#fde68a",
-    "panel": "rgba(35, 25, 15, 0.75)",
+    "key": "midnight_blue",
+    "name": "Midnight Blue",
+    "accent": "#38bdf8",
+    "text": "#f8fafc",
+    "muted": "#94a3b8",
+    "panel": "rgba(15, 23, 42, 0.75)",
     "headlineFont": "Georgia, 'Times New Roman', serif",
     "bodyFont": "'Segoe UI', system-ui, -apple-system, sans-serif",
-    "bg_color": "#0d0804"
+    "bg_color": "#050c18"
   },
   "characters": {},
   "scenes": [
@@ -51,10 +52,9 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "forest",
+            "fog": 0.4,
+            "moonlight": 0.6
           },
           "weight": 2,
           "effects": {
@@ -70,9 +70,10 @@
         },
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "house",
+            "fog": 0.3,
+            "lit": true,
+            "moonlight": 0.5
           },
           "weight": 1,
           "effects": {
@@ -91,8 +92,10 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "color",
-        "color": "#0d0804"
+        "type": "image",
+        "src": "images/scene-001.png",
+        "kenBurns": "in",
+        "dim": 0
       },
       "cast": [],
       "acting": {
@@ -108,13 +111,19 @@
       "lines": [
         {
           "character": null,
-          "text": "पंजाब के अजनाला में एक ऐसा कुआं था जिसके अंदर 1857 की एक पूरी कहानी दफन थी।"
+          "text": "कलयुग के अंत के बाद आखिर क्या होगा शास्त्रों के अनुसार 1200 दिव्य वर्ष यानी कि 432000 साल का होगा कलयुग जिनमें से अभी कुछ 5000 साल ही बीते हैं और फिलहाल।"
         }
-      ]
+      ],
+      "visualPrompt": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
+      "visualKeywords": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
+      "backgroundPrompt": "Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Ancient Hindu cosmological diagram of four yugas carved on weathered sandstone temple wall, a saffron-robed sadhu with rudraksha beads and white tilak pointing at the Kali Yuga segment, oil lamps flickering, warm golden temple light, dust motes, documentary close-up composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-001.png"
     },
     {
       "id": "scene-002",
-      "beat": "establish",
+      "beat": "dread",
       "headline": "",
       "subtext": "",
       "bullets": [],
@@ -122,17 +131,15 @@
       "shots": [
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "candle",
+            "glow": 0.85
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
+            "vignette": 0.75,
+            "grain": 0.3,
+            "dust": 0.25,
+            "zoom": 0.025,
             "drift": "in"
           },
           "transition": {
@@ -141,16 +148,16 @@
         },
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "corridor",
+            "flicker": 0.3,
+            "depth": 0.5
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
+            "vignette": 0.75,
+            "grain": 0.3,
+            "dust": 0.25,
+            "zoom": 0.025,
             "drift": "in"
           },
           "transition": {
@@ -162,13 +169,15 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "color",
-        "color": "#0d0804"
+        "type": "image",
+        "src": "images/scene-002.png",
+        "kenBurns": "in",
+        "dim": 0
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.23,
+        "intensity": 0.38,
         "head": "center",
         "eyes": "center",
         "gesture": "none"
@@ -179,13 +188,19 @@
       "lines": [
         {
           "character": null,
-          "text": "लेकिन दुनिया को इसकी सच्चाई बहुत साल बाद पता चली। साल था 1857 भारत के कई हिस्सों में सैनिक विद्रोह कर रहे थे।"
+          "text": "हम जिस एज में हैं उसे कहा जाता है कलयुग का गोल्डन एज जो कि माना जाता है टोटल 10000 सालों का होगा इन 10000 सालों के।"
         }
-      ]
+      ],
+      "visualPrompt": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
+      "visualKeywords": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
+      "backgroundPrompt": "Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Serene Himalayan ashram at dawn, a bearded yogi in saffron dhoti and rudraksha mala meditating beside a sacred fire, brass kalash and Sanskrit palm-leaf manuscripts, misty snow peaks behind, soft golden sunrise rays, cinematic wide shot, documentary realism, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-002.png"
     },
     {
       "id": "scene-003",
-      "beat": "establish",
+      "beat": "approach",
       "headline": "",
       "subtext": "",
       "bullets": [],
@@ -193,16 +208,16 @@
       "shots": [
         {
           "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
+            "type": "corridor",
+            "flicker": 0.4,
+            "depth": 0.6
           },
           "weight": 2,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
+            "vignette": 0.75,
+            "grain": 0.35,
+            "dust": 0.25,
+            "zoom": 0.035,
             "drift": "in"
           },
           "transition": {
@@ -211,17 +226,17 @@
         },
         {
           "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
+            "type": "figure",
+            "distance": 0.5,
+            "fog": 0.4,
+            "glow": 0.5
           },
           "weight": 1,
           "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
+            "vignette": 0.75,
+            "grain": 0.35,
+            "dust": 0.25,
+            "zoom": 0.035,
             "drift": "in"
           },
           "transition": {
@@ -233,16 +248,18 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "color",
-        "color": "#0d0804"
+        "type": "image",
+        "src": "images/scene-003.png",
+        "kenBurns": "in",
+        "dim": 0
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.24,
+        "intensity": 0.57,
         "head": "right",
         "eyes": "right",
-        "gesture": "none"
+        "gesture": "explain"
       },
       "padBefore": 0.0,
       "padAfter": 0.04,
@@ -250,223 +267,18 @@
       "lines": [
         {
           "character": null,
-          "text": "वे ईस्ट इंडिया कंपनी के शासन के खिलाफ थे।"
+          "text": "बाद जब अधर्म अपने चरम सीमा पर होगा तब हमारी गंगा नदी सूखकर वापस अपने वैकुंठ धाम लौट जाएंगी और सभी देवी देवता भी पृथ्वी चोरकर अपने-अपने धाम लौट जाएंगे तब।"
         }
-      ]
+      ],
+      "visualPrompt": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
+      "visualKeywords": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
+      "backgroundPrompt": "Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Cracked dry bed of the Ganges river under a blood-red dusk sky, abandoned temple ghats with empty stone steps, a lone sadhu in saffron robes with folded hands watching the vanishing river, crows circling, dramatic chiaroscuro lighting, desolate cinematic documentary composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-003.png"
     },
     {
       "id": "scene-004",
-      "beat": "establish",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.25,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "[चीखने की आवाज़] लाहौर की मियां छावनी में तैनात 26वीं नेटिव इन्फेंट्री के भारतीय सैनिक भी इस उथल-पुथल का हिस्सा बन गए।"
-        }
-      ]
-    },
-    {
-      "id": "scene-005",
-      "beat": "establish",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.4,
-            "moonlight": 0.6
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true,
-            "moonlight": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.25,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "जुलाई 1857 में विद्रोह के बाद लगभग 500 सैनिक छावनी से निकल गए और रावी नदी की ओर बढ़ने लगे।"
-        }
-      ]
-    },
-    {
-      "id": "scene-006",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 0.85
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.39,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "है लेकिन रावी के पास उनका सामना ब्रिटिश समर्थक बलों से हुआ। संघर्ष में बड़ी संख्या में सैनिक मारे गए।"
-        }
-      ]
-    },
-    {
-      "id": "scene-007",
       "beat": "dread",
       "headline": "",
       "subtext": "",
@@ -513,915 +325,10 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.4,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "जो सैनिक बच गए वे अपनी जान बचाने के लिए अलग-अलग दिशाओं में बिखर गए।"
-        }
-      ]
-    },
-    {
-      "id": "scene-008",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 0.85
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.41,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "लेकिन उनमें से कई जल्द ही पकड़ ही पकड़ लिए गए। ऐतिहासिक रिकॉर्ड्स में लगभग 20082 सैनिकों के पकड़े जाने का उल्लेख मिलता है।"
-        }
-      ]
-    },
-    {
-      "id": "scene-009",
-      "beat": "approach",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.56,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "उन्हें अजनाला लाया गया। कैद किए गए सैनिकों को एक बंद जगह में रखा गया।"
-        }
-      ]
-    },
-    {
-      "id": "scene-010",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 0.85
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.43,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "उन्हें शायद उम्मीद थी कि उनके साथ कानूनी प्रक्रिया अपनाई जाएगी। लेकिन 1 अगस्त 1857 को इस कहानी ने बेहद भयावह मोड़ लिया।"
-        }
-      ]
-    },
-    {
-      "id": "scene-011",
-      "beat": "approach",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.59,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "सरकारी रिकॉर्ड्स के अनुसार 237 कैदियों को गोली मार दी गई। बाकी 45 कैदियों को एक छोटी और बंद जगह में रखा गया।"
-        }
-      ]
-    },
-    {
-      "id": "scene-012",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 0.85
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.46,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "रिकॉर्ड के अनुसार गर्मी और दम घुटने के कारण उनकी भी मौत हो गई।"
-        }
-      ]
-    },
-    {
-      "id": "scene-013",
-      "beat": "approach",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.5,
-            "fog": 0.4,
-            "glow": 0.5
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.4,
-            "depth": 0.6
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.35,
-            "dust": 0.25,
-            "zoom": 0.035,
-            "drift": "in",
-            "shake": 0.19
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.62,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "इसके बाद उन 282 मृत सैनिकों के शवों को अजनाला के एक पुराने कुएं में डाल दिया गया।"
-        }
-      ]
-    },
-    {
-      "id": "scene-014",
-      "beat": "dread",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "corridor",
-            "flicker": 0.3,
-            "depth": 0.5
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 0.85
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.75,
-            "grain": 0.3,
-            "dust": 0.25,
-            "zoom": 0.025,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.48,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "कुएं को मिट्टी और दूसरे सामान से भर दिया गया। समय बीतता गया और उसके आसपास निर्माण भी होता चला गया।"
-        }
-      ]
-    },
-    {
-      "id": "scene-015",
-      "beat": "reveal",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 1.0
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 1.0
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.35,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.87,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "धीरे-धीरे यह घटना लोगों की नजरों से लगभग गायब हो गई। लेकिन उस कुएं की कहानी पूरी तरह खत्म नहीं हुई थी।"
-        }
-      ]
-    },
-    {
-      "id": "scene-016",
-      "beat": "reveal",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 1.0
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.36,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.89,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "एक पुरानी किताब में इस घटना का रिकॉर्ड मौजूद था। इसी पुराने रिकॉर्ड ने दबे हुए इतिहास की ओर फिर ध्यान खींचा।"
-        }
-      ]
-    },
-    {
-      "id": "scene-017",
-      "beat": "reveal",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "candle",
-            "glow": 1.0
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.15,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        },
-        {
-          "visual": {
-            "type": "figure",
-            "distance": 0.3,
-            "fog": 0.3,
-            "glow": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.8,
-            "grain": 0.35,
-            "dust": 0.25,
-            "shake": 0.36,
-            "zoom": 0.04,
-            "drift": "in"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.9,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "explain"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "बाद में वैज्ञानिस्टिक्स ने मिले अवशेषों की जांच शुरू की। इसमें फॉरेंसिक एंथ्रोपोलॉजी और दंत जांच जैसी वैज्ञानिक तकनीकों का इस्तेमाल हुआ।"
-        }
-      ]
-    },
-    {
-      "id": "scene-018",
-      "beat": "react",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "fog",
-            "density": 0.4,
-            "glow": 0.6
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.46,
-        "head": "right",
-        "eyes": "right",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "शोध में कुछ अवशेषों के संकेत पंजाब के स्थानीय लोगों से अलग है और पूर्वी भारत के अलग-अलग क्षेत्रों से जुड़े मिले।"
-        }
-      ]
-    },
-    {
-      "id": "scene-019",
-      "beat": "react",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "fog",
-            "density": 0.4,
-            "glow": 0.6
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.3,
-            "lit": true
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.7,
-            "grain": 0.25,
-            "dust": 0.2,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
+        "type": "image",
+        "src": "images/scene-004.png",
+        "kenBurns": "in",
+        "dim": 0
       },
       "cast": [],
       "acting": {
@@ -1437,12 +344,117 @@
       "lines": [
         {
           "character": null,
-          "text": "डीएनए और आइसोटोप अध्ययन जैसी तकनीकों से [संगीत] भी इन अवशेषों के बारे में जानकारी जुटाने की कोशिश की गई।"
+          "text": "पुराणों के अनुसार भगवान विष्णु अपने 10वें आफ यानी कि कल की अवतार में अवतरित होंगे और केवल ती दिनों के अंदर वह धरती से सारे अधर्म का विनाश करके।"
         }
-      ]
+      ],
+      "visualPrompt": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
+      "visualKeywords": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
+      "backgroundPrompt": "Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Lord Vishnu as Kalki avatar, celestial blue skin, golden armor, yellow silk dhoti, riding a blazing white horse with raised flaming sword, storm clouds and lightning behind, charging across a battlefield of crumbling adharma, divine halo glow, epic cinematic chiaroscuro, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-004.png"
     },
     {
-      "id": "scene-020",
+      "id": "scene-005",
+      "beat": "reveal",
+      "headline": "",
+      "subtext": "",
+      "bullets": [],
+      "headlinePosition": "center",
+      "shots": [
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 2,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.35,
+            "dust": 0.25,
+            "shake": 0.15,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "cut"
+          }
+        },
+        {
+          "visual": {
+            "type": "figure",
+            "distance": 0.3,
+            "fog": 0.3,
+            "glow": 0.7
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.35,
+            "dust": 0.25,
+            "shake": 0.15,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        },
+        {
+          "visual": {
+            "type": "candle",
+            "glow": 1.0
+          },
+          "weight": 1,
+          "effects": {
+            "vignette": 0.8,
+            "grain": 0.35,
+            "dust": 0.25,
+            "shake": 0.37,
+            "zoom": 0.04,
+            "drift": "in"
+          },
+          "transition": {
+            "type": "crossfade",
+            "seconds": 1.4
+          }
+        }
+      ],
+      "ambience": null,
+      "soundCues": [],
+      "background": {
+        "type": "image",
+        "src": "images/scene-005.png",
+        "kenBurns": "in",
+        "dim": 0
+      },
+      "cast": [],
+      "acting": {
+        "emotion": "calm",
+        "intensity": 0.92,
+        "head": "center",
+        "eyes": "center",
+        "gesture": "explain"
+      },
+      "padBefore": 0.0,
+      "padAfter": 0.04,
+      "holdSeconds": 3.0,
+      "lines": [
+        {
+          "character": null,
+          "text": "पुनर्धिल्लू यानी 12 सूरज उदित होंगे जिसकी वजह से जब।"
+        }
+      ],
+      "visualPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
+      "visualKeywords": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
+      "backgroundPrompt": "Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Apocalyptic sky with twelve blazing suns burning above a scorched Indian landscape, dried riverbeds and cracked earth, ancient temple domes silhouetted, intense orange-white heat haze, ash and embers drifting, dramatic wide cinematic composition, documentary epic realism, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-005.png"
+    },
+    {
+      "id": "scene-006",
       "beat": "react",
       "headline": "",
       "subtext": "",
@@ -1490,83 +502,15 @@
       "ambience": null,
       "soundCues": [],
       "background": {
-        "type": "color",
-        "color": "#0d0804"
+        "type": "image",
+        "src": "images/scene-006.png",
+        "kenBurns": "in",
+        "dim": 0
       },
       "cast": [],
       "acting": {
         "emotion": "calm",
-        "intensity": 0.48,
-        "head": "center",
-        "eyes": "center",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "[संगीत] आज यह स्थान शहीदा खूह यानी शहीदों का कुआं के नाम से जाना जाता है।"
-        }
-      ]
-    },
-    {
-      "id": "scene-021",
-      "beat": "resolve",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.2,
-            "lit": true
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.3,
-            "moonlight": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
-        }
-      ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.37,
+        "intensity": 0.5,
         "head": "right",
         "eyes": "right",
         "gesture": "none"
@@ -1577,197 +521,213 @@
       "lines": [
         {
           "character": null,
-          "text": "1857 में [संगीत] जिस कुएं में एक कहानी दबा दी गई थी।"
-        }
-      ]
-    },
-    {
-      "id": "scene-022",
-      "beat": "resolve",
-      "headline": "",
-      "subtext": "",
-      "bullets": [],
-      "headlinePosition": "center",
-      "shots": [
-        {
-          "visual": {
-            "type": "house",
-            "fog": 0.2,
-            "lit": true
-          },
-          "weight": 2,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "cut"
-          }
-        },
-        {
-          "visual": {
-            "type": "forest",
-            "fog": 0.3,
-            "moonlight": 0.7
-          },
-          "weight": 1,
-          "effects": {
-            "vignette": 0.68,
-            "grain": 0.22,
-            "dust": 0.18,
-            "zoom": 0.02,
-            "drift": "out"
-          },
-          "transition": {
-            "type": "crossfade",
-            "seconds": 1.4
-          }
+          "text": "सारा जल सूख जाएगा उसके बाद फिर से एक बार एक नए युग की शुरुआत होगी जय श्री कृष्ण।"
         }
       ],
-      "ambience": null,
-      "soundCues": [],
-      "background": {
-        "type": "color",
-        "color": "#0d0804"
-      },
-      "cast": [],
-      "acting": {
-        "emotion": "calm",
-        "intensity": 0.38,
-        "head": "left",
-        "eyes": "left",
-        "gesture": "none"
-      },
-      "padBefore": 0.0,
-      "padAfter": 0.04,
-      "holdSeconds": 3.0,
-      "lines": [
-        {
-          "character": null,
-          "text": "557 साल बाद उसी कुएं ने इतिहास का एक भूला हुआ पन्ना फिर खोल दिया।"
-        }
-      ]
+      "visualPrompt": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
+      "visualKeywords": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
+      "backgroundPrompt": "Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition.",
+      "characterPrompt": "integrated scene subject",
+      "prompt": "Cinematic documentary photography and digital painting, National Geographic aesthetic, elegant historical realism: Rebirth of a new Satya Yuga, lush green earth emerging after drought, a radiant golden sunrise over a sacred river, a saffron-clad sadhu with folded hands in pranam, temple bells and marigold garlands, soft divine light rays, hopeful cinematic documentary composition, wide cinematic shot, museum quality lighting, rich natural colors, highly detailed.",
+      "image": "images/scene-006.png"
     }
   ],
-  "audioModel": "indicf5",
+  "audioModel": "kokoro",
   "visualMode": "image",
   "blueprint": {
-    "minutes": 3.61,
-    "seconds": 216.6,
-    "sceneCount": 22,
-    "totalWords": 415,
-    "wordsPerScene": 19,
+    "minutes": 1.3,
+    "seconds": 78.0,
+    "sceneCount": 6,
+    "totalWords": 150,
+    "wordsPerScene": 25,
     "wpm": 115,
     "movements": [
       {
         "key": "hook",
         "weight": 0.05,
         "scenes": [
-          1,
-          2
+          1
         ],
-        "sceneCount": 2,
-        "words": 38,
+        "sceneCount": 1,
+        "words": 25,
         "range": [
           1,
-          2
-        ]
-      },
-      {
-        "key": "setup",
-        "weight": 0.13,
-        "scenes": [
-          3,
-          4,
-          5
-        ],
-        "sceneCount": 3,
-        "words": 57,
-        "range": [
-          3,
-          5
+          1
         ]
       },
       {
         "key": "inciting",
         "weight": 0.12,
         "scenes": [
-          6,
-          7,
-          8
+          2
         ],
-        "sceneCount": 3,
-        "words": 57,
+        "sceneCount": 1,
+        "words": 25,
         "range": [
-          6,
-          8
+          2,
+          2
         ]
       },
       {
         "key": "rising",
         "weight": 0.32,
         "scenes": [
-          9,
-          10,
-          11,
-          12,
-          13,
-          14
+          3,
+          4
         ],
-        "sceneCount": 6,
-        "words": 114,
+        "sceneCount": 2,
+        "words": 50,
         "range": [
-          9,
-          14
+          3,
+          4
         ]
       },
       {
         "key": "climax",
         "weight": 0.16,
         "scenes": [
-          15,
-          16,
-          17
+          5
         ],
-        "sceneCount": 3,
-        "words": 57,
+        "sceneCount": 1,
+        "words": 25,
         "range": [
-          15,
-          17
+          5,
+          5
         ]
       },
       {
         "key": "resolution",
         "weight": 0.14,
         "scenes": [
-          18,
-          19,
-          20
+          6
         ],
-        "sceneCount": 3,
-        "words": 57,
+        "sceneCount": 1,
+        "words": 25,
         "range": [
-          18,
-          20
-        ]
-      },
-      {
-        "key": "button",
-        "weight": 0.08,
-        "scenes": [
-          21,
-          22
-        ],
-        "sceneCount": 2,
-        "words": 38,
-        "range": [
-          21,
-          22
+          6,
+          6
         ]
       }
     ]
-  }
+  },
+  "research": {
+    "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
+    "genre": "documentary",
+    "keywords": {
+      "seed": "कलयुग के अंत के बाद आखिर क्या होगा",
+      "youtube_trending": [
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत का आरंभ",
+        "कलयुग अंत कब होगा",
+        "कलयुग अंत का आरंभ फुल मूवी",
+        "कलयुग अंत",
+        "कलयुग अंत मूवी",
+        "कलयुग अंत का आरंभ hai movie",
+        "कलयुग अंत आरंभ मूवी",
+        "कलयुग अंत का आरंभ full episode",
+        "कलयुग अंत करण"
+      ],
+      "google_search": [
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत का आरंभ मूवी 2026",
+        "कलयुग अंत का आरंभ",
+        "कलयुग अंत कब होगा",
+        "कलयुग अंत का आरंभ-chapter 2-",
+        "कलयुग अंतिम चरण",
+        "कलयुग अंत कैसे होगा",
+        "कलयुग अंत"
+      ],
+      "questions_and_curiosity": [],
+      "long_tail_keywords": [
+        "kalyug ant kab hoga",
+        "कलयुग अंत करण",
+        "कलयुग अंत का आरंभ मूवी 2026",
+        "कलयुग अंत का आरंभ-chapter 2-",
+        "कलयुग अंत का आरंभ फुल मूवी",
+        "कलयुग अंत का आरंभ hai movie",
+        "kalyug ant ka aarambh movie",
+        "कलयुग अंत का आरंभ full episode",
+        "कलयुग अंत का आरंभ मूवी",
+        "कलयुग अंत मूवी",
+        "कलयुग अंत आरंभ मूवी",
+        "कलयुग अंत कैसे होगा"
+      ]
+    },
+    "ai_synthesis": {
+      "concepts": [
+        {
+          "title": "कलयुग के बाद सिर्फ 7 दिन बचे?",
+          "hook": "कलयुग खत्म होने के बाद भगवान क्या करेंगे? जानिए वो 7 दिन जो सब कुछ बदल देंगे।",
+          "core_angle": "The transition period between Kali Yuga and Satya Yuga is not empty—it's a 7-day divine cleanup where Kalki judges souls, and the twist is that even the 'good' have hidden karma to face.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद के 7 दिनों की रहस्यमयी कहानी, जिसमें कल्कि अवतार न्याय करते हैं और आत्माओं का पुनर्जन्म होता है।",
+          "target_emotion": "curiosity"
+        },
+        {
+          "title": "कलयुग खत्म, फिर कौन बनेगा भगवान?",
+          "hook": "कलयुग के बाद धरती पर भगवान का राज कैसे होगा? क्या आप जानते हैं अगला अवतार कौन होगा?",
+          "core_angle": "After Kali Yuga, the concept of 'God' changes—Kalki establishes a new dharma where humans live as gods, and the twist is that the new world order is not ruled by a king but by collective consciousness.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद सतयुग की स्थापना और नए धर्म का उदय, जिसमें मानवता देवत्व प्राप्त करती है।",
+          "target_emotion": "wonder"
+        },
+        {
+          "title": "कलयुग के बाद ये 5 चीज़ें हमेशा के लिए खत्म!",
+          "hook": "कलयुग खत्म होते ही ये 5 चीज़ें दुनिया से गायब हो जाएंगी, और आप हैरान रह जाएंगे।",
+          "core_angle": "The end of Kali Yuga doesn't just bring a new age—it erases five fundamental human flaws (greed, anger, lust, attachment, ego) from existence, but the twist is that without these flaws, humans lose their individuality.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद मानव स्वभाव से जुड़ी 5 बुराइयों का अंत और उसके गहरे मनोवैज्ञानिक प्रभाव।",
+          "target_emotion": "shock"
+        },
+        {
+          "title": "कलयुग के बाद क्या विज्ञान भी बदलेगा?",
+          "hook": "क्या कलयुग के अंत के बाद विज्ञान और धर्म एक हो जाएंगे? जानिए वो सच जो कोई नहीं बताता।",
+          "core_angle": "After Kali Yuga, the gap between science and spirituality closes—ancient technology (vimanas, telepathy) returns, and the twist is that modern science was actually a Kali Yuga illusion that will be exposed.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद विज्ञान और अध्यात्म का मिलन, और सतयुग की दिव्य तकनीक का रहस्य।",
+          "target_emotion": "excitement"
+        },
+        {
+          "title": "कलयुग के बाद मौत का क्या होगा?",
+          "hook": "कलयुग खत्म होने के बाद इंसान मरेगा या नहीं? जानिए मृत्यु के बाद के जीवन का अनसुना सच।",
+          "core_angle": "In Satya Yuga, death as we know it ceases—humans transcend physical bodies, but the twist is that without death, the concept of 'living' loses meaning, and souls must choose between immortality and reincarnation.",
+          "recommended_topic_arg": "कलयुग के अंत के बाद मृत्यु के स्वरूप में बदलाव और आत्मा के अमरत्व का दार्शनिक रहस्य।",
+          "target_emotion": "dread"
+        }
+      ],
+      "seo_tags": [
+        "कलयुग अंत के बाद",
+        "कलयुग के बाद क्या होगा",
+        "कल्कि अवतार",
+        "सतयुग की शुरुआत",
+        "कलयुग अंत 2026",
+        "कलयुग के 7 दिन",
+        "कलयुग और विज्ञान",
+        "कलयुग में मृत्यु",
+        "कलयुग के बाद धर्म",
+        "कलयुग अंत रहस्य"
+      ],
+      "recommended_hashtags": [
+        "#कलयुग",
+        "#कल्किअवतार",
+        "#सतयुग",
+        "#हिंदूधर्म",
+        "#रहस्य"
+      ]
+    }
+  },
+  "keywords": [
+    "कलयुग अंत का आरंभ मूवी",
+    "कलयुग अंत का आरंभ",
+    "कलयुग अंत कब होगा",
+    "कलयुग अंत का आरंभ फुल मूवी",
+    "कलयुग अंत",
+    "कलयुग अंत मूवी",
+    "कलयुग अंत का आरंभ hai movie",
+    "कलयुग अंत आरंभ मूवी",
+    "कलयुग अंत का आरंभ full episode",
+    "कलयुग अंत करण",
+    "कलयुग अंत का आरंभ मूवी 2026",
+    "कलयुग अंत का आरंभ-chapter 2-",
+    "कलयुग अंतिम चरण",
+    "कलयुग अंत कैसे होगा",
+    "kalyug ant kab hoga",
+    "kalyug ant ka aarambh movie"
+  ]
 }

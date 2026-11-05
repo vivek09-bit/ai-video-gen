@@ -154,6 +154,7 @@ export interface ScriptLine {
 
 export interface Scene {
   id: string;
+  image?: string;
   narration: string;
   lines: ScriptLine[];
   headline: string;

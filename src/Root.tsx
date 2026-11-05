@@ -9,11 +9,13 @@ import {Project} from './types';
 const project = projectJson as unknown as Project;
 
 const {script, timings} = project;
-const durationInFrames = Math.max(
-  1,
-  Math.ceil(timings.totalDuration * script.fps) +
-    Math.round(script.tailPaddingSeconds * script.fps),
-);
+const fps = Number(script?.fps) || 30;
+const totalDuration = Number(timings?.totalDuration) || 0;
+const tailPadding = Number(script?.tailPaddingSeconds ?? 1.2) || 1.2;
+const calculatedFrames = Math.ceil(totalDuration * fps) + Math.round(tailPadding * fps);
+const durationInFrames = Number.isFinite(calculatedFrames) && calculatedFrames > 0
+  ? Math.round(calculatedFrames)
+  : 30;
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -21,9 +23,9 @@ export const RemotionRoot: React.FC = () => {
       id="Main"
       component={Main}
       durationInFrames={durationInFrames}
-      fps={script.fps}
-      width={script.width}
-      height={script.height}
+      fps={fps}
+      width={Number(script?.width) || 1080}
+      height={Number(script?.height) || 1920}
       defaultProps={project}
     />
   );

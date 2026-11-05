@@ -88,7 +88,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 13
+AUDIO_PIPELINE_VERSION = 14
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -137,13 +137,14 @@ TRAILING_MARKS = "\"'\u201d\u2019)]} \t\u00a0"
 # small mastering chain before it is written out.
 DEFAULT_MASTER = {
     "enabled": True,
-    "highpassHz": 85.0,
-    "presence": 0.35,
+    "highpassHz": 75.0,
+    "presence": 0.05,
     "compress": True,
-    "thresholdDbfs": -24.0,
-    "ratio": 3.0,
+    "thresholdDbfs": -20.0,
+    "ratio": 1.8,
     "targetLoudnessDbfs": -18.0,
     "peakCeilingDbfs": -1.5,
+    "deglitch": True,
 }
 
 # Hindi colloquial phonetic normalizations for TTS pronunciation.
@@ -208,7 +209,16 @@ def expand_hindi_numbers(text: str) -> str:
 
     def repl(m: re.Match) -> str:
         try:
-            return num_to_hindi(int(m.group(0)))
+            val = int(m.group(0))
+            # Calendar years (1000-1999) e.g. 1857 -> 'अठारह सौ सत्तावन', 1947 -> 'उन्नीस सौ सैंतालीस'
+            if 1000 <= val <= 1999 and val % 1000 != 0:
+                century = val // 100
+                rem = val % 100
+                res = HINDI_0_TO_99[century] + " सौ"
+                if rem > 0:
+                    res += " " + HINDI_0_TO_99[rem]
+                return res
+            return num_to_hindi(val)
         except Exception:
             return m.group(0)
 
@@ -1389,6 +1399,8 @@ VOICE_ALIASES.update({
     "kokoro_kabir": "hm_psi",
     "kokoro_priya": "hf_alpha",
     "kokoro_ananya": "hf_beta",
+    "kokoro_blend": "hm_omega,hm_psi",
+    "hindi_male_smooth": "hm_omega,hm_psi",
 })
 
 # Backwards compatibility map
@@ -1733,18 +1745,19 @@ def rate_to_speed(script: dict) -> float:
 
 
 def split_sentences(text: str) -> list[str]:
-    """Split narration into sentences (and clauses), keeping common abbreviations intact.
+    """Split narration into full sentences, keeping common abbreviations intact.
 
     Handles the Devanagari danda (।) and double danda (॥) as well as Latin
     punctuation, since Hindi narration uses them exclusively.
-    Also splits at commas so that each clause gets a small explicit pause.
+    Does not split at commas so neural TTS models preserve continuous prosody
+    and pitch contours across clauses.
     """
     text = " ".join(text.split())
     if not text:
         return []
 
     sentences: list[str] = []
-    for part in re.split(r"(?<=[.!?।॥,])\s+", text):
+    for part in re.split(r"(?<=[.!?।॥])\s+", text):
         if sentences:
             tail = re.split(r"[\s.।॥]+", sentences[-1].rstrip())[-1].lower().strip(".")
             if tail in ABBREVIATIONS:
@@ -1919,7 +1932,12 @@ def prepare_tts_text(text: str) -> str:
     if not clean_text:
         clean_text = text
     # Conversational Hindi phonetics (e.g. 'वह' -> 'वो', numbers to Hindi words)
-    return normalize_hindi_phonetics(clean_text)
+    normalized = normalize_hindi_phonetics(clean_text)
+    if is_devanagari(normalized):
+        normalized = punctuate_hindi_clauses(normalized, max_words=10)
+        # Convert Hindi danda to dot so eSpeak / Kokoro G2P recognizes sentence termination
+        normalized = re.sub(r"[।॥]+", ".", normalized)
+    return normalized
 
 
 HINDI_SPLIT_BEFORE = {
@@ -2121,8 +2139,17 @@ def line_voice_and_speed(
 
 
 def remote_tts_enabled() -> bool:
-    """Whether narration is explicitly configured to use the running Vast server."""
-    return bool(os.environ.get("VAST_SERVER_URL", "").strip()) and (
+    """Whether narration is explicitly configured to use a remote server (Kaggle or Vast)."""
+    server_url = (
+        os.environ.get("TTS_SERVER_URL", "").strip()
+        or os.environ.get("KAGGLE_TTS_URL", "").strip()
+        or os.environ.get("VAST_SERVER_URL", "").strip()
+    )
+    if not server_url:
+        return False
+    if os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL"):
+        return True
+    return (
         os.environ.get("USE_VAST", "0") == "1"
         or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
     )
@@ -2140,7 +2167,7 @@ def prebuild_vast_batch(
     Returns the number of segments cached. Best effort: any failure leaves the cache
     empty and the normal per-sentence path still runs.
     """
-    vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+    vast_url = (os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL") or os.environ.get("VAST_SERVER_URL", "")).strip()
     if not remote_tts_enabled():
         return 0
 
@@ -2391,7 +2418,7 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
         try:
             wav_path, ref_text = _get_indicf5_ref_files(voice)
             print(
-                f"[IndicF5 Local] Synthesising segment {index + 1}/{len(items)} with voice '{voice}'...",
+                f"[IndicF5 Local] Synthesising segment {index + 1}/{len(items)} with voice '{voice}' (high-quality 32-step reference conditioning)...",
                 file=sys.stderr,
                 flush=True,
             )
@@ -2520,12 +2547,13 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
     import io
     import soundfile as sf
 
-    vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+    vast_url = (os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL") or os.environ.get("VAST_SERVER_URL", "")).strip()
     if remote_tts_enabled():
         try:
             from vast_manager import VastManager
             manager = VastManager(server_url=vast_url)
-            manager.require_gpu("RTX 4090", vast_url, require_tts=True)
+            expected_device = os.environ.get("VAST_GPU_NAME", "ANY")
+            manager.require_gpu(expected_device, vast_url, require_tts=True)
             audio_bytes, _duration = manager.synthesize_tts(
                 text=norm_text, voice=primary, speed=speed
             )
@@ -2746,13 +2774,22 @@ class Voice:
         if is_devanagari(clean_text) or any(v.startswith("h") for v in resolved_voice.split(",")):
             lang_code = "h"
 
-        chunks = [
-            apply_fades(trim_edge_silence(np.asarray(audio, dtype=np.float32), threshold=0.005, padding=0.005))
-            for _g, _p, audio in self._pipeline(lang_code)(clean_text, voice=resolved_voice, speed=speed)
-        ]
-        if not chunks:
+        raw_chunks = list(self._pipeline(lang_code)(clean_text, voice=resolved_voice, speed=speed))
+        if not raw_chunks:
             raise RuntimeError(f"Kokoro produced no audio for: {clean_text[:60]!r}")
-        return np.concatenate(chunks)
+
+        processed_pieces = []
+        clause_gap = np.zeros(int(SAMPLE_RATE * 0.12), dtype=np.float32)
+        for idx, (_g, _p, audio) in enumerate(raw_chunks):
+            piece = apply_fades(trim_edge_silence(np.asarray(audio, dtype=np.float32), threshold=0.005, padding=0.035))
+            if len(piece) > 0:
+                if idx > 0:
+                    processed_pieces.append(clause_gap)
+                processed_pieces.append(piece)
+
+        if not processed_pieces:
+            raise RuntimeError(f"Kokoro produced no audio for: {clean_text[:60]!r}")
+        return np.concatenate(processed_pieces)
 
 
 def pause_after(sentence: str, base: float, index: int) -> float:
@@ -2787,12 +2824,12 @@ def apply_fades(audio, seconds: float = 0.008):
     return out
 
 
-def trim_edge_silence(audio, threshold: float = 0.005, padding: float = 0.005):
-    """Remove Kokoro vocoder boundary padding at a segment's edges, retaining a 5ms micro-breath.
+def trim_edge_silence(audio, threshold: float = 0.005, padding: float = 0.035):
+    """Remove Kokoro vocoder boundary padding at a segment's edges, retaining a 35ms natural decay.
 
     Kokoro neural vocoder emits boundary silence (~ -50 dBFS) before and after a spoken segment.
-    Trimming it cleanly down to a 5ms boundary ensures pauses between sentences are
-    strictly governed by the narrative prosody parameters rather than accumulated vocoder padding.
+    Retaining 35ms ensures natural acoustic decay of vowels and aspirated consonants (e.g. 'था', 'थी', 'है')
+    is not abruptly truncated, while keeping pauses between sentences clean and controlled.
     """
     import numpy as np
 
@@ -3168,7 +3205,14 @@ def main() -> int:
     parser.add_argument("--hinglish", action="store_true", help="force Roman Hinglish on-screen captions & subtitles")
     parser.add_argument("--no-hinglish", action="store_true", help="disable Roman Hinglish transliteration (keep Devanagari subtitles)")
     parser.add_argument("--vast", action="store_true", help="use the remote Vast.ai GPU instance for IndicF5 or legacy Indic Parler synthesis")
-    parser.add_argument("--vast-url", type=str, default=None, help="Vast.ai server URL (e.g. http://ip:port)")
+    parser.add_argument(
+        "--vast-url",
+        "--tts-url",
+        "--kaggle-url",
+        type=str,
+        default=os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL") or os.environ.get("VAST_SERVER_URL"),
+        help="Vast/Kaggle remote GPU server URL (e.g. https://xxx.trycloudflare.com or http://ip:port)",
+    )
     parser.add_argument("--require-vast", action="store_true", help="fail rather than falling back if remote IndicF5 or legacy Indic Parler synthesis fails")
     parser.add_argument("--no-vast-batch", action="store_true", help="skip the one-shot bulk Vast.ai narration pre-fetch")
     parser.add_argument("--vast-batch", dest="no_vast_batch", action="store_false", help="(default) pre-fetch all narration in one Vast.ai round trip")

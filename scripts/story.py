@@ -217,35 +217,59 @@ def parse_blocks(text: str, scene_count: int = 999) -> tuple[str, list[WrittenSc
     flush()
 
     if not raw:
-        # The model or user script ignored the format. Split on blank lines if present,
-        # otherwise split into well-paced scenes on sentence boundaries (Hindi । or . ? !).
+        # The model or user script ignored the format. Partition into well-paced scenes
+        # on paragraph breaks, sentence boundaries (Hindi । or . ? !), line breaks, or clauses.
         paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
         usable = [p for p in paragraphs if not is_conversational_chatter(p) and len(p.split()) > 3]
-        if len(usable) <= 1:
-            full_text = usable[0] if usable else text.strip()
-            raw_sentences = re.split(r"(?<=[।\.\?!])\s+|\n{2,}", full_text)
-            sentences = [s.strip() for s in raw_sentences if s.strip() and not is_conversational_chatter(s)]
-            if len(sentences) > 1:
-                words_per_scene = 25
-                chunks: list[str] = []
-                curr: list[str] = []
-                cnt = 0
-                for s in sentences:
-                    w = s.split()
-                    if cnt > 0 and (cnt + len(w)) > words_per_scene:
-                        chunks.append(" ".join(curr))
-                        curr = [s]
-                        cnt = len(w)
-                    else:
-                        curr.append(s)
-                        cnt += len(w)
-                if curr:
-                    chunks.append(" ".join(curr))
-                raw = [(None, "", [c]) for c in chunks[: max(1, scene_count)]]
-            else:
-                raw = [(None, "", [full_text])]
+        if not usable:
+            usable = [text.strip()] if text.strip() else []
+
+        units: list[str] = []
+        for p in usable:
+            p_units = [u.strip() for u in re.split(r"(?<=[।\.\?!])\s+|\n+", p) if u.strip()]
+            for u in p_units:
+                u_words = u.split()
+                if len(u_words) > 35:
+                    for i in range(0, len(u_words), 15):
+                        units.append(" ".join(u_words[i : i + 15]))
+                else:
+                    units.append(u)
+
+        if not units and text.strip():
+            units = [text.strip()]
+
+        total_words = sum(len(u.split()) for u in units)
+        words_per_scene = 25
+
+        if scene_count is not None and scene_count < 999:
+            desired_scenes = max(1, min(scene_count, len(units)))
         else:
-            raw = [(None, "", [p]) for p in usable[: max(1, scene_count)]]
+            desired_scenes = max(1, round(total_words / words_per_scene))
+
+        words_per_bin = max(10, total_words / desired_scenes)
+
+        chunks: list[str] = []
+        curr: list[str] = []
+        curr_cnt = 0
+        remaining_units = len(units)
+
+        for u in units:
+            u_len = len(u.split())
+            remaining_units -= 1
+            remaining_scenes = desired_scenes - len(chunks)
+
+            if curr and remaining_scenes > 1 and (curr_cnt >= words_per_bin or remaining_units < remaining_scenes):
+                chunks.append(" ".join(curr))
+                curr = [u]
+                curr_cnt = u_len
+            else:
+                curr.append(u)
+                curr_cnt += u_len
+
+        if curr:
+            chunks.append(" ".join(curr))
+
+        raw = [(None, "", [c]) for c in chunks]
 
     scenes: list[WrittenScene] = []
     for number, headline, lines in raw:

@@ -290,12 +290,73 @@ def normalize_provider_name(name: str | None) -> str:
         return "replicate"
     if n in ("openai", "dalle", "dalle3"):
         return "openai"
+    if n in ("cf", "cloudflare", "cloudflareai", "workersai"):
+        return "cloudflare"
     if n in ("vast", "vastai", "vastgpu"):
         return "vast"
     return name.lower().strip()
 
 
 HINDI_VISUAL_MAP: dict[str, str] = {
+    # Indian Mythology, Deities & Sacred Rituals
+    "brahma": "Lord Brahma Hindu creator god with four bearded faces and golden crown",
+    "ब्रह्मा": "Lord Brahma four bearded heads golden crown Vedic deity",
+    "vishnu": "Lord Vishnu preserver god blue celestial skin golden yellow robes pitambara",
+    "विष्णु": "Lord Vishnu preserver god blue skin crown yellow robes",
+    "shiva": "Lord Shiva Mahadev matted dreadlocks crescent moon trident sacred bhasma",
+    "शिव": "Lord Shiva Mahadev trident crescent moon sacred ash",
+    "mahesh": "Lord Shiva Mahesh cosmic destroyer matted hair trident",
+    "महेश": "Lord Shiva Mahesh trident sacred matted dreadlocks",
+    "mahadev": "Lord Shiva Mahadev cosmic deity trident crescent moon",
+    "महादेव": "Lord Shiva Mahadev trident crescent moon sacred aura",
+    "savitri": "Goddess Savitri celestial devi in ornate traditional royal Indian red and gold silks jewelry",
+    "सावित्री": "Goddess Savitri celestial devi royal Indian silk sari gold jewelry",
+    "gayatri": "Goddess Gayatri radiant celestial devi in traditional Indian silk sari",
+    "गायत्री": "Goddess Gayatri radiant celestial devi traditional sari",
+    "indra": "Lord Indra king of gods devraj in golden armor crown thunderbolt vajra",
+    "इंद्र": "Lord Indra king of gods devraj golden armor thunderbolt",
+    "इंद्रदेव": "Lord Indra king of gods golden armor crown",
+    "yajna": "sacred Vedic yajna fire ritual blazing agni kund flames holy altar assembly",
+    "yagya": "sacred Vedic yajna fire ritual blazing agni kund holy altar",
+    "यज्ञ": "sacred Vedic yajna fire ritual blazing agni kund flames holy altar",
+    "havan": "sacred havan fire ritual Vedic altar priests chanting",
+    "हवन": "sacred havan fire ritual holy flames altar",
+    "shraap": "wrathful divine curse glowing supernatural mystical energy vortex dramatic",
+    "shrap": "wrathful divine curse supernatural mystical energy vortex",
+    "श्राप": "wrathful divine curse glowing supernatural mystical energy vortex",
+    "muhurat": "sacred auspicious astrological timing celestial alignment sundial",
+    "मुहूर्त": "sacred auspicious astrological timing celestial alignment",
+    "pushkar": "sacred ancient Pushkar holy desert lake ghats temples Rajasthan twilight",
+    "पुष्कर": "sacred ancient Pushkar holy desert lake ghats temples Rajasthan",
+    "karwa chauth": "traditional Karwa Chauth Indian festival woman looking through round sieve channi at glowing full moon",
+    "karva chauth": "traditional Karwa Chauth Indian festival woman looking through sieve channi at full moon",
+    "करवा चौथ": "traditional Karwa Chauth festival Indian woman looking through sieve channi at full moon diyas",
+    "sabha": "grand royal celestial court Vedic assembly sages gods golden hall",
+    "सभा": "grand royal celestial court Vedic assembly golden hall",
+    "rishi": "venerable ancient Vedic rishi sages with beards saffron robes",
+    "ऋषि": "ancient Vedic rishi sages beards saffron robes",
+    "muni": "ancient holy Vedic sages hermitage",
+    "मुनि": "ancient holy Vedic sages hermitage",
+    "stri": "Indian woman lady in traditional attire",
+    "स्त्री": "Indian woman lady in traditional attire",
+    "krodh": "intense furious wrath blazing eyes dramatic anger",
+    "क्रोध": "intense furious wrath blazing eyes dramatic anger",
+    "krodhit": "intense furious wrath blazing eyes dramatic expression",
+    "क्रोधित": "intense furious wrath blazing eyes dramatic expression",
+    "shringar": "ornate royal bridal adornment heavy gold jewelry maang tikka kumkum silk",
+    "श्रृंगार": "ornate royal bridal adornment heavy gold jewelry maang tikka kumkum",
+    "pooja": "sacred worship ritual glowing diya oil lamps incense flowers",
+    "puja": "sacred worship ritual glowing diya oil lamps flowers",
+    "पूजा": "sacred worship ritual glowing diya oil lamps flowers",
+    "kartik": "sacred autumn month Kartik holy spiritual festival",
+    "कार्तिक": "sacred autumn month Kartik holy festival",
+    "bhrigu": "ancient sage Maharishi Bhrigu",
+    "भृगु": "ancient sage Maharishi Bhrigu",
+    "bandi": "imprisoned captive chains bound defeat",
+    "बंदी": "imprisoned captive chains bound defeat",
+    "manushya": "mortal human earthly reincarnation",
+    "मनुष्य": "mortal human earthly reincarnation",
+
     # Fantasy, Magic & Fairytales
     "son pari": "fairy princess glowing magic enchanted wings",
     "sonpari": "fairy princess glowing magic enchanted wings",
@@ -885,9 +946,12 @@ def make_search_keywords(
 CHARACTER_TERMS = {
     "person", "people", "man", "woman", "child", "children", "boy", "girl",
     "figure", "silhouette", "character", "protagonist", "lead", "narrator",
+    "god", "goddess", "deity", "lord", "brahma", "vishnu", "shiva", "mahesh", "mahadev",
+    "indra", "savitri", "gayatri", "devi", "rishi", "sages", "priest", "bride", "groom",
+    "consort", "human", "crowd", "assembly", "devotee", "lady", "women", "men",
     "traveler", "stranger", "wanderer", "villager", "hero", "warrior", "knight",
     "soldier", "king", "queen", "prince", "princess", "monarch", "emperor",
-    "fairy", "sorcerer", "wizard", "mage", "witch", "sage", "monk", "priest",
+    "fairy", "sorcerer", "wizard", "mage", "witch", "sage", "monk",
     "ghost", "phantom", "spirit", "apparition", "demon", "monster", "beast",
     "creature", "dragon", "wolf", "tiger", "lion", "serpent", "snake",
     "entity", "detective", "inspector", "guard", "merchant", "farmer", "doctor",
@@ -921,26 +985,27 @@ def build_background_prompt(
     ][:7]
     bg_subject = " ".join(bg_entities) if bg_entities else "atmospheric environment"
 
-    # Extract shot visual types for background
+    # Extract shot visual types for background only when scene has no specific extracted keywords
     visual_words = []
-    shots = scene.get("shots", [])
-    for s in shots:
-        v = s.get("visual", {})
-        v_type = v.get("type", "")
-        if v_type and v_type not in ("image", "black", "void", "figure", "eyes", "cast"):
-            visual_words.append(v_type)
-            if v.get("lit"):
-                visual_words.append("lit window warm illumination")
-            if v.get("flicker"):
-                visual_words.append("flickering flame light")
-            if v.get("glow"):
-                visual_words.append("glowing magical radiance")
-            if v.get("lightning"):
-                visual_words.append("lightning storm flashes")
-            if v.get("fog"):
-                visual_words.append("creeping mist and atmospheric fog")
-            if v.get("moonlight"):
-                visual_words.append("moonlight illumination")
+    if not extracted_keywords:
+        shots = scene.get("shots", [])
+        for s in shots:
+            v = s.get("visual", {})
+            v_type = v.get("type", "")
+            if v_type and v_type not in ("image", "black", "void", "figure", "eyes", "cast"):
+                visual_words.append(v_type)
+                if v.get("lit"):
+                    visual_words.append("lit window warm illumination")
+                if v.get("flicker"):
+                    visual_words.append("flickering flame light")
+                if v.get("glow"):
+                    visual_words.append("glowing magical radiance")
+                if v.get("lightning"):
+                    visual_words.append("lightning storm flashes")
+                if v.get("fog"):
+                    visual_words.append("creeping mist and atmospheric fog")
+                if v.get("moonlight"):
+                    visual_words.append("moonlight illumination")
 
     style_name = animation_style or scene.get("animationStyle") or scene.get("visualStyle")
     style_key = resolve_style_key(style_name)
@@ -1279,20 +1344,20 @@ def build_character_prompt(
     if style_key == "stickman":
         return f"expressive 2D black line stick figure narrator, round circle head with {emotion} cartoon expression, thin stick arms and legs in funny animated posture, engaging the audience, center frame"
     if style_key == "documentary":
-        return "uninhabited archival historical setting, antique copperplate engraving detail, stillness and historic gravity, no people present"
+        return "archival historical setting, antique copperplate engraving detail, stillness and historic gravity"
     if style_key == "flat_vector":
-        return "uninhabited flat vector graphic composition, clean geometric architecture and negative space, modern infographic clarity, no people present"
+        return "clean flat vector graphic composition, geometric architecture and negative space, modern infographic clarity"
     if style_key == "ink_doodle":
-        return "uninhabited hand-inked architectural sketch, delicate fountain pen lines and cross-hatching, serene paper stillness, no people present"
+        return "hand-inked architectural sketch, delicate fountain pen lines and cross-hatching, serene paper stillness"
     if style_key == "dark_cinematic":
-        return "uninhabited graphic novel noir scenery, deep atmospheric ink shadows, silent moody tension, no people present"
+        return "atmospheric graphic novel noir scenery, deep atmospheric ink shadows, silent moody tension"
     if style_key == "anime_cel":
-        return "serene scenic 2D anime background art, beautiful hand-painted landscape, peaceful Ghibli atmosphere, no people present"
+        return "serene scenic 2D anime background art, beautiful hand-painted landscape, peaceful Ghibli atmosphere"
     if style_key == "whiteboard":
-        return "clean whiteboard diagram composition, educational marker charts and visual concepts, bright organized layout, no people present"
+        return "clean whiteboard diagram composition, educational marker charts and visual concepts, bright organized layout"
     if style_key == "vintage_retro":
-        return "uninhabited 1930s vintage cartoon background scenery, antique painted animation cel backdrop, nostalgic retro stillness, no people present"
-    return "uninhabited scenic composition, no people present, solitary perspective, quiet stillness"
+        return "1930s vintage cartoon background scenery, antique painted animation cel backdrop, nostalgic retro stillness"
+    return "atmospheric scenic composition, solitary perspective, quiet stillness"
 
 
 def make_prompt(
@@ -1321,6 +1386,29 @@ def make_prompt(
     )
     resolved_style = animation_style or visual_style or scene.get("animationStyle")
 
+    # Check if scene already has an explicit, detailed visual prompt
+    core_visual = (scene.get("visualPrompt") or "").strip()
+    if not core_visual and scene.get("visualKeywords"):
+        vk = scene.get("visualKeywords", "").strip()
+        if len(vk.split()) > 5:
+            core_visual = vk
+
+    if anim_style:
+        prefix = anim_style["prefix"]
+        suffix = anim_style["suffix"]
+    else:
+        prefix = visual_style or (gp.visual_style_prefix if gp else STYLE_PROMPT_PREFIX)
+        suffix = gp.visual_style_suffix if gp else STYLE_PROMPT_SUFFIX
+
+    suffix_clean = suffix if (suffix.startswith(",") or suffix.startswith(" ")) else f", {suffix}"
+
+    if core_visual:
+        scene["backgroundPrompt"] = core_visual
+        scene["characterPrompt"] = "integrated scene subject"
+        full_prompt = f"{prefix}{core_visual.rstrip('. ')}{suffix_clean}"
+        scene["prompt"] = full_prompt
+        return full_prompt
+
     bg_prompt = build_background_prompt(
         scene,
         topic=topic,
@@ -1341,14 +1429,6 @@ def make_prompt(
     scene["backgroundPrompt"] = bg_prompt
     scene["characterPrompt"] = char_prompt
 
-    if anim_style:
-        prefix = anim_style["prefix"]
-        suffix = anim_style["suffix"]
-    else:
-        prefix = visual_style or (gp.visual_style_prefix if gp else STYLE_PROMPT_PREFIX)
-        suffix = gp.visual_style_suffix if gp else STYLE_PROMPT_SUFFIX
-
-    suffix_clean = suffix if (suffix.startswith(",") or suffix.startswith(" ")) else f", {suffix}"
     full_prompt = f"{prefix}Background: {bg_prompt.rstrip('. ')}; Characters: {char_prompt.rstrip('. ')}{suffix_clean}"
     scene["prompt"] = full_prompt
     return full_prompt
@@ -1390,6 +1470,10 @@ def detect_provider(requested_provider: str | None = None) -> tuple[str, str, st
     if provider == "openai":
         key = os.environ.get("OPENAI_API_KEY", "")
         return "openai", key, model or "dall-e-3"
+    if provider in ("cloudflare", "cf"):
+        key = os.environ.get("CLOUDFLARE_API_TOKEN", "")
+        cf_model = model if (model and model.startswith("@cf/")) else "@cf/black-forest-labs/flux-1-schnell"
+        return "cloudflare", key, cf_model
     if provider == "vast":
         key = os.environ.get("VAST_API_KEY", "")
         return "vast", key or "vast", model or "black-forest-labs/flux-3-image-klein"
@@ -2304,18 +2388,26 @@ def generate_openai(prompt: str, key: str, model: str = "dall-e-3") -> str:
     raise RuntimeError(f"OpenAI response did not contain image url: {data}")
 
 
-def generate_cloudflare(prompt, output_path):
+def generate_cloudflare(
+    prompt: str,
+    output_path: str,
+    key: str = "",
+    model: str = "",
+    width: int = 1280,
+    height: int = 720,
+    fallback_to_local: bool = True,
+) -> str:
     account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
-    api_token = os.getenv("CLOUDFLARE_API_TOKEN")
-    model = os.getenv("IMAGE_MODEL", "@cf/black-forest-labs/flux-1-schnell")
-    if not model or not model.startswith("@cf/"):
-        model = "@cf/black-forest-labs/flux-1-schnell"
+    api_token = key or os.getenv("CLOUDFLARE_API_TOKEN")
+    cf_model = model if (model and model.startswith("@cf/")) else (os.getenv("IMAGE_MODEL") if (os.getenv("IMAGE_MODEL") and os.getenv("IMAGE_MODEL", "").startswith("@cf/")) else "@cf/black-forest-labs/flux-1-schnell")
 
     if not account_id or not api_token:
-        print("[WARN] Cloudflare credentials not found (CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN required), falling back to local")
-        return generate_local(prompt, output_path)
+        print("  [Cloudflare Notice] Credentials not found in environment, falling back to local generation...")
+        if fallback_to_local:
+            return generate_local(prompt, output_path, width=width, height=height, fallback_to_cloudflare=False)
+        raise RuntimeError("Cloudflare credentials not found (CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN required)")
 
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{cf_model}"
     headers = {
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json"
@@ -2329,31 +2421,44 @@ def generate_cloudflare(prompt, output_path):
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=60)
         if response.status_code != 200:
-            print(f"[WARN] Cloudflare API error ({response.status_code}): {response.text}")
-            return generate_local(prompt, output_path)
+            print(f"  [Cloudflare Notice] API returned {response.status_code}: {response.text[:160]}")
+            if fallback_to_local:
+                print("  [Fallback -> Local AI] Generating image locally via SD/LCM...")
+                return generate_local(prompt, output_path, width=width, height=height, fallback_to_cloudflare=False)
+            raise RuntimeError(f"Cloudflare API error {response.status_code}")
 
         content_type = response.headers.get("Content-Type", "")
         if "application/json" in content_type:
             data = response.json()
             if not data.get("success", True) and "result" not in data:
-                print(f"[WARN] Cloudflare request unsuccessful: {data.get('errors')}")
-                return generate_local(prompt, output_path)
+                print(f"  [Cloudflare Notice] Request unsuccessful: {data.get('errors')}")
+                if fallback_to_local:
+                    print("  [Fallback -> Local AI] Generating image locally via SD/LCM...")
+                    return generate_local(prompt, output_path, width=width, height=height, fallback_to_cloudflare=False)
+                raise RuntimeError(f"Cloudflare request unsuccessful: {data.get('errors')}")
             image_b64 = data.get("result", {}).get("image")
             if not image_b64:
-                print("[WARN] Cloudflare response contained no image data, falling back to local")
-                return generate_local(prompt, output_path)
+                print("  [Cloudflare Notice] Response contained no image data, falling back to local...")
+                if fallback_to_local:
+                    return generate_local(prompt, output_path, width=width, height=height, fallback_to_cloudflare=False)
+                raise RuntimeError("Cloudflare response contained no image data")
             image_bytes = base64.b64decode(image_b64)
         else:
             image_bytes = response.content
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        if width and height and (image.width, image.height) != (width, height):
+            image = image.resize((width, height), Image.Resampling.LANCZOS)
         image.save(output_path)
         print(f"[OK] Cloudflare image generated: {output_path}")
         return output_path
     except Exception as e:
-        print(f"[WARN] Cloudflare failed: {e}")
-        return generate_local(prompt, output_path)
+        print(f"  [Cloudflare Notice] Generation error: {e}")
+        if fallback_to_local:
+            print("  [Fallback -> Local AI] Generating image locally via SD/LCM...")
+            return generate_local(prompt, output_path, width=width, height=height, fallback_to_cloudflare=False)
+        raise
 
 
 def generate_vast(
@@ -2420,8 +2525,9 @@ def generate_local(
     model: str = "",
     width: int = 1280,
     height: int = 720,
+    fallback_to_cloudflare: bool = True,
 ) -> str:
-    """Generate image locally via SD/LCM and write to output_path."""
+    """Generate image locally via SD/LCM, with automatic Cloudflare AI fallback."""
     target_model = model or os.environ.get("IMAGE_MODEL", "segmind/SSD-1B")
     dest = Path(output_path)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -2430,7 +2536,24 @@ def generate_local(
         dest.write_bytes(data)
         return str(dest)
     except Exception as e:
-        print(f"  [Local Generation Warning] {e}. Generating procedural fallback...")
+        print(f"  [Local Generation Warning] Local generation failed ({e})")
+        if fallback_to_cloudflare and os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN"):
+            print("  [Fallback -> Cloudflare AI] Attempting Cloudflare Workers AI FLUX...")
+            try:
+                generate_cloudflare(
+                    prompt,
+                    str(dest),
+                    model="@cf/black-forest-labs/flux-1-schnell",
+                    width=width,
+                    height=height,
+                    fallback_to_local=False,
+                )
+                if dest.exists() and dest.stat().st_size > 1000:
+                    return str(dest)
+            except Exception as cf_err:
+                print(f"  [Fallback -> Cloudflare Warning] Cloudflare fallback failed: {cf_err}")
+
+        print("  Generating procedural fallback...")
         try:
             from PIL import Image, ImageDraw
             img = Image.new("RGB", (width, height), color=(20, 24, 30))
@@ -2504,6 +2627,94 @@ def main() -> None:
     print(f"Generated images for {args.script}")
 
 
+def enrich_script_visual_prompts(
+    script_data: dict,
+    writer_info: tuple | None = None,
+    force: bool = False,
+) -> bool:
+    """Enrich script scenes with vivid, accurate visual prompts using an LLM visual director."""
+    scenes = script_data.get("scenes", [])
+    if not scenes:
+        return False
+
+    needs_enrichment = force or any(
+        not s.get("visualPrompt") and (not s.get("visualKeywords") or len(s.get("visualKeywords", "").split()) < 6)
+        for s in scenes
+    )
+    if not needs_enrichment:
+        return False
+
+    try:
+        from new_video import resolve_llm_writer, ask_llm
+    except Exception:
+        return False
+
+    writer = writer_info or resolve_llm_writer()
+    if not writer:
+        return False
+
+    label, base_url, api_key, model = writer
+    scenes_payload = []
+    for s in scenes:
+        lines_text = " ".join(l.get("text", "") for l in s.get("lines", []))
+        scenes_payload.append({
+            "id": s.get("id", ""),
+            "headline": s.get("headline", ""),
+            "narration": lines_text or s.get("text", ""),
+        })
+
+    topic = script_data.get("topic", "")
+    genre = script_data.get("genre", "documentary")
+
+    sys_prompt = (
+        "You are an expert cinematic visual director for text-to-image AI generation (FLUX / Stable Diffusion). "
+        "Your task is to analyze narration scenes and generate vivid, concrete, highly accurate visual prompts in English."
+    )
+    user_prompt = f"""Story Topic: {topic}
+Genre: {genre}
+
+Scenes:
+{json.dumps(scenes_payload, ensure_ascii=False, indent=2)}
+
+For each scene, output a vivid, specific English visual prompt (30-60 words) describing:
+1. Specific characters / subjects, authentic attire, physical traits, expressions, and dynamic action.
+2. Authentic environment, architectural setting, lighting (e.g., golden hour, sacred fire glow, storm chiaroscuro), and composition.
+3. Accurately translate and depict cultural, mythological, and historical entities (e.g., Lord Brahma with four bearded heads in golden crown, Lord Vishnu with celestial blue skin and yellow robes, Lord Shiva Mahadev with trident and crescent moon, Goddess Savitri in ornate traditional Indian royal silk attire, Goddess Gayatri, Lord Indra in golden armor, sacred Vedic yajna fire ritual with blazing agni kund, sacred Pushkar lake in Rajasthan, Indian festival of Karwa Chauth with sieve and full moon).
+4. Avoid generic filler (do NOT output generic 'forest', 'house', 'corridor', or 'no people present' unless explicitly relevant to the story).
+
+Return ONLY a valid JSON list of objects:
+[
+  {{"id": "scene-001", "prompt": "..."}},
+  ...
+]"""
+
+    try:
+        raw = ask_llm(base_url, api_key, model, user_prompt, system_prompt=sys_prompt, max_tokens=2500, temperature=0.3)
+        clean_json = raw.strip()
+        if "```json" in clean_json:
+            clean_json = clean_json.split("```json", 1)[1].split("```", 1)[0].strip()
+        elif "```" in clean_json:
+            clean_json = clean_json.split("```", 1)[1].split("```", 1)[0].strip()
+
+        data = json.loads(clean_json)
+        prompt_map = {item.get("id"): item.get("prompt") for item in data if item.get("id") and item.get("prompt")}
+
+        updated = 0
+        for s in scenes:
+            s_id = s.get("id")
+            if s_id in prompt_map:
+                s["visualPrompt"] = prompt_map[s_id]
+                s["visualKeywords"] = prompt_map[s_id]
+                updated += 1
+
+        if updated:
+            print(f"  [Visual Director] Enriched {updated}/{len(scenes)} scenes with accurate visual prompts via {label} ({model})")
+            return True
+    except Exception as e:
+        print(f"  [Visual Director Notice] Visual prompt enrichment error ({e}). Using dictionary fallbacks.")
+    return False
+
+
 def generate_images_for_script(
     script: dict | str | Path,
     output_dir: str | Path = "public/images",
@@ -2535,13 +2746,23 @@ def generate_images_for_script(
     vis_style = visual_style or script_data.get("visualStyle")
 
     scenes = script_data.get("scenes", [])
+    # Enrich scenes with vivid visual prompts if not already present
+    enrich_script_visual_prompts(script_data)
+
     for idx, scene in enumerate(scenes):
         scene_id = scene.get("id") or f"scene-{idx + 1:03d}"
         dest = out_dir / f"{scene_id}.png"
 
         rel_path = str(dest.relative_to(root_dir).as_posix()) if root_dir in dest.parents else str(dest.as_posix())
+        clean_img_path = rel_path.replace("public/", "").replace("public\\", "").lstrip("/\\")
         if dest.exists() and not force:
-            scene["image"] = rel_path
+            scene["image"] = clean_img_path
+            scene["background"] = {
+                "type": "image",
+                "src": clean_img_path,
+                "kenBurns": "in",
+                "dim": 0,
+            }
             continue
 
         prompt = make_prompt(
@@ -2591,12 +2812,40 @@ def generate_images_for_script(
                 url = generate_openai(prompt, key=key, model=effective_model)
                 save_image_data(url, dest)
             elif prov in ("cloudflare", "cf"):
-                generate_cloudflare(prompt, str(dest))
+                generate_cloudflare(
+                    prompt,
+                    str(dest),
+                    key=key,
+                    model=effective_model,
+                    width=width,
+                    height=height,
+                    fallback_to_local=True,
+                )
             else:  # local diffusers / SD
-                data = generate_local_lcm(prompt, model=effective_model, steps=kwargs.get("steps", 2), width=width, height=height)
-                save_image_data(data, dest)
+                try:
+                    data = generate_local_lcm(prompt, model=effective_model, steps=kwargs.get("steps", 2), width=width, height=height)
+                    save_image_data(data, dest)
+                except Exception as local_err:
+                    print(f"  [Local AI Warning] Local generation failed ({local_err}). Falling back to Cloudflare AI...")
+                    if os.getenv("CLOUDFLARE_ACCOUNT_ID") and os.getenv("CLOUDFLARE_API_TOKEN"):
+                        generate_cloudflare(
+                            prompt,
+                            str(dest),
+                            model="@cf/black-forest-labs/flux-1-schnell",
+                            width=width,
+                            height=height,
+                            fallback_to_local=False,
+                        )
+                    else:
+                        raise local_err
 
-            scene["image"] = rel_path
+            scene["image"] = clean_img_path
+            scene["background"] = {
+                "type": "image",
+                "src": clean_img_path,
+                "kenBurns": "in",
+                "dim": 0,
+            }
             print(f"  [Image] {scene_id} -> {dest.name}")
         except Exception as exc:
             print(f"  [Image Error] Failed to generate {scene_id} ({exc}). Using procedural fallback.")
@@ -2607,12 +2856,37 @@ def generate_images_for_script(
                 draw = ImageDraw.Draw(img)
                 draw.text((width // 4, height // 2), f"Scene {idx + 1}: {scene_id}", fill=(220, 220, 220))
                 img.save(dest, format="PNG")
-                scene["image"] = rel_path
+                scene["image"] = clean_img_path
+                scene["background"] = {
+                    "type": "image",
+                    "src": clean_img_path,
+                    "kenBurns": "in",
+                    "dim": 0,
+                }
             except Exception:
                 pass
 
     if script_path:
         script_path.write_text(json.dumps(script_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Also sync images into src/generated/project.json if it exists so Remotion uses them
+    project_json_path = root_dir / "src" / "generated" / "project.json"
+    if project_json_path.exists():
+        try:
+            pdata = json.loads(project_json_path.read_text(encoding="utf-8"))
+            if "script" in pdata and "scenes" in pdata["script"]:
+                img_by_id = {s.get("id"): (s.get("image"), s.get("background")) for s in scenes}
+                for ps in pdata["script"]["scenes"]:
+                    pid = ps.get("id")
+                    if pid in img_by_id:
+                        p_img, p_bg = img_by_id[pid]
+                        if p_img:
+                            ps["image"] = p_img
+                        if p_bg:
+                            ps["background"] = p_bg
+                project_json_path.write_text(json.dumps(pdata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        except Exception as e:
+            print(f"[Image Gen] Warning: Could not sync to project.json: {e}")
 
     return script_data
 

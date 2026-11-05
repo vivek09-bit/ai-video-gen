@@ -300,7 +300,8 @@ export const Stage: React.FC<{spec: VisualSpec}> = ({spec}) => {
         spec.src.startsWith('http://') ||
         spec.src.startsWith('https://') ||
         spec.src.startsWith('data:');
-      const imageSource = isUrl ? spec.src : staticFile(spec.src.replace(/^[/\\]+/, ''));
+      const cleanSrc = spec.src.replace(/^(\.?\/)?public[/\\]+/, '').replace(/^[/\\]+/, '');
+      const imageSource = isUrl ? spec.src : staticFile(cleanSrc);
       const dim = Math.max(0, Math.min(1, spec.dim ?? 0));
 
       return (

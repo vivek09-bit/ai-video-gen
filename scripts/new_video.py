@@ -68,6 +68,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import beats  # noqa: E402
 from generate_images import (  # noqa: E402
     detect_provider as detect_image_provider,
+    enrich_script_visual_prompts,
     generate_images,
     generate_images_for_script,
     list_animation_styles,
@@ -784,6 +785,7 @@ def build_script(
         "voice": voice,
         "secondaryVoice": secondary_voice,
         "speed": speed,
+        "tailPaddingSeconds": 1.2,
         "sentencePauseSeconds": 0.25,
         "ambience": None,
         "captions": captions,
@@ -1573,7 +1575,7 @@ def main() -> int:
         "--image-provider",
         "--image-backend",
         dest="image_provider",
-        help="Image provider (local, fetch, pollinations, vast, fireworks, together, fal, replicate, openai)",
+        help="Image provider (local, fetch, pollinations, vast, fireworks, together, fal, replicate, openai, cloudflare)",
     )
     parser.add_argument(
         "--imagemodel",
@@ -1683,10 +1685,12 @@ def main() -> int:
     )
     parser.add_argument(
         "--vast-url",
+        "--tts-url",
+        "--kaggle-url",
         dest="vast_url",
         type=str,
-        default=None,
-        help="direct URL of running Vast.ai GPU server (e.g. http://ip:8000)",
+        default=os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL") or os.environ.get("VAST_SERVER_URL"),
+        help="direct URL of running Vast/Kaggle GPU server (e.g. https://xxx.trycloudflare.com or http://ip:8000)",
     )
     parser.add_argument(
         "--gpu",
@@ -2168,7 +2172,7 @@ def main() -> int:
     elif detected_image_provider == "vast":
         vast_prefetch.append(args.image_model or "black-forest-labs/flux-3-image-klein")
     render_on_vast = args.render_on == "vast"
-    expected_gpu = getattr(args, "gpu", None) or os.environ.get("VAST_GPU_NAME") or "RTX 4090"
+    expected_gpu = getattr(args, "gpu", None) or os.environ.get("VAST_GPU_NAME") or ("ANY" if getattr(args, "vast_url", None) else "RTX 4090")
     vast_disk_gb = int(getattr(args, "vast_disk", None) or os.environ.get("VAST_DISK_GB", "80"))
 
     def stop_vast_instance() -> None:
@@ -2392,7 +2396,7 @@ def main() -> int:
         or args.images
         or args.free_images
         or getattr(args, "local_images", False)
-        or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local", "vast")))
+        or bool(det_img_prov and (det_img_key or det_img_prov in ("fetch", "pollinations", "local", "vast", "cloudflare")))
     )
     # =========================================================================
     # STAGE 1: SCRIPT & SEO GENERATION
@@ -2591,6 +2595,13 @@ def main() -> int:
             except Exception as _research_err:
                 print(f"note: could not write out/research.json ({_research_err})", file=sys.stderr)
 
+        # Enrich scenes with accurate, story-specific visual prompts from narration
+        current_writer = resolve_llm_writer(
+            requested_model=args.model,
+            requested_provider=args.llm_provider or ("deepseek" if args.deepseek else None),
+        )
+        enrich_script_visual_prompts(script, writer_info=current_writer)
+
         SCRIPT_PATH.write_text(
             json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
@@ -2756,6 +2767,19 @@ def main() -> int:
             SCRIPT_PATH.write_text(
                 json.dumps(script, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
             )
+            if GENERATED.exists():
+                try:
+                    pdata = json.loads(GENERATED.read_text(encoding="utf-8"))
+                    if "script" in pdata and isinstance(pdata["script"], dict):
+                        pdata["script"].update(script)
+                        pdata["script"]["scenes"] = script.get("scenes", pdata["script"].get("scenes", []))
+                        if not pdata["script"].get("tailPaddingSeconds"):
+                            pdata["script"]["tailPaddingSeconds"] = 1.2
+                    else:
+                        pdata["script"] = script
+                    GENERATED.write_text(json.dumps(pdata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                except Exception as sync_err:
+                    print(f"[Warning] Could not update {GENERATED.name}: {sync_err}")
 
         if defer_video:
             print()

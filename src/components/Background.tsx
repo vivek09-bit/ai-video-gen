@@ -45,11 +45,15 @@ const KenBurnsImage: React.FC<{
       break;
   }
 
+  const isUrl = src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:');
+  const cleanSrc = src.replace(/^(\.?\/)?public[/\\]+/, '').replace(/^[/\\]+/, '');
+  const imageSource = isUrl ? src : staticFile(cleanSrc);
+
   return (
     <ImageChangeTransition seed={seed}>
       <AbsoluteFill style={{overflow: 'hidden', opacity: isFirstScene ? 1 : sceneFadeIn}}>
         <Img
-          src={staticFile(src)}
+          src={imageSource}
           style={{
             ...fill,
             transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,

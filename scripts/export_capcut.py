@@ -28,6 +28,28 @@ def get_capcut_font_path() -> str:
     return ""
 
 
+def get_native_capcut_platform(capcut_dir: Path) -> dict:
+    """Read host CapCut Desktop platform & device validation info from an existing draft."""
+    for draft_json in capcut_dir.glob("*/draft_content.json"):
+        try:
+            data = json.loads(draft_json.read_text(encoding="utf-8"))
+            plat = data.get("platform")
+            if plat and plat.get("device_id"):
+                return plat
+        except Exception:
+            continue
+    return {
+        "os": "windows",
+        "os_version": "10.0.26300",
+        "app_id": 359289,
+        "app_version": "9.2.0",
+        "app_source": "cc",
+        "device_id": "a2dcc293f8807385dfbfecf5c6bc4982",
+        "hard_disk_id": "",
+        "mac_address": "ee69854a097c43ad7af2b27ccca2df35",
+    }
+
+
 def get_capcut_draft_dir() -> Path:
     """Find CapCut Desktop project directory on Windows or via env var."""
     custom_dir = os.environ.get("CAPCUT_PROJECTS_DIR")
@@ -382,10 +404,10 @@ def export_to_capcut(
             "beats": [],
             "speeds": [],
         },
-        "platform": {
-            "os": "windows",
-            "app_version": "9.2.0",
-        },
+        "platform": get_native_capcut_platform(capcut_dir),
+        "last_modified_platform": get_native_capcut_platform(capcut_dir),
+        "draft_type": "video",
+        "source": "default",
     }
 
     content_path = draft_folder / "draft_content.json"
@@ -402,10 +424,34 @@ def export_to_capcut(
         "tm_duration": total_duration_us,
         "draft_cover": "draft_cover.jpg",
         "draft_materials": [],
+        "draft_need_rename_folder": False,
+        "draft_removable_storage_device": "",
+        "draft_timeline_materials_size_": 1000000,
+        "draft_is_ai_shorts": False,
+        "draft_is_cloud_temp_draft": False,
+        "draft_is_invisible": False,
+        "draft_is_pippit_draft": False,
+        "draft_is_web_article_video": False,
+        "draft_materials_copied_info": [],
+        "draft_segment_extra_info": [],
     }
     (draft_folder / "draft_meta_info.json").write_text(
         json.dumps(draft_meta, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    # 7b. Write auxiliary config files expected by CapCut Desktop
+    (draft_folder / "draft_agency_config.json").write_text(
+        json.dumps({
+            "is_auto_agency_enabled": False,
+            "is_auto_agency_popup": False,
+            "is_single_agency_mode": False,
+            "marterials": None,
+            "use_converter": False,
+            "video_resolution": 720,
+        }),
+        encoding="utf-8",
+    )
+    (draft_folder / "draft_biz_config.json").write_text("", encoding="utf-8")
 
     # 8. Copy cover image if available
     if first_image_path and first_image_path.exists():
@@ -431,6 +477,11 @@ def export_to_capcut(
             new_entry = {
                 "cloud_draft_cover": False,
                 "cloud_draft_sync": False,
+                "draft_cloud_last_action_download": False,
+                "draft_cloud_purchase_info": "",
+                "draft_cloud_template_id": "",
+                "draft_cloud_tutorial_info": "",
+                "draft_cloud_videocut_purchase_info": "",
                 "draft_cover": str(draft_folder / "draft_cover.jpg").replace("\\", "/"),
                 "draft_fold_path": str(draft_folder).replace("\\", "/"),
                 "draft_id": draft_id,
@@ -445,7 +496,18 @@ def export_to_capcut(
                 "draft_root_path": str(capcut_dir).replace("\\", "/"),
                 "draft_timeline_materials_size": 1000000,
                 "draft_type": "",
+                "draft_web_article_video_enter_from": "",
+                "pippit_avatar_url": "",
+                "pippit_extra_info": "",
+                "pippit_id": "",
+                "pippit_user_name": "",
                 "streaming_edit_draft_ready": True,
+                "tm_draft_cloud_completed": "",
+                "tm_draft_cloud_entry_id": -1,
+                "tm_draft_cloud_modified": 0,
+                "tm_draft_cloud_parent_entry_id": -1,
+                "tm_draft_cloud_space_id": -1,
+                "tm_draft_cloud_user_id": -1,
                 "tm_draft_create": now_ms,
                 "tm_draft_modified": now_ms,
                 "tm_draft_removed": 0,

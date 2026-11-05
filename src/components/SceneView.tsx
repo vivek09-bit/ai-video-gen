@@ -102,12 +102,25 @@ export const SceneView: React.FC<{
 
   const hasBody = scene.subtext.length > 0 || scene.bullets.length > 0;
   const headlinePx = headlineSize(scene.headline, Math.round(height * 0.088));
-  const usingShots = (scene.shots?.length ?? 0) > 0;
+
+  const hasImage = Boolean(scene.image || (scene.background && scene.background.type === 'image'));
+  const effectiveBg: BackgroundSpec = scene.image
+    ? {
+        type: 'image',
+        src: scene.image,
+        kenBurns: ((scene.background as any)?.kenBurns || 'in') as 'in' | 'out' | 'left' | 'right' | 'none',
+        dim: (scene.background as any)?.dim || 0,
+      }
+    : scene.background;
+
+  const usingShots = !hasImage && (scene.shots?.length ?? 0) > 0;
 
   return (
     <AbsoluteFill style={{backgroundColor: '#000'}}>
-      {/* Procedural horror shots replace the single background when present. */}
-      {usingShots ? (
+      {/* Visual background: AI scene image has top priority; otherwise procedural shots or backdrop */}
+      {hasImage ? (
+        <Background spec={effectiveBg} durationInFrames={durationInFrames} isFirstScene={isFirstScene} />
+      ) : usingShots ? (
         <ShotSequence shots={scene.shots} />
       ) : (
         <Background spec={scene.background} durationInFrames={durationInFrames} isFirstScene={isFirstScene} />

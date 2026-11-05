@@ -2452,7 +2452,7 @@ class VastManager:
             raise RuntimeError(f"Vast server not reachable at {url}: {last_err}") from last_err
         actual = str(health.get("vram", {}).get("device_name", "")).upper()
         expected = expected_gpu.upper().replace("NVIDIA GEFORCE ", "")
-        if expected not in actual:
+        if expected not in ("", "ANY", "GPU") and expected not in actual:
             raise RuntimeError(
                 f"Vast server GPU mismatch: expected {expected_gpu}, got "
                 f"{health.get('vram', {}).get('device_name', 'unknown')}"
