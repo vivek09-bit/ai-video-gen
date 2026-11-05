@@ -584,6 +584,40 @@ def load_indicf5_engine():
     if not hasattr(PreTrainedModel, "_tied_weights_keys"):
         PreTrainedModel._tied_weights_keys = {}
 
+    # Prevent PyTorch meta-device collisions in Vocos filterbank initialization
+    # (prevents: "RuntimeError: Tensor on device cpu is not on the expected device meta!")
+    # torchaudio.functional.melscale_fbanks only natively evaluates on concrete CPU.
+    try:
+        import torchaudio.functional as _ta_f
+        import torchaudio.functional.functional as _ta_ff
+        _orig_fb = getattr(_ta_f, "melscale_fbanks", None)
+        if _orig_fb:
+            def _safe_fb(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_fb(*args, **kwargs)
+            _ta_f.melscale_fbanks = _safe_fb
+            _ta_ff.melscale_fbanks = _safe_fb
+    except Exception:
+        pass
+
+    try:
+        import f5_tts.infer.utils_infer as _f5_u
+        _orig_voc = getattr(_f5_u, "load_vocoder", None)
+        if _orig_voc:
+            def _safe_voc(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_voc(*args, **kwargs)
+            _f5_u.load_vocoder = _safe_voc
+
+        _orig_load_model = getattr(_f5_u, "load_model", None)
+        if _orig_load_model:
+            def _safe_load_model(*args, **kwargs):
+                with torch.device("cpu"):
+                    return _orig_load_model(*args, **kwargs)
+            _f5_u.load_model = _safe_load_model
+    except Exception:
+        pass
+
     print(f"[Vast Server] Loading official IndicF5 model from {INDICF5_REPOSITORY} on {DEVICE}...")
     _INDICF5_ENGINE = AutoModel.from_pretrained(
         INDICF5_REPOSITORY,

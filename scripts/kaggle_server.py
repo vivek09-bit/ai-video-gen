@@ -53,7 +53,7 @@ def start_server_and_tunnel():
     server_cmd = [sys.executable, "scripts/vast_server.py"]
     server_env = dict(os.environ, PORT=str(port))
 
-    # Read Hugging Face token from CLI, env, or Kaggle Secrets
+    # Read Hugging Face token from CLI, env, Kaggle Secrets, or local .env
     if args.hf_token:
         server_env["HF_TOKEN"] = args.hf_token
     elif not server_env.get("HF_TOKEN") and not server_env.get("HUGGINGFACE_API_KEY"):
@@ -66,6 +66,17 @@ def start_server_and_tunnel():
                 print("[Kaggle] Loaded Hugging Face token from Kaggle Secrets.")
         except Exception:
             pass
+        if not server_env.get("HF_TOKEN"):
+            for env_name in (".env", "../.env"):
+                p = Path(env_name)
+                if p.is_file():
+                    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                        line = line.strip()
+                        if line.startswith("HF_TOKEN=") or line.startswith("HUGGINGFACE_API_KEY="):
+                            server_env["HF_TOKEN"] = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            break
+                    if server_env.get("HF_TOKEN"):
+                        break
 
     server_env.setdefault("INDICF5_MODEL", "ai4bharat/IndicF5")
     server_proc = subprocess.Popen(server_cmd, env=server_env)
