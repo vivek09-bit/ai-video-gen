@@ -675,6 +675,18 @@ def load_indicf5_engine():
 
     last_load_err = None
     _INDICF5_ENGINE = None
+
+    # Transformers 4.45+ checks model.all_tied_weights_keys when finalizing weight loading.
+    # Custom remote models like INF5Model inherit from PreTrainedModel without setting it.
+    try:
+        from transformers import PreTrainedModel
+        if not hasattr(PreTrainedModel, "all_tied_weights_keys"):
+            PreTrainedModel.all_tied_weights_keys = {}
+        if not hasattr(PreTrainedModel, "_tied_weights_keys"):
+            PreTrainedModel._tied_weights_keys = {}
+    except Exception:
+        pass
+
     try:
         for repo_name in repos_to_try:
             try:
