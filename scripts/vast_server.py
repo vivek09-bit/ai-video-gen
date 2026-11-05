@@ -31,6 +31,10 @@ os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("USE_FLAX", "0")
 os.environ.setdefault("USE_TORCH", "1")
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+os.environ.setdefault("WANDB_DISABLED", "true")
+os.environ.setdefault("WANDB_MODE", "disabled")
+# Block broken wandb imports from triggering protobuf collisions
+sys.modules["wandb"] = None
 
 import tempfile
 import threading

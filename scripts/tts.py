@@ -39,13 +39,16 @@ import json
 import os
 import re
 
-# Disable TF backend in transformers to avoid broken TF/protobuf collisions on Kaggle/Linux
+# Disable TF & WandB in transformers to avoid broken protobuf collisions on Kaggle/Linux
 os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("USE_FLAX", "0")
 os.environ.setdefault("USE_TORCH", "1")
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
-import subprocess
+os.environ.setdefault("WANDB_DISABLED", "true")
+os.environ.setdefault("WANDB_MODE", "disabled")
 import sys
+sys.modules["wandb"] = None
+import subprocess
 import tempfile
 import time
 from pathlib import Path

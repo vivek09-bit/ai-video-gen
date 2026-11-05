@@ -24,11 +24,14 @@ from pathlib import Path
 PORT = int(os.environ.get("PORT", 8000))
 
 def setup_environment(model: str = "all"):
-    # Disable TensorFlow backend in transformers to avoid broken TF/Protobuf runtime_version collision on Kaggle Python 3.13
+    # Disable TensorFlow & WandB to avoid broken runtime_version / protobuf collisions on Kaggle Python 3.13
     os.environ["USE_TF"] = "0"
     os.environ["USE_FLAX"] = "0"
     os.environ["USE_TORCH"] = "1"
     os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+    os.environ["WANDB_DISABLED"] = "true"
+    os.environ["WANDB_MODE"] = "disabled"
+    sys.modules["wandb"] = None
 
     print("[0/4] Syncing latest tube2dscript repository code...")
     try:
@@ -37,8 +40,10 @@ def setup_environment(model: str = "all"):
         pass
 
     print("[1/4] Checking & installing required packages...")
-    packages = ["soundfile", "transformers", "vocos", "librosa", "pydub", "protobuf>=4.25.3"]
+    packages = ["soundfile", "transformers", "vocos", "librosa", "pydub"]
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *packages], check=False)
+    # Remove incompatible wandb if present on Kaggle so it cannot break protobuf imports
+    subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "-q", "wandb"], check=False)
 
     if model in ("all", "indicf5"):
         print("  -> Installing AI4Bharat IndicF5 TTS...")
@@ -78,6 +83,8 @@ def start_server_and_tunnel(args=None):
         USE_FLAX="0",
         USE_TORCH="1",
         TF_ENABLE_ONEDNN_OPTS="0",
+        WANDB_DISABLED="true",
+        WANDB_MODE="disabled",
     )
 
     # Read Hugging Face token from CLI, env, Kaggle Secrets, or local .env
