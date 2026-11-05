@@ -2581,6 +2581,9 @@ class VastManager:
             "voice": voice,
             "speed": speed,
         }
+        hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
+        if hf_token:
+            payload["hf_token"] = hf_token
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             target,
@@ -2614,6 +2617,9 @@ class VastManager:
             return {}
         target = (url or self.server_url or "").rstrip("/") + "/v1/audio/synthesize_batch"
         payload = {"items": items, "voice": voice, "speed": speed}
+        hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
+        if hf_token:
+            payload["hf_token"] = hf_token
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             target,

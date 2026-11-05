@@ -567,7 +567,7 @@ def load_indicf5_engine():
     import soundfile as sf
     import torch
     import torchaudio
-    from transformers import AutoModel
+    from transformers import AutoModel, PreTrainedModel
 
     # New torchaudio versions may require TorchCodec merely to decode a WAV. IndicF5 only
     # needs the decoded reference waveform, so use SoundFile just as the local batch path does.
@@ -576,186 +576,27 @@ def load_indicf5_engine():
         return torch.from_numpy(np.ascontiguousarray(data.T)), sample_rate
 
     torchaudio.load = load_with_soundfile
-    repos_to_try = [INDICF5_REPOSITORY]
-    if "rsolanki1822/IndicF5-mirror" not in repos_to_try:
-        repos_to_try.append("rsolanki1822/IndicF5-mirror")
-
-    from contextlib import contextmanager
-    import transformers.modeling_utils as _t_mu
-
-    @contextmanager
-    def _no_empty_weights(*args, **kwargs):
-        yield
-
-    # Avoid PyTorch meta device collisions in Vocos filterbank initialization
-    # (prevents: "RuntimeError: Tensor on device cpu is not on the expected device meta!")
-    _orig_empty_weights = getattr(_t_mu, "init_empty_weights", None)
-    _t_mu.init_empty_weights = _no_empty_weights
-    _orig_acc_empty = None
-    try:
-        import accelerate
-        _orig_acc_empty = getattr(accelerate, "init_empty_weights", None)
-        accelerate.init_empty_weights = _no_empty_weights
-    except ImportError:
-        pass
-
-    # Ensure vocoder, CFM model, and mel filterbanks construct on concrete CPU tensors
-    # regardless of any active meta-device context from Transformers / Accelerate / Dynamo.
-    try:
-        import f5_tts.infer.utils_infer as _f5_u
-        _orig_vocoder_loader = getattr(_f5_u, "load_vocoder", None)
-        if _orig_vocoder_loader:
-            def _cpu_safe_load_vocoder(*args, **kwargs):
-                with torch.device("cpu"):
-                    return _orig_vocoder_loader(*args, **kwargs)
-            _f5_u.load_vocoder = _cpu_safe_load_vocoder
-
-        _orig_dit_loader = getattr(_f5_u, "load_model", None)
-        if _orig_dit_loader:
-            def _cpu_safe_load_model(model_cls, model_cfg, *args, **kwargs):
-                ckpt_path = kwargs.pop("ckpt_path", None)
-                if args:
-                    ckpt_path = args[0]
-                    args = args[1:]
-                mel_spec_type = kwargs.pop("mel_spec_type", "vocos")
-                vocab_file = kwargs.pop("vocab_file", "")
-                ode_method = kwargs.pop("ode_method", "euler")
-                device = kwargs.pop("device", "cpu")
-                use_ema = kwargs.pop("use_ema", True)
-
-                with torch.device("cpu"):
-                    if ckpt_path and os.path.exists(str(ckpt_path)):
-                        try:
-                            return _orig_dit_loader(
-                                model_cls, model_cfg, ckpt_path,
-                                mel_spec_type=mel_spec_type, vocab_file=vocab_file,
-                                ode_method=ode_method, use_ema=use_ema, device=device, **kwargs
-                            )
-                        except Exception:
-                            pass
-                    from f5_tts.model import CFM
-                    from f5_tts.infer.utils_infer import (
-                        get_tokenizer, n_mel_channels, n_fft, hop_length, win_length, target_sample_rate
-                    )
-                    if not vocab_file:
-                        from importlib.resources import files
-                        try:
-                            vocab_file = str(files("f5_tts").joinpath("infer/examples/vocab.txt"))
-                        except Exception:
-                            vocab_file = ""
-                    vocab_char_map, vocab_size = get_tokenizer(vocab_file, "custom")
-                    model = CFM(
-                        transformer=model_cls(**model_cfg, text_num_embeds=vocab_size, mel_dim=n_mel_channels),
-                        mel_spec_kwargs=dict(
-                            n_fft=n_fft,
-                            hop_length=hop_length,
-                            win_length=win_length,
-                            n_mel_channels=n_mel_channels,
-                            target_sample_rate=target_sample_rate,
-                            mel_spec_type=mel_spec_type,
-                        ),
-                        odeint_kwargs=dict(method=ode_method),
-                        vocab_char_map=vocab_char_map,
-                    ).to(device)
-                    return model
-
-            _f5_u.load_model = _cpu_safe_load_model
-    except Exception:
-        pass
-
-    try:
-        import torchaudio.functional as _ta_f
-        import torchaudio.functional.functional as _ta_ff
-        _orig_fbanks = getattr(_ta_f, "melscale_fbanks", None)
-        if _orig_fbanks:
-            def _cpu_safe_fbanks(*args, **kwargs):
-                with torch.device("cpu"):
-                    return _orig_fbanks(*args, **kwargs)
-            _ta_f.melscale_fbanks = _cpu_safe_fbanks
-            _ta_ff.melscale_fbanks = _cpu_safe_fbanks
-    except Exception:
-        pass
-
-    last_load_err = None
-    _INDICF5_ENGINE = None
 
     # Transformers 4.45+ checks model.all_tied_weights_keys when finalizing weight loading.
     # Custom remote models like INF5Model inherit from PreTrainedModel without setting it.
-    try:
-        from transformers import PreTrainedModel
-        if not hasattr(PreTrainedModel, "all_tied_weights_keys"):
-            PreTrainedModel.all_tied_weights_keys = {}
-        if not hasattr(PreTrainedModel, "_tied_weights_keys"):
-            PreTrainedModel._tied_weights_keys = {}
-    except Exception:
-        pass
+    if not hasattr(PreTrainedModel, "all_tied_weights_keys"):
+        PreTrainedModel.all_tied_weights_keys = {}
+    if not hasattr(PreTrainedModel, "_tied_weights_keys"):
+        PreTrainedModel._tied_weights_keys = {}
 
-    try:
-        for repo_name in repos_to_try:
-            try:
-                print(f"[Vast Server] Loading IndicF5 model from {repo_name} on {DEVICE}...")
-                _INDICF5_ENGINE = AutoModel.from_pretrained(
-                    repo_name,
-                    trust_remote_code=True,
-                    token=_hub_token(),
-                    low_cpu_mem_usage=False,
-                )
-                print(f"[Vast Server] Successfully loaded IndicF5 from {repo_name}")
-                break
-            except Exception as e:
-                print(f"[Vast Server] Failed to load {repo_name} ({type(e).__name__}: {e}). Trying mirror...", file=sys.stderr)
-                last_load_err = e
-    finally:
-        if _orig_empty_weights is not None:
-            _t_mu.init_empty_weights = _orig_empty_weights
-        if _orig_acc_empty is not None:
-            try:
-                import accelerate
-                accelerate.init_empty_weights = _orig_acc_empty
-            except Exception:
-                pass
-
-    if _INDICF5_ENGINE is None:
-        raise last_load_err
-
-    def _materialize_if_meta(mod):
-        if mod is None:
-            return
-        try:
-            if any(getattr(p, "is_meta", False) for p in mod.parameters()):
-                mod.to_empty(device="cpu")
-        except Exception:
-            pass
-
+    print(f"[Vast Server] Loading official IndicF5 model from {INDICF5_REPOSITORY} on {DEVICE}...")
+    _INDICF5_ENGINE = AutoModel.from_pretrained(
+        INDICF5_REPOSITORY,
+        trust_remote_code=True,
+        token=_hub_token(),
+        low_cpu_mem_usage=False,
+    )
     target_device = torch.device(DEVICE)
-    for mod in (
-        _INDICF5_ENGINE,
-        getattr(_INDICF5_ENGINE, "ema_model", None),
-        getattr(_INDICF5_ENGINE, "vocoder", None),
-    ):
-        if mod is None:
-            continue
-        _materialize_if_meta(mod)
-        if hasattr(mod, "_orig_mod"):
-            _materialize_if_meta(mod._orig_mod)
-        if hasattr(mod, "to"):
-            try:
-                mod.to(target_device)
-            except Exception:
-                pass
-        if hasattr(mod, "_orig_mod") and hasattr(mod._orig_mod, "to"):
-            try:
-                mod._orig_mod.to(target_device)
-            except Exception:
-                pass
+    if hasattr(_INDICF5_ENGINE, "to"):
+        _INDICF5_ENGINE.to(target_device)
     if hasattr(_INDICF5_ENGINE, "eval"):
         _INDICF5_ENGINE.eval()
-    # Override `device` property so INF5Model.forward never resolves to meta device
-    try:
-        type(_INDICF5_ENGINE).device = property(lambda self: target_device)
-    except Exception:
-        pass
-    print("[Vast Server] IndicF5 model loaded successfully.")
+    print(f"[Vast Server] Successfully loaded official IndicF5 model on {DEVICE}")
     return _INDICF5_ENGINE
 
 
@@ -857,12 +698,7 @@ def _clean_audio_glitches(audio, max_jump: float = 0.35):
 
 
 def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
-    """Generate one valid IndicF5 waveform from its selected cloning reference.
-
-    Sentences are kept intact so the Diffusion Transformer's cross-attention has complete
-    context, preventing the repetitive syllable loops and alien gibberish caused by 1-2
-    word clause fragmentation.
-    """
+    """Generate speech using the official AI4Bharat IndicF5 model."""
     import numpy as np
     import torch
 
@@ -883,43 +719,18 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
         except Exception:
             pass
 
-    sentence_chunks = _split_hindi_sentences(clean_text, max_words=30)
-    if not sentence_chunks:
-        sentence_chunks = [(clean_text, "")]
-
-    audio_chunks = []
     with torch.no_grad():
-        for chunk_text, punct in sentence_chunks:
-            chunk_text = chunk_text.strip()
-            if not chunk_text:
-                continue
-            audio = model(chunk_text, ref_audio_path=reference_path, ref_text=reference_text)
-            if hasattr(audio, "detach"):
-                audio = audio.detach().cpu().numpy()
-            chunk_np = np.asarray(audio).squeeze().astype(np.float32)
-            if chunk_np.ndim > 1:
-                chunk_np = chunk_np.mean(axis=0)
-            peak = float(np.max(np.abs(chunk_np))) if chunk_np.size else 0.0
-            if peak > 1.0:
-                chunk_np = chunk_np / 32768.0 if peak > 100.0 else chunk_np / peak
-            chunk_np = np.clip(chunk_np, -1.0, 1.0)
-            if chunk_np.size > 0:
-                audio_chunks.append(chunk_np)
+        audio = model(clean_text, ref_audio_path=reference_path, ref_text=reference_text)
+        if hasattr(audio, "detach"):
+            audio = audio.detach().cpu().numpy()
+        audio_np = np.asarray(audio).squeeze().astype(np.float32)
+        if audio_np.ndim > 1:
+            audio_np = audio_np.mean(axis=0)
+        peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
+        if peak > 1.0:
+            audio_np = audio_np / 32768.0 if peak > 100.0 else audio_np / peak
+        audio_np = np.clip(audio_np, -1.0, 1.0)
 
-            # Breath pause only between full sentences (0.35s)
-            if punct in ("\u0964", "\u0965", "!", "?", "\n") or len(sentence_chunks) > 1:
-                silence_samples = int(INDICF5_SAMPLE_RATE * 0.35 * INDICF5_PAUSE_SCALE)
-                if silence_samples > 0:
-                    audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
-
-    if not audio_chunks:
-        raise RuntimeError("IndicF5 received empty text or produced no audio chunks")
-
-    audio_np = np.concatenate(audio_chunks)
-    audio_np = _clean_audio_glitches(audio_np)
-    peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
-    if peak > 1.0:
-        audio_np = audio_np / peak
     if _audio_is_bad(audio_np):
         raise RuntimeError("IndicF5 produced silent/non-finite audio")
     return audio_np, round(time.time() - started, 3)
@@ -1169,6 +980,10 @@ class VastHandler(BaseHTTPRequestHandler):
             self._send_json({"error": f"LTX-Video generation failed: {err}"}, status=500)
 
     def handle_audio_synthesize(self, req: dict):
+        hf_token = req.get("hf_token") or req.get("token")
+        if hf_token and not os.environ.get("HF_TOKEN"):
+            os.environ["HF_TOKEN"] = str(hf_token).strip()
+
         text = req.get("text", "").strip()
         voice = req.get("voice", "indic_parler_aarav").lower()
         speed = float(req.get("speed", 1.0))
@@ -1208,6 +1023,10 @@ class VastHandler(BaseHTTPRequestHandler):
         The Indic Parler-TTS engine stays resident on the GPU, so a long script only pays
         the HTTP round-trip cost once instead of once per sentence.
         """
+        hf_token = req.get("hf_token") or req.get("token")
+        if hf_token and not os.environ.get("HF_TOKEN"):
+            os.environ["HF_TOKEN"] = str(hf_token).strip()
+
         items = req.get("items") or []
         if not items:
             self._send_json({"error": "Missing items"}, status=400)

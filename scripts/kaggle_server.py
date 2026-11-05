@@ -29,8 +29,9 @@ def setup_environment():
         pass
 
     print("[1/4] Checking & installing required packages...")
-    packages = ["soundfile", "transformers", "f5-tts", "librosa"]
+    packages = ["soundfile", "transformers", "vocos", "librosa", "pydub"]
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *packages], check=False)
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/AI4Bharat/IndicF5.git"], check=False)
 
     print("[2/4] Setting up Cloudflare tunnel (cloudflared)...")
     cloudflared = Path("cloudflared")
@@ -41,11 +42,32 @@ def setup_environment():
             subprocess.run(["chmod", "+x", "cloudflared"], check=False)
 
 def start_server_and_tunnel():
-    print(f"[3/4] Launching IndicF5 TTS server on port {PORT}...")
+    import argparse
+    parser = argparse.ArgumentParser(description="Kaggle IndicF5 TTS Server")
+    parser.add_argument("--hf-token", help="Hugging Face API token for ai4bharat/IndicF5")
+    parser.add_argument("--port", type=int, default=PORT, help="Server port")
+    args, _ = parser.parse_known_args()
+
+    port = args.port or PORT
+    print(f"[3/4] Launching IndicF5 TTS server on port {port}...")
     server_cmd = [sys.executable, "scripts/vast_server.py"]
-    server_env = dict(os.environ, PORT=str(PORT))
-    if not server_env.get("HF_TOKEN") and not server_env.get("HUGGINGFACE_API_KEY"):
-        server_env.setdefault("INDICF5_MODEL", "rsolanki1822/IndicF5-mirror")
+    server_env = dict(os.environ, PORT=str(port))
+
+    # Read Hugging Face token from CLI, env, or Kaggle Secrets
+    if args.hf_token:
+        server_env["HF_TOKEN"] = args.hf_token
+    elif not server_env.get("HF_TOKEN") and not server_env.get("HUGGINGFACE_API_KEY"):
+        try:
+            from kaggle_secrets import UserSecretsClient
+            secrets = UserSecretsClient()
+            hf_tok = secrets.get_secret("HF_TOKEN") or secrets.get_secret("HUGGINGFACE_API_KEY")
+            if hf_tok:
+                server_env["HF_TOKEN"] = hf_tok
+                print("[Kaggle] Loaded Hugging Face token from Kaggle Secrets.")
+        except Exception:
+            pass
+
+    server_env.setdefault("INDICF5_MODEL", "ai4bharat/IndicF5")
     server_proc = subprocess.Popen(server_cmd, env=server_env)
 
     time.sleep(3)
