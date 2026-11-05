@@ -538,7 +538,10 @@ def _prepare_indicf5_reference(voice: str) -> tuple[str, str]:
     prepared = voices_dir / f"_prepared_{stem}.wav"
     try:
         voices_dir.mkdir(parents=True, exist_ok=True)
-        sf.write(str(prepared), audio / peak * 0.9, INDICF5_SAMPLE_RATE, subtype="PCM_16")
+        # Pad with 100ms soft silence at start/end to prevent prompt edge clipping
+        pad = int(0.1 * INDICF5_SAMPLE_RATE)
+        padded = np.pad(audio / peak * 0.9, (pad, pad), mode="constant")
+        sf.write(str(prepared), padded, INDICF5_SAMPLE_RATE, subtype="PCM_16")
     except OSError as err:
         raise RuntimeError(f"IndicF5 voice directory is not writable: {voices_dir} ({err})") from err
     return str(prepared), reference_text
@@ -637,7 +640,8 @@ def load_indicf5_engine():
 # IndicF5 has no built-in pace control, so pacing is applied in two ways: silence gaps
 # inserted at punctuation boundaries, and an optional whole-utterance tempo stretch.
 # Both are tuned by these env vars so pace can be dialled without a code change.
-INDICF5_DEFAULT_SPEED = float(os.environ.get("INDICF5_SPEED", "1.0"))
+# Default to 0.82 for relaxed, natural Hindi narration (prevents DiT duration starvation).
+INDICF5_DEFAULT_SPEED = float(os.environ.get("INDICF5_SPEED", "0.82"))
 INDICF5_PAUSE_SCALE = float(os.environ.get("INDICF5_PAUSE_SCALE", "1.0"))
 
 
@@ -669,13 +673,12 @@ def _resample_speed(audio, speed: float):
         return audio
 
 
-def _split_hindi_sentences(text: str, max_words: int = 30) -> list[tuple[str, str]]:
-    """Split Hindi text on major sentence terminators (\u0964, \u0965, ?, !, \\n) only when exceeding max_words.
+def _split_hindi_sentences(text: str, max_words: int = 16) -> list[tuple[str, str]]:
+    """Split Hindi text on sentence terminators (\u0964, \u0965, ?, !, \\n) and substantial clauses.
 
-    Never splits at commas or inside clauses: F5-TTS Diffusion Transformer cross-attention
-    requires complete sentence context (at least 6-10 words) to establish stable phoneme
-    trajectories. Slicing at commas produces 1-2 word fragments where DiT ODE flow-matching
-    degenerates into repetitive syllable loops ("pup pup pup") and alien artifacts.
+    F5-TTS Diffusion Transformer cross-attention is optimal on 6-15 word units.
+    Sentences exceeding max_words risk duration frame starvation and repetitive looping,
+    so they are split on major terminators or comma clause boundaries (keeping >= 5 words).
     """
     import re
 
@@ -711,11 +714,92 @@ def _split_hindi_sentences(text: str, max_words: int = 30) -> list[tuple[str, st
     if current_text:
         chunks.append((current_text, current_term))
 
-    return chunks or [(clean, "")]
+    if len(chunks) > 1:
+        return chunks
+
+    # If single long sentence without sentence terminators, split on comma boundaries
+    comma_parts = [p.strip() for p in re.split(r'([,\uff0c]+)', clean) if p.strip()]
+    if len(comma_parts) > 1:
+        c_chunks: list[tuple[str, str]] = []
+        cur = ""
+        for p in comma_parts:
+            if p in (",", "\uff0c"):
+                cur += ","
+                continue
+            if cur and len((cur + " " + p).split()) > max_words:
+                c_chunks.append((cur.strip(), ""))
+                cur = p
+            else:
+                cur = (cur + " " + p).strip() if cur else p
+        if cur:
+            c_chunks.append((cur.strip(), ""))
+        if len(c_chunks) > 1:
+            return c_chunks
+
+    return [(clean, "")]
 
 
 # Backward compatibility alias
 _split_hindi_clauses = _split_hindi_sentences
+
+
+def _trim_tts_tail(audio, sr: int = INDICF5_SAMPLE_RATE):
+    """Trim trailing post-speech silence and vocoder static bursts ("zoo zzees")."""
+    import numpy as np
+
+    x = np.asarray(audio, dtype=np.float32)
+    if x.size < sr // 2:
+        return x
+
+    frame_len = int(0.02 * sr)  # 20ms frames
+    n_frames = x.size // frame_len
+    if n_frames < 10:
+        return x
+
+    rms = np.array([
+        np.sqrt(np.mean(x[i * frame_len : (i + 1) * frame_len] ** 2))
+        for i in range(n_frames)
+    ])
+
+    silence_thresh = 0.008  # ~ -42 dBFS
+    # Look for a silence gap (>= 140ms = 7 consecutive frames) within the last 1.5s
+    search_start = max(0, n_frames - int(1.5 * sr / frame_len))
+    silence_run = 0
+    cut_frame = None
+
+    for i in range(search_start, n_frames):
+        if rms[i] < silence_thresh:
+            silence_run += 1
+            if silence_run >= 7:
+                # If audio resurges after 140ms silence near the tail, it is a vocoder buzz burst
+                if any(rms[j] > 0.025 for j in range(i + 1, n_frames)):
+                    cut_frame = i - silence_run + 1
+                    break
+        else:
+            silence_run = 0
+
+    if cut_frame is not None:
+        cut_sample = min(x.size, cut_frame * frame_len + int(0.05 * sr))
+        x = x[:cut_sample].copy()
+
+    # Trim residual trailing silence longer than 120ms
+    n_now = x.size // frame_len
+    last_active = n_now
+    for i in range(n_now - 1, -1, -1):
+        f_rms = np.sqrt(np.mean(x[i * frame_len : (i + 1) * frame_len] ** 2))
+        if f_rms > silence_thresh:
+            last_active = i + 1
+            break
+
+    end_sample = min(x.size, (last_active + 3) * frame_len)
+    x = x[:end_sample].copy()
+
+    # Apply 30ms linear fade-out to guarantee smooth cutoff with zero DC pop or buzzing
+    fade_len = min(int(0.03 * sr), x.size)
+    if fade_len > 0:
+        x[-fade_len:] *= np.linspace(1.0, 0.0, fade_len, dtype=np.float32)
+
+    return x
 
 
 def _clean_audio_glitches(audio, max_jump: float = 0.35):
@@ -728,7 +812,8 @@ def _clean_audio_glitches(audio, max_jump: float = 0.35):
     peak = float(np.max(np.abs(x))) if x.size else 0.0
     if peak > 1.0:
         x = x / 32768.0 if peak > 100.0 else x / peak
-    return np.clip(x, -1.0, 1.0)
+    x = np.clip(x, -1.0, 1.0)
+    return _trim_tts_tail(x, INDICF5_SAMPLE_RATE)
 
 
 def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
@@ -746,28 +831,57 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
     if not clean_text:
         raise RuntimeError("IndicF5 received empty text")
 
-    # Native generation speed in F5-TTS DiT preserves pitch and natural prosody
-    if hasattr(model, "config") and speed is not None:
+    # Native generation speed in F5-TTS DiT preserves pitch and natural prosody.
+    # Speed < 1.0 (default 0.82) allocates sufficient mel frames so the ODE flow matching
+    # articulates every Sanskritized Hindi phoneme cleanly without word-skipping.
+    if hasattr(model, "config"):
         try:
             model.config.speed = float(speed)
         except Exception:
             pass
+        # Disable aggressive pydub silence splitting which truncates Hindi clauses and consonants
+        try:
+            model.config.remove_sil = False
+        except Exception:
+            pass
 
+    # Split text into natural ~6-16 word chunks for stable cross-attention alignment
+    sentences = _split_hindi_sentences(clean_text, max_words=16)
+
+    pieces: list[np.ndarray] = []
     with torch.no_grad():
-        audio = model(clean_text, ref_audio_path=reference_path, ref_text=reference_text)
-        if hasattr(audio, "detach"):
-            audio = audio.detach().cpu().numpy()
-        audio_np = np.asarray(audio).squeeze().astype(np.float32)
-        if audio_np.ndim > 1:
-            audio_np = audio_np.mean(axis=0)
-        peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
-        if peak > 1.0:
-            audio_np = audio_np / 32768.0 if peak > 100.0 else audio_np / peak
-        audio_np = np.clip(audio_np, -1.0, 1.0)
+        for idx, (s_text, _) in enumerate(sentences):
+            s_text = s_text.strip()
+            if not s_text:
+                continue
+            # Ensure text has terminating punctuation for stable DiT flow-matching
+            if not s_text.endswith(("\u0964", "\u0965", ".", "!", "?", ",", "\uff0c")):
+                s_text += "\u0964"
+            audio = model(s_text, ref_audio_path=reference_path, ref_text=reference_text)
+            if hasattr(audio, "detach"):
+                audio = audio.detach().cpu().numpy()
+            audio_np = np.asarray(audio).squeeze().astype(np.float32)
+            if audio_np.ndim > 1:
+                audio_np = audio_np.mean(axis=0)
+            peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
+            if peak > 1.0:
+                audio_np = audio_np / 32768.0 if peak > 100.0 else audio_np / peak
+            audio_np = np.clip(audio_np, -1.0, 1.0)
+            # Remove any trailing vocoder static / "zoo zzees" noise
+            audio_np = _trim_tts_tail(audio_np, INDICF5_SAMPLE_RATE)
+            if audio_np.size:
+                pieces.append(audio_np)
+                if idx < len(sentences) - 1:
+                    # Natural breathing gap between clauses
+                    pieces.append(np.zeros(int(0.20 * INDICF5_SAMPLE_RATE), dtype=np.float32))
 
-    if _audio_is_bad(audio_np):
+    if not pieces:
+        raise RuntimeError("IndicF5 produced empty audio pieces")
+    full_audio = np.concatenate(pieces) if len(pieces) > 1 else pieces[0]
+
+    if _audio_is_bad(full_audio):
         raise RuntimeError("IndicF5 produced silent/non-finite audio")
-    return audio_np, round(time.time() - started, 3)
+    return full_audio, round(time.time() - started, 3)
 
 
 def synthesize_requested_voice(text: str, voice: str, speed: float):
