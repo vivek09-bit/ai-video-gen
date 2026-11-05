@@ -26,10 +26,13 @@ import json
 import os
 import sys
 import tempfile
+import threading
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+
+_INFERENCE_LOCK = threading.Lock()
 
 # Ensure UTF-8 output. Guarded because this module is imported by the test suite as well
 # as run as the server: a captured or replaced stdout has no `reconfigure`, and an
@@ -791,65 +794,57 @@ def _resample_speed(audio, speed: float):
         return audio
 
 
-_HINDI_SPLIT_BEFORE = {
-    "\u0914\u0930", "\u0932\u0947\u0915\u093f\u0928", "\u092e\u0917\u0930", "\u092a\u0930\u0902\u0924\u0941", "\u092c\u0932\u094d\u0915\u093f", "\u0924\u094b", "\u0915\u094d\u092f\u094b\u0902\u0915\u093f", "\u091a\u0942\u0902\u0915\u093f",
-    "\u0924\u093e\u0915\u093f", "\u091c\u093f\u0938\u0938\u0947", "\u092f\u093e", "\u0924\u0925\u093e", "\u090f\u0935\u0902", "\u091c\u092c\u0915\u093f", "\u0905\u0930\u094d\u0925\u093e\u0924", "\u091c\u094b", "\u091c\u093f\u0938\u0928\u0947", "\u091c\u093f\u0938\u0915\u093e", "\u091c\u093f\u0938\u0915\u0947",
-}
-_HINDI_SPLIT_AFTER = {
-    "\u0915\u093f", "\u0939\u0941\u090f", "\u0915\u0930\u0915\u0947", "\u092c\u093f\u0928\u093e", "\u0926\u094c\u0930\u093e\u0928",
-}
+def _split_hindi_sentences(text: str, max_words: int = 30) -> list[tuple[str, str]]:
+    """Split Hindi text on major sentence terminators (\u0964, \u0965, ?, !, \\n) only when exceeding max_words.
 
-
-def _split_hindi_clauses(text: str, max_words: int = 14) -> list[tuple[str, str]]:
-    """Break long clauses into natural Hindi prosodic units to keep DiT flow matching stable."""
+    Never splits at commas or inside clauses: F5-TTS Diffusion Transformer cross-attention
+    requires complete sentence context (at least 6-10 words) to establish stable phoneme
+    trajectories. Slicing at commas produces 1-2 word fragments where DiT ODE flow-matching
+    degenerates into repetitive syllable loops ("pup pup pup") and alien artifacts.
+    """
     import re
 
-    raw_clauses = re.split(r'([,.;:!?\u0964\u0965|]+)', text)
-    clauses = []
+    clean = " ".join((text or "").split())
+    if not clean:
+        return []
+
+    words = clean.split()
+    if len(words) <= max_words:
+        return [(clean, "")]
+
+    raw_parts = re.split(r'([\u0964\u0965?!\n]+)', clean)
+    chunks: list[tuple[str, str]] = []
+    current_text = ""
+    current_term = ""
     i = 0
-    while i < len(raw_clauses):
-        c = raw_clauses[i].strip()
-        punct = raw_clauses[i + 1].strip() if i + 1 < len(raw_clauses) else ""
-        if c:
-            clauses.append((c, punct))
+    while i < len(raw_parts):
+        part = raw_parts[i].strip()
+        term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
+        if part:
+            combined = f"{part} {term}".strip() if term else part
+            candidate = f"{current_text} {combined}".strip() if current_text else combined
+            if len(candidate.split()) <= max_words:
+                current_text = candidate
+                current_term = term or current_term
+            else:
+                if current_text:
+                    chunks.append((current_text, current_term))
+                current_text = combined
+                current_term = term
         i += 2
 
-    sub_chunks = []
-    for clause, punct in clauses:
-        words = clause.split()
-        if len(words) <= max_words:
-            sub_chunks.append((clause, punct))
-            continue
+    if current_text:
+        chunks.append((current_text, current_term))
 
-        current = []
-        for idx, w in enumerate(words):
-            current.append(w)
-            rem = len(words) - (idx + 1)
+    return chunks or [(clean, "")]
 
-            if len(current) >= 4 and rem >= 4 and w in _HINDI_SPLIT_AFTER:
-                sub_chunks.append((" ".join(current), ","))
-                current = []
-                continue
 
-            if len(current) >= 5 and rem >= 4:
-                if idx + 1 < len(words) and words[idx + 1] in _HINDI_SPLIT_BEFORE:
-                    sub_chunks.append((" ".join(current), ","))
-                    current = []
-                    continue
-
-            if len(current) >= 10 and rem >= 4 and w in {"\u0925\u093e", "\u0925\u0940", "\u0925\u0947", "\u0939\u0948", "\u0939\u0948\u0902"}:
-                sub_chunks.append((" ".join(current), ","))
-                current = []
-                continue
-
-        if current:
-            sub_chunks.append((" ".join(current), punct))
-
-    return sub_chunks
+# Backward compatibility alias
+_split_hindi_clauses = _split_hindi_sentences
 
 
 def _clean_audio_glitches(audio, max_jump: float = 0.35):
-    """Slew-rate / continuity limiter to eliminate Vocos vocoder tearing without affecting vocal harmonics."""
+    """Normalize and clip audio without altering speech consonants or vocal formants."""
     import numpy as np
 
     x = np.asarray(audio, dtype=np.float32)
@@ -858,31 +853,15 @@ def _clean_audio_glitches(audio, max_jump: float = 0.35):
     peak = float(np.max(np.abs(x))) if x.size else 0.0
     if peak > 1.0:
         x = x / 32768.0 if peak > 100.0 else x / peak
-    diff = np.diff(x)
-    bad_indices = np.where(np.abs(diff) > max_jump)[0]
-    if len(bad_indices) == 0:
-        return x
-    x = np.array(x, copy=True)
-    n = len(x)
-    for idx in bad_indices:
-        if 0 < idx < n - 2:
-            prev_val = x[idx]
-            next_val = x[idx + 2]
-            if abs(next_val - prev_val) < max_jump * 1.5:
-                x[idx + 1] = 0.5 * (prev_val + next_val)
-            else:
-                delta = x[idx + 1] - prev_val
-                if abs(delta) > max_jump:
-                    x[idx + 1] = prev_val + np.sign(delta) * max_jump
-    return x
+    return np.clip(x, -1.0, 1.0)
 
 
 def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
     """Generate one valid IndicF5 waveform from its selected cloning reference.
 
-    The text is split at punctuation and natural Hindi clauses so a short silence can be
-    inserted between clauses, preventing DiT flow-matching drift and keeping the delivery
-    paced rather than rushed.
+    Sentences are kept intact so the Diffusion Transformer's cross-attention has complete
+    context, preventing the repetitive syllable loops and alien gibberish caused by 1-2
+    word clause fragmentation.
     """
     import numpy as np
     import torch
@@ -893,25 +872,24 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
     if speed is None:
         speed = INDICF5_DEFAULT_SPEED
 
-    pause_durations = {
-        ",": 0.20,
-        ";": 0.20,
-        ":": 0.20,
-        ".": 0.40,
-        "\u0964": 0.40,  # Devanagari danda
-        "\u0965": 0.60,  # Devanagari double danda
-        "!": 0.35,
-        "?": 0.45,
-        "|": 0.40,
-    }
+    clean_text = " ".join((text or "").split())
+    if not clean_text:
+        raise RuntimeError("IndicF5 received empty text")
 
-    matches = _split_hindi_clauses(text, max_words=14)
-    if not matches:
-        matches = [(text, "")]
+    # Native generation speed in F5-TTS DiT preserves pitch and natural prosody
+    if hasattr(model, "config") and speed is not None:
+        try:
+            model.config.speed = float(speed)
+        except Exception:
+            pass
+
+    sentence_chunks = _split_hindi_sentences(clean_text, max_words=30)
+    if not sentence_chunks:
+        sentence_chunks = [(clean_text, "")]
 
     audio_chunks = []
     with torch.no_grad():
-        for chunk_text, punct in matches:
+        for chunk_text, punct in sentence_chunks:
             chunk_text = chunk_text.strip()
             if not chunk_text:
                 continue
@@ -928,21 +906,16 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
             if chunk_np.size > 0:
                 audio_chunks.append(chunk_np)
 
-            pause_sec = 0.15
-            for p in punct:
-                if p in pause_durations:
-                    pause_sec = max(pause_sec, pause_durations[p])
-            pause_sec *= INDICF5_PAUSE_SCALE
-            silence_samples = int(INDICF5_SAMPLE_RATE * pause_sec)
-            if silence_samples > 0:
-                audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
+            # Breath pause only between full sentences (0.35s)
+            if punct in ("\u0964", "\u0965", "!", "?", "\n") or len(sentence_chunks) > 1:
+                silence_samples = int(INDICF5_SAMPLE_RATE * 0.35 * INDICF5_PAUSE_SCALE)
+                if silence_samples > 0:
+                    audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
 
     if not audio_chunks:
         raise RuntimeError("IndicF5 received empty text or produced no audio chunks")
 
     audio_np = np.concatenate(audio_chunks)
-    audio_np = _clean_audio_glitches(audio_np)
-    audio_np = _resample_speed(audio_np, speed)
     audio_np = _clean_audio_glitches(audio_np)
     peak = float(np.max(np.abs(audio_np))) if audio_np.size else 0.0
     if peak > 1.0:
@@ -1013,15 +986,20 @@ class VastHandler(BaseHTTPRequestHandler):
         # server log. Always answer with a JSON error payload instead.
         try:
             if self.path in ("/v1/images/generate", "/generate/image"):
-                self.handle_image_generate(req)
+                with _INFERENCE_LOCK:
+                    self.handle_image_generate(req)
             elif self.path in ("/v1/videos/generate", "/generate/video"):
-                self.handle_video_generate(req)
+                with _INFERENCE_LOCK:
+                    self.handle_video_generate(req)
             elif self.path in ("/v1/audio/synthesize", "/synthesize/audio"):
-                self.handle_audio_synthesize(req)
+                with _INFERENCE_LOCK:
+                    self.handle_audio_synthesize(req)
             elif self.path in ("/v1/audio/synthesize_batch", "/synthesize/audio_batch"):
-                self.handle_audio_synthesize_batch(req)
+                with _INFERENCE_LOCK:
+                    self.handle_audio_synthesize_batch(req)
             elif self.path in ("/v1/batch", "/batch"):
-                self.handle_batch(req)
+                with _INFERENCE_LOCK:
+                    self.handle_batch(req)
             elif self.path in ("/v1/shutdown", "/shutdown"):
                 self._send_json({"message": "Server shutting down..."})
                 sys.exit(0)
@@ -1325,7 +1303,15 @@ class VastHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    server = HTTPServer(("0.0.0.0", PORT), VastHandler)
+    if os.environ.get("PRELOAD_INDICF5", "1") == "1" and indicf5_import_error() is None:
+        try:
+            print("[Vast Server] Pre-loading IndicF5 engine into VRAM...")
+            load_indicf5_engine()
+            print("[Vast Server] IndicF5 engine loaded and ready.")
+        except Exception as e:
+            print(f"[Vast Server Warning] IndicF5 pre-load skipped: {e}")
+
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), VastHandler)
     print(f"[Vast Server] Running on http://0.0.0.0:{PORT} (Device: {DEVICE})")
     try:
         server.serve_forever()

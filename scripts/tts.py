@@ -88,7 +88,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 14
+AUDIO_PIPELINE_VERSION = 16
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -1949,50 +1949,51 @@ HINDI_SPLIT_AFTER = {
 }
 
 
-def split_hindi_clauses(text: str, max_words: int = 14) -> list[tuple[str, str]]:
-    """Break long clauses into natural Hindi prosodic units to keep DiT flow matching stable."""
-    raw_clauses = re.split(r'([,.;:!?।॥|]+)', text)
-    clauses = []
+def split_hindi_sentences(text: str, max_words: int = 30) -> list[tuple[str, str]]:
+    """Split Hindi text on major sentence terminators (।, ॥, ?, !, \\n) only when exceeding max_words.
+
+    Never splits at commas: F5-TTS Diffusion Transformer cross-attention requires complete
+    sentence context (at least 6-10 words) to establish stable phoneme trajectories. Slicing
+    at commas produces 1-2 word fragments where DiT ODE flow-matching degenerates into
+    repetitive syllable loops ("pup pup pup") and alien babble.
+    """
+    clean = " ".join((text or "").split())
+    if not clean:
+        return []
+
+    words = clean.split()
+    if len(words) <= max_words:
+        return [(clean, "")]
+
+    raw_parts = re.split(r'([।॥?!\n]+)', clean)
+    chunks: list[tuple[str, str]] = []
+    current_text = ""
+    current_term = ""
     i = 0
-    while i < len(raw_clauses):
-        c = raw_clauses[i].strip()
-        punct = raw_clauses[i + 1].strip() if i + 1 < len(raw_clauses) else ""
-        if c:
-            clauses.append((c, punct))
+    while i < len(raw_parts):
+        part = raw_parts[i].strip()
+        term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
+        if part:
+            combined = f"{part} {term}".strip() if term else part
+            candidate = f"{current_text} {combined}".strip() if current_text else combined
+            if len(candidate.split()) <= max_words:
+                current_text = candidate
+                current_term = term or current_term
+            else:
+                if current_text:
+                    chunks.append((current_text, current_term))
+                current_text = combined
+                current_term = term
         i += 2
 
-    sub_chunks = []
-    for clause, punct in clauses:
-        words = clause.split()
-        if len(words) <= max_words:
-            sub_chunks.append((clause, punct))
-            continue
+    if current_text:
+        chunks.append((current_text, current_term))
 
-        current = []
-        for idx, w in enumerate(words):
-            current.append(w)
-            rem = len(words) - (idx + 1)
+    return chunks or [(clean, "")]
 
-            if len(current) >= 4 and rem >= 4 and w in HINDI_SPLIT_AFTER:
-                sub_chunks.append((" ".join(current), ","))
-                current = []
-                continue
 
-            if len(current) >= 5 and rem >= 4:
-                if idx + 1 < len(words) and words[idx + 1] in HINDI_SPLIT_BEFORE:
-                    sub_chunks.append((" ".join(current), ","))
-                    current = []
-                    continue
-
-            if len(current) >= 10 and rem >= 4 and w in {"था", "थी", "थे", "है", "हैं"}:
-                sub_chunks.append((" ".join(current), ","))
-                current = []
-                continue
-
-        if current:
-            sub_chunks.append((" ".join(current), punct))
-
-    return sub_chunks
+# Backward compatibility alias
+split_hindi_clauses = split_hindi_sentences
 
 
 def punctuate_hindi_clauses(text: str, max_words: int = 14) -> str:
@@ -2087,7 +2088,8 @@ def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
         # the server turns into silence; drop only decorative dashes and brackets.
         kept = re.sub(r"[—–\-\"'\(\)\[\]\{\}…]+", " ", sentence)
         kept = " ".join(kept.split())
-        kept = punctuate_hindi_clauses(kept)
+        # Attach punctuation directly to preceding word (no trailing space before punct)
+        kept = re.sub(r"\s+([,.;:!?।॥])", r"\1", kept)
         return normalize_hindi_phonetics(kept or sentence)
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
@@ -2138,14 +2140,20 @@ def line_voice_and_speed(
     return voice, round(max(0.6, min(1.8, base * beat_factor * emotion_factor)), 3), character
 
 
+_VERIFIED_REMOTE_TTS_URLS: set[str] = set()
+
+
 def remote_tts_enabled() -> bool:
     """Whether narration is explicitly configured to use a remote server (Kaggle or Vast)."""
-    server_url = (
-        os.environ.get("TTS_SERVER_URL", "").strip()
-        or os.environ.get("KAGGLE_TTS_URL", "").strip()
-        or os.environ.get("VAST_SERVER_URL", "").strip()
+    if os.environ.get("TTS_PROVIDER", "").lower() in ("local", "cpu"):
+        return False
+    if os.environ.get("TTS_SERVER_URL", "").strip() or os.environ.get("KAGGLE_TTS_URL", "").strip():
+        return True
+    vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
+    return bool(vast_url) and (
+        os.environ.get("USE_VAST", "0") == "1"
+        or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
     )
-    return bool(server_url)
 
 
 def prebuild_vast_batch(
@@ -2200,64 +2208,91 @@ def prebuild_vast_batch(
     # drop the empties before deciding whether anything needs to be requested.
     requests = {key: value for key, value in requests.items() if value}
     if reused:
-        print(f"[Indic Parler Vast Batch] {reused} segment(s) already on disk; requesting only the rest.")
+        print(f"[Remote TTS Batch] {reused} segment(s) already on disk; requesting only the rest.")
     if not requests:
         return reused
 
     from vast_manager import VastManager
 
     manager = VastManager(server_url=vast_url)
-    cached_count = 0
-    for (primary, line_speed), sentences in requests.items():
-        label = "IndicF5 Vast Batch" if is_indicf5_remote_voice(primary) else "Indic Parler Vast Batch"
-        print(f"[{label}] request {len(sentences)} segment(s) for {primary} @ {line_speed}x ...")
-        items = [{"id": str(index), "text": sentence} for index, sentence in enumerate(sentences)]
+    if vast_url not in _VERIFIED_REMOTE_TTS_URLS:
+        expected_device = os.environ.get("VAST_GPU_NAME", "ANY")
         try:
-            results = manager.synthesize_tts_batch(items, voice=primary, speed=line_speed)
-        except Exception as err:  # noqa: BLE001 - fall back to per-sentence requests
-            print(
-                f"[Indic Parler Vast Batch Warning] batch request failed ({err}); "
-                "falling back to per-sentence requests.",
-                file=sys.stderr,
-            )
-            continue
+            manager.require_gpu(expected_device, vast_url, require_tts=True)
+            _VERIFIED_REMOTE_TTS_URLS.add(vast_url)
+        except Exception as v_err:
+            print(f"[Vast TTS Batch Warning] Remote GPU preflight warning: {v_err}", file=sys.stderr)
 
-        import io as _io
-        import soundfile as sf
+    cached_count = 0
+    import io as _io
+    import soundfile as sf
 
+    for (primary, line_speed), sentences in requests.items():
+        is_indicf5 = is_indicf5_remote_voice(primary)
+        label = "IndicF5 Vast Batch" if is_indicf5 else "Indic Parler Vast Batch"
+        default_chunk_size = 1 if is_indicf5 else 3
+        batch_chunk_size = max(1, int(os.environ.get("REMOTE_TTS_BATCH_CHUNK_SIZE", str(default_chunk_size))))
+        items = [{"id": str(index), "text": sentence} for index, sentence in enumerate(sentences)]
+        chunks = [items[i:i + batch_chunk_size] for i in range(0, len(items), batch_chunk_size)]
+        total_chunks = len(chunks)
+        print(
+            f"[{label}] Requesting {len(sentences)} segment(s) in {total_chunks} chunk(s) "
+            f"({batch_chunk_size} per request) for {primary} @ {line_speed}x ..."
+        )
         missing: list[str] = []
-        for index, sentence in enumerate(sentences):
-            entry = results.get(str(index))
-            if not entry:
-                missing.append(sentence)
-                continue
-            wav_bytes, _duration = entry
+
+        for chunk_idx, chunk_items in enumerate(chunks, 1):
+            if total_chunks > 1:
+                print(f"[{label}] Sending chunk {chunk_idx}/{total_chunks} ({len(chunk_items)} segments)...")
             try:
-                wav_np, _sr = sf.read(_io.BytesIO(wav_bytes), dtype="float32")
-            except Exception:
-                missing.append(sentence)
-                continue
-            if audio_is_bad(wav_np):
+                chunk_results = manager.synthesize_tts_batch(
+                    chunk_items, voice=primary, speed=line_speed, timeout=120
+                )
+            except Exception as err:
                 print(
-                    f"[Indic Parler Vast Batch] segment {index + 1} came back silent/non-finite; "
-                    "retrying it individually.",
+                    f"[{label} Warning] chunk {chunk_idx}/{total_chunks} failed ({err}); "
+                    "will retry its segments individually.",
                     file=sys.stderr,
                 )
-                missing.append(sentence)
+                missing.extend([it["text"] for it in chunk_items])
                 continue
-            # Persist only after the audio proved usable: a corrupt segment must never
-            # reach the disk cache, or the next run would reuse it for free.
-            write_gpu_cache(sentence, primary, line_speed, wav_bytes)
-            _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
-            cached_count += 1
-        print(f"[Indic Parler Vast Batch] cached {cached_count} segment(s) so far")
+
+            for item in chunk_items:
+                item_id = str(item["id"])
+                sentence = item["text"]
+                entry = chunk_results.get(item_id)
+                if not entry:
+                    missing.append(sentence)
+                    continue
+                wav_bytes, _duration = entry
+                try:
+                    wav_np, _sr = sf.read(_io.BytesIO(wav_bytes), dtype="float32")
+                except Exception:
+                    missing.append(sentence)
+                    continue
+                if audio_is_bad(wav_np):
+                    print(
+                        f"[{label}] segment id={item_id} came back silent/non-finite; "
+                        "retrying it individually.",
+                        file=sys.stderr,
+                    )
+                    missing.append(sentence)
+                    continue
+                # Persist only after the audio proved usable: a corrupt segment must never
+                # reach the disk cache, or the next run would reuse it for free.
+                write_gpu_cache(sentence, primary, line_speed, wav_bytes)
+                _VAST_AUDIO_CACHE[(sentence, primary.lower(), line_speed)] = wav_np
+                cached_count += 1
+
+            if total_chunks > 1:
+                print(f"[{label}] Cached {cached_count}/{len(sentences)} segment(s) on disk")
 
         # Items the server omitted are retried individually rather than dropped, which is
         # what the batch endpoint's contract expects of the caller.
         if missing:
             print(
-                f"[Vast TTS Batch] {len(missing)} segment(s) missing from the batch "
-                "response; retrying them individually."
+                f"[Vast TTS Batch] {len(missing)} segment(s) missing from batch chunks; "
+                "retrying them individually."
             )
             for sentence in missing:
                 synthesize = synthesize_indicf5_local if is_indicf5_local_voice(primary) else synthesize_indic_parler
@@ -2545,8 +2580,10 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
         try:
             from vast_manager import VastManager
             manager = VastManager(server_url=vast_url)
-            expected_device = os.environ.get("VAST_GPU_NAME", "ANY")
-            manager.require_gpu(expected_device, vast_url, require_tts=True)
+            if vast_url not in _VERIFIED_REMOTE_TTS_URLS:
+                expected_device = os.environ.get("VAST_GPU_NAME", "ANY")
+                manager.require_gpu(expected_device, vast_url, require_tts=True)
+                _VERIFIED_REMOTE_TTS_URLS.add(vast_url)
             audio_bytes, _duration = manager.synthesize_tts(
                 text=norm_text, voice=primary, speed=speed
             )

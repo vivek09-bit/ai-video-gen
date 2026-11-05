@@ -2439,6 +2439,10 @@ class VastManager:
         A server that reports neither readiness field is accepted: instances cloned
         before this check existed cannot answer it, and refusing them would strand them.
         """
+        cache_key = (str(url or self.server_url), expected_gpu.upper(), require_tts)
+        if hasattr(self, "_verified_gpus") and cache_key in self._verified_gpus:
+            return self._verified_gpus[cache_key]
+
         last_err = None
         for attempt in range(6):
             try:
@@ -2486,6 +2490,9 @@ class VastManager:
             if (engine == "parler" or "indicf5_ready" not in health) and health.get("tts_ready") is False:
                 detail = health.get("tts_error") or "the legacy TTS import path is unusable on this instance"
                 raise RuntimeError(f"Vast server {url or self.server_url} cannot synthesise remote TTS: {detail}")
+        if not hasattr(self, "_verified_gpus"):
+            self._verified_gpus = {}
+        self._verified_gpus[cache_key] = health
         return health
 
     def generate_image(

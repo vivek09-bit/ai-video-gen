@@ -22,8 +22,14 @@ from pathlib import Path
 PORT = int(os.environ.get("PORT", 8000))
 
 def setup_environment():
+    print("[0/4] Syncing latest tube2dscript repository code...")
+    try:
+        subprocess.run(["git", "pull", "origin", "main"], check=False)
+    except Exception:
+        pass
+
     print("[1/4] Checking & installing required packages...")
-    packages = ["soundfile", "transformers", "f5-tts"]
+    packages = ["soundfile", "transformers", "f5-tts", "librosa"]
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *packages], check=False)
 
     print("[2/4] Setting up Cloudflare tunnel (cloudflared)...")

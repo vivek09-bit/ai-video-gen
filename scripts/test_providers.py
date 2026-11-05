@@ -1107,6 +1107,49 @@ def test_indicf5_contracts() -> None:
         assert tts.remote_tts_enabled()
         os.environ["TTS_PROVIDER"] = "local"
         assert not tts.remote_tts_enabled()
+
+        # Test batch chunking logic
+        import vast_manager
+        chunks_recorded = []
+        original_batch = vast_manager.VastManager.synthesize_tts_batch
+        try:
+            import io as _io
+            import soundfile as sf
+            import numpy as np
+            buf = _io.BytesIO()
+            sf.write(buf, np.sin(np.linspace(0, 100, 1000)).astype(np.float32) * 0.1, 24000, format="WAV", subtype="PCM_16")
+            valid_wav = buf.getvalue()
+
+            def mock_batch(self, items, voice="indic_parler_aarav", speed=1.0, url=None, timeout=3600):
+                chunks_recorded.append(len(items))
+                return {str(item["id"]): (valid_wav, 0.1) for item in items}
+
+            vast_manager.VastManager.synthesize_tts_batch = mock_batch
+            os.environ["TTS_PROVIDER"] = "vast"
+            os.environ["REMOTE_TTS_BATCH_CHUNK_SIZE"] = "2"
+            import uuid
+            unique_run = uuid.uuid4().hex[:8]
+            test_scenes = [
+                {"lines": [{"text": f"अद्वितीय परीक्षण {unique_run} वाक्य संख्या {i}।", "voice": "indicf5_aarav"}]}
+                for i in range(5)
+            ]
+            count = tts.prebuild_vast_batch(test_scenes, {}, "indicf5_aarav", 1.0, False)
+            assert count == 5
+            assert chunks_recorded == [2, 2, 1]
+
+            # Verify default chunking for IndicF5 without env var is 1
+            os.environ.pop("REMOTE_TTS_BATCH_CHUNK_SIZE", None)
+            chunks_recorded.clear()
+            test_scenes_default = [
+                {"lines": [{"text": f"डिफ़ॉल्ट परीक्षण {unique_run} वाक्य संख्या {i}।", "voice": "indicf5_aarav"}]}
+                for i in range(3)
+            ]
+            count_def = tts.prebuild_vast_batch(test_scenes_default, {}, "indicf5_aarav", 1.0, False)
+            assert count_def == 3
+            assert chunks_recorded == [1, 1, 1]
+        finally:
+            vast_manager.VastManager.synthesize_tts_batch = original_batch
+            os.environ.pop("REMOTE_TTS_BATCH_CHUNK_SIZE", None)
     finally:
         for key, value in old_env.items():
             if value is None:
