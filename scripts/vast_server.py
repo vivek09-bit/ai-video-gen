@@ -618,18 +618,41 @@ def load_indicf5_engine():
     except Exception:
         pass
 
-    print(f"[Vast Server] Loading official IndicF5 model from {INDICF5_REPOSITORY} on {DEVICE}...")
-    _INDICF5_ENGINE = AutoModel.from_pretrained(
-        INDICF5_REPOSITORY,
-        trust_remote_code=True,
-        token=_hub_token(),
-        low_cpu_mem_usage=False,
-    )
+    candidates = [INDICF5_REPOSITORY]
+    if INDICF5_REPOSITORY == "ai4bharat/IndicF5":
+        candidates.append("rsolanki1822/IndicF5-mirror")
+
+    engine = None
+    last_err: Exception | None = None
+    for repo_id in candidates:
+        try:
+            print(f"[Vast Server] Loading IndicF5 model from {repo_id} on {DEVICE}...")
+            engine = AutoModel.from_pretrained(
+                repo_id,
+                trust_remote_code=True,
+                token=_hub_token(),
+                low_cpu_mem_usage=False,
+            )
+            break
+        except Exception as err:
+            last_err = err
+            print(f"[Vast Server Warning] {repo_id} unavailable ({type(err).__name__}: {err}); trying next candidate...", file=sys.stderr)
+
+    if engine is None:
+        raise RuntimeError(f"no IndicF5 model could be loaded: {last_err}")
+    _INDICF5_ENGINE = engine
     target_device = torch.device(DEVICE)
     if hasattr(_INDICF5_ENGINE, "to"):
         _INDICF5_ENGINE.to(target_device)
     if hasattr(_INDICF5_ENGINE, "eval"):
         _INDICF5_ENGINE.eval()
+    if hasattr(_INDICF5_ENGINE, "config"):
+        _INDICF5_ENGINE.config.remove_sil = False
+    # Unwrap torch.compile if present to ensure clean uncompiled eager ODE flow-matching on Turing/P100
+    if hasattr(_INDICF5_ENGINE, "ema_model") and hasattr(_INDICF5_ENGINE.ema_model, "_orig_mod"):
+        _INDICF5_ENGINE.ema_model = _INDICF5_ENGINE.ema_model._orig_mod
+    if hasattr(_INDICF5_ENGINE, "vocoder") and hasattr(_INDICF5_ENGINE.vocoder, "_orig_mod"):
+        _INDICF5_ENGINE.vocoder = _INDICF5_ENGINE.vocoder._orig_mod
     print(f"[Vast Server] Successfully loaded official IndicF5 model on {DEVICE}")
     return _INDICF5_ENGINE
 
@@ -670,67 +693,73 @@ def _resample_speed(audio, speed: float):
         return audio
 
 
-def _split_hindi_sentences(text: str, max_words: int = 22) -> list[tuple[str, str]]:
-    """Split Hindi text on every sentence terminator (\u0964, \u0965, ., ?, !, |, \\n).
+def _split_hindi_sentences(text: str, max_words: int = 12) -> list[tuple[str, str]]:
+    """Split Hindi text on sentence and sub-clause boundaries (max 10-12 words).
 
     Never merges multiple complete sentences together into large blobs: F5-TTS Diffusion Transformer
     cross-attention stays sharp and accurate when generating one complete sentence at a time (6-20 words).
     Merging independent sentences overloads DiT cross-attention, causing word scrambling and prompt bleeding.
     """
     import re
-
     clean = " ".join((text or "").split())
     if not clean:
         return []
 
     raw_parts = re.split(r'([\u0964\u0965.?!|\n]+)', clean)
-    sentences: list[str] = []
+    major_sentences: list[tuple[str, str]] = []
     i = 0
     while i < len(raw_parts):
         part = raw_parts[i].strip()
         term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
         if part:
-            combined = f"{part}{term}".strip() if term else part
-            sentences.append(combined)
+            major_sentences.append((part, term or "।"))
         i += 2
 
-    if not sentences:
-        return [(clean, "")]
+    if not major_sentences:
+        return [(clean, "।")]
 
     # Merge very short sentences (< 4 words, e.g. '\u0915\u094d\u092f\u094b\u0902?') with the following sentence
-    merged: list[str] = []
+    merged: list[tuple[str, str]] = []
     idx = 0
-    while idx < len(sentences):
-        cur = sentences[idx]
-        while len(cur.split()) < 4 and idx + 1 < len(sentences):
+    while idx < len(major_sentences):
+        cur_text, cur_term = major_sentences[idx]
+        while len(cur_text.split()) < 4 and idx + 1 < len(major_sentences):
             idx += 1
-            cur = f"{cur} {sentences[idx]}".strip()
-        merged.append(cur)
+            next_text, next_term = major_sentences[idx]
+            cur_text = f"{cur_text} {next_text}".strip()
+            cur_term = next_term
+        merged.append((cur_text, cur_term))
         idx += 1
 
     chunks: list[tuple[str, str]] = []
-    for s in merged:
-        words = s.split()
+    for s_text, s_term in merged:
+        words = s_text.split()
         if len(words) <= max_words:
-            chunks.append((s, ""))
+            chunks.append((s_text, s_term))
         else:
-            # Split an exceptionally long sentence (> 22 words) on comma boundaries
-            comma_parts = [p.strip() for p in re.split(r'([,\uff0c]+)', s) if p.strip()]
+            # Sub-divide long sentence (> max_words) on comma boundaries
+            comma_parts = [p.strip() for p in re.split(r'([,，]+)', s_text) if p.strip()]
+            sub_list: list[str] = []
             cur_chunk = ""
             for p in comma_parts:
-                if p in (",", "\uff0c"):
-                    cur_chunk += ","
+                if p in (",", "，"):
+                    if cur_chunk:
+                        cur_chunk += ","
                     continue
                 cand = (cur_chunk + " " + p).strip() if cur_chunk else p
                 if len(cand.split()) > max_words and cur_chunk:
-                    chunks.append((cur_chunk.strip(), ""))
+                    sub_list.append(cur_chunk.strip())
                     cur_chunk = p
                 else:
                     cur_chunk = cand
             if cur_chunk:
-                chunks.append((cur_chunk.strip(), ""))
+                sub_list.append(cur_chunk.strip())
 
-    return chunks or [(clean, "")]
+            for sub_idx, sub in enumerate(sub_list):
+                term = s_term if sub_idx == len(sub_list) - 1 else ","
+                chunks.append((sub, term))
+
+    return chunks or [(clean, "।")]
 
 
 # Backward compatibility alias
@@ -810,6 +839,11 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
     if not clean_text:
         raise RuntimeError("IndicF5 received empty text")
 
+    # Use full IEEE float32 precision for Euler ODE solver (avoid TF32 rounding drift)
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+
     # Native generation speed in F5-TTS DiT preserves pitch and natural prosody.
     # Speed < 1.0 (default 0.82) allocates sufficient mel frames so the ODE flow matching
     # articulates every Sanskritized Hindi phoneme cleanly without word-skipping.
@@ -824,18 +858,18 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
         except Exception:
             pass
 
-    # Split text on major sentence terminators (keep complete sentences intact)
-    sentences = _split_hindi_sentences(clean_text, max_words=22)
+    # Split text on major sentence terminators and sub-clauses
+    sentences = _split_hindi_sentences(clean_text, max_words=12)
 
     pieces: list[np.ndarray] = []
     with torch.no_grad():
-        for idx, (s_text, _) in enumerate(sentences):
+        for idx, (s_text, term) in enumerate(sentences):
             s_text = s_text.strip()
             if not s_text:
                 continue
-            # Ensure text ends with a terminating punctuation mark (never a dangling comma)
-            if not s_text.endswith(("\u0964", "\u0965", ".", "!", "?")):
-                s_text = s_text.rstrip(",\uff0c ") + "\u0964"
+            # Ensure text ends with an appropriate punctuation mark (comma for sub-clause, danda for sentence)
+            if not s_text.endswith(("\u0964", "\u0965", ".", "!", "?", ",")):
+                s_text = s_text.rstrip(",\uff0c ") + ("\u0964" if term in ("\u0964", "\u0965", ".", "!", "?") else ",")
             audio = model(s_text, ref_audio_path=reference_path, ref_text=reference_text)
             if hasattr(audio, "detach"):
                 audio = audio.detach().cpu().numpy()
@@ -851,8 +885,9 @@ def synthesize_indicf5(text: str, voice: str, speed: float | None = None):
             if audio_np.size:
                 pieces.append(audio_np)
                 if idx < len(sentences) - 1:
-                    # Natural breathing gap between clauses
-                    pieces.append(np.zeros(int(0.20 * INDICF5_SAMPLE_RATE), dtype=np.float32))
+                    # 150ms for comma breath, 280ms for full sentence stop
+                    pause_dur = 0.15 if term in (",", "\uff0c") else 0.28
+                    pieces.append(np.zeros(int(pause_dur * INDICF5_SAMPLE_RATE), dtype=np.float32))
 
     if not pieces:
         raise RuntimeError("IndicF5 produced empty audio pieces")

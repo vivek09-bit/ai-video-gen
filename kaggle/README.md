@@ -1,6 +1,6 @@
-# Free Kaggle GPU (P100 / T4) for IndicF5 Voice Generation
+# Free Kaggle GPU (P100 / T4) for IndicF5 & Indic-Parler Voice Generation
 
-Kaggle provides **30 hours per week of free NVIDIA GPU (Tesla P100 16GB VRAM)**. This is over **30x faster** than running IndicF5 on CPU (1.5-2 seconds per sentence vs 4-5 minutes per sentence).
+Kaggle provides **30 hours per week of free NVIDIA GPU (Tesla P100 16GB VRAM)**. This is over **30x faster** than running IndicF5 or Parler on CPU (1.5-2 seconds per sentence vs 4-5 minutes per sentence).
 
 ---
 
@@ -19,12 +19,12 @@ Kaggle provides **30 hours per week of free NVIDIA GPU (Tesla P100 16GB VRAM)**.
 !git clone https://github.com/vivek09-bit/ai-video-gen.git tube2dscript 2>/dev/null || (cd tube2dscript && git pull origin main)
 %cd tube2dscript
 
-# 2. Run the Kaggle GPU server & Cloudflare tunnel
+# 2. Run the Kaggle GPU server & Cloudflare tunnel (supports both IndicF5 and Indic-Parler)
 !python scripts/kaggle_server.py
 ```
 
 The script will automatically:
-- Download `IndicF5` and reference voice models onto Kaggle's GPU.
+- Download and set up `IndicF5` and `Indic-Parler` TTS models on Kaggle's GPU.
 - Launch the server on CUDA.
 - Start a free Cloudflare tunnel and print your public URL:
   ```text
@@ -37,6 +37,7 @@ The script will automatically:
 
 In your local PowerShell terminal, simply pass `--tts-url` (or set `$env:TTS_SERVER_URL`):
 
+#### Option A: IndicF5 voice (authentic Sanskritized Hindi zero-shot voice)
 ```powershell
 .venv\Scripts\python.exe scripts\new_video.py `
   --narration script.txt `
@@ -50,11 +51,33 @@ In your local PowerShell terminal, simply pass `--tts-url` (or set `$env:TTS_SER
   --image-provider cloudflare
 ```
 
-Or test a single voice sentence directly:
+#### Option B: Indic Parler voice (natural description-conditioned Hindi voice)
 ```powershell
+.venv\Scripts\python.exe scripts\new_video.py `
+  --narration script.txt `
+  --topic "कलयुग के अंत के बाद आखिर क्या होगा" `
+  --genre documentary `
+  --format reel `
+  --voice indic_parler_aarav `
+  --tts-url "https://xyz-sample.trycloudflare.com" `
+  --no-vast `
+  --images `
+  --image-provider cloudflare
+```
+
+#### Test a single voice sentence directly:
+```powershell
+# IndicF5 test
 .venv\Scripts\python.exe scripts\tts.py `
   --text "कलयुग के अंत के बाद सत्य युग का आरंभ होगा।" `
   --voice indicf5_aarav `
   --tts-url "https://xyz-sample.trycloudflare.com" `
-  --out out/test_indic_kaggle.wav
+  --out out/test_indicf5_kaggle.wav
+
+# Indic Parler test
+.venv\Scripts\python.exe scripts\tts.py `
+  --text "कलयुग के अंत के बाद सत्य युग का आरंभ होगा।" `
+  --voice indic_parler_aarav `
+  --tts-url "https://xyz-sample.trycloudflare.com" `
+  --out out/test_parler_kaggle.wav
 ```

@@ -2465,31 +2465,29 @@ class VastManager:
             # Prefer the new IndicF5 contract, while accepting old servers that only
             # expose tts_ready so a warm legacy instance remains usable for Parler voices.
             # A caller may opt into legacy-only validation with VAST_TTS_ENGINE=parler.
-            engine = os.environ.get("VAST_TTS_ENGINE", "indicf5").strip().lower()
-            if engine != "parler" and "indicf5_ready" in health and health.get("indicf5_ready") is False:
-                detail = health.get("indicf5_error") or "the IndicF5 import path is unusable on this instance"
-                # A container with no token cannot download a GATED repo, and its environment
-                # is fixed at create time, so "repair in place" is the wrong advice for it.
-                # Separate the two so the operator takes the fix that matches the cause.
-                if health.get("hf_token_present") is False:
-                    raise RuntimeError(
-                        f"Vast server {url or self.server_url} cannot synthesise IndicF5: {detail}. "
-                        "This instance has no HF_TOKEN, and ai4bharat/IndicF5 is a GATED Hugging "
-                        "Face repository. Accept its terms on the Hub, put HF_TOKEN (or "
-                        "HUGGINGFACE_API_KEY) in .env, and rent a new instance: a container's "
-                        "environment cannot be changed after it is created."
-                    )
-                # Name the command, not just the intent. "Repair the instance" left the
-                # operator to find the subcommand, and this same branch also covers a wheel
-                # resolved against the wrong NumPy, which is a repair of a different kind.
-                raise RuntimeError(
-                    f"Vast server {url or self.server_url} cannot synthesise IndicF5: {detail}. "
-                    "Repair it (python scripts/vast_manager.py repair <instance-id>) "
-                    "or rent a fresh one."
-                )
-            if (engine == "parler" or "indicf5_ready" not in health) and health.get("tts_ready") is False:
-                detail = health.get("tts_error") or "the legacy TTS import path is unusable on this instance"
-                raise RuntimeError(f"Vast server {url or self.server_url} cannot synthesise remote TTS: {detail}")
+            engine = os.environ.get("VAST_TTS_ENGINE", "auto").strip().lower()
+            if engine == "indicf5":
+                if health.get("indicf5_ready") is False:
+                    detail = health.get("indicf5_error") or "the IndicF5 import path is unusable on this instance"
+                    if health.get("hf_token_present") is False:
+                        raise RuntimeError(
+                            f"Remote TTS server {url or self.server_url} cannot synthesise IndicF5: {detail}. "
+                            "This instance has no HF_TOKEN, and ai4bharat/IndicF5 is a GATED Hugging "
+                            "Face repository. Accept its terms on the Hub, put HF_TOKEN in .env, "
+                            "and restart the server."
+                        )
+                    raise RuntimeError(f"Remote TTS server {url or self.server_url} cannot synthesise IndicF5: {detail}")
+            elif engine == "parler":
+                if health.get("tts_ready") is False:
+                    detail = health.get("tts_error") or "the Parler TTS import path is unusable on this instance"
+                    raise RuntimeError(f"Remote TTS server {url or self.server_url} cannot synthesise Parler TTS: {detail}")
+            else:
+                # Auto: succeed if at least one engine is ready
+                indicf5_ok = health.get("indicf5_ready") is not False
+                parler_ok = health.get("tts_ready") is not False
+                if not indicf5_ok and not parler_ok:
+                    detail = health.get("indicf5_error") or health.get("tts_error") or "neither IndicF5 nor Parler TTS is ready"
+                    raise RuntimeError(f"Remote TTS server {url or self.server_url} has no ready TTS engine: {detail}")
         if not hasattr(self, "_verified_gpus"):
             self._verified_gpus = {}
         self._verified_gpus[cache_key] = health

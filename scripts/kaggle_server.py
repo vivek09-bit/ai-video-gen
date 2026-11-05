@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Kaggle GPU Tunnel Server for IndicF5 Voice Generation.
+"""Kaggle GPU Tunnel Server for IndicF5 & Indic-Parler Voice Generation.
 
 Run this script inside a free Kaggle Notebook with:
 - Accelerator: GPU P100 (or GPU T4 x 2)
 - Internet: ON
 
-It starts the IndicF5 TTS server on the Kaggle GPU and creates a free
+It starts the IndicF5 and Indic-Parler TTS server on the Kaggle GPU and creates a free
 Cloudflare Tunnel to give you a public URL (e.g. https://xxx.trycloudflare.com).
 You then use this URL on your local PC:
   .venv\\Scripts\\python.exe scripts\\new_video.py --voice indicf5_aarav --tts-url <URL>
+  # or
+  .venv\\Scripts\\python.exe scripts\\new_video.py --voice indic_parler_aarav --tts-url <URL>
 """
 
 import os
@@ -21,7 +23,7 @@ from pathlib import Path
 
 PORT = int(os.environ.get("PORT", 8000))
 
-def setup_environment():
+def setup_environment(model: str = "all"):
     print("[0/4] Syncing latest tube2dscript repository code...")
     try:
         subprocess.run(["git", "pull", "origin", "main"], check=False)
@@ -31,7 +33,14 @@ def setup_environment():
     print("[1/4] Checking & installing required packages...")
     packages = ["soundfile", "transformers", "vocos", "librosa", "pydub"]
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", *packages], check=False)
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/AI4Bharat/IndicF5.git"], check=False)
+
+    if model in ("all", "indicf5"):
+        print("  -> Installing AI4Bharat IndicF5 TTS...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/AI4Bharat/IndicF5.git"], check=False)
+
+    if model in ("all", "parler"):
+        print("  -> Installing AI4Bharat Indic Parler-TTS...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/huggingface/parler-tts.git"], check=False)
 
     print("[2/4] Setting up Cloudflare tunnel (cloudflared)...")
     cloudflared = Path("cloudflared")
@@ -41,17 +50,25 @@ def setup_environment():
         if cloudflared.exists():
             subprocess.run(["chmod", "+x", "cloudflared"], check=False)
 
-def start_server_and_tunnel():
-    import argparse
-    parser = argparse.ArgumentParser(description="Kaggle IndicF5 TTS Server")
-    parser.add_argument("--hf-token", help="Hugging Face API token for ai4bharat/IndicF5")
-    parser.add_argument("--port", type=int, default=PORT, help="Server port")
-    args, _ = parser.parse_known_args()
+def start_server_and_tunnel(args=None):
+    if args is None:
+        import argparse
+        parser = argparse.ArgumentParser(description="Kaggle TTS Server (IndicF5 & Indic-Parler)")
+        parser.add_argument("--hf-token", help="Hugging Face API token for ai4bharat/IndicF5")
+        parser.add_argument("--port", type=int, default=PORT, help="Server port")
+        parser.add_argument("--model", choices=["all", "indicf5", "parler"], default="all", help="TTS engines to support (default: all)")
+        args, _ = parser.parse_known_args()
 
     port = args.port or PORT
-    print(f"[3/4] Launching IndicF5 TTS server on port {port}...")
+    model_mode = getattr(args, "model", "all")
+    print(f"[3/4] Launching TTS server (mode: {model_mode}) on port {port}...")
     server_cmd = [sys.executable, "scripts/vast_server.py"]
-    server_env = dict(os.environ, PORT=str(port))
+    server_env = dict(
+        os.environ,
+        PORT=str(port),
+        TORCH_COMPILE_DISABLE="1",
+        INDICF5_SPEED="0.82",
+    )
 
     # Read Hugging Face token from CLI, env, Kaggle Secrets, or local .env
     if args.hf_token:
@@ -79,6 +96,7 @@ def start_server_and_tunnel():
                         break
 
     server_env.setdefault("INDICF5_MODEL", "ai4bharat/IndicF5")
+    server_env.setdefault("INDIC_PARLER_MODEL", "RXD03/indic-parler-tts")
     server_proc = subprocess.Popen(server_cmd, env=server_env)
 
     time.sleep(3)
@@ -113,16 +131,28 @@ def start_server_and_tunnel():
         return
 
     print("\n" + "=" * 70)
-    print("  KAGGLE NVIDIA P100 INDICF5 SERVER IS LIVE!")
+    print("  KAGGLE NVIDIA GPU TTS SERVER IS LIVE! (IndicF5 & Parler-TTS)")
     print("=" * 70)
     print(f"  Public Tunnel URL : {tunnel_url}")
-    print("\n  Run this command on your local PC:")
+    print("\n  Run on your local PC:")
+    print("  # Option 1: IndicF5 voice (zero-shot, 0.82x Sanskritized Hindi)")
     print(f"  .venv\\Scripts\\python.exe scripts\\new_video.py `")
     print(f"    --narration script.txt `")
     print(f"    --topic \"Your Topic\" `")
     print(f"    --genre documentary `")
     print(f"    --format reel `")
     print(f"    --voice indicf5_aarav `")
+    print(f"    --tts-url \"{tunnel_url}\" `")
+    print(f"    --no-vast `")
+    print(f"    --images `")
+    print(f"    --image-provider cloudflare")
+    print(f"\n  # Option 2: Indic Parler voice (natural description-conditioned)")
+    print(f"  .venv\\Scripts\\python.exe scripts\\new_video.py `")
+    print(f"    --narration script.txt `")
+    print(f"    --topic \"Your Topic\" `")
+    print(f"    --genre documentary `")
+    print(f"    --format reel `")
+    print(f"    --voice indic_parler_aarav `")
     print(f"    --tts-url \"{tunnel_url}\" `")
     print(f"    --no-vast `")
     print(f"    --images `")
@@ -141,6 +171,16 @@ def start_server_and_tunnel():
         server_proc.terminate()
         tunnel_proc.terminate()
 
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Kaggle TTS Server (IndicF5 & Indic-Parler)")
+    parser.add_argument("--hf-token", help="Hugging Face API token for ai4bharat/IndicF5")
+    parser.add_argument("--port", type=int, default=PORT, help="Server port")
+    parser.add_argument("--model", choices=["all", "indicf5", "parler"], default="all", help="TTS engines to support (default: all)")
+    args, _ = parser.parse_known_args()
+
+    setup_environment(model=args.model)
+    start_server_and_tunnel(args)
+
 if __name__ == "__main__":
-    setup_environment()
-    start_server_and_tunnel()
+    main()

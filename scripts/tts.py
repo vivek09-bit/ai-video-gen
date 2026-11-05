@@ -88,7 +88,7 @@ SAMPLE_RATE = 24000  # Kokoro's native rate
 
 # Bumped whenever the prosody or mastering chain changes, so audio cached by an
 # older chain is rebuilt instead of being silently reused.
-AUDIO_PIPELINE_VERSION = 20
+AUDIO_PIPELINE_VERSION = 23
 
 
 # Emotional and narrative beat speed multipliers for natural, humanized delivery.
@@ -1199,9 +1199,13 @@ def synthesize_indic_parler(text: str, voice_key: str, speed: float = 1.0) -> np
         # Parler-TTS has no speed knob, so the requested pace is folded into the description.
         description = vinfo["description"].replace("a moderate pace", _pace_word(speed))
 
-        # Check if Vast.ai remote GPU is configured
-        vast_url = os.environ.get("VAST_SERVER_URL", "").strip()
-        use_vast = os.environ.get("USE_VAST", "0") == "1" or os.environ.get("TTS_PROVIDER", "").lower() == "vast"
+        # Check if remote GPU (Kaggle or Vast.ai) is configured
+        vast_url = (os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL") or os.environ.get("VAST_SERVER_URL", "")).strip()
+        use_vast = (
+            os.environ.get("USE_VAST", "0") == "1"
+            or os.environ.get("TTS_PROVIDER", "").lower() in ("vast", "remote")
+            or bool(os.environ.get("TTS_SERVER_URL") or os.environ.get("KAGGLE_TTS_URL"))
+        )
         if (use_vast or vast_url) and vast_url:
             last_err: Exception | None = None
             for attempt in range(1, VAST_AUDIO_ATTEMPTS + 1):
@@ -1886,7 +1890,7 @@ def read_gpu_cache(text: str, voice: str, speed: float):
             )
             path.unlink(missing_ok=True)
             return None
-        return clean_audio_glitches(wav_np)
+        return wav_np
     except Exception as err:  # noqa: BLE001 - a corrupt entry must never be fatal
         print(f"[Indic Parler Cache Warning] Ignoring unreadable {path.name}: {err}", file=sys.stderr)
         return None
@@ -1949,65 +1953,72 @@ HINDI_SPLIT_AFTER = {
 }
 
 
-def split_hindi_sentences(text: str, max_words: int = 22) -> list[tuple[str, str]]:
-    """Split Hindi text on every sentence terminator (।, ॥, ., ?, !, |, \\n).
+def split_hindi_sentences(text: str, max_words: int = 12) -> list[tuple[str, str]]:
+    """Split Hindi text on sentence and sub-clause boundaries (max 10-12 words).
 
-    Never merges multiple complete sentences together into large blobs: F5-TTS Diffusion Transformer
-    cross-attention stays sharp and accurate when generating one complete sentence at a time (6-20 words).
-    Merging independent sentences overloads DiT cross-attention, causing word scrambling and prompt bleeding.
+    Prevents F5-TTS Diffusion Transformer cross-attention drift, word slurring,
+    and prompt hallucination by ensuring each Euler ODE pass stays within 2-5s.
     """
     clean = " ".join((text or "").split())
     if not clean:
         return []
 
+    # Step 1: Split on major sentence terminators (।, ॥, ., ?, !, |, \n)
     raw_parts = re.split(r'([।॥.?!|\n]+)', clean)
-    sentences: list[str] = []
+    major_sentences: list[tuple[str, str]] = []
     i = 0
     while i < len(raw_parts):
         part = raw_parts[i].strip()
         term = raw_parts[i + 1].strip() if i + 1 < len(raw_parts) else ""
         if part:
-            combined = f"{part}{term}".strip() if term else part
-            sentences.append(combined)
+            major_sentences.append((part, term or "।"))
         i += 2
 
-    if not sentences:
-        return [(clean, "")]
+    if not major_sentences:
+        return [(clean, "।")]
 
-    # Merge very short sentences (< 4 words, e.g. 'क्यों?') with the following sentence
-    merged: list[str] = []
+    # Merge very short sentences (< 4 words, e.g. 'क्यों?') with the following sentence if possible
+    merged: list[tuple[str, str]] = []
     idx = 0
-    while idx < len(sentences):
-        cur = sentences[idx]
-        while len(cur.split()) < 4 and idx + 1 < len(sentences):
+    while idx < len(major_sentences):
+        cur_text, cur_term = major_sentences[idx]
+        while len(cur_text.split()) < 4 and idx + 1 < len(major_sentences):
             idx += 1
-            cur = f"{cur} {sentences[idx]}".strip()
-        merged.append(cur)
+            next_text, next_term = major_sentences[idx]
+            cur_text = f"{cur_text} {next_text}".strip()
+            cur_term = next_term
+        merged.append((cur_text, cur_term))
         idx += 1
 
     chunks: list[tuple[str, str]] = []
-    for s in merged:
-        words = s.split()
+    for s_text, s_term in merged:
+        words = s_text.split()
         if len(words) <= max_words:
-            chunks.append((s, ""))
+            chunks.append((s_text, s_term))
         else:
-            # Split an exceptionally long sentence (> 22 words) on comma boundaries
-            comma_parts = [p.strip() for p in re.split(r'([,，]+)', s) if p.strip()]
+            # Sub-divide long sentence (> max_words) on comma boundaries
+            comma_parts = [p.strip() for p in re.split(r'([,，]+)', s_text) if p.strip()]
+            sub_list: list[str] = []
             cur_chunk = ""
             for p in comma_parts:
                 if p in (",", "，"):
-                    cur_chunk += ","
+                    if cur_chunk:
+                        cur_chunk += ","
                     continue
                 cand = (cur_chunk + " " + p).strip() if cur_chunk else p
                 if len(cand.split()) > max_words and cur_chunk:
-                    chunks.append((cur_chunk.strip(), ""))
+                    sub_list.append(cur_chunk.strip())
                     cur_chunk = p
                 else:
                     cur_chunk = cand
             if cur_chunk:
-                chunks.append((cur_chunk.strip(), ""))
+                sub_list.append(cur_chunk.strip())
 
-    return chunks or [(clean, "")]
+            for sub_idx, sub in enumerate(sub_list):
+                term = s_term if sub_idx == len(sub_list) - 1 else ","
+                chunks.append((sub, term))
+
+    return chunks or [(clean, "।")]
 
 
 # Backward compatibility alias
@@ -2065,7 +2076,7 @@ def punctuate_hindi_clauses(text: str, max_words: int = 14) -> str:
 
 
 def clean_audio_glitches(audio, max_jump: float = 0.35):
-    """Slew-rate / continuity limiter to eliminate Vocos vocoder tearing without affecting vocal harmonics."""
+    """Normalize and clip audio safely without altering vocal harmonics or consonants."""
     import numpy as np
 
     x = np.asarray(audio, dtype=np.float32)
@@ -2074,23 +2085,7 @@ def clean_audio_glitches(audio, max_jump: float = 0.35):
     peak = float(np.max(np.abs(x))) if x.size else 0.0
     if peak > 1.0:
         x = x / 32768.0 if peak > 100.0 else x / peak
-    diff = np.diff(x)
-    bad_indices = np.where(np.abs(diff) > max_jump)[0]
-    if len(bad_indices) == 0:
-        return x
-    x = np.array(x, copy=True)
-    n = len(x)
-    for idx in bad_indices:
-        if 0 < idx < n - 2:
-            prev_val = x[idx]
-            next_val = x[idx + 2]
-            if abs(next_val - prev_val) < max_jump * 1.5:
-                x[idx + 1] = 0.5 * (prev_val + next_val)
-            else:
-                delta = x[idx + 1] - prev_val
-                if abs(delta) > max_jump:
-                    x[idx + 1] = prev_val + np.sign(delta) * max_jump
-    return x
+    return np.clip(x, -1.0, 1.0)
 
 
 def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
@@ -2108,7 +2103,10 @@ def prepare_remote_text(sentence: str, keep_punctuation: bool = False) -> str:
         kept = " ".join(kept.split())
         # Attach punctuation directly to preceding word (no trailing space before punct)
         kept = re.sub(r"\s+([,.;:!?।॥])", r"\1", kept)
-        return normalize_hindi_phonetics(kept or sentence)
+        norm = normalize_hindi_phonetics(kept or sentence)
+        if norm and not norm.endswith(("।", "॥", ".", "!", "?", ",")):
+            norm = norm + "।"
+        return norm
     return normalize_hindi_phonetics(prepare_tts_text(sentence))
 
 
@@ -2210,7 +2208,10 @@ def prebuild_vast_batch(
             # So a full narration line is sent as ONE segment for IndicF5 and split only for
             # the Parler path, which has no server-side pacing of its own.
             indicf5_line = is_indicf5_remote_voice(primary)
-            segments = [text] if indicf5_line else split_sentences(text)
+            if indicf5_line:
+                segments = [c[0] for c in split_hindi_sentences(text, max_words=12)]
+            else:
+                segments = split_sentences(text)
             for sentence in segments:
                 remote_text = prepare_remote_text(sentence, keep_punctuation=indicf5_line)
                 if not remote_text.strip() or remote_text in bucket:
@@ -2468,7 +2469,7 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
                 file=sys.stderr,
                 flush=True,
             )
-            matches = split_hindi_clauses(text, max_words=14)
+            matches = split_hindi_clauses(text, max_words=12)
             audio_chunks = []
             with torch.inference_mode():
                 for chunk_text, punct in matches:
@@ -2491,7 +2492,7 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
                     chunk_np = np.clip(chunk_np, -1.0, 1.0)
                     if chunk_np.size > 0:
                         audio_chunks.append(chunk_np)
-                    pause_sec = 0.20 if punct == "," else 0.40
+                    pause_sec = 0.15 if punct in (",", "，") else 0.28
                     silence_samples = int(24000 * pause_sec)
                     if silence_samples > 0:
                         audio_chunks.append(np.zeros(silence_samples, dtype=np.float32))
@@ -2499,7 +2500,6 @@ def _indicf5_run_inprocess(items: list[tuple[str, str, float]]) -> dict[int, byt
             if not audio_chunks:
                 continue
             generated_audio = np.concatenate(audio_chunks)
-            generated_audio = clean_audio_glitches(generated_audio)
             sample_rate = 24000
             buf = io.BytesIO()
             sf.write(buf, generated_audio, sample_rate, format="WAV", subtype="PCM_16")
@@ -2608,7 +2608,7 @@ def synthesize_indicf5_local(text: str, voice_key: str, speed: float = 1.0):
                 text=norm_text, voice=primary, speed=speed
             )
             wav_np, sample_rate = sf.read(io.BytesIO(audio_bytes), dtype="float32")
-            wav_np = clean_audio_glitches(resample_audio(wav_np, sample_rate or SAMPLE_RATE, SAMPLE_RATE))
+            wav_np = resample_audio(wav_np, sample_rate or SAMPLE_RATE, SAMPLE_RATE)
             if audio_is_bad(wav_np):
                 raise RuntimeError("remote IndicF5 returned silent/non-finite audio")
             write_gpu_cache(norm_text, primary, speed, audio_bytes)
@@ -2670,7 +2670,7 @@ def prebuild_indicf5_batch(
             # Keep the line whole here too, for the same reason as the remote batch: the
             # punctuation is both what the engine paces on and what keys the cache, so
             # splitting it would miss every segment synthesise_line() later looks up.
-            for sentence in [text]:
+            for sentence, _term in split_hindi_sentences(text, max_words=12):
                 remote_text = prepare_remote_text(sentence, keep_punctuation=True)
                 if not remote_text.strip() or remote_text in bucket:
                     continue
@@ -3079,27 +3079,25 @@ def synthesise_line(
 ):
     """Synthesise a whole line, returning (audio, words).
 
-    Each sentence is rendered as a single continuous vocal unit so that natural
-    prosody, pitch contours, and word transitions remain uninterrupted.
+    Each sentence/sub-clause is rendered as a clean vocal unit (max 12 words for IndicF5).
     Duration is spread across the sentence's words in proportion to phonetic weights.
     """
     import numpy as np
 
-    # IndicF5 applies clause-level pauses on the server from the punctuation embedded in
-    # the text, so a line must reach it whole. Splitting here would remove the punctuation
-    # the server paces on AND would key the cache to per-clause strings, so the full-line
-    # segments produced by prebuild_vast_batch() would never be found. Other engines keep
-    # the per-sentence split because it gives them accurate per-sentence word timings.
-    sentences = [text] if is_indicf5_remote_voice(voice) else split_sentences(text)
-    if not sentences:
+    if is_indicf5_remote_voice(voice):
+        sentences_with_meta = split_hindi_sentences(text, max_words=12)
+    else:
+        sentences_with_meta = [(s, "") for s in split_sentences(text)]
+
+    if not sentences_with_meta:
         return np.zeros(0, dtype=np.float32), []
 
     pieces: list = []
     words: list[dict] = []
     offset = 0.0
 
-    for index, sentence in enumerate(sentences):
-        # Synthesise complete sentence as an uninterrupted vocal unit
+    for index, (sentence, term) in enumerate(sentences_with_meta):
+        # Synthesise complete sentence or sub-clause as an uninterrupted vocal unit
         audio = apply_fades(trim_edge_silence(engine.say(sentence, voice, speed)))
         duration = len(audio) / SAMPLE_RATE
 
@@ -3125,14 +3123,19 @@ def synthesise_line(
         pieces.append(audio)
         offset += duration
 
-        if index < len(sentences) - 1:
-            gap = pause_after(sentence, pause, index)
+        if index < len(sentences_with_meta) - 1:
+            if is_indicf5_remote_voice(voice) and term in (",", "，"):
+                gap = 0.15
+            else:
+                gap = pause_after(sentence, pause, index)
             pieces.append(np.zeros(int(SAMPLE_RATE * gap), dtype=np.float32))
             offset += gap
 
-    line_master = dict(master or {})
     if is_indicf5_remote_voice(voice):
-        line_master["deglitch"] = True
+        # IndicF5 audio from neural vocoder is already mastered; bypass Kokoro dynamics/filters
+        return np.concatenate(pieces), words
+
+    line_master = dict(master or {})
     return master_audio(np.concatenate(pieces), line_master), words
 
 
@@ -3301,7 +3304,8 @@ def main() -> int:
         import soundfile as sf
         engine = Voice()
         voice_name = args.voice or "hf_beta"
-        sp = float(args.speed) if args.speed is not None else 1.0
+        default_sp = 0.82 if is_indicf5_remote_voice(voice_name) else 1.0
+        sp = float(args.speed) if args.speed is not None else default_sp
         out_path = Path(args.out or ROOT / "out" / "test_audio.wav").resolve()
         out_path.parent.mkdir(parents=True, exist_ok=True)
         print(f"Synthesising test line (Voice: {voice_name}, Speed: {sp:.2f}, Whisper: {args.whisper}):")
